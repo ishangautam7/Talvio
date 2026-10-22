@@ -1,0 +1,1827 @@
+//! Tauri commands for the assistant panel and assistant settings.
+
+use crate::assistant::{self, AssistantConversation, FileAttachment};
+use crate::llm_client::ChatMessage;
+use crate::managers::local_llm::LocalLlmManager;
+use crate::settings::{
+    assistant_provider_is_supported, get_settings, write_settings, AssistantCharacter,
+};
+use std::sync::Arc;
+use tauri::{AppHandle, Manager};
+
+/// Send a typed message to the assistant (keyboard alternative to voice).
+///
+/// A typed quick ask is one job, exactly like a spoken one, so it starts from an
+/// empty conversation (a no-op during a call, which owns the conversation).
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_send_text(app: AppHandle, text: String) -> Result<(), String> {
+    assistant::begin_quick_ask_exchange(&app);
+    assistant::run_assistant_turn(app, text, Vec::new(), Vec::new()).await;
+    Ok(())
+}
+
+/// Read a text-like file (code, markdown, logs, csv…) for attachment as
+/// assistant context. Rejects binaries and (for now) PDFs with a clear error.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_read_file(path: String) -> Result<FileAttachment, String> {
+    const MAX_BYTES: u64 = 5 * 1024 * 1024;
+    const MAX_CHARS: usize = 20_000;
+
+    let meta = std::fs::metadata(&path).map_err(|e| format!("Can't read file: {}", e))?;
+    if meta.len() > MAX_BYTES {
+        return Err("File is too large to attach (over 5 MB)".to_string());
+    }
+    let name = std::path::Path::new(&path)
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| path.clone());
+    let ext = std::path::Path::new(&path)
+        .extension()
+        .map(|e| e.to_string_lossy().to_lowercase())
+        .unwrap_or_default();
+    if ext == "pdf" {
+        return Err(
+            "PDF text extraction isn't supported yet — export it as text or markdown first."
+                .to_string(),
+        );
+    }
+    let bytes = std::fs::read(&path).map_err(|e| format!("Can't read file: {}", e))?;
+    // Reject obvious binaries: NUL bytes in the first chunk.
+    if bytes.iter().take(4096).any(|&b| b == 0) {
+        return Err(format!(
+            "'{}' looks like a binary file — attach text, code, or an image instead.",
+            name
+        ));
+    }
+    let text = String::from_utf8_lossy(&bytes);
+    let content: String = text.chars().take(MAX_CHARS).collect();
+    Ok(FileAttachment { name, content })
+}
+
+/// Load an image file from disk as a provider-ready data URL (downscaled).
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_read_image(path: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || crate::screenshot::image_file_to_data_url(&path))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_get_conversation(app: AppHandle) -> Result<Vec<ChatMessage>, String> {
+    let conversation = app.state::<AssistantConversation>();
+    let history = conversation
+        .messages
+        .lock()
+        .map_err(|e| format!("Conversation lock poisoned: {}", e))?;
+    Ok(history.clone())
+}
+
+/// Regenerate the latest answer (re-runs the last user message). The previous
+/// variant stays saved in History under its old row — regenerating forks a new
+/// one — so earlier answers remain reachable.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_regenerate(app: AppHandle) -> Result<(), String> {
+    crate::voice_conversation::end(&app);
+    assistant::regenerate_last(app).await;
+    Ok(())
+}
+
+/// Compact the conversation into a summary that replaces the transcript
+/// (the panel's `/summarize` command).
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_summarize(app: AppHandle) -> Result<(), String> {
+    assistant::run_summarize_turn(app).await;
+    Ok(())
+}
+
+/// Carry on a past conversation from History.
+///
+/// A conversation is what the call is for — the quick ask is one question and one
+/// answer, with nothing to continue it from — so this opens the call with the
+/// saved thread loaded. Future turns update that same History row.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_resume_session(app: AppHandle, id: i64) -> Result<(), String> {
+    ensure_saved_session_is_available(&app, id)?;
+    assistant::continue_in_call(
+        &app,
+        assistant::CallContinuation {
+            id: Some(id),
+            message_index: None,
+            meeting_id: None,
+        },
+    );
+    Ok(())
+}
+
+/// Continue a past conversation from one chosen message, as a new branch.
+///
+/// The thread up to and including `message_index` is adopted and everything after
+/// it is left behind, so the user can take a conversation they liked and try a
+/// different direction from the middle of it. Opens in the call, like resuming.
+///
+/// **The original is never modified.** The branch is loaded with no session id, so
+/// the next turn writes a fresh History row and the conversation being forked stays
+/// exactly as it was.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_branch_session(
+    app: AppHandle,
+    id: i64,
+    message_index: usize,
+) -> Result<(), String> {
+    ensure_saved_session_is_available(&app, id)?;
+    assistant::continue_in_call(
+        &app,
+        assistant::CallContinuation {
+            id: Some(id),
+            message_index: Some(message_index),
+            meeting_id: None,
+        },
+    );
+    Ok(())
+}
+
+/// Open a call about a meeting ("Discuss in a call" on the meeting page).
+///
+/// The call starts a new conversation with the meeting attached: its notes, the
+/// user's own notes and — when it fits — the whole transcript go into every
+/// turn's system prompt, and a longer transcript is read on demand through the
+/// `search_meeting` / `read_meeting` tools (see `meetings::discuss`). A call
+/// already running switches to the new conversation in place; the one it was
+/// having is saved first.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_discuss_meeting(app: AppHandle, meeting_id: i64) -> Result<(), String> {
+    let settings = get_settings(&app);
+    if !settings.assistant_enabled {
+        return Err("The assistant is switched off.".to_string());
+    }
+    if settings.active_character_is_cat() {
+        return Err("Choose a conversational profile to discuss a meeting.".to_string());
+    }
+    let conversation = app.state::<AssistantConversation>();
+    if conversation.is_busy() && !crate::voice_conversation::is_active(&app) {
+        return Err("The assistant is answering right now — stop it first.".to_string());
+    }
+    let store = app
+        .try_state::<Arc<crate::meetings::store::MeetingStore>>()
+        .ok_or("Meetings storage is unavailable.")?
+        .inner()
+        .clone();
+    let meeting = tauri::async_runtime::spawn_blocking(move || store.get_meeting(meeting_id))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())?
+        .ok_or("That meeting no longer exists.")?;
+    crate::meetings::discuss::discussable(&meeting)?;
+    assistant::continue_in_call(
+        &app,
+        assistant::CallContinuation {
+            id: None,
+            message_index: None,
+            meeting_id: Some(meeting_id),
+        },
+    );
+    Ok(())
+}
+
+/// The meeting the live conversation is about, for a panel that mounted after
+/// it was attached.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_conversation_meeting(
+    app: AppHandle,
+) -> Option<crate::meetings::discuss::MeetingAttachment> {
+    app.state::<AssistantConversation>().meeting()
+}
+
+/// Refuse to continue a saved conversation that cannot be continued right now:
+/// one that no longer exists, or any while a quick ask is still answering.
+fn ensure_saved_session_is_available(app: &AppHandle, id: i64) -> Result<(), String> {
+    if !get_settings(app).assistant_enabled {
+        return Err("The assistant is switched off.".to_string());
+    }
+    let conversation = app.state::<AssistantConversation>();
+    if conversation.is_busy() && !crate::voice_conversation::is_active(app) {
+        return Err("The assistant is answering right now — stop it first.".to_string());
+    }
+    let hm = app
+        .try_state::<std::sync::Arc<crate::managers::history::HistoryManager>>()
+        .ok_or_else(|| "History unavailable".to_string())?;
+    hm.get_assistant_session(id)
+        .map_err(|e| format!("Couldn't load the conversation: {}", e))?
+        .ok_or_else(|| "That conversation no longer exists.".to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_clear_conversation(app: AppHandle) -> Result<(), String> {
+    crate::voice_conversation::end(&app);
+    let conversation = app.state::<AssistantConversation>();
+    // Same guard as `reset_conversation_for_new_exchange`: a reply still
+    // streaming would otherwise be pushed into the emptied list and saved as a
+    // new History row holding only an assistant message.
+    if conversation.is_busy() {
+        conversation.request_cancel();
+    }
+    conversation.bump_epoch();
+    // Learn from the conversation before wiping it — but only if there's new,
+    // substantial content since the last pass. `take_distillable` enforces that
+    // (and marks it), so clearing right after a close never double-distills.
+    let snapshot = conversation.take_distillable();
+    conversation
+        .messages
+        .lock()
+        .map_err(|e| format!("Conversation lock poisoned: {}", e))?
+        .clear();
+    // Detach from the saved row and reset the distill marker for the fresh chat.
+    conversation.reset_session();
+    conversation.reset_distilled_marker();
+    assistant::emit_conversation(&app);
+    assistant::emit_conversation_meeting(&app);
+
+    // Fire-and-forget distillation of the just-ended conversation, off the hot
+    // path. `distill_and_store` re-checks the memory toggles before doing work.
+    if let Some(messages) = snapshot {
+        let app_for_memory = app.clone();
+        tauri::async_runtime::spawn(async move {
+            crate::memory::distill_and_store(app_for_memory, messages).await;
+        });
+    }
+    Ok(())
+}
+
+/// Choose where the quick ask opens.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_ask_anchor(
+    app: AppHandle,
+    anchor: crate::settings::AskAnchor,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_ask_anchor = anchor;
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// Choose which display the quick ask opens on: `cursor`, `primary`, or a
+/// monitor id from `list_assistant_displays`.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_ask_display(app: AppHandle, display: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_ask_display = display;
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// The displays currently connected, for the "Which screen" dropdown.
+#[tauri::command]
+#[specta::specta]
+pub fn list_assistant_displays(app: AppHandle) -> Result<Vec<assistant::DisplayChoice>, String> {
+    Ok(assistant::list_displays(&app))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn hide_assistant_panel(app: AppHandle) -> Result<(), String> {
+    assistant::hide_assistant_panel(&app);
+    Ok(())
+}
+
+/// Write an answer into the application the user asked from.
+///
+/// This is the Insert button. When the question was about selected text and that
+/// selection is still live, the paste replaces it, because that is simply what a
+/// paste over a selection does. When there was no selection, it lands at the
+/// caret.
+///
+/// Deliberately a button rather than something automatic. `SetForegroundWindow`
+/// restores *focus* but not a *selection*: most native edit controls keep their
+/// selection across a focus change, but some collapse it to a caret on blur, and
+/// `contenteditable` in browsers varies. In those cases a "replace" silently
+/// becomes an "insert" and the user ends up with both the original text and the
+/// rewrite. That cannot be detected before pasting, so the destructive version
+/// stays an explicit act the user takes while looking at the answer.
+///
+/// Copy an answer through the app's own clipboard, not the webview's: HTML
+/// beside the Markdown when `html` is given, the Markdown alone otherwise.
+///
+/// The panel's Copy tries the webview's clipboard first (`richAnswer.ts`) and
+/// falls back to this. WebKit, on macOS and Linux, refuses a webview clipboard
+/// write once the click's user activation has passed or the panel is not the
+/// focused window, and some WebKitGTK builds have no `ClipboardItem`; the
+/// native write needs neither. Unlike Insert's write, this is the user's own
+/// copy, so it is not kept out of clipboard history. HTML that cannot be
+/// written (Wayland without a native HTML path) falls back to the text.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_copy_answer(
+    app: AppHandle,
+    text: String,
+    html: Option<String>,
+) -> Result<(), String> {
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+    let clipboard = app.clipboard();
+    if let Some(html) = html.filter(|html| !html.trim().is_empty()) {
+        match clipboard.write_html(html.as_str(), Some(text.as_str())) {
+            Ok(()) => return Ok(()),
+            Err(e) => log::debug!("Copying the answer as HTML failed, copying text: {e}"),
+        }
+    }
+    clipboard.write_text(text).map_err(|e| e.to_string())
+}
+
+/// Paste behaviour matches Flow's rather than dictation's: no trailing space and
+/// no auto-submit, because this is a finished artifact being placed, not speech
+/// being typed.
+///
+/// `text` is the answer's Markdown. `html` is the same answer rendered, sent by
+/// the panel only when the Markdown has formatting in it; it goes on the
+/// clipboard beside the text so a rich editor pastes bold and lists instead of
+/// `**` and `1.` (see `clipboard::write_transient_clipboard_html`).
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_insert_text(
+    app: AppHandle,
+    text: String,
+    html: Option<String>,
+) -> Result<(), String> {
+    let html = html.filter(|html| !html.trim().is_empty());
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("There is nothing to insert".to_string());
+    }
+    // The panel is focusable when expanded, so clicking Insert put our own window
+    // in front. Hide first, then paste: the paste path's `restore_paste_target`
+    // only repairs a foreground that one of our own windows took, and it needs the
+    // real target to be next in line. So the hide is immediate here, not the
+    // deferred one every other path uses.
+    assistant::hide_assistant_panel_now(&app);
+
+    // On macOS the click on Insert made Zynveliq the active app, and ordering a
+    // window out does not give activation back (`restore_paste_target` is
+    // Windows-only), so Cmd+V would land in our own app. `hide:` is AppKit's way of
+    // handing activation to the app that had it before us. Queued behind the panel
+    // hide above, so the panel is already gone and is not among the windows that
+    // come back afterwards.
+    #[cfg(target_os = "macos")]
+    let yield_queued = {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let queued = app
+            .run_on_main_thread(move || {
+                use tauri_nspanel::objc2::MainThreadMarker;
+                use tauri_nspanel::objc2_app_kit::NSApplication;
+                let hid = MainThreadMarker::new().is_some_and(|mtm| {
+                    let ns_app = NSApplication::sharedApplication(mtm);
+                    let active = ns_app.isActive();
+                    if active {
+                        ns_app.hide(None);
+                    }
+                    active
+                });
+                let _ = tx.send(hid);
+            })
+            .is_ok();
+        // Activation moves in the window server, not in this call, so give it a
+        // moment before the keystroke goes out.
+        if queued
+            && rx
+                .recv_timeout(std::time::Duration::from_millis(500))
+                .unwrap_or(false)
+        {
+            std::thread::sleep(std::time::Duration::from_millis(150));
+        }
+        queued
+    };
+
+    let result = crate::clipboard::paste_rich_with_behavior(
+        text,
+        html.as_deref(),
+        app.clone(),
+        crate::clipboard::PasteBehavior {
+            allow_trailing_space: false,
+            allow_auto_submit: false,
+            smart_spacing: None,
+        },
+    );
+
+    // Bring back whatever `hide:` took down (an open Settings window) without
+    // taking activation back from the paste target. An app left hidden cannot be
+    // relied on to show its next window — the recording overlay, the next quick
+    // ask — until the user activates Zynveliq themselves.
+    // Queued after the hide, so it runs after it even if that was delayed.
+    #[cfg(target_os = "macos")]
+    if yield_queued {
+        let _ = app.run_on_main_thread(|| {
+            use tauri_nspanel::objc2::MainThreadMarker;
+            use tauri_nspanel::objc2_app_kit::NSApplication;
+            if let Some(mtm) = MainThreadMarker::new() {
+                let ns_app = NSApplication::sharedApplication(mtm);
+                if ns_app.isHidden() {
+                    ns_app.unhideWithoutActivation();
+                }
+            }
+        });
+    }
+
+    result
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_provider(app: AppHandle, provider_id: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    let provider = settings
+        .post_process_providers
+        .iter()
+        .find(|provider| provider.id == provider_id)
+        .ok_or_else(|| format!("Unknown provider: {}", provider_id))?;
+    if !assistant_provider_is_supported(&provider.id) {
+        return Err(format!(
+            "Provider '{}' is not supported by the Assistant",
+            provider.label
+        ));
+    }
+    // Remember the cloud choice before it is overwritten. `assistant_provider_id`
+    // is a single slot, so switching to "On my device" would otherwise erase
+    // which cloud provider the user had set up, and the switch back would land
+    // on an arbitrary one.
+    if provider_id != crate::settings::BUILTIN_POST_PROCESS_PROVIDER_ID {
+        settings.assistant_last_cloud_provider_id = Some(provider_id.clone());
+    }
+    settings.assistant_provider_id = provider_id;
+    write_settings(&app, settings);
+    crate::managers::local_llm::stop_engines_if_unused(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_assistant_model_setting(
+    app: AppHandle,
+    provider_id: String,
+    model: String,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_models.insert(provider_id, model);
+    write_settings(&app, settings);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn change_assistant_system_prompt_setting(
+    app: AppHandle,
+    prompt: String,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_system_prompt = prompt;
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// Master switch for the whole assistant experience.
+///
+/// Turning it off is what actually reclaims memory: the panel's WebView process
+/// is destroyed (not merely hidden, which is all closing it normally does), its
+/// two hotkeys are unregistered so the key combos fall through to other apps,
+/// and anything in flight is cancelled. Turning it back on recreates the window
+/// on demand — no restart. "Generate with Flow" and AI Correction are untouched;
+/// they share the provider/model settings but not the panel.
+///
+/// Deliberately `async`: a synchronous Tauri command runs on the main thread,
+/// and the teardown below talks to the keyboard engine's thread over a blocking
+/// channel and kills a child process. Any of that stalling on the main thread
+/// freezes the entire app — no overlay, no dictation, windows you cannot even
+/// drag. So the settings write happens here and the slow work runs elsewhere.
+#[tauri::command]
+#[specta::specta]
+pub async fn set_assistant_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    if settings.assistant_enabled == enabled {
+        return Ok(());
+    }
+    settings.assistant_enabled = enabled;
+    // Written first: `register_shortcut` refuses assistant bindings while the
+    // switch is off, so the new value has to be visible before we (re)arm them.
+    write_settings(&app, settings);
+
+    // Window work belongs to the event loop. Queued before the teardown so a
+    // rapid off → on lands in order and cannot leave a half-built panel.
+    if enabled {
+        assistant::create_assistant_panel(&app);
+    } else {
+        assistant::destroy_assistant_panel(&app);
+    }
+
+    let app_bg = app.clone();
+    let teardown = tauri::async_runtime::spawn_blocking(move || {
+        for binding_id in assistant::ASSISTANT_BINDINGS {
+            let result = if enabled {
+                crate::shortcut::resume_binding(app_bg.clone(), binding_id.to_string())
+            } else {
+                crate::shortcut::suspend_binding(app_bg.clone(), binding_id.to_string())
+            };
+            if let Err(e) = result {
+                log::warn!("assistant binding '{binding_id}' could not be updated: {e}");
+            }
+        }
+
+        if !enabled {
+            // Stop a turn or a spoken reply that is running right now, rather
+            // than leaving it playing into a window that is about to disappear.
+            crate::utils::cancel_current_operation(&app_bg);
+            crate::tts::stop_remote();
+            // The panel's WebView is not the biggest thing the assistant keeps
+            // resident — a loaded local model is. Kill the assistant's llama.cpp
+            // process instead of waiting for `local_llm_unload_timeout` to
+            // notice nobody is asking. Nothing is lost: "Generate with Flow"
+            // restarts it on demand, and AI Correction has its own engine on
+            // another port.
+            if let Some(llm) = app_bg.try_state::<Arc<LocalLlmManager>>() {
+                llm.stop();
+            }
+        }
+    });
+    if let Err(e) = teardown.await {
+        log::warn!("assistant teardown task failed: {e}");
+    }
+
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Notify the panel (a separate webview) that assistant settings changed.
+fn emit_settings_changed(app: &AppHandle) {
+    use tauri::Emitter;
+    let _ = app.emit("assistant-settings-changed", ());
+}
+
+/// Let the quick ask look at the screen when a question needs it. On offers the
+/// model the `capture_screen` tool; it still decides per question.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_ask_screen_access(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_ask_screen_access = enabled;
+    write_settings(&app, settings);
+    // A frame parked for an ask in progress must not outlive the switch.
+    if !enabled {
+        assistant::clear_agent_capture();
+    }
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// The same switch for a hands-free call.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_call_screen_access(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_call_screen_access = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Choose when a screen capture is taken for a voice turn: `Immediate` (the
+/// moment you start asking) or `OnSend` (when the message actually sends).
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_vision_capture_timing(
+    app: AppHandle,
+    timing: crate::settings::VisionCaptureTiming,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_vision_capture_timing = timing;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
+    // Disabling should silence whatever is playing or being generated right
+    // now, not just suppress future summaries.
+    if !enabled {
+        crate::tts::stop_remote();
+    }
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_enabled = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_voice(app: AppHandle, voice: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_voice = voice;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Loudness of the assistant's spoken replies (0.0–1.0).
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_volume(app: AppHandle, volume: f32) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_volume = volume.clamp(0.0, 1.0);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// ElevenLabs voice stability (0.0–1.0; lower is more expressive). `None`
+/// returns to the voice's own saved setting. Only the ElevenLabs engine reads
+/// it, and it takes effect on the next spoken clip.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_elevenlabs_stability(
+    app: AppHandle,
+    stability: Option<f32>,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_elevenlabs_stability = match stability {
+        Some(value) if value.is_finite() => Some(value.clamp(0.0, 1.0)),
+        Some(_) => return Err("Stability must be a number".to_string()),
+        None => None,
+    };
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Whether the assistant directs an ElevenLabs v3/v4 voice with audio tags
+/// (`[laughs]`, `[whispers]`, `[applause]`). Read when a reply starts, so it
+/// applies from the next reply on; ignored on other engines and models.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_elevenlabs_audio_tags(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_elevenlabs_audio_tags = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// How much the voice performs while audio tags are on.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_elevenlabs_audio_tag_intensity(
+    app: AppHandle,
+    intensity: crate::settings::AudioTagIntensity,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_elevenlabs_audio_tag_intensity = intensity;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// How long a hands-free conversation waits for you to finish speaking before it
+/// answers. Persisted, so it applies to every call rather than only the one it
+/// was changed in.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_conversation_pace(
+    app: AppHandle,
+    pace: crate::settings::ConversationPace,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_conversation_pace = pace;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// How readily a hands-free call treats a sound as the user speaking. Persisted
+/// for the same reason as the pace: a noisy room is noisy in every call.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_conversation_sensitivity(
+    app: AppHandle,
+    sensitivity: crate::settings::ConversationSensitivity,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_conversation_sensitivity = sensitivity;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_response_length(
+    app: AppHandle,
+    length: crate::settings::AssistantResponseLength,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_response_length = length;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_font_size(app: AppHandle, size: String) -> Result<(), String> {
+    if !matches!(size.as_str(), "small" | "medium" | "large" | "extra_large") {
+        return Err(format!("Unknown font size: {}", size));
+    }
+    let mut settings = get_settings(&app);
+    settings.assistant_font_size = size;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_engine(app: AppHandle, engine: String) -> Result<(), String> {
+    if !crate::tts::is_known_engine(&engine) {
+        return Err(format!("Unknown TTS engine: {}", engine));
+    }
+    // Switching engine mid-playback should stop the current clip.
+    crate::tts::stop_remote();
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_engine = engine;
+    // Load THIS engine's own saved endpoint / model / voice / key into the flat
+    // fields (from the per-engine maps, falling back to the engine's defaults).
+    // Each engine keeps its own settings, so switching no longer wipes them or
+    // carries another engine's values (e.g. an OpenAI base URL / key) across.
+    settings.sync_active_tts_fields();
+    let native = crate::native_tts::route(&settings) == crate::native_tts::VoiceRoute::Native;
+    write_settings(&app, settings);
+    if !native {
+        crate::native_tts::release(None);
+    }
+    emit_settings_changed(&app);
+    emit_local_voice_status(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_base_url(app: AppHandle, base_url: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    let engine = settings.assistant_tts_engine.clone();
+    settings
+        .assistant_tts_base_urls
+        .insert(engine, base_url.clone());
+    settings.assistant_tts_base_url = base_url;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_api_key(app: AppHandle, api_key: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    let engine = settings.assistant_tts_engine.clone();
+    settings
+        .assistant_tts_api_keys
+        .insert(engine, api_key.clone());
+    settings.assistant_tts_api_key = crate::settings::SecretString(api_key);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_model(app: AppHandle, model: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    let engine = settings.assistant_tts_engine.clone();
+    settings.assistant_tts_models.insert(engine, model.clone());
+    settings.assistant_tts_model = model;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_remote_voice(app: AppHandle, voice: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    let engine = settings.assistant_tts_engine.clone();
+    settings
+        .assistant_tts_remote_voices
+        .insert(engine, voice.clone());
+    settings.assistant_tts_remote_voice = voice;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_kokoro_dtype(app: AppHandle, dtype: String) -> Result<(), String> {
+    if !matches!(dtype.as_str(), "fp32" | "fp16" | "q8" | "q4" | "q4f16") {
+        return Err(format!("Unknown Kokoro dtype: {}", dtype));
+    }
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_kokoro_dtype = dtype;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Where Kokoro runs: "auto" (the graphics card when the panel's WebView can use
+/// it, the processor otherwise), "gpu" (always the WebView), or "cpu" (the
+/// native engine, once its voice pack is downloaded).
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_kokoro_device(app: AppHandle, device: String) -> Result<(), String> {
+    if !matches!(device.as_str(), "auto" | "gpu" | "cpu") {
+        return Err(format!("Unknown Kokoro device: {}", device));
+    }
+    // A reply playing on the old path should not keep talking over the switch.
+    crate::tts::stop_all(&app);
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_kokoro_device = device;
+    let native = crate::native_tts::route(&settings) == crate::native_tts::VoiceRoute::Native;
+    write_settings(&app, settings);
+    if !native {
+        // The processor voice holds ~400 MB while loaded; nothing will use it.
+        crate::native_tts::release(None);
+    }
+    emit_settings_changed(&app);
+    emit_local_voice_status(&app);
+    Ok(())
+}
+
+/// Where local speech is produced right now and which native voices are
+/// installed: what the Voice settings need to explain Automatic.
+#[tauri::command]
+#[specta::specta]
+pub fn get_local_voice_status(app: AppHandle) -> crate::native_tts::LocalVoiceStatus {
+    crate::native_tts::status(&get_settings(&app))
+}
+
+/// The assistant panel's WebView reports whether it can run Kokoro on the
+/// graphics card: an adapter exists, it started, and its audio was not caught
+/// garbled. Automatic moves Kokoro to the processor when it cannot.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_report_webgpu(app: AppHandle, usable: bool) {
+    if crate::native_tts::report_webgpu(usable) {
+        log::info!(
+            "Local voice: the panel reports WebGPU {}",
+            if usable { "usable" } else { "unusable" }
+        );
+        // A call probes the GPU as it opens, after its own warm-up already
+        // found nothing to warm. If the answer moves Kokoro to the processor,
+        // load it now so the first reply does not pay for the cold start.
+        let settings = get_settings(&app);
+        if crate::voice_conversation::is_active(&app)
+            && crate::native_tts::route(&settings) == crate::native_tts::VoiceRoute::Native
+        {
+            crate::native_tts::prewarm(&settings);
+        }
+        emit_local_voice_status(&app);
+    }
+}
+
+/// Tell every window where local speech now comes from.
+pub(crate) fn emit_local_voice_status(app: &AppHandle) {
+    use tauri::Emitter;
+    let _ = app.emit(
+        "local-voice-status-changed",
+        crate::native_tts::status(&get_settings(app)),
+    );
+}
+
+/// Playback speed multiplier for spoken summaries (0.25x–4x). Clamped to that
+/// range so a stray manual entry can't request an unusable rate. The change
+/// takes effect on the next spoken clip rather than interrupting the current
+/// one.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_speed(app: AppHandle, speed: f64) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_speed = speed.clamp(0.25, 4.0);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_panel_opacity(app: AppHandle, opacity: f64) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_panel_opacity = opacity.clamp(0.5, 1.0);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Whether starting a dictation silences a still-playing assistant reply.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_tts_stop_on_dictation(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_tts_stop_on_dictation = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Route the dictation currently being recorded to the assistant (the STT
+/// overlay's Ask-Assistant button), then commit it like a normal finish. A no-op
+/// while the assistant is switched off, so the transcript is pasted as usual
+/// instead of vanishing into a feature that isn't running.
+#[tauri::command]
+#[specta::specta]
+pub fn redirect_transcription_to_assistant(app: AppHandle) -> Result<(), String> {
+    if !get_settings(&app).assistant_enabled {
+        return Ok(());
+    }
+    assistant::set_transcribe_redirect();
+    Ok(())
+}
+
+/// Start/stop assistant voice recording programmatically (pill mic button).
+/// Hands-free toggle: first call starts, second stops (a click can't "hold").
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_toggle_voice(app: AppHandle) -> Result<(), String> {
+    crate::voice_conversation::end(&app);
+    let coordinator = app
+        .try_state::<crate::TranscriptionCoordinator>()
+        .ok_or_else(|| "Coordinator not initialized".to_string())?;
+    coordinator.send_input(
+        "assistant",
+        "pill",
+        true,
+        crate::transcription_coordinator::RecordingMode::Lock,
+    );
+    Ok(())
+}
+
+/// Speak arbitrary text with the configured remote TTS engine (used by the
+/// panel to test or replay summaries; the kokoro engine plays in-webview).
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_speak(app: AppHandle, text: String) -> Result<(), String> {
+    let settings = get_settings(&app);
+    // Same cleanup the auto-summary path uses, so replayed/!test text never
+    // reads out Markdown, code or emojis, and keeps audio tags only for an
+    // engine that performs them.
+    let text = crate::tts::sanitize_for_speech_for(&settings, &text);
+    if text.trim().is_empty() {
+        return Ok(());
+    }
+    if crate::native_tts::uses_webview(&settings) {
+        use tauri::Emitter;
+        let _ = app.emit("assistant-tts", text);
+    } else {
+        crate::tts::speak_remote(&app, &settings, text).await;
+    }
+    Ok(())
+}
+
+/// Header carrying the reply epoch alongside a raw audio body.
+///
+/// The raw-bytes IPC path uses the entire payload for the audio, so the epoch
+/// cannot ride along as a normal argument.
+const TTS_EPOCH_HEADER: &str = "x-tts-epoch";
+
+/// Audio plus the reply it belongs to, however the webview sent it.
+struct LocalTtsChunk {
+    audio: Vec<u8>,
+    epoch: Option<u64>,
+}
+
+/// The previous JSON shape, still accepted so an old-style caller is handled.
+#[derive(serde::Deserialize)]
+struct LocalTtsChunkJson {
+    audio: Vec<u8>,
+    #[serde(default)]
+    epoch: Option<u64>,
+}
+
+/// Read a chunk from either a raw binary body or the older JSON shape.
+///
+/// Raw is the path the webview uses. As a JSON number array, four seconds of
+/// speech was about 660 KB of text for 190 KB of audio — a 3.5x expansion that
+/// had to be built in the webview and parsed again in Rust, for every sentence.
+/// Raw bytes cross as-is.
+///
+/// The JSON branch accepts the previous `{ audio, epoch }` shape. It is not a
+/// platform fallback — desktop Tauri always delivers a raw body — it just means a
+/// caller still using the old shape gets a clear result instead of silent
+/// breakage.
+fn read_local_tts_chunk(request: &tauri::ipc::Request<'_>) -> Result<LocalTtsChunk, String> {
+    let epoch_header = request
+        .headers()
+        .get(TTS_EPOCH_HEADER)
+        .and_then(|value| value.to_str().ok());
+    parse_local_tts_chunk(request.body(), epoch_header)
+}
+
+/// The payload half of [`read_local_tts_chunk`], split out so both shapes can be
+/// tested without a live webview.
+fn parse_local_tts_chunk(
+    body: &tauri::ipc::InvokeBody,
+    epoch_header: Option<&str>,
+) -> Result<LocalTtsChunk, String> {
+    match body {
+        tauri::ipc::InvokeBody::Raw(audio) => Ok(LocalTtsChunk {
+            audio: audio.clone(),
+            epoch: epoch_header.and_then(|value| value.parse::<u64>().ok()),
+        }),
+        tauri::ipc::InvokeBody::Json(value) => {
+            let parsed: LocalTtsChunkJson = serde_json::from_value(value.clone())
+                .map_err(|e| format!("Unexpected local TTS chunk payload: {e}"))?;
+            Ok(LocalTtsChunk {
+                audio: parsed.audio,
+                epoch: parsed.epoch,
+            })
+        }
+    }
+}
+
+/// Queue one WAV chunk generated by the in-webview Kokoro model for native
+/// playback. The assistant HUD intentionally never takes keyboard focus, so
+/// relying on HTMLAudio playback is fragile on Linux/WebKit (it may be treated
+/// as background autoplay). Native playback also honours the selected output
+/// device, app volume, and the shared cancellation epoch.
+///
+/// Returns as soon as the chunk is queued, not when it has been heard, so the
+/// webview can keep synthesizing the next sentence while this one plays. Chunks
+/// play in the order they are queued, so the caller must await each call before
+/// sending the next.
+///
+/// The audio arrives as a raw binary body with the reply epoch in the
+/// `x-tts-epoch` header. A chunk whose epoch has been superseded is discarded,
+/// which closes the window where a chunk already in flight when the user pressed
+/// Stop could otherwise be played as part of the next reply. A missing epoch
+/// means "whatever is current", used by the one-shot replay path that has no
+/// reply of its own.
+/// Registered outside the typed-bindings generator (see `lib.rs`): the bindings
+/// generator cannot describe a raw request body, and generated bindings would be
+/// pointless here anyway since the payload is binary.
+#[tauri::command]
+pub async fn assistant_play_local_tts_chunk(
+    app: AppHandle,
+    request: tauri::ipc::Request<'_>,
+) -> Result<(), String> {
+    let chunk = read_local_tts_chunk(&request)?;
+    if chunk.audio.is_empty() {
+        return Err("Kokoro produced an empty audio chunk".to_string());
+    }
+
+    let settings = get_settings(&app);
+    let device = settings.selected_output_device.clone();
+    let volume = settings.assistant_tts_volume;
+    let epoch = chunk.epoch.unwrap_or_else(crate::tts::current_epoch);
+
+    let app_play = app.clone();
+    let audio = chunk.audio;
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::tts::enqueue_speech_chunk(&app_play, audio, device, volume, epoch)
+    })
+    .await
+    .map_err(|e| format!("local TTS playback task failed: {e}"))?
+}
+
+/// Signal that the reply identified by `epoch` has no more chunks, so the sink
+/// can drain and release the audio device. Closing a reply that has already been
+/// superseded is a no-op, so this cannot cut a newer reply short.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_finish_local_tts(epoch: Option<u64>) {
+    crate::tts::finish_speech_stream(epoch.unwrap_or_else(crate::tts::current_epoch));
+}
+
+/// Stop a Kokoro chunk currently playing through the native backend. This is
+/// deliberately separate from the panel event so calling it from the hook's
+/// local `stop()` cannot recursively emit another stop event.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_stop_local_tts() {
+    crate::tts::stop_remote();
+}
+
+/// Synthesize and play a short sample with the configured remote TTS engine,
+/// returning any error so the settings "Test voice" button can show it inline.
+/// (The local kokoro engine is tested in-webview, not through this command.)
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_test_tts(app: AppHandle, text: String) -> Result<(), String> {
+    let settings = get_settings(&app);
+    if crate::native_tts::uses_webview(&settings) {
+        return Err("Kokoro is tested locally in the browser, not via this command".to_string());
+    }
+    if let Some(blocker) = crate::native_tts::blocker(&settings) {
+        return Err(blocker);
+    }
+    // Interrupt anything currently playing before the test clip.
+    crate::tts::stop_remote();
+    // The phrase is chosen at random on the frontend (a rotating set of fun
+    // sample lines) so the spoken test matches the kokoro path. Fall back to a
+    // sensible default if the caller passes nothing.
+    let sample = if text.trim().is_empty() {
+        "Hi! This is a test of Zynveliq's voice output.".to_string()
+    } else {
+        text
+    };
+    crate::tts::test_remote(&settings, sample).await
+}
+
+/// Fetch all available Azure Speech neural voices for the configured endpoint
+/// and key, so the settings UI can offer a voice picker instead of guessing.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_list_azure_voices(
+    app: AppHandle,
+) -> Result<Vec<crate::tts::AzureVoice>, String> {
+    let settings = get_settings(&app);
+    crate::tts::list_azure_voices(&settings).await
+}
+
+/// List selectable voices for the currently-configured remote TTS engine, so
+/// the settings UI can offer a searchable voice picker instead of a raw text
+/// field. Returns an error string for inline display when the lookup fails
+/// (bad key, unreachable endpoint).
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_list_tts_voices(
+    app: AppHandle,
+) -> Result<Vec<crate::tts::TtsVoice>, String> {
+    let settings = get_settings(&app);
+    crate::tts::list_tts_voices(&settings).await
+}
+
+/// List selectable models for the currently-configured remote TTS engine.
+/// Engines whose voice implies the model return an error the UI shows inline.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_list_tts_models(app: AppHandle) -> Result<Vec<String>, String> {
+    let settings = get_settings(&app);
+    crate::tts::list_tts_models(&settings).await
+}
+
+/// Stop the current assistant turn: cancels in-flight generation and silences
+/// any spoken summary that is playing or about to play.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_stop(app: AppHandle) -> Result<(), String> {
+    crate::tts::stop_remote();
+    use tauri::Emitter;
+    // Tell the panel webview to stop local (Kokoro) playback too.
+    let _ = app.emit("assistant-tts-stop", ());
+    if let Some(conversation) = app.try_state::<assistant::AssistantConversation>() {
+        conversation.request_cancel();
+    }
+    Ok(())
+}
+
+/// How many prior messages the model receives as conversation context.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_max_history_messages(app: AppHandle, count: u32) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_max_history_messages = count.min(200);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Toggle automatic conversation summarization: when on, long chats fold older
+/// turns into a rolling summary instead of dropping them.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_auto_summarize(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_auto_summarize = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Web search
+// ---------------------------------------------------------------------------
+
+/// Enable or disable web search for the assistant. When enabled, a fast local
+/// heuristic still decides per-question whether a search is actually run, so
+/// casual chat stays instant.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_web_search_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_web_search_enabled = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Prefer the provider's OWN built-in web search (currently OpenRouter's
+/// `:online`) over the app's search. Providers without native search always use
+/// the app's search regardless of this flag.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_prefer_provider_web_search(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_prefer_provider_web_search = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Choose the search backend: "serper" (default), "brave", "tavily", "exa",
+/// "serpapi", or "tinyfish". All are snippet-only and use a single API key.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_web_search_provider(app: AppHandle, provider: String) -> Result<(), String> {
+    if !matches!(
+        provider.as_str(),
+        "serper" | "brave" | "tavily" | "exa" | "serpapi" | "tinyfish"
+    ) {
+        return Err(format!("Unknown web search provider: {}", provider));
+    }
+    let mut settings = get_settings(&app);
+    settings.assistant_web_search_provider = provider;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// How many results to feed the model (clamped to 1–10).
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_web_search_max_results(app: AppHandle, count: u32) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_web_search_max_results = count.clamp(1, 10);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Set how thorough web search is: "low" (fastest), "medium" (default), or
+/// "high" (broadest single pass). This is the primary depth control.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_search_depth(
+    app: AppHandle,
+    depth: crate::settings::AssistantSearchDepth,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_search_depth = depth;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Set how much a reasoning model may think before answering an ask or a call.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_thinking(
+    app: AppHandle,
+    level: crate::settings::ThinkingLevel,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_thinking = level;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// DEPRECATED / no-op since web search became snippet-only (the Firecrawl
+/// credit guard was removed). Still registered so existing bindings/settings
+/// stay valid; it only writes the now-unused setting field.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_web_search_daily_credit_budget(
+    app: AppHandle,
+    budget: u32,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    // Clamp to a sane ceiling; 0 stays 0 (unlimited).
+    settings.assistant_web_search_daily_credit_budget = budget.min(1_000_000);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Built-in local model only: toggle smart (LLM-planned) search decisions vs the
+/// fast keyword heuristic. No effect on cloud/custom providers.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_local_search_smart(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_local_search_smart = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// DEPRECATED / no-op since web search became snippet-only (page fetching was
+/// removed). Still registered so existing bindings/settings stay valid; it only
+/// writes the now-unused setting field.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_web_search_fetch_content(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_web_search_fetch_content = enabled;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Store the API key for a search provider ("serper", "brave", "tavily", "exa",
+/// "serpapi", or "tinyfish").
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_web_search_api_key(
+    app: AppHandle,
+    provider: String,
+    api_key: String,
+) -> Result<(), String> {
+    if !matches!(
+        provider.as_str(),
+        "serper" | "brave" | "tavily" | "exa" | "serpapi" | "tinyfish"
+    ) {
+        return Err(format!(
+            "Provider '{}' does not use an API key for web search",
+            provider
+        ));
+    }
+    let mut settings = get_settings(&app);
+    settings.web_search_api_keys.insert(provider, api_key);
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Brain connection test
+// ---------------------------------------------------------------------------
+
+/// Everything one assistant LLM call needs, resolved from settings.
+struct ResolvedAssistantCall {
+    provider: crate::settings::PostProcessProvider,
+    model: String,
+    api_key: String,
+}
+
+/// Resolve the configured assistant brain into a callable provider/model/key,
+/// starting the built-in engine if that is what is selected.
+///
+/// Shared by the connection test and character generation so the "you haven't
+/// finished setting this up" messages are written once. The three failures are
+/// separated on purpose: no provider, no model, and an engine that won't start
+/// need three different actions from the user, and collapsing them into one
+/// "not configured" is what sends people to the wrong setting.
+async fn resolve_assistant_call(app: &AppHandle) -> Result<ResolvedAssistantCall, String> {
+    let settings = get_settings(app);
+    let provider = settings
+        .active_assistant_provider()
+        .cloned()
+        .ok_or_else(|| {
+            "No assistant provider configured. Pick one in Settings → Assistant.".to_string()
+        })?;
+    let model = settings
+        .assistant_models
+        .get(&provider.id)
+        .cloned()
+        .unwrap_or_default();
+    if model.trim().is_empty() {
+        return Err(format!(
+            "No model configured for provider '{}'. Set one in Settings → Assistant.",
+            provider.label
+        ));
+    }
+    let api_key = settings
+        .post_process_api_keys
+        .get(&provider.id)
+        .cloned()
+        .unwrap_or_default();
+
+    // The built-in local engine must be running before we can call it.
+    if provider.id == crate::settings::BUILTIN_POST_PROCESS_PROVIDER_ID {
+        let manager = app.state::<Arc<LocalLlmManager>>();
+        manager
+            .ensure_running(&model)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(ResolvedAssistantCall {
+        provider,
+        model,
+        api_key,
+    })
+}
+
+/// Ask the configured brain one trivial question, so a broken setup is found
+/// here instead of the first time the user speaks to the assistant.
+///
+/// This sends a real chat completion rather than probing `/models`, because a
+/// listing succeeds for a key that is valid but out of credit, and for a model
+/// id this endpoint does not serve — the two failures people actually hit. On
+/// the built-in engine it also covers "the model loads at all", since
+/// [`resolve_assistant_call`] starts it first (which is why the first press can
+/// take a while: it is loading weights, not stalling).
+///
+/// A reply with no text is still a pass. Some reasoning models spend their whole
+/// budget on hidden tokens and return empty content; the request being accepted
+/// is the signal, and calling that a failure would send the user chasing a
+/// working configuration. The message says which case it was.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_test_connection(app: AppHandle) -> Result<String, String> {
+    let call = resolve_assistant_call(&app).await?;
+    let started = std::time::Instant::now();
+    let reply = crate::llm_client::send_chat_completion(
+        &call.provider,
+        call.api_key,
+        &call.model,
+        "Reply with just the word: ok".to_string(),
+        None,
+        None,
+    )
+    .await?;
+    let millis = started.elapsed().as_millis();
+
+    let answered = reply
+        .as_deref()
+        .map(|text| !text.trim().is_empty())
+        .unwrap_or(false);
+    if answered {
+        Ok(format!(
+            "{} replied — {} is reachable ({} ms).",
+            call.provider.label, call.model, millis
+        ))
+    } else {
+        Ok(format!(
+            "{} accepted the request for {} ({} ms), but returned no text.",
+            call.provider.label, call.model, millis
+        ))
+    }
+}
+
+/// Run a one-off web search with the current settings and return the results,
+/// so the settings UI can offer a "Test search" button and surface any error
+/// (missing key, rate limit) inline.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_test_web_search(
+    app: AppHandle,
+    query: String,
+) -> Result<Vec<crate::web_search::SearchResult>, String> {
+    let settings = get_settings(&app);
+    crate::web_search::search(&settings, &query).await
+}
+
+// ---------------------------------------------------------------------------
+// Characters (assistant personas)
+// ---------------------------------------------------------------------------
+
+/// Switch the active character. Errors if the id no longer exists.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_active_character(app: AppHandle, id: String) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    if !settings.assistant_characters.iter().any(|c| c.id == id) {
+        return Err("That character no longer exists.".to_string());
+    }
+    settings.assistant_active_character_id = id;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Replace the whole character list. Add / edit / reorder / duplicate / delete
+/// all funnel through here (like text replacements), which keeps the UI simple.
+/// Enforces the invariants: the non-deletable `default` character must remain,
+/// the list can't be empty, ids must be unique, and the active id must still
+/// resolve. The `default` character's prompt is mirrored back into
+/// `assistant_system_prompt` for backward compatibility.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_characters(
+    app: AppHandle,
+    characters: Vec<AssistantCharacter>,
+) -> Result<(), String> {
+    if characters.is_empty() {
+        return Err("At least one character is required.".to_string());
+    }
+    if !characters.iter().any(|c| c.id == "default") {
+        return Err("The default assistant character can't be removed.".to_string());
+    }
+    let mut seen = std::collections::HashSet::new();
+    for c in &characters {
+        if c.id.trim().is_empty() {
+            return Err("A character is missing an id.".to_string());
+        }
+        if !seen.insert(c.id.clone()) {
+            return Err(format!("Duplicate character id: {}", c.id));
+        }
+    }
+
+    let mut settings = get_settings(&app);
+    if !characters
+        .iter()
+        .any(|c| c.id == settings.assistant_active_character_id)
+    {
+        settings.assistant_active_character_id = "default".to_string();
+    }
+    // Keep the plain system prompt in sync with the default character so any
+    // legacy reader (and the first-run migration seed) stays correct.
+    if let Some(def) = characters.iter().find(|c| c.id == "default") {
+        if !def.prompt.trim().is_empty() {
+            settings.assistant_system_prompt = def.prompt.clone();
+        }
+    }
+    settings.assistant_characters = characters;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Load an image file as a small avatar data URL (downscaled to 256px so it
+/// stays compact inside the settings file).
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_read_avatar(path: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::screenshot::image_file_to_avatar_data_url(&path)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Import a character from a JSON file on disk (path chosen via the UI's file
+/// dialog). The imported character always gets a fresh id and is never marked
+/// built-in, so it can't clobber a built-in or the non-deletable default.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_import_character(
+    app: AppHandle,
+    path: String,
+) -> Result<AssistantCharacter, String> {
+    let bytes = std::fs::read(&path).map_err(|e| format!("Couldn't read file: {}", e))?;
+    let mut character: AssistantCharacter = serde_json::from_slice(&bytes)
+        .map_err(|e| format!("That file isn't a valid character: {}", e))?;
+    character.id = new_character_id();
+    character.builtin = false;
+    if character.name.trim().is_empty() {
+        character.name = "Imported character".to_string();
+    }
+    let mut settings = get_settings(&app);
+    settings.assistant_characters.push(character.clone());
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(character)
+}
+
+/// Export a single character to a JSON file on disk (path chosen via the UI's
+/// save dialog).
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_export_character(app: AppHandle, id: String, path: String) -> Result<(), String> {
+    let settings = get_settings(&app);
+    let character = settings
+        .assistant_characters
+        .iter()
+        .find(|c| c.id == id)
+        .ok_or_else(|| "Character not found.".to_string())?;
+    let json = serde_json::to_string_pretty(character).map_err(|e| e.to_string())?;
+    std::fs::write(&path, json).map_err(|e| format!("Couldn't write file: {}", e))?;
+    Ok(())
+}
+
+/// Reset a built-in persona to the version shipped with the app (its original
+/// name, role, prompt, greeting, avatar, and reply length). Custom personas
+/// have no shipped default, so this only works on built-in ids. This is the
+/// "reload" for a built-in whose prompt/details you edited (or wiped) and want
+/// back.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_restore_builtin_character(
+    app: AppHandle,
+    id: String,
+) -> Result<AssistantCharacter, String> {
+    // Passing an empty prompt makes the canonical "default" persona fall back to
+    // its shipped system prompt, so this restores the true factory version.
+    let shipped = crate::settings::default_assistant_characters("");
+    let canonical = shipped
+        .into_iter()
+        .find(|c| c.id == id)
+        .ok_or_else(|| "That isn't a built-in persona.".to_string())?;
+
+    let mut settings = get_settings(&app);
+    let existing = settings
+        .assistant_characters
+        .iter_mut()
+        .find(|c| c.id == id)
+        .ok_or_else(|| "That persona no longer exists.".to_string())?;
+    *existing = canonical.clone();
+    // Keep the plain system prompt in sync with the base assistant.
+    if id == "default" {
+        settings.assistant_system_prompt = canonical.prompt.clone();
+    }
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(canonical)
+}
+
+/// Re-add any built-in personas the user deleted, leaving their custom personas
+/// and their edits to still-present built-ins untouched. Returns how many were
+/// restored (0 if none were missing).
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_restore_missing_builtins(app: AppHandle) -> Result<u32, String> {
+    let shipped = crate::settings::default_assistant_characters("");
+    let mut settings = get_settings(&app);
+    let mut restored = 0u32;
+    for canonical in shipped {
+        if !settings
+            .assistant_characters
+            .iter()
+            .any(|c| c.id == canonical.id)
+        {
+            settings.assistant_characters.push(canonical);
+            restored += 1;
+        }
+    }
+    if restored > 0 {
+        write_settings(&app, settings);
+        emit_settings_changed(&app);
+    }
+    Ok(restored)
+}
+
+/// A persona drafted by the model from a short description. Not persisted by
+/// the backend — the UI shows it for review, then saves it via
+/// `set_assistant_characters`.
+#[derive(serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct GeneratedCharacter {
+    pub name: String,
+    pub prompt: String,
+    pub greeting: String,
+}
+
+/// Draft a character from a short natural-language description using the
+/// currently-configured assistant provider/model. Returns the drafted
+/// name/prompt/greeting for the user to review and save.
+#[tauri::command]
+#[specta::specta]
+pub async fn assistant_generate_character(
+    app: AppHandle,
+    description: String,
+) -> Result<GeneratedCharacter, String> {
+    let description = description.trim().to_string();
+    if description.is_empty() {
+        return Err("Describe the character you want first.".to_string());
+    }
+
+    let call = resolve_assistant_call(&app).await?;
+
+    let system = "You design personas for a voice assistant. Given the user's description, invent a single character and respond with ONLY a JSON object (no prose, no markdown fences) with exactly these keys: \"name\" (a short display name, 2-24 characters), \"prompt\" (the system prompt for the persona, written in the second person. Define its personality, tone, speaking style, and any quirks or constraints; it must stay genuinely helpful and must never be hateful, harassing, or target real people or protected groups. Write it without em dashes), and \"greeting\" (a short in-character opening line, one sentence). Keep it tasteful and PG.".to_string();
+
+    let schema = if call.provider.supports_structured_output {
+        Some(serde_json::json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "prompt": { "type": "string" },
+                "greeting": { "type": "string" }
+            },
+            "required": ["name", "prompt", "greeting"],
+            "additionalProperties": false
+        }))
+    } else {
+        None
+    };
+
+    let raw = crate::llm_client::send_chat_completion_with_schema(
+        &call.provider,
+        call.api_key,
+        &call.model,
+        description,
+        Some(system),
+        schema,
+        None,
+        None,
+    )
+    .await?
+    .ok_or_else(|| "The model returned no content.".to_string())?;
+
+    parse_generated_character(&raw)
+}
+
+/// Parse the model's reply into a GeneratedCharacter, tolerating markdown
+/// fences and surrounding prose by extracting the first `{...}` block.
+fn parse_generated_character(raw: &str) -> Result<GeneratedCharacter, String> {
+    #[derive(serde::Deserialize)]
+    struct Draft {
+        name: Option<String>,
+        prompt: Option<String>,
+        greeting: Option<String>,
+    }
+
+    let trimmed = raw.trim();
+    let json_slice = match (trimmed.find('{'), trimmed.rfind('}')) {
+        (Some(start), Some(end)) if end >= start => &trimmed[start..=end],
+        _ => trimmed,
+    };
+
+    let draft: Draft = serde_json::from_str(json_slice)
+        .map_err(|e| format!("Couldn't understand the model's reply: {}", e))?;
+
+    let prompt = draft.prompt.unwrap_or_default().trim().to_string();
+    if prompt.is_empty() {
+        return Err("The model didn't return a persona prompt — try again.".to_string());
+    }
+    let name = draft.name.unwrap_or_default().trim().to_string();
+    let name: String = if name.is_empty() {
+        "New character".to_string()
+    } else {
+        name.chars().take(40).collect()
+    };
+    let greeting = draft.greeting.unwrap_or_default().trim().to_string();
+    Ok(GeneratedCharacter {
+        name,
+        prompt,
+        greeting,
+    })
+}
+
+/// A reasonably-unique id for a new/imported character (avoids a uuid dep).
+fn new_character_id() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    format!("char-{}", nanos)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn local_tts_chunk_reads_a_raw_body_with_the_epoch_header() {
+        let body = tauri::ipc::InvokeBody::Raw(vec![1, 2, 3, 4]);
+        let chunk = parse_local_tts_chunk(&body, Some("7")).unwrap();
+        assert_eq!(chunk.audio, vec![1, 2, 3, 4]);
+        assert_eq!(chunk.epoch, Some(7));
+    }
+
+    #[test]
+    fn local_tts_chunk_treats_a_missing_or_bad_epoch_header_as_current() {
+        let body = tauri::ipc::InvokeBody::Raw(vec![9]);
+        assert_eq!(parse_local_tts_chunk(&body, None).unwrap().epoch, None);
+        // A malformed header must not fail the chunk; "current" is the safe
+        // reading, matching the one-shot replay path.
+        assert_eq!(
+            parse_local_tts_chunk(&body, Some("not-a-number"))
+                .unwrap()
+                .epoch,
+            None
+        );
+    }
+
+    #[test]
+    fn local_tts_chunk_still_accepts_the_json_fallback() {
+        // The shape used before the switch to raw bytes, kept working so an
+        // old-style caller gets a clear result rather than silent breakage.
+        let body = tauri::ipc::InvokeBody::Json(serde_json::json!({
+            "audio": [5, 6, 7],
+            "epoch": 42
+        }));
+        let chunk = parse_local_tts_chunk(&body, None).unwrap();
+        assert_eq!(chunk.audio, vec![5, 6, 7]);
+        assert_eq!(chunk.epoch, Some(42));
+    }
+
+    #[test]
+    fn local_tts_chunk_rejects_an_unrecognised_payload() {
+        let body = tauri::ipc::InvokeBody::Json(serde_json::json!({ "nope": true }));
+        assert!(parse_local_tts_chunk(&body, None).is_err());
+    }
+}

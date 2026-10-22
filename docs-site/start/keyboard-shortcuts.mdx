@@ -1,0 +1,73 @@
+---
+title: "Keyboard shortcuts"
+description: "Every Zynveliq keyboard shortcut and its default on Windows, macOS, and Linux, plus how to change them and how Hold to talk and Tap to toggle work."
+icon: "keyboard"
+---
+
+## Defaults
+
+| Action                          | Windows                            | macOS               | Linux                      |
+| ------------------------------- | ---------------------------------- | ------------------- | -------------------------- |
+| **Dictate**                     | `Left Ctrl` + `Left Win`           | `Fn` (🌐)           | `Ctrl` + `Space`           |
+| **Ask the assistant**           | `Left Ctrl` + `Left Alt`           | `Fn` + `Ctrl`       | `Ctrl` + `Alt` + `Space`   |
+| **Start or end a conversation** | `Left Ctrl` + `Left Alt` + `C`     | `Fn` + `Ctrl` + `C` | `Ctrl` + `Alt` + `C`       |
+| **Dictate and clean up**        | `Left Ctrl` + `Left Win` + `Shift` | `Fn` + `Shift`      | `Ctrl` + `Shift` + `Space` |
+| **Cancel**                      | `Esc`                              | `Esc`               | Not available              |
+
+The pattern is the same on every platform: add Shift to the dictation keys to dictate and clean up, and add `C` to the ask keys to start a conversation.
+
+The "Dictate and clean up" shortcut only appears while [AI cleanup](/writing/ai-cleanup) is on and set to its own shortcut (rather than running on every dictation).
+
+## Hold to talk vs Tap to toggle
+
+One setting controls all recording shortcuts (dictation, dictation with cleanup, and the assistant). You will find it on the **Home** page and in _Settings → Shortcuts_.
+
+- **Hold to talk** (the default). Records while you hold the keys. Let go to stop.
+- **Tap to toggle**. One press starts recording. The next press stops it. This is how you record hands-free.
+
+The conversation shortcut always works by pressing to start and pressing again to end, regardless of this setting.
+
+## Changing a shortcut
+
+Click the keys shown for any shortcut. An editor opens where you can record a new key combination. From the editor you can also:
+
+- **Use default** to go back to the original keys.
+- **Turn off** (Cancel and the conversation shortcut only) to remove the binding entirely. Dictation and the assistant always keep a key.
+
+Clicking outside the editor closes it without changes. Esc is not used to close, because Esc itself is a key you might want to record.
+
+## How Cancel and Esc work
+
+Cancel (bound to `Esc` by default on Windows and macOS) only acts while something is running: an active recording, a streaming assistant reply, or a Flow generation. The rest of the time, Esc passes through to other apps.
+
+During a conversation, Esc stops the current reply without ending the conversation. It only hangs up when the assistant is idle.
+
+Cancel is not available on Linux.
+
+## Shared-prefix shortcuts
+
+Shortcuts that start with the same keys work together. For example, `Left Ctrl` + `Left Alt` (ask) and `Left Ctrl` + `Left Alt` + `C` (conversation) share the first two keys. In Hold to talk mode, the ask waits to see if `C` follows before showing the panel. In Tap to toggle mode, modifier-only shortcuts fire on release, so letting go without pressing `C` triggers the ask.
+
+## macOS globe key
+
+The default macOS shortcuts use the Fn (🌐) key. For them to work, set _System Settings → Keyboard → Press 🌐 key to_ to **Do Nothing**. Otherwise the globe key opens the emoji picker as well. The **Home** shortcuts card says so when this setting needs changing.
+
+Macs that were on the older Option-based defaults (`Option` + `Space` for dictation, `Option` + `Ctrl` + `Space` for the assistant) keep them after updating. The new Fn defaults only apply to fresh installs.
+
+## Linux notes
+
+Linux defaults include a letter or Space in every combo because the default keyboard engine (Tauri's plugin) cannot register a modifier-only shortcut. Cancel is not available on Linux.
+
+## Debug mode
+
+`Ctrl` + `Shift` + `D` (Windows/Linux) or `Cmd` + `Shift` + `D` (macOS) toggles debug mode. This is not a global shortcut. It only works while the main Zynveliq window is focused. Turning it on reveals the **Debug** tab in _Settings_.
+
+## CLI flags
+
+Scripts and window managers can control Zynveliq without keyboard shortcuts. See [CLI flags](/settings/cli) for the full list, including `--toggle-transcription`, `--toggle-post-process`, and `--cancel`.
+
+<Tip>
+  On Linux Wayland, a shortcut owned by your desktop (a custom shortcut in GNOME
+  or KDE settings, or a `bind` line in Sway or Hyprland) calling `zynveliq
+  --toggle-transcription` works more reliably than the in-app engine.
+</Tip>

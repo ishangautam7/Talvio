@@ -1,0 +1,590 @@
+import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
+import { produce } from "immer";
+import { listen } from "@tauri-apps/api/event";
+import { commands, type ModelInfo } from "@/bindings";
+import { toast } from "sonner";
+import i18n from "@/i18n";
+
+interface DownloadProgress {
+  model_id: string;
+  downloaded: number;
+  total: number;
+  percentage: number;
+}
+
+interface DownloadStats {
+  startTime: number;
+  lastUpdate: number;
+  totalDownloaded: number;
+  speed: number; // MB/s
+}
+
+// Using Record instead of Set/Map for Immer compatibility
+interface ModelsStore {
+  models: ModelInfo[];
+  currentModel: string;
+  downloadingModels: Record<string, true>;
+  verifyingModels: Record<string, true>;
+  extractingModels: Record<string, true>;
+  downloadProgress: Record<string, DownloadProgress>;
+  downloadStats: Record<string, DownloadStats>;
+  /**
+   * Why a model's last download failed, until the next attempt or a cancel.
+   * The store-wide `error` is overwritten by the next action anywhere; a
+   * prompt that offers Retry beside the reason needs it per model.
+   */
+  downloadErrors: Record<string, string>;
+  loading: boolean;
+  error: string | null;
+  hasAnyModels: boolean;
+  isFirstRun: boolean;
+  initialized: boolean;
+  /**
+   * Transcription model the user picked during onboarding whose download is
+   * still in flight. Once the download completes, the store selects it (makes
+   * it the active recording model) — even if the user has already moved past
+   * the speech-to-text step — so the Step-1 download can be fully non-blocking.
+   */
+  pendingSttSelection: string | null;
+
+  // Actions
+  initialize: () => Promise<void>;
+  loadModels: () => Promise<void>;
+  loadCurrentModel: () => Promise<void>;
+  checkFirstRun: () => Promise<boolean>;
+  selectModel: (modelId: string) => Promise<boolean>;
+  downloadModel: (modelId: string) => Promise<boolean>;
+  cancelDownload: (modelId: string) => Promise<boolean>;
+  deleteModel: (modelId: string) => Promise<boolean>;
+  getModelInfo: (modelId: string) => ModelInfo | undefined;
+  isModelDownloading: (modelId: string) => boolean;
+  isModelVerifying: (modelId: string) => boolean;
+  isModelExtracting: (modelId: string) => boolean;
+  getDownloadProgress: (modelId: string) => DownloadProgress | undefined;
+  /** Record (or clear) the onboarding STT model awaiting a background download. */
+  setPendingSttSelection: (modelId: string | null) => void;
+  /**
+   * Select a freshly-downloaded onboarding STT model, retrying a few times to
+   * absorb the transient post-download load race (`set_active_model` can
+   * momentarily fail with "Model load already in progress"). Only surfaces an
+   * error toast after the retries are exhausted, so a select that will succeed
+   * doesn't spam the user.
+   */
+  finalizePendingSttSelection: (modelId: string) => Promise<void>;
+
+  // Internal setters
+  setModels: (models: ModelInfo[]) => void;
+  setCurrentModel: (modelId: string) => void;
+  setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
+}
+
+export const useModelStore = create<ModelsStore>()(
+  subscribeWithSelector((set, get) => ({
+    models: [],
+    currentModel: "",
+    downloadingModels: {},
+    verifyingModels: {},
+    extractingModels: {},
+    downloadProgress: {},
+    downloadStats: {},
+    downloadErrors: {},
+    loading: true,
+    error: null,
+    hasAnyModels: false,
+    isFirstRun: false,
+    initialized: false,
+    pendingSttSelection: null,
+
+    // Internal setters
+    setModels: (models) => set({ models }),
+    setCurrentModel: (currentModel) => set({ currentModel }),
+    setError: (error) => set({ error }),
+    setLoading: (loading) => set({ loading }),
+
+    setPendingSttSelection: (pendingSttSelection) =>
+      set({ pendingSttSelection }),
+
+    finalizePendingSttSelection: async (modelId: string) => {
+      // Retry a few times with a short backoff. The only failure worth retrying
+      // right after a fresh download is the transient race in
+      // switch_active_model: try_start_loading() returns None → "Model load
+      // already in progress". That path returns BEFORE load_model and emits no
+      // event, so retrying it is silent and a moment later it succeeds.
+      //
+      // A GENUINE load failure (corrupt/incompatible weights) instead emits
+      // `model-state-changed: loading_failed`, which App.tsx already surfaces as
+      // a clear toast with the real error. Retrying that would only spam that
+      // toast, so we stop immediately and let the single App.tsx toast stand.
+      const maxAttempts = 4;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        // Bail out if the pending selection was superseded/cancelled meanwhile.
+        if (get().pendingSttSelection !== modelId) return;
+
+        const ok = await get().selectModel(modelId);
+        if (ok) {
+          if (get().pendingSttSelection === modelId) {
+            set({ pendingSttSelection: null });
+          }
+          return;
+        }
+
+        const isTransient = (get().error ?? "")
+          .toLowerCase()
+          .includes("already in progress");
+        if (!isTransient) {
+          // Genuine failure — already surfaced by App.tsx's loading_failed
+          // toast. Drop the pending selection and stop (no second toast).
+          if (get().pendingSttSelection === modelId) {
+            set({ pendingSttSelection: null });
+          }
+          return;
+        }
+
+        // Backoff: 250ms, 500ms, 750ms between the four attempts.
+        await new Promise((resolve) =>
+          setTimeout(resolve, 250 * (attempt + 1)),
+        );
+      }
+
+      // Persistent transient failure (rare) — surface a clear, resolved message.
+      if (get().pendingSttSelection === modelId) {
+        set({ pendingSttSelection: null });
+        toast.error(
+          i18n.t("onboarding.errors.selectModel", {
+            defaultValue: "Couldn't select that model. Please try again.",
+          }),
+          { id: "onboarding-select-model" },
+        );
+      }
+    },
+
+    loadModels: async () => {
+      try {
+        const result = await commands.getAvailableModels();
+        if (result.status === "ok") {
+          set({ models: result.data, error: null });
+
+          // Sync downloading state from backend
+          set(
+            produce((state) => {
+              const backendDownloading: Record<string, true> = {};
+              result.data
+                .filter((m) => m.is_downloading)
+                .forEach((m) => {
+                  backendDownloading[m.id] = true;
+                });
+
+              // Merge: keep frontend state if downloading, add backend state
+              Object.keys(backendDownloading).forEach((id) => {
+                state.downloadingModels[id] = true;
+              });
+
+              // Remove models that backend says are NOT downloading AND
+              // frontend doesn't have progress for (completed/cancelled)
+              Object.keys(state.downloadingModels).forEach((id) => {
+                if (!backendDownloading[id] && !state.downloadProgress[id]) {
+                  delete state.downloadingModels[id];
+                }
+              });
+            }),
+          );
+        } else {
+          set({
+            error: i18n.t("errors.loadModelsFailed", {
+              error: String(result.error),
+            }),
+          });
+        }
+      } catch (err) {
+        set({
+          error: i18n.t("errors.loadModelsFailed", { error: String(err) }),
+        });
+      } finally {
+        set({ loading: false });
+      }
+    },
+
+    loadCurrentModel: async () => {
+      try {
+        const result = await commands.getCurrentModel();
+        if (result.status === "ok") {
+          set({ currentModel: result.data });
+        }
+      } catch (err) {
+        console.error("Failed to load current model:", err);
+      }
+    },
+
+    checkFirstRun: async () => {
+      try {
+        const result = await commands.hasAnyModelsAvailable();
+        if (result.status === "ok") {
+          const hasModels = result.data;
+          set({ hasAnyModels: hasModels, isFirstRun: !hasModels });
+          return !hasModels;
+        }
+        return false;
+      } catch (err) {
+        console.error("Failed to check model availability:", err);
+        return false;
+      }
+    },
+
+    selectModel: async (modelId: string) => {
+      try {
+        set({ error: null });
+        const result = await commands.setActiveModel(modelId);
+        if (result.status === "ok") {
+          set({
+            currentModel: modelId,
+            isFirstRun: false,
+            hasAnyModels: true,
+          });
+          return true;
+        } else {
+          set({
+            error: i18n.t("errors.switchModelFailed", {
+              error: String(result.error),
+            }),
+          });
+          return false;
+        }
+      } catch (err) {
+        set({
+          error: i18n.t("errors.switchModelFailed", { error: String(err) }),
+        });
+        return false;
+      }
+    },
+
+    downloadModel: async (modelId: string) => {
+      try {
+        set({ error: null });
+        set(
+          produce((state) => {
+            state.downloadingModels[modelId] = true;
+            delete state.downloadErrors[modelId];
+            state.downloadProgress[modelId] = {
+              model_id: modelId,
+              downloaded: 0,
+              total: 0,
+              percentage: 0,
+            };
+          }),
+        );
+        const result = await commands.downloadModel(modelId);
+        if (result.status !== "ok") {
+          // Fallback cleanup in case the model-download-failed event was not received
+          // (e.g. listener not yet registered). The event handler is a no-op if it
+          // arrives after this cleanup since deleting missing keys is safe.
+          set(
+            produce((state) => {
+              delete state.downloadingModels[modelId];
+              delete state.downloadProgress[modelId];
+              delete state.downloadStats[modelId];
+              state.downloadErrors[modelId] = String(result.error);
+            }),
+          );
+        }
+        return result.status === "ok";
+      } catch (err) {
+        // model-download-failed event won't fire for JS exceptions (e.g. IPC error),
+        // so clean up state here to avoid a stuck progress spinner.
+        set(
+          produce((state) => {
+            delete state.downloadingModels[modelId];
+            delete state.downloadProgress[modelId];
+            delete state.downloadStats[modelId];
+            state.downloadErrors[modelId] = String(err);
+          }),
+        );
+        return false;
+      }
+    },
+
+    cancelDownload: async (modelId: string) => {
+      try {
+        set({ error: null });
+        const result = await commands.cancelDownload(modelId);
+        if (result.status === "ok") {
+          set(
+            produce((state) => {
+              delete state.downloadingModels[modelId];
+              delete state.downloadProgress[modelId];
+              delete state.downloadStats[modelId];
+            }),
+          );
+
+          // Reload models to sync with backend state
+          await get().loadModels();
+          return true;
+        } else {
+          set({
+            error: i18n.t("errors.cancelDownloadFailed", {
+              error: String(result.error),
+            }),
+          });
+          return false;
+        }
+      } catch (err) {
+        set({
+          error: i18n.t("errors.cancelDownloadFailed", { error: String(err) }),
+        });
+        return false;
+      }
+    },
+
+    deleteModel: async (modelId: string) => {
+      try {
+        set({ error: null });
+        const result = await commands.deleteModel(modelId);
+        if (result.status === "ok") {
+          await get().loadModels();
+          await get().loadCurrentModel();
+          return true;
+        } else {
+          set({
+            error: i18n.t("errors.deleteModelFailed", {
+              error: String(result.error),
+            }),
+          });
+          return false;
+        }
+      } catch (err) {
+        set({
+          error: i18n.t("errors.deleteModelFailed", { error: String(err) }),
+        });
+        return false;
+      }
+    },
+
+    getModelInfo: (modelId: string) => {
+      return get().models.find((model) => model.id === modelId);
+    },
+
+    isModelDownloading: (modelId: string) => {
+      return modelId in get().downloadingModels;
+    },
+
+    isModelVerifying: (modelId: string) => {
+      return modelId in get().verifyingModels;
+    },
+
+    isModelExtracting: (modelId: string) => {
+      return modelId in get().extractingModels;
+    },
+
+    getDownloadProgress: (modelId: string) => {
+      return get().downloadProgress[modelId];
+    },
+
+    initialize: async () => {
+      if (get().initialized) return;
+
+      const { loadModels, loadCurrentModel, checkFirstRun } = get();
+
+      // Load initial data
+      await Promise.all([loadModels(), loadCurrentModel(), checkFirstRun()]);
+
+      // Set up event listeners
+      listen<DownloadProgress>("model-download-progress", (event) => {
+        const progress = event.payload;
+        set(
+          produce((state) => {
+            state.downloadProgress[progress.model_id] = progress;
+          }),
+        );
+
+        // Update download stats for speed calculation
+        const now = Date.now();
+        set(
+          produce((state) => {
+            const current = state.downloadStats[progress.model_id];
+
+            if (!current) {
+              state.downloadStats[progress.model_id] = {
+                startTime: now,
+                lastUpdate: now,
+                totalDownloaded: progress.downloaded,
+                speed: 0,
+              };
+            } else {
+              const timeDiff = (now - current.lastUpdate) / 1000;
+              const bytesDiff = progress.downloaded - current.totalDownloaded;
+
+              if (timeDiff > 0.5) {
+                const currentSpeed = bytesDiff / (1024 * 1024) / timeDiff;
+                const validCurrentSpeed = Math.max(0, currentSpeed);
+                const smoothedSpeed =
+                  current.speed > 0
+                    ? current.speed * 0.8 + validCurrentSpeed * 0.2
+                    : validCurrentSpeed;
+
+                state.downloadStats[progress.model_id] = {
+                  startTime: current.startTime,
+                  lastUpdate: now,
+                  totalDownloaded: progress.downloaded,
+                  speed: Math.max(0, smoothedSpeed),
+                };
+              }
+            }
+          }),
+        );
+      });
+
+      listen<string>("model-download-complete", (event) => {
+        const modelId = event.payload;
+        set(
+          produce((state) => {
+            delete state.downloadingModels[modelId];
+            delete state.verifyingModels[modelId];
+            delete state.downloadProgress[modelId];
+            delete state.downloadStats[modelId];
+            delete state.downloadErrors[modelId];
+          }),
+        );
+        get().loadModels();
+
+        // If the user picked this transcription model during onboarding, select
+        // it now that the weights are on disk. This runs from the store (which
+        // lives for the whole session), so it works even if the user already
+        // clicked "Continue" past the speech-to-text step — making the Step-1
+        // download fully non-blocking.
+        if (get().pendingSttSelection === modelId) {
+          void get().finalizePendingSttSelection(modelId);
+        }
+      });
+
+      listen<{ model_id: string; error: string }>(
+        "model-download-failed",
+        (event) => {
+          const { model_id: modelId, error } = event.payload;
+          set(
+            produce((state) => {
+              delete state.downloadingModels[modelId];
+              delete state.verifyingModels[modelId];
+              delete state.downloadProgress[modelId];
+              delete state.downloadStats[modelId];
+              state.error = error;
+              state.downloadErrors[modelId] = error;
+              // A failed download can never be selected — drop any pending
+              // onboarding selection so we don't try to activate it.
+              if (state.pendingSttSelection === modelId) {
+                state.pendingSttSelection = null;
+              }
+            }),
+          );
+          // Backport of Handy #1522: surface the *real* download error (e.g. a
+          // blocked/unreachable host) instead of failing silently. Zynveliq
+          // already mounts <Toaster /> during onboarding (App.tsx renders it
+          // before the onboarding body), so this shows on the wizard too. The
+          // friendly title gives context; the raw error rides along as the
+          // description so it stays diagnosable rather than a generic message.
+          toast.error(
+            i18n.t("errors.downloadFailedTitle", {
+              defaultValue: "Download failed",
+            }),
+            { description: error },
+          );
+        },
+      );
+
+      listen<string>("model-verification-started", (event) => {
+        const modelId = event.payload;
+        set(
+          produce((state) => {
+            state.verifyingModels[modelId] = true;
+          }),
+        );
+      });
+
+      listen<string>("model-verification-completed", (event) => {
+        const modelId = event.payload;
+        set(
+          produce((state) => {
+            delete state.verifyingModels[modelId];
+          }),
+        );
+      });
+
+      listen<string>("model-extraction-started", (event) => {
+        const modelId = event.payload;
+        set(
+          produce((state) => {
+            state.extractingModels[modelId] = true;
+          }),
+        );
+      });
+
+      listen<string>("model-extraction-completed", (event) => {
+        const modelId = event.payload;
+        set(
+          produce((state) => {
+            delete state.extractingModels[modelId];
+          }),
+        );
+        get().loadModels();
+      });
+
+      listen<{ model_id: string; error: string }>(
+        "model-extraction-failed",
+        (event) => {
+          const modelId = event.payload.model_id;
+          set(
+            produce((state) => {
+              delete state.extractingModels[modelId];
+              delete state.downloadingModels[modelId];
+              delete state.downloadProgress[modelId];
+              delete state.downloadStats[modelId];
+              state.error = i18n.t("errors.extractModelFailed", {
+                error: String(event.payload.error),
+              });
+              state.downloadErrors[modelId] = String(event.payload.error);
+              if (state.pendingSttSelection === modelId) {
+                state.pendingSttSelection = null;
+              }
+            }),
+          );
+          // Like a failed download, a failed extraction must not fail silently
+          // during onboarding — surface the real error (Handy #1522 intent).
+          toast.error(
+            i18n.t("errors.downloadFailedTitle", {
+              defaultValue: "Download failed",
+            }),
+            { description: event.payload.error },
+          );
+        },
+      );
+
+      listen<string>("model-download-cancelled", (event) => {
+        const modelId = event.payload;
+        set(
+          produce((state) => {
+            delete state.downloadingModels[modelId];
+            delete state.verifyingModels[modelId];
+            delete state.downloadProgress[modelId];
+            delete state.downloadStats[modelId];
+            delete state.downloadErrors[modelId];
+            if (state.pendingSttSelection === modelId) {
+              state.pendingSttSelection = null;
+            }
+          }),
+        );
+      });
+
+      listen<string>("model-deleted", () => {
+        get().loadModels();
+        get().loadCurrentModel();
+      });
+
+      listen("model-state-changed", () => {
+        get().loadModels();
+        get().loadCurrentModel();
+      });
+
+      set({ initialized: true });
+    },
+  })),
+);

@@ -1,0 +1,26 @@
+{
+  "name": "zynveliq-logo-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tooling to generate Zynveliq logo assets at standard sizes",
+  "scripts": {
+    "bbox": "node compute-bbox.mjs",
+    "build": "node build-logos.mjs",
+    "build:icon-v2": "node build-new-icon.mjs",
+    "build:lockup-v2": "node build-new-lockup.mjs",
+    "build:small": "node build-small-icon.mjs",
+    "build:tray": "node tray-glyphs.mjs",
+    "apply:app": "node apply-icon-to-app.mjs",
+    "apply:icns": "node patch-icns-small.mjs",
+    "preview:small": "node preview-small-icon.mjs",
+    "verify:app": "cd .. && node Logo/verify-app-icons.mjs",
+    "verify:icon-v2": "node verify-new-icon.mjs"
+  },
+  "dependencies": {
+    "opentype.js": "^2.0.0",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.35.3",
+    "svg-path-bounds": "^1.0.2"
+  }
+}

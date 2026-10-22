@@ -1,0 +1,3593 @@
+{
+  "appearance": {
+    "title": "Utseende",
+    "description": "Välj ett ljust, mörkt eller systemanpassat tema för appen och assistentpanelen.",
+    "system": "System",
+    "light": "Ljust",
+    "dark": "Mörkt",
+    "textSize": "Textstorlek",
+    "textSizeDescription": "Skala storleken på text och kontroller i hela appen.",
+    "textSizeSmall": "Liten",
+    "textSizeDefault": "Standard",
+    "textSizeLarge": "Stor",
+    "textSizeExtraLarge": "Extra stor"
+  },
+  "tray": {
+    "home": "Hem",
+    "openAssistant": "Öppna assistenten",
+    "checkUpdates": "Sök efter uppdateringar…",
+    "sendFeedback": "Skicka feedback…",
+    "copyLastTranscript": "Kopiera senaste transkriptionen",
+    "unloadModel": "Avlasta modell",
+    "model": "Modell",
+    "quit": "Avsluta",
+    "cancel": "Avbryt"
+  },
+  "updates": {
+    "check": "Sök efter uppdateringar",
+    "checking": "Söker…",
+    "upToDate": "Du har den senaste versionen",
+    "checkFailed": "Det gick inte att söka efter uppdateringar. Kontrollera anslutningen och försök igen.",
+    "noBuild": "Den nya versionen finns inte för det här systemet än.",
+    "available": "Version {{version}} finns tillgänglig",
+    "availableShort": "Uppdatering tillgänglig",
+    "installNow": "Uppdatera nu",
+    "downloading": "Laddar ner… {{progress}}%",
+    "downloadingUnknown": "Laddar ner…",
+    "installing": "Installerar…",
+    "reopening": "Zynveliq stängs för att installera uppdateringen och öppnas igen om några sekunder.",
+    "updatedTo": "Uppdaterad till version {{version}}",
+    "restart": "Starta om nu",
+    "readyToRestart": "Uppdateringen är installerad. Starta om Zynveliq för att börja använda den.",
+    "installFailed": "Uppdateringen installerades inte. Du kan försöka igen, eller ladda ner installationsprogrammet och köra det själv.",
+    "downloadFailed": "Nedladdningen blev inte klar. Kontrollera anslutningen och försök igen.",
+    "downloadInstaller": "Ladda ner installationsprogram",
+    "downloadInstead": "Ladda ner installationsprogrammet i stället",
+    "downloadNewVersion": "Ladda ner ny version",
+    "installerSaved": "Installationsprogrammet finns i mappen Hämtade filer",
+    "openInstaller": "Kör installationsprogrammet",
+    "showInFolder": "Visa i mapp",
+    "viewRelease": "Visa på GitHub",
+    "hint": {
+      "windows": "Zynveliq stängs, installerar uppdateringen och öppnas igen. Du behöver inte klicka på något mer.",
+      "macos": "Zynveliq startar om med den nya versionen. macOS kan be dig tillåta Mikrofon och Hjälpmedel igen efteråt.",
+      "linux": "Zynveliq startar om med den nya versionen. En .deb-installation ber först om ditt lösenord."
+    },
+    "modes": {
+      "portable": "Det här är den portabla versionen, som inte kan ersätta sig själv. Ladda ner den nya versionen och kopiera din Data-mapp till den.",
+      "packageManager": "Zynveliq installerades av din pakethanterare, så uppdatera den där, till exempel med yay -Syu zynveliq-bin.",
+      "download": "Den här kopian kan inte uppdatera sig själv på plats. Ladda ner installationsprogrammet och kör det för att få den nya versionen."
+    },
+    "pill": {
+      "available": "Uppdatering tillgänglig",
+      "version": "Version {{version}}",
+      "progress": "Uppdaterar… {{progress}}%",
+      "working": "Uppdaterar…",
+      "restart": "Starta om för att uppdatera",
+      "installerReady": "Installationsprogrammet har laddats ner"
+    }
+  },
+  "feedback": {
+    "button": "Skicka feedback",
+    "title": "Skicka feedback",
+    "description": "Jag läser varje meddelande själv, så skriv precis som det blir. Tack för att du hjälper till att göra Zynveliq bättre.",
+    "kind": {
+      "label": "Typ av feedback",
+      "bug": "Fel",
+      "idea": "Idé",
+      "question": "Fråga"
+    },
+    "placeholder": {
+      "bug": "Vad hände, och vad förväntade du dig i stället?",
+      "idea": "Vad skulle göra Zynveliq bättre för dig?",
+      "question": "Vad vill du veta?"
+    },
+    "messageLabel": "Meddelande",
+    "emailLabel": "E-post för svar",
+    "emailPlaceholder": "E-post, om du vill ha ett svar",
+    "emailInvalid": "Den e-postadressen ser inte rätt ut.",
+    "includeSystem": "Inkludera appversion och operativsystem",
+    "systemDetails": "Skickas exakt som: {{system}}",
+    "remaining": "{{count}} kvar",
+    "screenshots": {
+      "add": "Lägg till skärmbild",
+      "pasteHint": "eller klistra in med {{shortcut}}",
+      "remove": "Ta bort skärmbild {{index}}",
+      "preview": "Skärmbild {{index}}, {{width}} × {{height}}, {{size}}",
+      "working": "Förminskar skärmbilden…",
+      "limit": "Du kan bifoga upp till {{count}} skärmbilder.",
+      "notImage": "Den filen är inte en bild.",
+      "tooLarge": "Den bilden är för stor för att bifogas.",
+      "unreadable": "Den bilden gick inte att läsa."
+    },
+    "send": "Skicka",
+    "sending": "Skickar…",
+    "sentTitle": "Tack, den är på väg",
+    "sentBody": "Den har kommit fram till mig, och jag läser den snart.",
+    "sentWithEmail": "Om det finns något att följa upp hör jag av mig till {{email}}.",
+    "screenshotsDropped_one": "Skärmbilden kunde inte sparas, men ditt meddelande kom fram.",
+    "screenshotsDropped_other": "{{count}} skärmbilder kunde inte sparas, men ditt meddelande kom fram.",
+    "sendAnother": "Skicka en till",
+    "errors": {
+      "generic": "Det gick inte att skicka din feedback. Ditt meddelande finns kvar här, så försök igen om en stund."
+    },
+    "aboutRow": {
+      "title": "Feedback",
+      "description": "Rapportera ett fel, föreslå en idé eller ställ en fråga.",
+      "button": "Skicka feedback"
+    }
+  },
+  "sidebar": {
+    "general": "Allmänt",
+    "dictation": "Diktering",
+    "assistant": "Assistent",
+    "meetings": "Möten",
+    "history": "Historik",
+    "about": "Om",
+    "debug": "Felsökning",
+    "characters": "Profiler",
+    "memory": "Minne",
+    "collapse": "Fäll in sidofältet",
+    "expand": "Fäll ut sidofältet"
+  },
+  "window": {
+    "minimize": "Minimera",
+    "maximize": "Maximera",
+    "restore": "Återställ",
+    "close": "Stäng"
+  },
+  "sectionSubtitles": {
+    "general": "Kortkommandon, din mikrofon och appens utseende.",
+    "dictation": "Modellen som omvandlar din röst till text, och hur texten rensas upp.",
+    "assistant": "Ställ in assistenten och finjustera sedan dess röst, skärmvisning och webbsökning.",
+    "meetings": "Spela in ett samtal, läs det uppdelat per talare och gör om det till anteckningar.",
+    "history": "Dina senaste dikteringar, Flow-genereringar och assistentchattar, lagrade på den här enheten.",
+    "about": "Version, appspråk, dataplatser och tack till.",
+    "debug": "Diagnostik och utvecklarverktyg."
+  },
+  "onboarding": {
+    "flow": {
+      "progress": "Steg {{current}} av {{total}}",
+      "steps": {
+        "setup": "Konfigurera",
+        "tour": "Rundtur"
+      }
+    },
+    "setup": {
+      "installed": "Installerad",
+      "loadFailed": "Det gick inte att ladda listan med modeller.",
+      "retry": "Försök igen"
+    },
+    "tour": {
+      "features": "Vad Zynveliq gör",
+      "count": "{{current}} av {{total}}",
+      "next": "Nästa",
+      "finish": "Öppna Zynveliq",
+      "tabs": {
+        "dictate": "Diktering",
+        "ask": "Assistent",
+        "call": "Konversation"
+      },
+      "keys": {
+        "hold": "Håll ned för att tala",
+        "tap": "Tryck för att starta, tryck för att stoppa",
+        "call": "Tryck för att starta, igen för att avsluta"
+      },
+      "steps": {
+        "label": "Så fungerar det",
+        "speak": "Säg det du vill skriva",
+        "typed": "Det skrivs där markören är",
+        "select": "Markera text (valfritt)",
+        "use": "Infoga svaret, eller läs det bara",
+        "talk": "Prata bara",
+        "answer": "Den svarar högt"
+      },
+      "mail": {
+        "window": "Nytt meddelande",
+        "to": "Till",
+        "toValue": "Sara",
+        "subject": "Ämne",
+        "subjectValue": "Fredag"
+      },
+      "dictate": {
+        "title": "Prata.\nDet skrivs.",
+        "cleanup": "AI-rensning, när du vill ha den",
+        "said": "Hej Sara, kan vi flytta vårt samtal till fredag? Jag skickar budgeten innan dess."
+      },
+      "ask": {
+        "title": "Be om\nvad som helst.",
+        "chips": {
+          "translate": "Översätt",
+          "decline": "Skriv ett svar",
+          "explain": "Förklara",
+          "anything": "…vad som helst"
+        },
+        "examples": {
+          "translate": {
+            "window": "Meddelanden",
+            "doc": "Kan vi flytta vårt samtal till fredag?",
+            "question": "Översätt det här till spanska",
+            "answer": "¿Podemos pasar nuestra llamada al viernes?"
+          },
+          "decline": {
+            "window": "E-post",
+            "doc": "Hej, har du möjlighet att vara med på planeringsgenomgången på torsdag kl. 15?",
+            "question": "Skriv ett artigt svar om att jag inte kan på torsdag",
+            "answer": "Tack för inbjudan! Jag kan tyvärr inte på torsdag kl. 15, men jag är ledig på fredag förmiddag om det passar."
+          },
+          "explain": {
+            "window": "Webbläsare",
+            "doc": "API:et returnerar 429 Too Many Requests.",
+            "question": "Vad betyder det här?",
+            "answer": "Du skickar förfrågningar snabbare än tjänsten tillåter. Vänta en stund och försök sedan igen i lugnare takt."
+          }
+        }
+      },
+      "call": {
+        "title": "Eller prata\nbara igenom det.",
+        "you": "Du",
+        "assistant": "Assistent",
+        "said": "Hjälp mig att planera ett kort anförande till fredagens teammöte.",
+        "reply": "Visst. Börja med det resultat du är mest stolt över, ge två skäl till att det fungerade och avsluta med vad som händer härnäst."
+      }
+    },
+    "subtitle": "För att komma igång, välj en transkriptionsmodell",
+    "steps": {
+      "progress": "Steg {{current}} av {{total}}",
+      "counter": "Steg {{current}} av {{total}} · {{label}}",
+      "speechToText": "Höra dig",
+      "aiModel": "Ge den en hjärna",
+      "ready": "Du är klar"
+    },
+    "speechToText": {
+      "title": "Hur ska Zynveliq höra dig?",
+      "subtitle": "Det här förvandlar din röst till text, direkt på din dator. Välj en, byt när du vill.",
+      "cards": {
+        "fast": {
+          "description": "Blixtsnabb och streamar medan du talar. Endast engelska."
+        },
+        "multilingual": {
+          "description": "Realtid på 28 språk."
+        }
+      },
+      "downloadAndContinue": "Ladda ner och fortsätt",
+      "seeAllModels": "Visa alla modeller",
+      "hideAllModels": "Visa färre modeller",
+      "installedHint": "Redan klart. Du kan hämta en annan modell senare i Inställningar.",
+      "useInstalled": "Använd installerad modell",
+      "continue": "Fortsätt",
+      "downloadingHint": "Den laddas ner i bakgrunden. Alla andra modeller är ett klick bort i Inställningar.",
+      "downloadStarted": "Laddar ner din modell i bakgrunden."
+    },
+    "aiModel": {
+      "title": "Lägg till lokal AI (valfritt)",
+      "subtitle": "En assistent att prata med, plus vår egen modell som rensar din diktering. Välj den ena, eller båda.",
+      "tiers": {
+        "small": {
+          "description": "Körs på alla datorer. Bra för att snygga till din text."
+        },
+        "mid": {
+          "description": "En snabb allroundmodell som också kan svara på frågor."
+        },
+        "capable": {
+          "description": "De skarpaste svaren, och den kan se din skärm."
+        }
+      },
+      "seesScreen": "Visionsmodell",
+      "textOnly": "Endast text",
+      "recommendedForAssistant": "Rekommenderas för assistenten",
+      "download": "Ladda ner modell",
+      "useDownloaded": "Använd nedladdad modell",
+      "skip": "Hoppa över tills vidare",
+      "skipHint": "Du kan lägga till båda senare i Inställningar.",
+      "continue": "Fortsätt",
+      "downloadingHint": "Den laddas ner i bakgrunden. Börja använda appen direkt.",
+      "downloadStarted": "Laddar ner din modell i bakgrunden."
+    },
+    "cleanup": {
+      "cardTitle": "SpeakoFlow Mini",
+      "cardDescription": "Utför talade ändringar som ”nytt stycke” och ”stryk det”. Endast engelska.",
+      "pill": "Rensar din diktering",
+      "recommendedForDictation": "Rekommenderas för diktering",
+      "download": "Ladda ner och slå på",
+      "useDownloaded": "Slå på den"
+    },
+    "ready": {
+      "title": "Du är klar.",
+      "subtitle": "Två kortkommandon är allt du behöver. Tryck, tala, klart.",
+      "dictateLabel": "Diktera var som helst",
+      "dictateCaption": "Håll ned, tala, släpp. Dina ord skriver sig själva.",
+      "assistantKeysLabel": "Fråga assistenten",
+      "assistantKeysCaption": "Håll ned och fråga. Den kan till och med se din skärm.",
+      "changeAnytime": "Du kan ändra detta när som helst i Inställningar.",
+      "hotkeyLabel": "Dina dikteringstangenter",
+      "downloadingAssistant": "Din assistent flyttar in. {{percentage}}% klart.",
+      "downloadingVoice": "Din röstmodell landar. {{percentage}}% klart.",
+      "downloadingGeneric": "Laddar fortfarande ner. {{percentage}}% klart.",
+      "signOff": "Det var allt. Säg något nu.",
+      "openApp": "Öppna Zynveliq"
+    },
+    "errors": {
+      "selectModel": "Kunde inte välja den modellen. Försök igen.",
+      "loadModels": "Det gick inte att läsa in de tillgängliga modellerna.",
+      "downloadModel": "Det gick inte att ladda ner modellen: {{error}}"
+    },
+    "downloadProgress": {
+      "sizeOf": "{{downloaded}} av {{total}} · {{percentage}}%"
+    },
+    "recommended": "Rekommenderat",
+    "download": "Ladda ner",
+    "downloading": "Laddar ner…",
+    "customModelDescription": "Stöds inte officiellt",
+    "downloadFailed": "Nedladdningen misslyckades. Försök igen.",
+    "modelCard": {
+      "accuracy": "noggrannhet",
+      "speed": "hastighet"
+    },
+    "models": {
+      "parakeet-unified-en-0.6b-gguf": {
+        "description": "Blixtsnabb och perfekt för vardaglig diktering. Endast engelska."
+      },
+      "nemotron-3.5-asr-streaming-0.6b-gguf": {
+        "description": "Transkribering i realtid på 28 språk."
+      },
+      "canary-180m-flash-gguf": {
+        "description": "Pytteliten och omedelbar — fungerar bra på alla datorer."
+      },
+      "cohere-transcribe-03-2026-gguf": {
+        "description": "Långsammare, men den mest noggranna. 14 språk."
+      },
+      "whisper-medium-gguf": {
+        "description": "Bäst för många språk — nästan 100 stöds."
+      },
+      "gemma-3-1b": {
+        "description": "Mycket liten och snabb, men begränsad för öppna samtal. Endast text."
+      },
+      "qwen3.5-2b": {
+        "description": "Liten och snabb, och den kan se bilder. Bra på de flesta bärbara datorer."
+      },
+      "qwen3.5-4b": {
+        "description": "En äldre bildmodell vars valfria resonemang kan fördröja svaren i ett samtal."
+      },
+      "qwen3.5-9b": {
+        "description": "Mer kapabel, men långsammare i direkta samtal, särskilt när resonemang är aktiverat."
+      },
+      "qwen3.5-27b": {
+        "description": "En stor bildmodell för genomtänkta uppgifter, inte en assistent med låg latens."
+      },
+      "gemma-4-e2b": {
+        "description": "Den snabbaste aktuella Gemma-modellen för vardagliga samtal. Mindre kapabel vid komplexa förfrågningar."
+      },
+      "gemma-4-e4b": {
+        "description": "En starkare balans mellan kvalitet och hastighet, och den resonerar inte som standard."
+      },
+      "gemma-4-12b": {
+        "description": "Mer kapabel vid nyanserade frågor, men märkbart långsammare och bäst med en kraftfull GPU."
+      },
+      "gemma-3-4b": {
+        "description": "Snabba, rena svar med skärmvisning, men mindre kapabel än nuvarande Gemma 4-modeller."
+      },
+      "kokoro-82m": {
+        "description": "Inbyggd lokal röst för assistenten. Ingen nedladdning behövs."
+      },
+      "small": {
+        "name": "Whisper Small",
+        "description": "Snabb och ganska noggrann."
+      },
+      "medium": {
+        "name": "Whisper Medium",
+        "description": "Bra noggrannhet med medelhög hastighet."
+      },
+      "turbo": {
+        "name": "Whisper Turbo",
+        "description": "En balans mellan noggrannhet och hastighet."
+      },
+      "large": {
+        "name": "Whisper Large",
+        "description": "Mycket noggrann, men långsam."
+      },
+      "parakeet-tdt-0.6b-v2": {
+        "name": "Parakeet V2",
+        "description": "Endast engelska. Utmärkt för engelsktalande."
+      },
+      "parakeet-tdt-0.6b-v3": {
+        "name": "Parakeet V3",
+        "description": "Snabb och noggrann. 25 europeiska språk."
+      },
+      "moonshine-base": {
+        "name": "Moonshine Base",
+        "description": "Mycket snabb, endast engelska. Hanterar accenter bra."
+      },
+      "moonshine-tiny-streaming-en": {
+        "name": "Moonshine V2 Tiny",
+        "description": "Blixtsnabb. Endast engelska."
+      },
+      "moonshine-small-streaming-en": {
+        "name": "Moonshine V2 Small",
+        "description": "Snabb, endast engelska. Bra balans mellan hastighet och noggrannhet."
+      },
+      "moonshine-medium-streaming-en": {
+        "name": "Moonshine V2 Medium",
+        "description": "Endast engelska. Högre kvalitet, lite långsammare."
+      },
+      "breeze-asr": {
+        "name": "Breeze ASR",
+        "description": "Anpassad för taiwanesisk mandarin, med växling till engelska."
+      },
+      "sense-voice-int8": {
+        "name": "SenseVoice",
+        "description": "Mycket snabb. Kinesiska, engelska, japanska, koreanska och kantonesiska."
+      },
+      "gigaam-v3-e2e-ctc": {
+        "name": "GigaAM v3",
+        "description": "Endast ryska. Snabb och noggrann."
+      },
+      "canary-180m-flash": {
+        "name": "Canary 180M Flash",
+        "description": "Mycket snabb. Engelska, tyska, spanska och franska, med översättning."
+      },
+      "canary-1b-v2": {
+        "name": "Canary 1B v2",
+        "description": "Noggrann på 25 europeiska språk, med översättning."
+      },
+      "cohere-int8": {
+        "name": "Cohere",
+        "description": "Stor och långsammare, men mycket noggrann. Många språk."
+      }
+    },
+    "permissions": {
+      "title": "Behörigheter krävs",
+      "description": "Zynveliq behöver ett par behörigheter för att fungera korrekt.",
+      "microphone": {
+        "title": "Mikrofonåtkomst",
+        "description": "Krävs för att höra din röst för transkription."
+      },
+      "accessibility": {
+        "title": "Hjälpmedelsåtkomst",
+        "description": "Krävs för att skriva transkriberad text i dina program.",
+        "stuckHint": "Redan påslaget i Systeminställningar? Efter en uppdatering kan macOS behålla en behörighet som inte längre matchar den här versionen.",
+        "reset": "Återställ behörighet",
+        "resetDone": "Slå nu på Zynveliq igen i Systeminställningar."
+      },
+      "grant": "Bevilja behörighet",
+      "granted": "Beviljad",
+      "waiting": "Väntar…",
+      "allGranted": "Allt klart!",
+      "errors": {
+        "checkFailed": "Det gick inte att kontrollera behörigheterna. Försök igen.",
+        "requestFailed": "Det gick inte att begära behörighet. Försök igen.",
+        "resetFailed": "Det gick inte att återställa behörigheten. Ta bort Zynveliq från listan Hjälpmedel och lägg till det igen."
+      }
+    },
+    "frame": {
+      "setup": "Konfigurera",
+      "tour": "Rundtur"
+    },
+    "welcome": {
+      "line": "Prata, så skrivs det. Fråga, så får du svar.",
+      "start": "Kom igång",
+      "note": "Tar ungefär en minut."
+    },
+    "speech": {
+      "title": "Välj din röstmodell",
+      "body": "Körs på den här datorn. Fungerar offline.",
+      "english": "Engelska",
+      "languages_one": "{{count}} språk",
+      "languages_other": "{{count}} språk",
+      "about": {
+        "english": "Snabb och exakt, för engelska.",
+        "languages": "Känner själv av vilket språk du talar.",
+        "small": "Liten och snabb. Bra för äldre datorer.",
+        "accurate": "Mest exakt, men en större nedladdning och långsammare.",
+        "widest": "Klarar flest språk, men är långsammare."
+      },
+      "anytime": "Du kan lägga till fler modeller när som helst.",
+      "download": "Ladda ner och fortsätt",
+      "continue": "Fortsätt",
+      "later": "Konfigurera senare",
+      "loading": "Letar efter din talmodell"
+    }
+  },
+  "modelSelector": {
+    "custom": "Anpassad",
+    "active": "Används",
+    "switching": "Byter…",
+    "noModelsAvailable": "Inga modeller tillgängliga",
+    "verifying": "Verifierar {{modelName}}…",
+    "verifyingGeneric": "Verifierar…",
+    "extracting": "Extraherar {{modelName}}…",
+    "extractingMultiple": "Extraherar {{count}} modeller…",
+    "extractingGeneric": "Extraherar…",
+    "downloading": "Laddar ner {{percentage}}%",
+    "downloadingMultiple": "Laddar ner {{count}} modeller…",
+    "downloadDetails": "Nedladdningsdetaljer",
+    "downloadSize": "{{downloaded}} av {{total}}",
+    "modelReady": "Modellen är klar",
+    "loading": "Laddar {{modelName}}…",
+    "loadingGeneric": "Laddar…",
+    "modelError": "Modellfel",
+    "modelUnloaded": "Modellen är avlastad",
+    "noModelDownloadRequired": "Ingen modell – nedladdning krävs",
+    "llmSelectModel": "Välj assistentmodell",
+    "llmModelTitle": "Assistentmodell: {{model}}",
+    "deleteModel": "Ta bort {{modelName}}",
+    "downloadSpeed": "{{speed}} MB/s",
+    "cancel": "Avbryt",
+    "cancelDownload": "Avbryt nedladdning",
+    "download": "Ladda ner",
+    "useModel": "Använd modell",
+    "capabilities": {
+      "languageSelection": "Stöder flera indataspråk",
+      "singleLanguage": "Stöder endast detta språk",
+      "multiLanguage": "Flerspråkig",
+      "languageOnly": "Endast {{language}}",
+      "languageList": "Språk som {{model}} förstår",
+      "translation": "Kan översätta till engelska",
+      "translate": "Översätt till engelska",
+      "streaming": "Streaming",
+      "quantization": "Kvantisering",
+      "legacy": "Äldre",
+      "retired": "Utfasad"
+    }
+  },
+  "settings": {
+    "personalMemory": {
+      "enable": {
+        "label": "Kom ihåg mig",
+        "description": "Låt assistenten spara och använda ett personligt minne. Av som standard."
+      },
+      "incognito": {
+        "label": "Inkognitochatt",
+        "description": "Använd inte minnet och lär inget nytt under den här konversationen."
+      },
+      "detail": {
+        "label": "Minnesdetaljnivå",
+        "description": "Hur mycket minne som läggs till varje svar. Mer detaljer ger rikare svar men går något långsammare.",
+        "options": {
+          "light": "Lätt",
+          "balanced": "Balanserad",
+          "detailed": "Detaljerad"
+        }
+      },
+      "aboutYou": {
+        "label": "Om dig",
+        "caption": "En kort, alltid aktiv sammanfattning som assistenten har i minnet.",
+        "fieldLabel": "Sammanfattning",
+        "placeholder": "t.ex. Föredrar korta, direkta svar. Arbetar i Rust och TypeScript. Bygger en röstassistent för datorn.",
+        "hint": "Inkluderas alltid när minnet är på. Håll det till några meningar — det här är assistentens snabba bild av dig.",
+        "edit": "Redigera",
+        "done": "Klar",
+        "empty": "Inget sparat ännu — assistenten fyller i detta medan den lär sig, eller klicka på Redigera för att skriva ditt eget.",
+        "collapsedEmpty": "Inget sparat ännu"
+      },
+      "notes": {
+        "label": "Anteckningar",
+        "caption": "Specifika saker värda att minnas — inlärda eller tillagda av dig.",
+        "empty": "Inga anteckningar ännu. Lägg till en nedan, eller låt assistenten lära sig dem från dina chattar.",
+        "add": "Lägg till",
+        "addPlaceholder": "Lägg till något att minnas…",
+        "delete": "Ta bort anteckning",
+        "learned": "inlärd",
+        "added": "tillagd av dig"
+      },
+      "confidence": {
+        "high": "Hög säkerhet",
+        "medium": "Medelhög säkerhet",
+        "low": "Låg säkerhet"
+      },
+      "actions": {
+        "label": "Hantera"
+      },
+      "distill": {
+        "label": "Lär från den här chatten nu",
+        "description": "Hämta bestående fakta från din nuvarande konversation till minnet, direkt.",
+        "button": "Uppdatera minnet"
+      },
+      "export": "Exportera",
+      "import": "Importera",
+      "wipe": {
+        "button": "Rensa minnet",
+        "confirm": "Ta bort allt som assistenten minns?",
+        "yes": "Ta bort allt",
+        "cancel": "Avbryt"
+      }
+    },
+    "modelSettings": {
+      "title": "Inställningar för {{model}}",
+      "noSettingsNeeded": "Den här modellen fungerar automatiskt – inget att ställa in."
+    },
+    "general": {
+      "title": "Allmänt",
+      "recording": {
+        "title": "Inspelning"
+      },
+      "groups": {
+        "sounds": "Ljud",
+        "startup": "Uppstart och systemfält",
+        "overlay": "Överlagring",
+        "updates": "Uppdateringar",
+        "system": "System"
+      },
+      "shortcut": {
+        "title": "Kortkommandon",
+        "description": "Kortkommandona som startar och stoppar inspelningen.",
+        "loading": "Laddar kortkommandon…",
+        "none": "Inga kortkommandon konfigurerade",
+        "notFound": "Kortkommando hittades inte",
+        "pressKeys": "Tryck på tangenter…",
+        "bindings": {
+          "transcribe": {
+            "name": "Diktera",
+            "description": "Tryck för att börja spela in, tryck igen för att stoppa och skriva ut texten."
+          },
+          "transcribe_toggle": {
+            "name": "Handsfree-diktering",
+            "description": "Tryck en gång för att starta och igen för att stoppa — du behöver inte hålla ned."
+          },
+          "cancel": {
+            "name": "Avbryt",
+            "description": "Stoppar den pågående inspelningen eller ett svar som strömmas."
+          },
+          "transcribe_with_post_process": {
+            "name": "Diktera och rensa",
+            "description": "Diktera, och låt AI:n rensa upp texten innan den skrivs ut."
+          },
+          "assistant": {
+            "name": "Fråga assistenten",
+            "description": "Fråga assistenten med röst; svaret strömmar in i den flytande panelen."
+          },
+          "assistant_vision": {
+            "name": "Fråga med skärmen",
+            "description": "Fråga med röst och bifoga skärmen så att den ser vad du tittar på."
+          },
+          "assistant_call": {
+            "name": "Starta en konversation",
+            "description": "Prata med assistenten handsfree och hör dess svar. Tryck igen för att avsluta."
+          },
+          "hands_free": {
+            "name": "Handsfree",
+            "description": "Tryck på den medan du håller dikteringstangenterna, så fortsätter inspelningen när du släpper. Tryck på dikteringstangenterna igen för att avsluta."
+          }
+        },
+        "errors": {
+          "restore": "Det gick inte att återställa det ursprungliga kortkommandot.",
+          "set": "Det gick inte att ställa in kortkommandot: {{error}}",
+          "inUse": "”{{name}}” använder redan {{keys}}. Välj andra tangenter eller ändra det kortkommandot först.",
+          "sameAsOther": "{{keys}} är redan inställt för det här kortkommandot.",
+          "reset": "Kunde inte återställa kortkommandot."
+        },
+        "clickToChange": "Klicka för att ändra",
+        "notSet": "Inte inställt"
+      },
+      "language": {
+        "title": "Språk",
+        "description": "Språk för taligenkänning. Ett specifikt språk kan förbättra noggrannheten.",
+        "descriptionUnsupported": "Den här modellen känner av språket automatiskt.",
+        "searchPlaceholder": "Sök språk…",
+        "noResults": "Inga språk hittades",
+        "auto": "Automatiskt"
+      },
+      "chineseScript": {
+        "title": "Kinesisk skrift",
+        "description": "Skriv kinesiska transkriptioner med förenklade eller traditionella tecken. Andra språk lämnas som de är.",
+        "options": {
+          "auto": "Som transkriberat",
+          "simplified": "Förenklad",
+          "traditional": "Traditionell"
+        }
+      },
+      "pushToTalk": {
+        "dictation": "På: inspelningen pågår medan du håller ned tangenterna. Av: en tryckning startar, nästa stoppar, så varje diktering blir handsfree.",
+        "assistant": "På: lyssnar medan du håller ned tangenterna. Av: en tryckning startar, nästa skickar.",
+        "dictationLabel": "Håll för att prata",
+        "assistantLabel": "Håll för att fråga"
+      },
+      "handsFree": {
+        "unavailableKeys": "Fungerar när diktering bara består av modifierartangenter, som Ctrl + Win. Med {{keys}}, stäng av ”Håll för att prata” i stället: varje diktering fortsätter då tills du trycker på tangenterna igen.",
+        "unavailableEngine": "Kräver tangentbordsmotorn Zynveliq Keys ({{where}}). Eller stäng av ”Håll för att prata”: varje diktering fortsätter då tills du trycker på tangenterna igen.",
+        "taken": "{{name}} använder redan {{keys}}, så den här tangenten gör ingenting förrän en av dem ändras.",
+        "needsKey": "Välj en tangent, till exempel mellanslag eller Enter. En modifierartangent ensam kan inte vara handsfree-tangenten.",
+        "pressKey": "Tryck på en tangent…",
+        "descriptionOff": "Av. Klicka och tryck på en tangent, till exempel mellanslag, för att slå på igen.",
+        "linux": "På Linux, stäng av ”Håll för att prata” i stället: varje diktering fortsätter då tills du trycker på tangenterna igen.",
+        "whileDictating": "Medan du dikterar, tryck på"
+      },
+      "silenceStop": {
+        "label": "Stoppa efter tystnad",
+        "description": "En handsfree-diktering som inte hör något tal på så här länge stoppas och klistras in av sig själv, som om du hade tryckt på kortkommandot igen. Strax innan krymper en linje på rutan; börjar du prata igen fortsätter inspelningen."
+      }
+    },
+    "models": {
+      "title": "Transkriptionsmodeller",
+      "description": "Modellerna byter noggrannhet mot hastighet — välj en som passar din dator.",
+      "yourModels": "Nedladdade modeller",
+      "availableModels": "Tillgängliga att ladda ner",
+      "view": {
+        "label": "Vilka modeller som visas",
+        "all": "Alla modeller"
+      },
+      "recommendedFor": "Rekommenderade: {{language}}",
+      "recommendedAllDownloaded": "Du har redan alla rekommenderade modeller.",
+      "browseAll": "Bläddra bland alla modeller",
+      "downloaded": "Nedladdad",
+      "available": "Tillgängliga att ladda ner",
+      "deleteConfirm": "Vill du verkligen ta bort {{modelName}}? Du måste ladda ner den igen för att använda den.",
+      "deleteActiveConfirm": "{{modelName}} är din aktiva modell. Om du tar bort den stoppas transkriberingen tills du väljer en ny. Är du säker?",
+      "deleteTitle": "Ta bort modell",
+      "categories": {
+        "stt": "Transkribering",
+        "llm": "Assistent",
+        "tts": "Tal"
+      },
+      "categoryDescriptions": {
+        "stt": "Modeller byter noggrannhet mot hastighet — välj en som passar din dator.",
+        "llm": "Lokala modeller för den inbyggda assistenten och AI-rensning.",
+        "tts": "Röster för assistentens talade svar. Kokoro körs på din dator."
+      },
+      "llmHint": "När nedladdningen är klar väljer du modellen i avsnittet Assistent under den inbyggda (lokala) leverantören.",
+      "ttsHint": "Talmodeller körs på din dator och behöver inte laddas ner.",
+      "filters": {
+        "all": "Alla",
+        "multiLanguage": "Flerspråkig",
+        "translation": "Översättning",
+        "allLanguages": "Alla språk",
+        "streamingHint": "Bara modeller som transkriberar medan du pratar",
+        "translate": "Översätt",
+        "translateHint": "Bara modeller som kan översätta tal till engelska",
+        "noMatch": "Inga modeller matchar de här filtren",
+        "clear": "Rensa filter"
+      },
+      "searchPlaceholder": "Sök modeller efter namn…",
+      "clearSearch": "Rensa sökning",
+      "noSearchResults": "Inga modeller heter ”{{query}}”.",
+      "olderHint": "Äldre format. {{model}} ({{size}}) är den nyare versionen av den här modellen.",
+      "retiredHint": "Använder en äldre motor som Zynveliq inte längre har. Hämta {{model}} ({{size}}) i stället.",
+      "retired": {
+        "notice": "De här modellerna använde en äldre motor som Zynveliq inte längre har.",
+        "newVersion": "Ny version: {{model}} · {{size}}",
+        "getNewVersion": "Hämta ny version",
+        "useNewVersion": "Använd ny version",
+        "deleteOld": "Radera gamla filer ({{size}})",
+        "deleteTitle": "Radera gamla filer",
+        "deleteConfirm": "Radera de gamla filerna för de här modellerna ({{size}})? Nya versioner du har hämtat finns kvar."
+      },
+      "customModel": {
+        "addButton": "Sök på Hugging Face",
+        "searchTitle": "Behöver du en annan modell?",
+        "searchDescription": "Sök på Hugging Face efter en GGUF-modell. Det här är ett avancerat alternativ, så hårdvarukrav och kompatibilitet kan variera.",
+        "searchButton": "Sök på Hugging Face",
+        "title": "Hitta en modell på Hugging Face",
+        "subtitle": "Sök bland GGUF-modeller, välj en version och ladda ner den direkt till den här enheten.",
+        "searchPlaceholder": "Sök på modell eller skapare…",
+        "popularTitle": "Populära GGUF-modeller",
+        "resultsTitle": "Sökresultat",
+        "resultCount_one": "{{count}} modell",
+        "resultCount_other": "{{count}} modeller",
+        "searching": "Söker på Hugging Face…",
+        "searchError": "Sökningen misslyckades. Kontrollera din anslutning och försök igen.",
+        "tryAgain": "Försök igen",
+        "noResults": "Inga modeller hittades. Prova en annan sökning.",
+        "downloads": "{{value}} nedladdningar",
+        "visionBadge": "Skärmvisning",
+        "back": "Tillbaka till resultaten",
+        "loadingFiles": "Laddar tillgängliga filer…",
+        "repoFilesError": "Kunde inte ladda filerna för den här modellen.",
+        "noGgufFiles": "Det här arkivet har inga nedladdningsbara .gguf-filer.",
+        "selectQuant": "Välj en nedladdning",
+        "selectQuantHint": "Osäker? Q4_K_M ger oftast den bästa balansen mellan kvalitet, hastighet och minnesanvändning.",
+        "enableVision": "Inkludera skärmvisning",
+        "enableVisionHint": "Laddar ner en extra fil så att modellen kan förstå bilder.",
+        "add": "Ladda ner",
+        "adding": "Startar…",
+        "addError": "Kunde inte lägga till den här modellen. Försök igen."
+      },
+      "localModel": {
+        "addButton": "Använd en lokal modell",
+        "title": "Använd en modell du redan har",
+        "subtitle": "Lägg till en .gguf eller en Whisper .bin var som helst på den här enheten, eller länka en mapp där du sparar dina modeller. Inget kopieras och inget laddas ner.",
+        "pickFiles": "Välj modellfiler",
+        "pickFilesHint": "Välj en eller flera .gguf- eller .bin-filer. Bra för en enstaka modell du just byggt.",
+        "linkFolder": "Länka en mapp",
+        "linkFolderHint": "Genomsöks automatiskt, inklusive undermappar. Länka så många mappar du vill.",
+        "fileFilter": "Modellfiler",
+        "filesAdded_one": "Lade till {{count}} modell.",
+        "filesAdded_other": "Lade till {{count}} modeller.",
+        "folderAdded_one": "Mappen länkad. Hittade {{count}} modell.",
+        "folderAdded_other": "Mappen länkad. Hittade {{count}} modeller.",
+        "folderRemoved": "Mappen är inte längre länkad. Dina filer rördes inte.",
+        "foldersTitle": "Länkade mappar",
+        "foldersEmpty": "Inga mappar är länkade än. Länka en och varje modell i den visas i din lista.",
+        "removeFolder": "Ta bort länken till {{folder}}",
+        "rescan": "Sök igen",
+        "rescanning": "Söker igen…",
+        "rescanDone_one": "{{count}} lokal modell hittad.",
+        "rescanDone_other": "{{count}} lokala modeller hittade.",
+        "footnote": "Länkade mappar genomsöks igen när Zynveliq startar, så modeller du lägger till i dem senare dyker upp av sig själva. Att ta bort länken till en mapp eller ta bort en modell tar bara bort den från den här listan — dina filer ligger kvar där de är.",
+        "removeTitle": "Ta bort från listan?",
+        "removeConfirm": "Ta bort ”{{modelName}}” från din modellista?\n\nSjälva filen ligger kvar där den är:\n{{path}}",
+        "missingBadge": "Filen saknas",
+        "fileMissing": "Filen för den här modellen finns inte längre:\n{{path}}\n\nDen kan ha flyttats eller bytt namn, eller ligga på en enhet som inte är ansluten.",
+        "foldersEmptyShort": "Inga mappar är länkade än."
+      }
+    },
+    "sound": {
+      "title": "Ljud",
+      "microphone": {
+        "title": "Mikrofon",
+        "description": "Välj din föredragna mikrofonenhet",
+        "placeholder": "Välj mikrofon…",
+        "loading": "Laddar…"
+      },
+      "audioFeedback": {
+        "label": "Ljudåterkoppling",
+        "description": "Spela upp ett ljud när inspelningen startar och stoppar"
+      },
+      "soundTheme": {
+        "label": "Återkopplingsljud",
+        "description": "Välj start- och stoppljudet som spelas upp under diktering",
+        "default": "Standard",
+        "preview": "Förhandslyssna (spelar start och sedan stopp)",
+        "themes": {
+          "marimba": "Marimba",
+          "pop": "Pop",
+          "click": "Klick",
+          "custom": "Anpassat"
+        }
+      },
+      "outputDevice": {
+        "title": "Utmatningsenhet",
+        "description": "Välj din föredragna ljudutmatningsenhet för återkopplingsljud",
+        "placeholder": "Välj utmatningsenhet…",
+        "loading": "Laddar…"
+      },
+      "volume": {
+        "title": "Volym",
+        "description": "Justera volymen för ljudåterkopplingsljud"
+      },
+      "ducking": {
+        "label": "Under inspelning",
+        "ariaLabel": "Annat ljud under inspelning",
+        "description": "Sänker eller stänger av annat ljud medan du spelar in, så att det inte stör dig eller hörs i mikrofonen. Det kommer tillbaka så fort inspelningen är klar. Kallas även ducking.",
+        "options": {
+          "off": "Oförändrat",
+          "lower": "Sänk",
+          "mute": "Stäng av"
+        },
+        "amount": {
+          "label": "Sänk med",
+          "description": "Hur mycket tystare annat ljud blir. Dra reglaget medan något spelas för att höra det. Om du själv ändrar volymen under en inspelning stannar den där du satte den."
+        }
+      }
+    },
+    "advanced": {
+      "title": "Avancerat",
+      "groups": {
+        "app": "App",
+        "output": "Utmatning",
+        "transcription": "Transkription",
+        "textReplacements": "Textersättningar",
+        "history": "Historik",
+        "aiCorrection": "AI-rensning",
+        "experimental": "Experimentellt"
+      },
+      "aiCorrection": {
+        "label": "AI-rensning (under utveckling)",
+        "description": "Experimentellt: rensa upp din diktering med AI. Grovt och ofärdigt — av som standard.",
+        "info": "Kör en språkmodell över din diktering för att rätta skiljetecken, ta bort utfyllnadsord och eventuellt justera tonen. Gäller endast diktering (inte assistentchatten) och körs på sitt eget kortkommando. Det ger en fördröjning eftersom modellen körs efter transkriberingen; om den misslyckas eller tar för lång tid klistras din råa text in i stället. Använder assistentens modell som standard. Funktionen är fortfarande under utveckling — du kan ännu inte välja en inbyggd lokal modell från en egen lista, och den behöver mer finjustering innan den blir en huvudfunktion."
+      },
+      "postProcessTimeout": {
+        "title": "Tidsgräns för AI-rensning",
+        "description": "Hur länge appen väntar på modellen innan den ger upp och klistrar in din råa transkribering i stället. Ge den inbyggda lokala modellen tillräckligt med tid att laddas första gången.",
+        "seconds": "{{seconds}} sekunder"
+      },
+      "experimentalToggle": {
+        "label": "Experimentella funktioner",
+        "description": "Visa funktioner under utveckling. Av som standard."
+      },
+      "lazyStreamClose": {
+        "label": "Håll mikrofonen öppen mellan transkriptioner",
+        "description": "Snabbare diktering på raken. Kan påverka Bluetooth-ljudkvaliteten."
+      },
+      "mouseButtonShortcuts": {
+        "label": "Musknappar som kortkommandon",
+        "description": "Använd musens mittenknapp, Bakåt eller Framåt som kortkommando: klicka på kortkommandots tangenter och tryck sedan på knappen. Så länge den är ett kortkommando gör knappen inget annat.",
+        "linux": "På Linux fungerar bara mittenknappen.",
+        "needsEngine": "Kräver tangentbordsimplementeringen Zynveliq Keys."
+      },
+      "longFormChunking": {
+        "title": "Dela upp långa inspelningar",
+        "description": "Långa dikteringar transkriberas i delar vid naturliga pauser, så att modeller som inte är byggda för långt ljud förblir exakta."
+      },
+      "acceleration": {
+        "title": "Talbearbetning",
+        "description": "Automatiskt använder grafikkortet, det dedikerade om du har två. Välj Processor om dikteringen kraschar eller grafikdrivrutinen har problem. Det är långsammare men fungerar överallt.",
+        "auto": "Automatiskt",
+        "cpu": "Processor (CPU)"
+      },
+      "startHidden": {
+        "label": "Starta dold",
+        "description": "Starta i systemfältet utan att öppna fönstret."
+      },
+      "autostart": {
+        "label": "Starta vid uppstart",
+        "description": "Öppna Zynveliq automatiskt när du loggar in."
+      },
+      "showTrayIcon": {
+        "label": "Visa ikon i systemfältet",
+        "description": "Behåll Zynveliq i systemfältet."
+      },
+      "trayIconColor": {
+        "label": "Färgad ikon i systemfältet",
+        "description": "Visar den färgade logotypen i stället för den vita ikonen. Slå på om panelen är ljus och den vita ikonen syns dåligt."
+      },
+      "closeBehavior": {
+        "label": "Avsluta när jag stänger fönstret",
+        "description": "När det är av fortsätter Zynveliq att köras i systemfältet när du stänger fönstret, så att dina kortkommandon fortfarande fungerar. När det är på avslutas appen helt när du stänger fönstret."
+      },
+      "overlayStyle": {
+        "title": "Överlagring",
+        "description": "Hur inspelningsöverlagringen ser ut medan du dikterar. Ingen döljer den, Minimal är den lilla kompakta rutan och Live visar ett läsbart kort med dina ord medan du talar (för modeller som stöder det).",
+        "options": {
+          "none": "Ingen",
+          "minimal": "Minimal",
+          "live": "Live"
+        }
+      },
+      "overlayLinger": {
+        "title": "Behåll färdig text på skärmen",
+        "description": "Hur länge Live-kortet ligger kvar efter att du dikterat klart, så att du kan läsa eller kopiera det som skrevs. Håll pekaren över kortet för att hålla det öppet.",
+        "options": {
+          "quick": "Kort (1 sekund)",
+          "standard": "Standard (3 sekunder)",
+          "long": "Längre (6 sekunder)",
+          "extended": "Mycket längre (10 sekunder)"
+        }
+      },
+      "overlay": {
+        "title": "Överlagringens position",
+        "description": "Var inspelningsöverlagringen sitter på din skärm.",
+        "options": {
+          "none": "Ingen",
+          "bottom": "Nederst",
+          "top": "Överst",
+          "topleft": "Uppe till vänster",
+          "topright": "Uppe till höger",
+          "bottomleft": "Nere till vänster",
+          "bottomright": "Nere till höger"
+        }
+      },
+      "pasteMethod": {
+        "title": "Inklistringsmetod",
+        "description": "Hur transkriberad text infogas i den aktiva appen.",
+        "options": {
+          "clipboard": "Urklipp ({{modifier}}+V)",
+          "clipboardCtrlShiftV": "Urklipp (Ctrl+Shift+V)",
+          "clipboardShiftInsert": "Urklipp (Shift+Insert)",
+          "direct": "Direkt",
+          "none": "Ingen",
+          "externalScript": "Externt skript"
+        },
+        "externalScriptPlaceholder": "/sökväg/till/ditt/skript.sh"
+      },
+      "typingTool": {
+        "title": "Skrivverktyg",
+        "description": "Linux-verktyget som används för klistra-in-metoden Direkt.",
+        "options": {
+          "auto": "Automatiskt (rekommenderas)"
+        }
+      },
+      "clipboardHandling": {
+        "title": "Hantering av urklipp",
+        "description": "Om transkriptionen stannar kvar i urklipp efter att den klistrats in.",
+        "options": {
+          "dontModify": "Ändra inte urklipp",
+          "copyToClipboard": "Kopiera till urklipp"
+        }
+      },
+      "autoSubmit": {
+        "title": "Skicka automatiskt",
+        "description": "Skicka en tangentkombination automatiskt efter att texten infogats.",
+        "options": {
+          "off": "Av",
+          "enter": "Enter",
+          "cmdEnter": "Cmd+Enter",
+          "superEnter": "Super+Enter",
+          "ctrlEnter": "Ctrl+Enter"
+        }
+      },
+      "translateToEnglish": {
+        "label": "Översätt till engelska",
+        "description": "Översätt tal från andra språk till engelska.",
+        "descriptionUnsupported": "Översättning stöds inte av {{model}}-modellen."
+      },
+      "modelUnload": {
+        "title": "Avlasta modell",
+        "description": "Frigör minne när modellen varit inaktiv så här länge.",
+        "options": {
+          "never": "Aldrig",
+          "immediately": "Omedelbart",
+          "min2": "Efter 2 minuter",
+          "min5": "Efter 5 minuter",
+          "min10": "Efter 10 minuter",
+          "min15": "Efter 15 minuter",
+          "hour1": "Efter 1 timme",
+          "sec15": "Efter 15 sekunder (Felsökning)"
+        }
+      },
+      "customWords": {
+        "title": "Anpassade ord",
+        "description": "Namn, produkter och fraser som Zynveliq ska stava på ditt sätt.",
+        "info": "Exempel: lägg till ”Kokoro” om Zynveliq skriver ”Coco row”.",
+        "placeholder": "Lägg till ett namn, en term eller en kort fras",
+        "add": "Lägg till",
+        "empty": "Inga anpassade ord ännu.",
+        "remove": "Ta bort {{word}}",
+        "duplicate": "\"{{word}}\" finns redan"
+      },
+      "autoLearn": {
+        "label": "Lär dig ord jag rättar",
+        "description": "Kommer ihåg din stavning när du rättar ett ord som Zynveliq uppfattade fel.",
+        "info": "Den läser bara fältet den just skrev i, under ungefär en minut. Inget laddas upp, och varje ord den lär sig visas här.",
+        "unsupported": "Att lära sig av rättningar finns än så länge bara på Windows. Du kan fortfarande lägga till ord för hand ovan.",
+        "learnedTitle": "Inlärt från dina rättningar",
+        "learnedEmpty": "Inget inlärt än. Rätta ett felhört ord i appen du dikterade i, så visas det här.",
+        "keep": "Behåll {{word}} bland mina anpassade ord",
+        "remove": "Glöm {{word}}",
+        "clearAll": "Glöm alla",
+        "reviewHint": "Det här är gissningar. Bocka för ett ord för att flytta det till dina egna anpassade ord, eller ta bort det. De äldsta tas bort när det blir fler än {{max}}."
+      },
+      "textReplacements": {
+        "title": "Textersättningar",
+        "description": "Ersätt en fras i din transkribering med text du använder ofta. Exempel: ”min e-post” blir ”alex@example.com”.",
+        "rulesTitle": "Ersättningsregler",
+        "rulesHint": "Välj vad Zynveliq hör och vad som ska infogas.",
+        "empty": "Skapa en regel för en fras du säger ofta.",
+        "addFirst": "Skapa första regeln",
+        "addRule": "Lägg till ersättning",
+        "manageRules": "Ersättningar ({{count}})",
+        "searchLabel": "Talad fras",
+        "searchPlaceholder": "min e-post",
+        "replaceLabel": "Infoga den här texten",
+        "replacePlaceholder": "alex@example.com",
+        "advanced": "Avancerade alternativ",
+        "regex": "Regex",
+        "trimBefore": "Trimma före",
+        "trimAfter": "Trimma efter",
+        "enabledLabel": "Aktiverad",
+        "remove": "Ta bort regel",
+        "import": "Importera",
+        "export": "Exportera",
+        "importSuccess": "Importerade {{count}} ersättningsregler",
+        "importError": "Kunde inte importera: filen är inte en giltig lista med ersättningar",
+        "exportSuccess": "Ersättningarna exporterades",
+        "exportError": "Kunde inte exportera ersättningarna",
+        "magicHint": "Använd [date], [time], [uppercase], [lowercase], [capitalize] eller [nospace] i den infogade texten.",
+        "capitalization": {
+          "label": "Versaler",
+          "none": "Ingen",
+          "uppercase": "VERSALER",
+          "lowercase": "gemener",
+          "capitalize": "Inledande versal"
+        }
+      }
+    },
+    "postProcessing": {
+      "title": "AI-rensning",
+      "readiness": {
+        "checking": "Kontrollerar inställningarna för AI-rensning…",
+        "checkFailed": "Kunde inte kontrollera inställningarna för AI-rensning.",
+        "ready": "Klart — {{provider}}.",
+        "assistantFallback": "Klart — använder din assistentmodell ({{provider}}).",
+        "selectPrompt": "Välj en prompt för rensning.",
+        "selectModel": "Välj en modell för den här leverantören.",
+        "addApiKey": "Lägg till en API-nyckel för den här leverantören.",
+        "providerMissing": "Den valda leverantören är inte längre tillgänglig."
+      },
+      "errors": {
+        "saveFailed": "Kunde inte spara inställningen för AI-rensning.",
+        "modelsLoadFailed": "Kunde inte ladda modellerna för den här leverantören.",
+        "promptCreateFailed": "Kunde inte skapa prompten.",
+        "promptSelectFailed": "Prompten skapades, men kunde inte väljas.",
+        "promptUpdateFailed": "Kunde inte uppdatera prompten.",
+        "promptDeleteFailed": "Kunde inte ta bort prompten.",
+        "promptRestoreFailed": "Kunde inte återställa prompten.",
+        "toneSelectFailed": "Kunde inte välja skrivstilen.",
+        "toneCreateFailed": "Kunde inte skapa skrivstilen.",
+        "toneSelectAfterCreateFailed": "Stilen skapades, men kunde inte väljas.",
+        "toneUpdateFailed": "Kunde inte uppdatera skrivstilen.",
+        "toneDeleteFailed": "Kunde inte ta bort skrivstilen."
+      },
+      "enable": {
+        "title": "AI-rensning"
+      },
+      "hotkey": {
+        "title": "Kortkommando"
+      },
+      "tone": {
+        "title": "2 · Skrivstil",
+        "description": "Läggs ovanpå systemprompten: den ändrar hur den rensade texten låter, inte vad som rättas. ”Ingen” låter din röst vara som den är.",
+        "options": {
+          "none": "Ingen (endast rensning)",
+          "formal": "Formell",
+          "casual": "Vardaglig",
+          "professional": "Professionell",
+          "friendly": "Vänlig",
+          "concise": "Koncis"
+        },
+        "edit": "Redigera",
+        "closeEditor": "Stäng",
+        "createNew": "Skapa stil",
+        "nameLabel": "Stilnamn",
+        "namePlaceholder": "Till exempel Lugn och ren",
+        "instructionsLabel": "Stilinstruktioner",
+        "instructionsPlaceholder": "Beskriv exakt hur formuleringarna ska ändras. Exempel: Ta bort svordomar och ersätt dem med lugna, neutrala formuleringar.",
+        "instructionsHint": "Reglerna formar formuleringarna efter rensningen. De hålls separata från din rensningsprompt.",
+        "createTone": "Skapa stil",
+        "updateTone": "Spara ändringar",
+        "deleteTone": "Ta bort stil",
+        "cancel": "Avbryt"
+      },
+      "api": {
+        "title": "API (OpenAI-kompatibelt)",
+        "location": {
+          "title": "Var den körs",
+          "description": "Kör rensningen privat med en nedladdad modell eller använd en molnleverantör."
+        },
+        "provider": {
+          "title": "Leverantör",
+          "description": "Välj en OpenAI-kompatibel leverantör."
+        },
+        "appleIntelligence": {
+          "title": "Apple Intelligence",
+          "description": "Körs helt lokalt på enheten. Ingen API-nyckel eller nätverksåtkomst krävs.",
+          "requirements": "Kräver en Apple Silicon Mac som kör macOS Tahoe (26.0) eller senare. Apple Intelligence måste vara aktiverat i systeminställningarna.",
+          "unavailable": "Apple Intelligence är inte tillgängligt på den här enheten. Kräver en Apple Silicon Mac som kör macOS Tahoe (26.0) eller senare med Apple Intelligence aktiverat i systeminställningarna."
+        },
+        "baseUrl": {
+          "title": "Bas-URL",
+          "description": "API-bas-URL för den valda leverantören. Redigerbar för Custom, Local och Azure OpenAI (ställ in den på din resurs, t.ex. https://your-resource.openai.azure.com/openai/v1).",
+          "placeholder": "https://api.openai.com/v1",
+          "managed": "Bas-URL:en hanteras av den valda leverantören."
+        },
+        "apiKey": {
+          "title": "API-nyckel",
+          "description": "API-nyckel för den valda leverantören.",
+          "placeholder": "sk-..."
+        },
+        "builtin": {
+          "modelDescription": "Välj en modell du har laddat ner. Den körs på din dator utan API-nyckel eller konfiguration.",
+          "modelPlaceholder": "Välj en nedladdad modell",
+          "noModels": "Inga lokala modeller ännu. Ladda ner en från modellkatalogen.",
+          "ready": "Körs helt på din dator. Ingen API-nyckel, ingen konfiguration."
+        },
+        "model": {
+          "title": "Modell",
+          "descriptionApple": "Ange en valfri numerisk längdgräns eller behåll standardinställningen på enheten.",
+          "descriptionCustom": "Ange den modellidentifierare som din anpassade leverantör förväntar sig.",
+          "descriptionDefault": "Välj en modell som exponeras av den valda leverantören.",
+          "placeholderApple": "Apple Intelligence",
+          "placeholderWithOptions": "Sök eller välj en modell",
+          "placeholderNoOptions": "Ange ett modellnamn",
+          "refreshModels": "Uppdatera modeller"
+        },
+        "testConnection": {
+          "title": "Testa anslutningen",
+          "description": "Skickar en kort förfrågan för att kontrollera att AI-rensningen faktiskt når den här modellen. Modeller på enheten laddas först, så det första testet kan ta en stund.",
+          "button": "Testa anslutningen",
+          "testing": "Testar…"
+        }
+      },
+      "prompts": {
+        "title": "Prompt",
+        "selectedPrompt": {
+          "title": "Prompt",
+          "description": "Grundinstruktionen: vad modellen rättar och vad den måste låta vara. Din transkriberade text skickas separat, så skriv bara instruktioner."
+        },
+        "noPrompts": "Inga prompter tillgängliga",
+        "nonePrompt": "Ingen (ingen prompt)",
+        "selectPrompt": "Välj en prompt",
+        "createNew": "Skapa ny prompt",
+        "edit": "Redigera",
+        "closeEditor": "Stäng",
+        "promptLabel": "Promptens namn",
+        "promptLabelPlaceholder": "Ange namn på prompt",
+        "promptInstructions": "Promptens instruktioner",
+        "promptInstructionsPlaceholder": "Skriv instruktioner för att rensa transkriptionen. Exempel: Rätta grammatik och skiljetecken och skriv sedan om texten till ett välformulerat, professionellt meddelande.",
+        "promptTip": "Tips: Din transkriberade text skickas till modellen automatiskt — skriv bara instruktioner. (Äldre prompter som använder <code>${output}</code> fungerar fortfarande.)",
+        "updatePrompt": "Uppdatera prompt",
+        "deletePrompt": "Ta bort prompt",
+        "restorePrompt": "Återställ rekommenderad",
+        "createPrompt": "Skapa prompt",
+        "cancel": "Avbryt",
+        "selectToEdit": "Välj en prompt ovan för att visa och redigera dess detaljer.",
+        "createFirst": "Klicka på ”Skapa ny prompt” ovan för att skapa din första rensningsprompt."
+      }
+    },
+    "dictation": {
+      "hero": {
+        "eyebrow": "Lyssnar nu med",
+        "loading": "Laddar din modell…",
+        "noModelTitle": "Ingen modell ännu",
+        "noModelCaption": "Välj en modell så att din röst blir text.",
+        "chooseModel": "Välj en modell",
+        "changeModel": "Byt modell",
+        "streams": "Streamar live",
+        "accuracy": "Noggrannhet",
+        "speed": "Hastighet"
+      },
+      "catalog": {
+        "title": "Välj din modell",
+        "description": "Alla modeller körs på din dator — byt noggrannhet mot hastighet och välj den som passar."
+      },
+      "cloud": {
+        "groupTitle": "Var transkriberingen körs",
+        "engine": {
+          "title": "Motor för tal till text",
+          "description": "På den här datorn, eller hos en molnleverantör som du har en nyckel till.",
+          "info": "På min enhet kör en modell du har laddat ner: privat, gratis och offline. Moln skickar din inspelning till en leverantör du väljer och faktureras av dem per minut ljud, i utbyte mot en toppmodell utan nedladdning och utan GPU."
+        },
+        "bypassNotice": "Molntranskribering är på, så modellen ovan används inte och förblir avlastad.",
+        "provider": {
+          "title": "Leverantör"
+        },
+        "key": {
+          "title": "API-nyckel",
+          "stored": "En nyckel är sparad i systemets nyckelring.",
+          "missing": "Ingen nyckel sparad än för den här leverantören.",
+          "placeholder": "Klistra in din API-nyckel",
+          "replacePlaceholder": "Klistra in en ny nyckel för att ersätta den sparade",
+          "save": "Spara",
+          "saved": "API-nyckeln har sparats",
+          "clear": "Ta bort",
+          "getOne": "Skaffa en nyckel"
+        },
+        "endpoint": {
+          "title": "Slutpunkt",
+          "description": "Bas-URL för en OpenAI-kompatibel transkriberingsserver.",
+          "azureDescription": "Slutpunkten för din Azure-resurs, från Nycklar och slutpunkt i Azure-portalen. MAI-Transcribe kräver en resurs i Central India, Southeast Asia, East US, West US, West US 2 eller North Europe.",
+          "azurePlaceholder": "https://your-resource.cognitiveservices.azure.com"
+        },
+        "amazon": {
+          "credentials": {
+            "title": "AWS-åtkomstnyckel",
+            "missing": "Ingen nyckel sparad än. Använd en åtkomstnyckel för en IAM-användare eller IAM-roll som får anropa transcribe:StartStreamTranscriptionWebSocket.",
+            "keyId": "Åtkomstnyckel-ID",
+            "secret": "Hemlig åtkomstnyckel",
+            "sessionToken": "Sessionstoken (bara för tillfälliga autentiseringsuppgifter)",
+            "invalid": "Det här ser inte ut som en AWS-nyckel. Åtkomstnyckel-ID:t består av bokstäver och siffror, och inget fält får innehålla mellanslag eller kolon.",
+            "permission": "Behörighet som krävs"
+          },
+          "region": {
+            "title": "AWS-region",
+            "description": "Var Amazon Transcribe körs. Den region som ligger närmast dig svarar snabbast."
+          },
+          "streaming": "Alltid på: Amazon Transcribe transkriberar bara live. Om anslutningen bryts mitt i inspelningen skickas den igen i talhastighet, så det tar lika lång tid att bli klar som inspelningen tog.",
+          "language": "Amazon Transcribe måste veta språket. Automatiskt väljer mellan engelska, appens språk och några andra vanliga språk, så välj ditt om du talar något annat.",
+          "unsupportedLanguage": "Amazon Transcribe kan inte transkribera det här språket live i {{region}}. Välj ett annat språk eller en annan region. Tills dess använder dikteringen inte Amazon Transcribe."
+        },
+        "model": {
+          "title": "Modell",
+          "info": "Skriv valfri modell som leverantören erbjuder, eller ladda listan. För ElevenLabs väljer du scribe_v2_realtime för att transkribera medan du talar och scribe_v2 för att transkribera när du har slutat.",
+          "load": "Ladda modeller"
+        },
+        "streaming": {
+          "label": "Transkribera medan jag talar",
+          "description": "Texten kommer medan du fortfarande pratar, så när du släpper tangenten skickas bara de sista orden.",
+          "needsRealtimeModel": "Välj en realtidsmodell ovan för att använda detta — den nuvarande transkriberar först när du har slutat."
+        },
+        "keyterms": {
+          "label": "Skicka mina anpassade ord",
+          "description": "Skickar ditt anpassade ordförråd till leverantören så att den föredrar de stavningarna.",
+          "unsupported": "{{provider}} kan inte ta emot en ordlista, så dina anpassade ord rättas på den här datorn i stället."
+        },
+        "noVerbatim": {
+          "label": "Ta bort utfyllnadsord",
+          "description": "Tar bort ”öh”, ”eh”, felstarter och upprepningar. Stäng av detta för att få tillbaka exakt det du sa, ord för ord."
+        },
+        "language": {
+          "description": "Språket du talar. Alla leverantörer här svarar på samma språk — att ange det i förväg förbättrar noggrannheten, och med Auto känner den igen språket själv."
+        },
+        "translate": {
+          "supported": "{{provider}} kan returnera engelska i stället för språket du talade. Bara engelska — inget transkriberings-API översätter till något annat språk."
+        },
+        "test": {
+          "title": "Testa anslutningen",
+          "description": "Skickar en sekund ljud för att kontrollera nyckel, slutpunkt och modell.",
+          "action": "Kör test",
+          "running": "Testar…"
+        }
+      },
+      "aiCleanup": {
+        "groupTitle": "AI-rensning",
+        "modelGroupTitle": "Modell för rensning",
+        "unloadTimeout": {
+          "title": "Håll rensningsmodellen laddad",
+          "description": "Hur länge rensningsmodellen på enheten stannar i minnet efter att du slutat använda den. Längre betyder ingen omladdning före nästa diktering; en vilande modell tar minne men ingen CPU. Skild från assistentens inställning."
+        },
+        "model": {
+          "emptyTitle": "Ingen rensningsmodell än",
+          "emptyDescription": "SpeakoFlow Mini är en liten nedladdning byggd för just detta.",
+          "choose": "Välj en modell",
+          "tunedBadge": "Trimmad för rensning"
+        },
+        "catalog": {
+          "title": "Välj din rensningsmodell",
+          "description": "Rensningen körs efter varje diktering, så hastighet betyder mer än storlek. Allt körs offline.",
+          "recommendedTitle": "Rekommenderas för rensning",
+          "recommendedDescription": "SpeakoFlow Mini är tränad för just den här uppgiften och slår mycket större modeller på den."
+        },
+        "promptGroupTitle": "Instruktioner för rensning",
+        "tunedModelNotice": "Den här modellen är finjusterad för rensning av engelsk diktering, så den fungerar bäst med den rekommenderade prompten och utan stil.",
+        "tunedModelNoticeDismiss": "Dölj tipset",
+        "tunedModelNoticeRestore": "Visa modelltips",
+        "title": "Snygga till min diktering med AI",
+        "caption": "Experimentellt — snyggar till skiljetecken och utfyllnadsord efter att du dikterat.",
+        "info": "Rensningen skriver om det du sa med en AI-modell innan det skrivs ut. Det kan ta en stund, och om det går långsamt används dina råa ord i stället."
+      },
+      "spokenEmoji": {
+        "title": "Talade emojier",
+        "description": "Säg “happy emoji” eller “thumbs up emoji” för att infoga 😊 eller 👍. Vanliga varianter och mindre taligenkänningsfel hanteras på enheten; okända namn lämnas som text."
+      },
+      "flow": {
+        "groupTitle": "Generera med Flow",
+        "enableLabel": "Generera med Flow",
+        "enableDescription": "Börja en diktering med aktiveringsfrasen för att låta AI:n skriva resultatet åt dig — ”Hey Flow, skriv ett artigt mejl och be om att boka om” klistrar in det färdiga mejlet.",
+        "phraseLabel": "Aktiveringsfras",
+        "phraseDescription": "Flow aktiveras bara när en diktering börjar med den här frasen. I övrigt klistras samma ord in som vanlig diktering. Använder assistentens modell; lämna tomt för att återställa till ”Hey Flow”.",
+        "phrasePlaceholder": "Hey Flow",
+        "screenLabel": "Tillåt skärmåtkomst",
+        "screenDescription": "Låt Flow ta en skärmbild när ett kommando tydligt syftar på din skärm, som ”titta på det här mejlet och skriv ett svar”. Modellen avgör om det behövs. Skilt från assistentens skärmåtkomst."
+      },
+      "output": {
+        "title": "Utmatningsalternativ"
+      }
+    },
+    "history": {
+      "title": "Historik",
+      "storage": {
+        "title": "Lagring av inspelningar",
+        "description": "Dessa inställningar påverkar dikterings- och Flow-inspelningar. Sparade inspelningar behålls alltid. Assistentchattar lagras separat."
+      },
+      "filters": {
+        "label": "Historiktyp",
+        "all": "Alla",
+        "recordings": "Dikteringar",
+        "flow": "Flow",
+        "asks": "Assistent",
+        "calls": "Konversationer"
+      },
+      "openFolder": "Öppna mappen med inspelningar",
+      "loading": "Laddar historik…",
+      "empty": "Inget här ännu. Dina dikteringar, Flow-genereringar och assistentchattar visas här.",
+      "emptyRecordings": "Inga dikteringar ännu.",
+      "emptyFlow": "Inga Flow-genereringar ännu.",
+      "emptyAsks": "Inga frågor ännu.",
+      "emptyCalls": "Inga konversationer ännu.",
+      "flowLabel": "Flow",
+      "kinds": {
+        "ask": "Assistent",
+        "call": "Konversation"
+      },
+      "flowTranscriptLabel": "Du sa",
+      "originalTranscriptionLabel": "Ursprunglig transkription",
+      "flowOutputLabel": "Flow-resultat",
+      "finalTextLabel": "Slutlig text",
+      "flowNoOutput": "Inget Flow-resultat genererades.",
+      "copyToClipboard": "Kopiera transkription till urklipp",
+      "copyFlowOutput": "Kopiera Flow-resultatet",
+      "copyFinalText": "Kopiera den slutliga texten",
+      "save": "Spara transkription",
+      "unsave": "Ta bort från sparade",
+      "delete": "Ta bort post",
+      "deleteError": "Det gick inte att ta bort posten. Försök igen.",
+      "retranscribe": "Transkribera igen",
+      "retranscribeError": "Det gick inte att transkribera igen. Försök igen.",
+      "transcribing": "Transkriberar…",
+      "transcriptionFailed": "Transkriberingen misslyckades – använd ikonen för nytt försök för att försöka igen.",
+      "copyConversation": "Kopiera konversationen",
+      "copyAnswer": "Kopiera svaret",
+      "noAnswer": "Inget svar sparades för den här frågan.",
+      "resumeConversation": "Fortsätt den här konversationen i assistenten",
+      "branchConversation": "Fortsätt härifrån som en ny konversation. Den här behålls oförändrad.",
+      "showConversation": "Visa konversationen",
+      "hideConversation": "Dölj konversationen",
+      "roleUser": "Du",
+      "roleAssistant": "Assistent",
+      "screenshotAttached": "Skärmvisning",
+      "messageCount_one": "{{count}} meddelande",
+      "messageCount_other": "{{count}} meddelanden",
+      "deleteAssistantError": "Kunde inte ta bort konversationen. Försök igen.",
+      "openFolderError": "Det gick inte att öppna mappen för inspelningar."
+    },
+    "debug": {
+      "title": "Felsökning",
+      "logDirectory": {
+        "title": "Loggmapp",
+        "description": ""
+      },
+      "logLevel": {
+        "title": "Loggnivå",
+        "description": "",
+        "levels": {
+          "error": "Fel",
+          "warn": "Varning",
+          "info": "Info",
+          "debug": "Felsökning",
+          "trace": "Spårning"
+        }
+      },
+      "updateChecks": {
+        "label": "Sök efter uppdateringar automatiskt",
+        "description": "Letar efter en ny version när Zynveliq startar och var 12:e timme. Du kan alltid söka manuellt."
+      },
+      "soundTheme": {
+        "label": "Ljudtema",
+        "description": ""
+      },
+      "wordCorrectionThreshold": {
+        "title": "Tröskelvärde för ordkorrigering",
+        "description": "Känslighet för anpassade ordkorrigeringar"
+      },
+      "historyLimit": {
+        "title": "Gräns för inspelningar",
+        "description": "Högsta antal dikterings- och Flow-inspelningar utan stjärna att behålla. Stjärnmärkta inspelningar behålls alltid, och assistentchattar räknas inte. Det lägsta tillåtna värdet är 1.",
+        "entries": "inspelningar"
+      },
+      "recordingRetention": {
+        "title": "Radera inspelningar automatiskt",
+        "description": "Välj hur osparade inspelningar rensas bort. Ändringar tillämpas direkt och påverkar aldrig assistentchattar.",
+        "never": "Aldrig",
+        "preserveLimit": "Behåll ett bestämt antal",
+        "days3": "Efter 3 dagar",
+        "weeks2": "Efter 2 veckor",
+        "months3": "Efter 3 månader",
+        "customDays": "Efter ett visst antal dagar",
+        "customDaysTitle": "Ta bort efter",
+        "customDaysDescription": "Osparade inspelningar tas bort när de är så här många dagar gamla. Sparade inspelningar behålls alltid.",
+        "days": "dagar",
+        "placeholder": "Välj lagringsperiod…",
+        "savedToast": "Lagringsperioden sparades.",
+        "appliedToast": "Lagringsperioden för inspelningar tillämpades",
+        "saveFailed": "Det gick inte att spara inställningen för lagringstid.",
+        "confirmTitle_one": "Detta tar bort {{count}} inspelning",
+        "confirmTitle_other": "Detta tar bort {{count}} inspelningar",
+        "confirmTitleUnknown": "Detta kan ta bort inspelningar",
+        "confirmBody": "Ljudet och transkriptionen tas bort från den här enheten och kan inte återställas. Sparade inspelningar behålls.",
+        "confirmAction_one": "Ta bort {{count}} inspelning",
+        "confirmAction_other": "Ta bort {{count}} inspelningar",
+        "confirmActionUnknown": "Tillämpa ändå"
+      },
+      "alwaysOnMicrophone": {
+        "label": "Alltid påslagen mikrofon",
+        "description": "Håll mikrofonen varm så att de första orden aldrig kapas. Drar lite mer batteri."
+      },
+      "clamshellMicrophone": {
+        "title": "Mikrofon i stängt läge",
+        "description": "Mikrofon som ska användas när bärbara datorns lock är stängt"
+      },
+      "postProcessingToggle": {
+        "label": "AI-rensning",
+        "description": "Rensa din diktering med AI efter transkriberingen"
+      },
+      "appendTrailingSpace": {
+        "label": "Lägg till avslutande mellanslag",
+        "description": "Lägger till ett mellanslag efter varje diktering. Med smart mellanrum på gäller det bara där fältet inte kan läsas."
+      },
+      "smartSpacing": {
+        "label": "Smart mellanrum",
+        "description": "Anpassar varje diktering till texten som redan finns i fältet, så att du kan pausa och fortsätta utan att orden klistras ihop.",
+        "info": "Innan inklistring tittar Zynveliq på de få tecknen runt markören och lägger bara till ett mellanslag där det behövs. Om en app döljer sin text används i stället den egna senaste dikteringen. Inget sparas eller skickas någonstans. På macOS används behörigheten för hjälpmedel som Zynveliq redan har. På Linux delar Chrome-, Electron- och Qt-appar bara sin text när skrivbordets hjälpmedelsinställning är på."
+      },
+      "smartSpacingFixCase": {
+        "label": "Rätta versaler",
+        "description": "Börjar dikteringen med liten bokstav när den fortsätter en mening. Namn, förkortningar och \"I\" behåller sina versaler."
+      },
+      "smartSpacingJoin": {
+        "label": "Sätt ihop avbrutna meningar",
+        "description": "Tar bort punkten som Zynveliq lade till när du stannade mitt i en mening, som i \"I went to the.\""
+      },
+      "keyboardImplementation": {
+        "title": "Tangentbordsimplementering",
+        "description": "Välj tangentbordsgenvägens implementation.",
+        "bindingsReset": "Kortkommandona var inkompatibla och återställdes till standardvärden"
+      },
+      "paths": {
+        "appData": "Appdata:",
+        "models": "Modeller:",
+        "settings": "Inställningar:"
+      },
+      "pasteDelay": {
+        "title": "Fördröjning vid inklistring",
+        "description": "Antal millisekunder att vänta innan texten klistras in. Öka om fel text klistras in."
+      },
+      "recordingBuffer": {
+        "title": "Extra inspelningsbuffert",
+        "description": "Millisekunder att fortsätta spela in efter att du släppt tangenten."
+      }
+    },
+    "about": {
+      "title": "Om",
+      "version": {
+        "title": "Version",
+        "description": ""
+      },
+      "updates": {
+        "title": "Uppdateringar",
+        "button": "Sök efter uppdateringar",
+        "disabledHint": "Automatisk uppdateringskontroll är av. Slå på den under Allmänt."
+      },
+      "folders": {
+        "title": "Mappar"
+      },
+      "appDataDirectory": {
+        "title": "Mapp för appdata",
+        "description": "Där Zynveliq sparar dina modeller, din historik och dina inställningar."
+      },
+      "sourceCode": {
+        "title": "Källkod",
+        "description": "",
+        "button": "Visa på GitHub"
+      },
+      "license": {
+        "title": "Licens",
+        "description": "Zynveliq är öppen källkod under MIT-licensen och bygger på Handy (också MIT) av CJ Pais.",
+        "button": "Visa licensen"
+      },
+      "supportDevelopment": {
+        "title": "Stöd utvecklingen",
+        "description": "Hjälp oss att fortsätta bygga Zynveliq",
+        "button": "Donera"
+      }
+    },
+    "assistant": {
+      "enable": {
+        "title": "Assistent",
+        "label": "Aktivera assistenten",
+        "description": "Stäng av det här för att göra Zynveliq till enbart diktering. Den flytande panelen stängs och laddas aldrig, dess kortkommandon frigörs och minnet den använder lämnas tillbaka. Generera med Flow och AI-rensning fortsätter att fungera."
+      },
+      "shortcuts": {
+        "title": "Kortkommandon"
+      },
+      "brain": {
+        "title": "Assistentens hjärna",
+        "whereLabel": "Var den körs",
+        "testLabel": "Testa anslutningen",
+        "testDescription": "Skickar en kort fråga för att kontrollera att assistenten faktiskt når den här modellen. Modeller på enheten laddas först, så det första testet kan ta en stund.",
+        "testButton": "Testa anslutningen",
+        "testing": "Testar…",
+        "onDevice": "På den här datorn",
+        "cloud": "Moln",
+        "downloadModel": "Utforska och ladda ner modeller",
+        "downloadModelDescription": "Välj en rekommenderad modell eller sök på Hugging Face.",
+        "downloadModelAction": "Utforska modeller",
+        "catalogTitle": "Välj en modell på enheten",
+        "catalogDescription": "Ladda ner en privat lokal modell. Den stannar på den här datorn och kräver ingen API-nyckel.",
+        "currentModelTitle": "Nuvarande modell",
+        "currentModelDescription": "Vald för den inbyggda assistenten på den här enheten.",
+        "recommendedTitle": "Rekommenderade modeller",
+        "recommendedDescription": "Tre samtalsinriktade val: snabbast, rekommenderad och mer kapabel men långsammare.",
+        "acceleratorDetected": "{{name}} · {{memory}} GB rapporterat grafikminne",
+        "acceleratorDetectedDedicated": "{{name}} · {{memory}} GB dedikerat VRAM",
+        "acceleratorDetectedIntegrated": "{{name}} · {{memory}} GB delat grafikminne",
+        "acceleratorDetectedNoMemory": "{{name}} hittades · grafikminnet rapporteras inte",
+        "acceleratorUnknownWithMemory": "Grafikminnet är okänt · {{memory}} GB systemminne för CPU-läge",
+        "acceleratorUnknown": "Grafikminnet är okänt · svarshastigheten kan inte förutsägas",
+        "details": "Detaljer",
+        "detailFile": "Fil",
+        "detailLocation": "Plats",
+        "detailFormat": "Format",
+        "detailId": "Modell-ID",
+        "switchBeforeDelete": "Den här modellen används. Byt till en annan innan du tar bort den.",
+        "deleteModelConfirm": "Ta bort {{modelName}}? Dess nedladdade filer och sparade post tas bort.",
+        "deleteModelFailed": "Kunde inte ta bort modellen.",
+        "finderSectionTitle": "Fler modeller på enheten",
+        "finderTitle": "Utforska Hugging Face",
+        "finderDescription": "Sök bland tusentals GGUF-modeller och ladda ner en direkt till Zynveliq.",
+        "finderAction": "Hitta en modell",
+        "huggingFaceTitle": "Dina modeller",
+        "catalogEmpty": "Inga rekommenderade lokala modeller är tillgängliga just nu."
+      },
+      "subpages": {
+        "profilesCaption": "Byt assistentens namn, roll och personlighet.",
+        "memoryCaption": "Vad assistenten minns om dig mellan chattarna."
+      },
+      "provider": {
+        "title": "Assistentleverantör",
+        "saveFailed": "Kunde inte byta assistentleverantör.",
+        "providerLabel": "Leverantör",
+        "providerDescription": "Leverantören som svarar på frågor till assistenten.",
+        "baseUrlLabel": "Bas-URL",
+        "baseUrlDescription": "OpenAI-kompatibel bas-URL. Azure-URL:er normaliseras automatiskt.",
+        "apiKeyLabel": "API-nyckel",
+        "apiKeyDescription": "Delas med AI-rensning.",
+        "apiKeyPlaceholder": "Ange API-nyckel…",
+        "modelLabel": "Modell",
+        "modelDescription": "Modell- eller distributionsnamn som ska användas för assistentens svar.",
+        "modelPlaceholder": "t.ex. gpt-4o-mini",
+        "modelSearchPlaceholder": "Sök eller skriv en modell…",
+        "modelUse": "Använd \"{{model}}\"",
+        "loadModels": "Ladda modeller",
+        "loadingModels": "Laddar…",
+        "noModelsFound": "Inga modeller returnerades. Skriv modellnamnet i stället.",
+        "builtinModelDescription": "Välj en nedladdad lokal modell. Den körs på din dator utan API-nyckel.",
+        "builtinModelPlaceholder": "Välj en nedladdad modell",
+        "builtinNoModels": "Inga modeller på din dator ännu — ladda ner en nedan.",
+        "builtinReady": "Körs helt på din dator. Ingen API-nyckel, ingen konfiguration.",
+        "builtinEngineMissing": "Första gången laddas en liten lokal motor ner automatiskt (en gång), sedan körs allt helt offline. Ingen konfiguration behövs.",
+        "builtinEngineDownloading": "Laddar ner den lokala motorn… {{percent}}%",
+        "builtinEnginePreparing": "Laddar ner den lokala motorn…",
+        "builtinEngineExtracting": "Installerar den lokala motorn…",
+        "builtinEngineReady": "Den lokala motorn är klar.",
+        "contextSizeLabel": "Kontextfönster",
+        "contextSizeDescription": "Hur mycket av konversationen modellen kan läsa på en gång. Större minns mer men använder mer minne och laddas långsammare.",
+        "unloadTimeoutLabel": "Avlasta från minnet efter",
+        "unloadTimeoutDescription": "Frigör minne genom att avlasta den lokala modellen när den varit inaktiv så länge. Den laddas om automatiskt vid nästa användning."
+      },
+      "systemPrompt": {
+        "title": "Systemprompt",
+        "label": "Assistentens systemprompt",
+        "description": "Styr assistentens beteende."
+      },
+      "characters": {
+        "title": "Profiler",
+        "description": "Personor med eget namn, egna instruktioner och egen svarslängd. Byt när som helst från panelen.",
+        "galleryLabel": "Dina profiler",
+        "editSection": "Redigera profil",
+        "avatarLabel": "Avatar",
+        "active": "Aktiv",
+        "meowsOnly": "Jamar bara",
+        "builtin": "Inbyggd",
+        "custom": "Anpassad",
+        "new": "Ny",
+        "newName": "Ny profil",
+        "copyName": "Kopia av {{name}}",
+        "createAi": "Skapa med AI",
+        "import": "Importera",
+        "aiTitle": "Beskriv din profil",
+        "aiClose": "Stäng",
+        "aiPlaceholder": "t.ex. en koncis skribent av släppnoteringar, eller en tålmodig lärare som förklarar varje steg",
+        "aiDictate": "Diktera beskrivningen",
+        "aiDictateStop": "Stoppa dikteringen",
+        "generate": "Generera",
+        "avatarUpload": "Ladda upp bild",
+        "avatarRemove": "Ta bort",
+        "nameLabel": "Namn",
+        "roleLabel": "Roll",
+        "rolePlaceholder": "Kort beskrivning som visas på kortet (valfritt)",
+        "promptLabel": "Instruktioner (systemprompt)",
+        "responseLength": {
+          "label": "Svarslängd",
+          "hint": "Hur långa den här profilens svar blir. \"Ärv\" följer din globala assistentinställning.",
+          "options": {
+            "inherit": "Ärv global",
+            "short": "Kort",
+            "medium": "Medel",
+            "long": "Lång"
+          }
+        },
+        "greetingLabel": "Hälsning (valfritt)",
+        "greetingPlaceholder": "Valfri inledande rad som visas i en tom chatt",
+        "catNote": "Katten ignorerar AI:n helt — den bara jamar. Inget att ställa in här.",
+        "duplicate": "Duplicera",
+        "export": "Exportera",
+        "restoreDefault": "Återställ standard",
+        "restoreBuiltins": "Återställ inbyggda",
+        "moreActions": "Fler åtgärder",
+        "expand": "Fäll ut",
+        "collapse": "Fäll in",
+        "delete": "Ta bort",
+        "deleteConfirm": "Ta bort den här profilen? Det kan inte ångras.",
+        "emptyState": "Inga profiler ännu. Skapa din första för att ge assistenten en personlighet."
+      },
+      "behavior": {
+        "title": "Beteende"
+      },
+      "memory": {
+        "label": "Konversationsminne",
+        "description": "Hur många av de senaste meddelandena som skickas som kontext varje gång. 0 stänger av minnet."
+      },
+      "autoSummarize": {
+        "label": "Sammanfatta långa chattar",
+        "description": "Komprimerar långa chattar så att assistenten inte glömmer början."
+      },
+      "responseLength": {
+        "label": "Svarslängd",
+        "description": "Önskad svarslängd. \"Ingen effekt\" lämnar din prompt orörd.",
+        "options": {
+          "default": "Ingen effekt",
+          "short": "Kort",
+          "medium": "Medel",
+          "long": "Lång"
+        }
+      },
+      "vision": {
+        "timing": {
+          "label": "När skärmen fångas"
+        },
+        "screenRecording": {
+          "description": "Skärmvisning kräver behörigheten Skärminspelning i macOS. Bevilja den i Systeminställningar och starta sedan om Zynveliq för att den ska börja gälla.",
+          "grant": "Öppna systeminställningar"
+        }
+      },
+      "webSearch": {
+        "title": "Webbsökning",
+        "enableLabel": "Tillåt webbsökning",
+        "enableDescription": "Låt assistenten söka på webben när en fråga kräver aktuell information.",
+        "openRouterNativeLabel": "Använd OpenRouters inbyggda sökning",
+        "openRouterNativeDescription": "När det är på kör OpenRouter sökningen själv (läget :online) och använder dina OpenRouter-krediter. När det är av söker appen med din sökleverantör nedan.",
+        "providerLabel": "Sökleverantör",
+        "providerDescription": "Serper är ett bra standardval. Alla leverantörer har en gratisnivå, och TinyFish är gratis utan kort.",
+        "providers": {
+          "serper": "Serper (Google, snabb)",
+          "brave": "Brave Search",
+          "tavily": "Tavily (AI-sökning)",
+          "exa": "Exa (neural)",
+          "serpapi": "SerpAPI (Google)",
+          "tinyfish": "TinyFish (gratis, inget kort)"
+        },
+        "apiKeyLabel": "API-nyckel",
+        "apiKeyDescription": "Nyckel för den valda sökleverantören.",
+        "apiKeyPlaceholder": "Ange API-nyckel…",
+        "fetchContentLabel": "Läs hela sidor (bästa kvalitet)",
+        "fetchContentDescription": "Läs hela texten i varje resultat i stället för utdrag. Bättre svar, men långsammare.",
+        "maxResultsLabel": "Källor att använda",
+        "maxResultsDescription": "Hur många resultat som ska läsas (1–10).",
+        "depthLabel": "Sökdjup",
+        "depthDescription": "Snabb för enkla fakta, Standard för de flesta frågor, Djup för svåra.",
+        "depthOptions": {
+          "low": "Snabb",
+          "medium": "Standard",
+          "high": "Djup"
+        },
+        "localSmartLabel": "Smarta sökbeslut (lokal modell)",
+        "localSmartDescription": "Låt den lokala modellen avgöra när en sökning ska göras. Av använder en snabb nyckelordskontroll i stället.",
+        "creditBudgetLabel": "Daglig kreditgräns för Firecrawl",
+        "creditBudgetDescription": "Dagligt tak för Firecrawl-krediter innan sökningen pausas. 0 = ingen gräns.",
+        "testLabel": "Testa sökning",
+        "testDescription": "Kör en provsökning med den nuvarande leverantören och nyckeln.",
+        "testButton": "Testa sökning",
+        "testing": "Söker…",
+        "testResult": "Fick {{count}} resultat."
+      },
+      "tts": {
+        "title": "Röstuppläsning",
+        "enableLabel": "Läs upp svar under konversationer",
+        "enableDescription": "Läs upp svaren högt medan du är i en direktkonversation. Snabba textsvar läses aldrig upp.",
+        "stopOnDictationLabel": "Stoppa uppläsningen när diktering startar",
+        "stopOnDictationDescription": "Stoppa svar som fortfarande spelas upp när du börjar diktera.",
+        "engineLabel": "Motor",
+        "engineDescription": "Röster på den här datorn är gratis och privata och fungerar utan internet. Molnröster använder en API-nyckel från respektive leverantör. Anpassad ansluter till en talserver som du kör själv.",
+        "sectionLocal": "På den här datorn",
+        "sectionLocalHint": "Gratis och privat. Körs på den här datorn och fungerar offline.",
+        "sectionCloud": "Moln",
+        "sectionCloudHint": "Kräver en API-nyckel från leverantören. Anpassad ansluter till en talserver som du kör själv.",
+        "readyLabel": "Redo att använda",
+        "kokoroSetupLabel": "Kokoro-röstmodell",
+        "kokoroSetupDescription": "Ladda ner den en gång, sedan körs talade svar privat på den här enheten.",
+        "kokoroDownload": "Ladda ner Kokoro",
+        "kokoroDownloading": "Laddar ner Kokoro",
+        "kokoroReady": "Klar på den här enheten",
+        "kokoroRetry": "Försök ladda ner igen",
+        "runsOnLabel": "Körs på",
+        "runsOn": {
+          "auto": "Automatiskt",
+          "gpu": "Grafikkort",
+          "cpu": "Processor"
+        },
+        "runsOnStatus": {
+          "checking": "Använder grafikkortet när det fungerar, och processorn när det inte gör det.",
+          "gpu": "Talar via grafikkortet.",
+          "processor": "Talar via processorn.",
+          "gpuUnusable": "Talar via processorn, eftersom grafikkortet inte kan köra rösten på den här datorn.",
+          "needsPack": "Grafikkortet kan inte köra rösten på den här datorn. Ladda ner processorrösten nedan för snabba svar.",
+          "cpuNeedsPack": "Ladda ner processorrösten nedan. Tills dess körs Kokoro inuti appen, vilket är långsamt.",
+          "loadFailed": "Processorrösten kunde inte starta på den här datorn, så Kokoro körs inuti appen tills vidare.",
+          "noNativeSlow": "Grafikkortet kan inte köra rösten på den här datorn, så Kokoro körs långsamt inuti appen. En molnröst skulle gå snabbare.",
+          "gpuForcedUnusable": "Grafikkortet kan inte köra rösten ordentligt på den här datorn. Ställ in Körs på till Automatiskt eller Processor."
+        },
+        "kokoroNativeLabel": "Processorröst",
+        "kokoroNativeDescription": "Låter Kokoro tala snabbt via processorn när grafikkortet inte klarar det. Nedladdning på {{size}}.",
+        "kittenSizeLabel": "Kitten-storlek",
+        "kittenSizeDescription": "Alla tre storlekarna har samma åtta röster. Större storlekar låter mer naturliga men tar längre tid innan de börjar tala, särskilt på en svag processor.",
+        "kittenSizes": {
+          "nano": "Nano · snabbast ({{size}})",
+          "micro": "Micro · balanserad ({{size}})",
+          "mini": "Mini · mest naturlig ({{size}})"
+        },
+        "packLabel": {
+          "kitten": "Kitten-röst",
+          "pocket": "Pocket TTS-röst",
+          "supertonic": "Supertonic-röst"
+        },
+        "packDescription": {
+          "kitten": "En liten röst som körs på processorn. Nedladdning på {{size}}.",
+          "pocket": "Kyutais naturligt klingande röst, gjord för processorer, med 14 talare. Nedladdning på {{size}}.",
+          "supertonic": "Supertones snabba, tydliga röst, med tio talare. Nedladdning på {{size}}."
+        },
+        "voiceNamedFemale": "{{name}} (kvinna)",
+        "voiceNamedMale": "{{name}} (man)",
+        "voiceNumberedFemale": "Kvinna {{n}}",
+        "voiceNumberedMale": "Man {{n}}",
+        "packSize": "{{size}} MB",
+        "packDownload": "Ladda ner ({{size}})",
+        "packDownloading": "Laddar ner",
+        "packInstalling": "Förbereder",
+        "packCancel": "Avbryt nedladdning",
+        "packRemove": "Ta bort",
+        "packUnsupported": "Inte tillgänglig på det här systemet",
+        "kittenSuggestLabel": "Prova Kitten",
+        "kittenSuggestDescription": "Den här datorn har en svag processor. Kitten är en lättare röst som svarar snabbare här.",
+        "kittenSuggestButton": "Använd Kitten",
+        "engines": {
+          "kokoro": "Kokoro (lokal, gratis)",
+          "kitten": "Kitten (lokal, lätt)",
+          "pocket": "Pocket TTS (lokal)",
+          "supertonic": "Supertonic (lokal)",
+          "openai": "OpenAI",
+          "elevenlabs": "ElevenLabs",
+          "openrouter": "OpenRouter",
+          "deepgram": "Deepgram Aura",
+          "cartesia": "Cartesia Sonic",
+          "google": "Google Cloud TTS",
+          "azure": "Azure AI Speech",
+          "groq": "Groq Orpheus",
+          "xai": "xAI Grok Voice",
+          "mistral": "Mistral Voxtral",
+          "inworld": "Inworld TTS",
+          "custom": "Anpassad server (OpenAI-kompatibel)"
+        },
+        "voiceLabel": "Röst",
+        "voiceDescription": "Kokoro-röst för talade svar.",
+        "dtypeLabel": "Kokoro-precision",
+        "dtypeDescription": "Endast för Kokoro som körs i appen. fp32 ger högsta kvalitet; q8 är mindre. Om du ändrar detta laddas modellen om. Om rösten låter förvrängd, ställ in Körs på till Processor.",
+        "speedLabel": "Uppspelningshastighet",
+        "speedDescription": "1× är normal hastighet.",
+        "speedRange": "{{engine}} stöder {{min}}× till {{max}}×; andra hastigheter använder närmaste gräns.",
+        "speedUnsupported": "{{engine}} talar alltid i sin naturliga hastighet.",
+        "speedValue": "{{value}}×",
+        "speedCustomLabel": "Anpassad uppspelningshastighet",
+        "volumeLabel": "Röstvolym",
+        "volumeDescription": "Hur högt talade svar spelas upp. Skilt från återkopplingsljuden.",
+        "expressivenessLabel": "Uttrycksfullhet",
+        "expressivenessDescription": "Hur mycket rösten varierar sitt framförande, från stadigt och jämnt till livligt och känslosamt.",
+        "expressivenessInfo": "Det här är ElevenLabs inställning Stabilitet, fast omvänd. Tills du flyttar den använder varje röst sin egen sparade inställning. Längst ut åt det uttrycksfulla hållet kan det ibland låta ojämnt.",
+        "expressivenessSteady": "Stadig",
+        "expressivenessExpressive": "Uttrycksfull",
+        "expressivenessDefault": "Röstens standard",
+        "expressivenessReset": "Använd röstens standard",
+        "expressivenessLevels": {
+          "verySteady": "Mycket stadig",
+          "steady": "Stadig",
+          "balanced": "Balanserad",
+          "lively": "Livlig",
+          "veryExpressive": "Mycket uttrycksfull"
+        },
+        "audioTagsLabel": "Ljudtaggar",
+        "audioTagsDescription": "Låt rösten framföra svaren med instruktioner som [laughs] och [whispers] och ljudeffekter som [applause].",
+        "audioTagsNeedsModel": "Kräver en Eleven v3- eller v4-modell, till exempel eleven_v4. Välj en under Modell för att slå på detta.",
+        "audioTagsInfo": "Assistenten skriver korta instruktioner inom hakparenteser i sina talade svar, och ElevenLabs-rösten spelar upp dem eller framför dem som ljud i stället för att läsa dem. Be om en scen, som en publik som hejar på dig, så bygger den upp den med effekter. Chatten visar instruktionerna som de skrevs. Bara ElevenLabs v3- och v4-röster framför dem; med alla andra röster tas de bort innan uppläsningen.",
+        "audioTagIntensityLabel": "Framförande",
+        "audioTagIntensityDescription": "Hur ofta rösten reagerar och lägger till effekter, från en lätt touch till en hel föreställning.",
+        "audioTagIntensityLevels": {
+          "subtle": "Diskret",
+          "balanced": "Balanserad",
+          "theatrical": "Teatralisk"
+        },
+        "testLabel": "Testa rösten",
+        "testDescription": "Spela upp ett kort prov med de nuvarande inställningarna.",
+        "testButton": "Testa rösten",
+        "testing": "Testar…",
+        "testOk": "Uppspelad ✓",
+        "testFailed": "Kokoro kunde inte skapa provet. Försök igen, eller ställ in Körs på till Processor.",
+        "testGpuMoved": "Grafikkortet förvrängde provet, så det tystades. Kokoro använder nu processorn, så testa igen för att höra det.",
+        "testGpuForced": "Grafikkortet förvrängde provet, så det tystades. Ställ in Körs på till Automatiskt eller Processor.",
+        "testGpuSuspect": "Provet blev förvrängt, så det tystades. Testa igen för att kontrollera grafikkortet.",
+        "testPhrase": "Hej! Det här är ett test av Zynveliqs röstuppläsning.",
+        "downloadStart": "Laddar ner Kokoro-rösten…",
+        "downloadProgress": "Laddar ner Kokoro-rösten… {{progress}}%",
+        "downloadReady": "Kokoro-rösten är klar ✓",
+        "downloadError": "Kunde inte ladda ner Kokoro-röstmodellen",
+        "baseUrlLabel": "Bas-URL",
+        "baseUrlDescription": "Din talservers OpenAI-kompatibla adress, t.ex. http://localhost:8880/v1. Fungerar med Kokoro-FastAPI, Speaches, Chatterbox, Orpheus-FastAPI, LocalAI och andra servrar som erbjuder /v1/audio/speech. En fullständig /audio/speech-URL fungerar också.",
+        "azureBaseUrlLabel": "Speech-URL",
+        "azureBaseUrlDescription": "Din Azure Speech-URL från portalen, t.ex. https://eastus2.tts.speech.microsoft.com.",
+        "apiKeyLabel": "API-nyckel",
+        "apiKeyDescription": "Din API-nyckel för {{provider}}. Varje röstmotor har sin egen nyckel.",
+        "apiKeyOptionalDescription": "Behövs bara om din server kräver en.",
+        "modelLabel": "Modell",
+        "modelDescription": "Modellen som talar. Lämna tomt för att använda motorns standardmodell, som visas i grått.",
+        "remoteVoiceLabel": "Röstnamn",
+        "remoteVoiceDescription": "Röst för OpenAI-kompatibel TTS, t.ex. alloy, echo, nova, shimmer.",
+        "azureVoiceLabel": "Röstnamn",
+        "azureVoiceDescription": "Azure-röstnamn, t.ex. en-US-JennyNeural. Klicka på Ladda röster för att bläddra.",
+        "voiceLoadDescription": "Klicka på Ladda röster för att se motorns röster, eller skriv ett röst-ID.",
+        "deepgramVoiceDescription": "En Deepgram-röst är också sin egen modell, t.ex. aura-2-thalia-en. Klicka på Ladda röster för att bläddra.",
+        "loadVoices": "Ladda röster",
+        "voicesLoading": "Laddar…",
+        "voicesPick": "Välj bland {{count}} röster…",
+        "loadModels": "Ladda modeller",
+        "modelsLoading": "Laddar…",
+        "modelsPick": "Välj bland {{count}} modeller…",
+        "modelsUse": "Använd \"{{model}}\"",
+        "voicesUse": "Använd \"{{voice}}\"",
+        "elevenVoiceLabel": "Röst-ID",
+        "elevenVoiceDescription": "ElevenLabs röst-ID (från fliken Voices i deras kontrollpanel).",
+        "promptLabel": "Sammanfattningsprompt",
+        "promptDescription": "Instruktioner för att skapa den korta talade sammanfattningen av varje svar.",
+        "kokoroVoices": {
+          "usFemale": "{{name}} (amerikansk kvinna)",
+          "usFemaleSoft": "{{name}} (amerikansk kvinna, mjuk)",
+          "usMale": "{{name}} (amerikansk man)",
+          "ukFemale": "{{name}} (brittisk kvinna)",
+          "ukMale": "{{name}} (brittisk man)"
+        },
+        "dtypes": {
+          "fp32": "fp32 (bäst kvalitet, WebGPU)",
+          "fp16": "fp16 (halv precision)",
+          "q8": "q8 (8 bitar, snabb på CPU)",
+          "q4": "q4 (4 bitar, snabbast)",
+          "q4f16": "q4f16 (4 bitar, blandad)"
+        }
+      },
+      "appearance": {
+        "title": "Panelens utseende",
+        "previewLabel": "Förhandsvisning",
+        "previewDescription": "Direkt förhandsvisning av panelen med din textstorlek och opacitet.",
+        "previewUser": "Hej, vad kan du göra?",
+        "previewAssistant": "Massor! Fråga mig vad som helst — jag kan till och med titta på din skärm.",
+        "fontSizeLabel": "Textstorlek",
+        "fontSizeDescription": "Storleken på chattexten i assistentpanelen.",
+        "fontSizes": {
+          "small": "Liten",
+          "medium": "Medel",
+          "large": "Stor",
+          "extraLarge": "Extra stor"
+        },
+        "askDisplayLabel": "Vilken skärm",
+        "askDisplayDescription": "Skärmen som assistenten öppnas på. Som standard den som musen är på.",
+        "askDisplays": {
+          "cursor": "Skärmen som musen är på",
+          "numbered": "Skärm {{number}} ({{width}}×{{height}}){{suffix}}",
+          "mainSuffix": " · huvudskärm"
+        },
+        "askAnchorLabel": "Var den öppnas",
+        "askAnchorDescription": "Var assistenten öppnas, varje gång.",
+        "askAnchors": {
+          "center": "Mitt på skärmen",
+          "top": "Överst",
+          "bottom": "Nederst",
+          "left": "Vänster sida",
+          "right": "Höger sida"
+        },
+        "opacityLabel": "Panelens opacitet",
+        "opacityDescription": "Hur ogenomskinlig den flytande panelen är. 100% är helt tät; lägre värden låter skrivbordet skina igenom suddigt."
+      }
+    },
+    "thinking": {
+      "title": "Tänkande",
+      "description": {
+        "cleanup": "Hur länge en resonerande modell tänker innan den rensar din diktering. Av är snabbast, och modeller som alltid tänker, som gpt-oss, använder sin lägsta nivå. Höj bara om rensningen gör fel, eftersom det fördröjer varje diktering.",
+        "assistant": "Hur länge en resonerande modell tänker innan den svarar. Av är snabbast, och modeller som alltid tänker, som gpt-oss, använder sin lägsta nivå. Högre nivåer klarar svåra frågor bättre men tar längre tid innan svaret börjar."
+      },
+      "unsupported": {
+        "builtin": "Modeller på den här datorn svarar alltid utan att tänka, vilket gör dem snabba.",
+        "anthropic": "Anthropic låter inte appar ställa in detta, så Claude bestämmer. Använd Claude via OpenRouter för att ställa in det.",
+        "apple": "Apple Intelligence har ingen inställning för tänkande."
+      },
+      "options": {
+        "off": "Av",
+        "low": "Låg",
+        "medium": "Medel",
+        "high": "Hög"
+      }
+    }
+  },
+  "footer": {
+    "downloadingModel": "Laddar ner {{model}}…",
+    "checkingUpdates": "Söker efter uppdateringar…",
+    "updateAvailable": "Uppdatering tillgänglig: {{version}}",
+    "updateAvailableShort": "Uppdatering tillgänglig",
+    "upToDate": "Uppdaterad",
+    "downloadUpdate": "Ladda ner uppdatering",
+    "restart": "Starta om",
+    "updateCheckingDisabled": "Sökning efter uppdateringar är avstängd",
+    "downloading": "Laddar ner… {{progress}}%",
+    "installing": "Installerar…",
+    "preparing": "Förbereder…",
+    "checkForUpdates": "Sök efter uppdateringar",
+    "checkFailed": "Uppdateringskontrollen misslyckades",
+    "updateFailed": "Uppdateringen misslyckades",
+    "clickToRetry": "Klicka för att försöka igen",
+    "portableUpdateTitle": "Manuell uppdatering krävs",
+    "portableUpdateMessage": "Portabla installationer kan inte uppdateras automatiskt. Så uppdaterar du: ladda ner det senaste NSIS-installationsprogrammet från GitHub Releases, installera det i samma mapp och kopiera sedan din Data/-mapp (inställningar, modeller, inspelningar) från den gamla versionen till den nya.",
+    "portableUpdateButton": "Öppna GitHub Releases"
+  },
+  "meetings": {
+    "newTitle": "Möte {{when}}",
+    "speakers": {
+      "me": "Du",
+      "others": "Övriga",
+      "numbered": "Talare {{number}}"
+    },
+    "recorder": {
+      "idleTitle": "Spela in ett möte",
+      "idleCaption": "Spelar in din mikrofon och de andra deltagarna som två separata strömmar.",
+      "recording": "Spelar in",
+      "paused": "Pausad",
+      "liveCaption": "Transkriberar medan folk pratar.",
+      "start": "Starta inspelning",
+      "starting": "Startar…",
+      "stop": "Stoppa",
+      "stopping": "Stoppar…",
+      "stoppingHint": "Gör klart transkriptionen. Det kan ta en stund för ett långt möte.",
+      "pause": "Pausa",
+      "resume": "Fortsätt",
+      "transcriptEmpty": "Inget transkriberat än. Det visas här när folk pratar."
+    },
+    "offer": {
+      "detected": "Det verkar som att du är i ett samtal. Vill du spela in det?",
+      "detectedApp": "{{app}} verkar vara i ett samtal. Vill du spela in det?",
+      "idle": "Spelar inte in",
+      "record": "Spela in samtalet",
+      "dismiss": "Inte den här gången"
+    },
+    "autoDetect": {
+      "title": "Erbjud att spela in samtal",
+      "description": "Märker när en annan app börjar använda din mikrofon och erbjuder att spela in. Den startar aldrig av sig själv. Om den gissar fel stänger du bara kortet.",
+      "unsupported": "Samtalsidentifiering finns än så länge bara på Windows. På det här systemet startar du ett möte själv."
+    },
+    "indicator": {
+      "title": "Flytande indikator",
+      "description": "En liten ruta som visar att inspelningen pågår. Klicka på den för att se transkriptionen live. Stäng av den för att hålla skärmen ren; inspelningen finns då kvar här och du stoppar den från den här sidan.",
+      "hide": "Dölj den flytande indikatorn",
+      "show": "Visa den flytande indikatorn"
+    },
+    "notesPrefs": {
+      "autoTitle": "Skriv anteckningar när ett samtal slutar",
+      "autoDescription": "Stäng av om du bara behöver transkriptionen. Du kan ändå skriva anteckningar för ett möte från dess transkription.",
+      "languageTitle": "Språk för anteckningar",
+      "languageDescription": "Som standard skrivs anteckningarna på mötets språk. Välj ett språk för att alltid få dem på det.",
+      "auto": "Samma som mötet",
+      "autoHint": "Språket som större delen av mötet hölls på"
+    },
+    "pill": {
+      "expand": "Öppna transkriptionen live",
+      "collapse": "Tillbaka till den lilla rutan",
+      "copy": "Kopiera transkription",
+      "copied": "Transkriptionen kopierades",
+      "stop": "Stoppa inspelningen",
+      "listening": "Lyssnar. Det som sägs visas här.",
+      "micOnly": "Bara din mikrofon spelas in — inget som de andra deltagarna säger kommer med i transkriptionen."
+    },
+    "ask": {
+      "placeholder": "Fråga vad som helst om mötet…",
+      "send": "Fråga",
+      "stop": "Stoppa",
+      "thinking": "Läser transkriptionen…",
+      "title": "Fråga om mötet",
+      "empty": "Fråga vad som beslutades, vem som ansvarar för vad eller något annat som kom upp.",
+      "clear": "Rensa frågorna",
+      "youAsked": "Du frågade"
+    },
+    "systemAudio": {
+      "liveTitle": "Bara din röst spelas in",
+      "liveBody": "Systemljudet kunde inte spelas in, så mötet innehåller bara din sida av samtalet och inget som de andra deltagarna sa.",
+      "unavailableTitle": "De andra deltagarna kan inte spelas in på den här datorn",
+      "unavailableBody": "Inspelning av systemljud är inte tillgänglig, så ett möte som spelas in nu skulle bara innehålla din egen röst.",
+      "help": "Hjälp med konfiguration"
+    },
+    "list": {
+      "title": "Inspelade möten",
+      "emptyTitle": "Inga möten än",
+      "emptyHint": "Starta inspelningen före ett samtal så sparar Zynveliq transkriptionen, uppdelad efter vem som pratade.",
+      "loadMore": "Ladda fler",
+      "speakers_one": "{{count}} talare",
+      "speakers_other": "{{count}} talare",
+      "hasNotes": "Anteckningar skapade"
+    },
+    "status": {
+      "recording": "Spelar in",
+      "processing": "Bearbetar",
+      "complete": "Klar",
+      "interrupted": "Avbruten"
+    },
+    "delete": {
+      "action": "Ta bort mötet",
+      "whileRecording": "Stoppa inspelningen innan du tar bort mötet.",
+      "confirmTitle": "Ta bort det här mötet?",
+      "confirmBody": "Transkriptionen, anteckningarna och ljudet tas bort från den här datorn. Det går inte att ångra."
+    },
+    "detail": {
+      "title": "Möte",
+      "rename": "Byt namn på mötet",
+      "gone": "Mötet har tagits bort.",
+      "tabsLabel": "Mötesvyer"
+    },
+    "tabs": {
+      "myNotes": "Mina tankar",
+      "transcript": "Transkription",
+      "summary": "Sammanfattning",
+      "ask": "Fråga"
+    },
+    "discuss": {
+      "button": "Diskutera mötet",
+      "hint": "Prata igenom mötet med assistenten. Den vet vad som sades och kan slå upp saker i transkriptionen.",
+      "whileRecording": "Tillgängligt när inspelningen har stoppats.",
+      "nothingYet": "Inget har transkriberats ännu.",
+      "failed": "Det gick inte att starta konversationen: {{error}}",
+      "earlier": "Tidigare diskussioner",
+      "continue": "Fortsätt diskussionen",
+      "untitled": "Namnlös diskussion",
+      "messages_one": "{{count}} meddelande",
+      "messages_other": "{{count}} meddelanden",
+      "more": "Fler under Tidigare konversationer."
+    },
+    "myNotes": {
+      "description": "Skriv det som är viktigt för dig. Det slås ihop med transkriptionen när anteckningar skapas.",
+      "placeholder": "Det du vill komma ihåg från mötet…",
+      "saving": "Sparar…",
+      "saved": "Sparat"
+    },
+    "transcript": {
+      "empty": "Det här mötet har ingen transkription.",
+      "loadingMore": "Laddar mer av transkriptionen…",
+      "renameSpeaker": "Byt namn på talaren",
+      "copyTitle": "Kopiera hela transkriptionen med talarnas namn",
+      "lowConfidence": "Osäker",
+      "lowConfidenceHelp": "Den här talaretiketten är en gissning. Orden är transkriberade som de sades; bara vem som sa dem är osäkert."
+    },
+    "diarize": {
+      "title": "Skilj talarna åt",
+      "ready": "Gruppera de andra deltagarna som Talare 1, Talare 2 och så vidare.",
+      "needsModel": "Kräver en engångsnedladdning på {{size}} MB. Sedan körs den på din dator, och alla senare möten märks automatiskt.",
+      "install": "Ladda ner och identifiera",
+      "downloading": "Laddar ner…",
+      "identify": "Identifiera talare",
+      "running": "Lyssnar…",
+      "progress": "Jämför röster, {{done}} av {{total}} avsnitt.",
+      "oneSpeaker": "Det fanns bara en annan röst i samtalet, så det finns ingen att skilja åt.",
+      "skipped": {
+        "modelNotInstalled": "Talarmodellen är inte installerad än.",
+        "noSystemAudio": "Det här mötet har ingen inspelning av de andra deltagarna.",
+        "audioUnreadable": "Inspelningen av de andra deltagarna kunde inte läsas. Det händer om appen stängdes mitt under mötet.",
+        "tooFewSegments": "Det finns inte tillräckligt med tal från de andra deltagarna att jämföra.",
+        "alreadyDone": "Talarna i det här mötet har redan identifierats.",
+        "modelUnusable": "Talarmodellen kunde inte laddas, så den har tagits bort. Ladda ner den igen."
+      }
+    },
+    "summary": {
+      "template": "Mall",
+      "languageAuto": "Mötets språk",
+      "templates": {
+        "general": "Allmän",
+        "standup": "Standup",
+        "one_on_one": "Enskilt samtal",
+        "interview": "Intervju",
+        "action_items": "Att göra"
+      },
+      "templateHints": {
+        "general": "Sammanfattning, viktiga slutsatser, ämnen, beslut och nästa steg. Standardvalet.",
+        "standup": "Grupperat per person: vad de gjort klart, vad som är nästa steg och vad som hindrar dem.",
+        "one_on_one": "Ämnen, feedback och vad varje person åtog sig.",
+        "interview": "Underlag om kandidaten, utan någon bedömning.",
+        "action_items": "Bara uppgifterna, uppdelade i dina och alla andras."
+      },
+      "generate": "Skapa anteckningar",
+      "regenerate": "Skapa igen",
+      "rewrite": "Skriv om med en annan mall",
+      "generating": "Skriver anteckningar…",
+      "writing": "Skriver anteckningarna för mötet. Det tar en stund för ett långt samtal.",
+      "autoCaption": "Skrivna när samtalet avslutades",
+      "retryCaption": "Anteckningarna för mötet har inte skrivits än.",
+      "whileRecording": "Anteckningarna skrivs automatiskt när inspelningen stoppas.",
+      "copy": "Kopiera",
+      "copied": "Kopierat",
+      "toggleTask": "Markera nästa steg som klart eller inte klart",
+      "failed": "Anteckningarna kunde inte skrivas: {{error}}",
+      "tryAgain": "Försök igen",
+      "empty": "Inga anteckningar för mötet än.",
+      "needsTranscript": "Det finns ingen transkription att sammanfatta.",
+      "skipped_one": "En del av transkriptionen kunde inte sammanfattas, så anteckningarna har en lucka.",
+      "skipped_other": "{{count}} delar av transkriptionen kunde inte sammanfattas, så anteckningarna har luckor."
+    },
+    "errors": {
+      "startFailed": "Det gick inte att starta mötet: {{error}}",
+      "stopFailed": "Det gick inte att stoppa mötet: {{error}}",
+      "pauseFailed": "Det gick inte att ändra inspelningen: {{error}}",
+      "loadFailed": "Det gick inte att ladda möten: {{error}}",
+      "transcriptFailed": "Det gick inte att ladda transkriptionen: {{error}}",
+      "deleteFailed": "Det gick inte att ta bort mötet: {{error}}",
+      "renameFailed": "Det gick inte att byta namn på mötet: {{error}}",
+      "renameSpeakerFailed": "Det gick inte att byta namn på talaren: {{error}}",
+      "notesSaveFailed": "Det gick inte att spara dina anteckningar: {{error}}",
+      "copyFailed": "Det gick inte att kopiera anteckningarna: {{error}}",
+      "generateFailed": "Det gick inte att skapa anteckningar: {{error}}"
+    }
+  },
+  "common": {
+    "loading": "Laddar…",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "reset": "Återställ",
+    "add": "Lägg till",
+    "remove": "Ta bort",
+    "delete": "Ta bort",
+    "edit": "Redigera",
+    "create": "Skapa",
+    "update": "Uppdatera",
+    "close": "Stäng",
+    "open": "Öppna",
+    "default": "Standard",
+    "enabled": "Aktiverad",
+    "disabled": "Inaktiverad",
+    "on": "På",
+    "off": "Av",
+    "yes": "Ja",
+    "no": "Nej",
+    "noOptionsFound": "Inga alternativ hittades",
+    "back": "Tillbaka",
+    "showAdvanced": "Fler alternativ",
+    "showLess": "Visa mindre",
+    "beta": "Beta",
+    "select": "Välj…",
+    "search": "Sök",
+    "moreInfo": "Mer information",
+    "change": "Ändra",
+    "saveFailed": "Det gick inte att spara ändringen. Försök igen.",
+    "more": "Mer",
+    "hideTips": "Dölj tips",
+    "showTips": "Visa tips",
+    "play": "Spela upp",
+    "pause": "Pausa",
+    "unknownSize": "Okänd storlek"
+  },
+  "accessibility": {
+    "permissionsRequired": "Behörigheter för hjälpmedel krävs",
+    "permissionsDescription": "Zynveliq behöver behörighet för hjälpmedel för att kunna skriva transkriberad text.",
+    "openSettings": "Öppna systeminställningar",
+    "dismiss": "Avvisa"
+  },
+  "errors": {
+    "loadDirectory": "Det gick inte att läsa in mappen: {{error}}",
+    "micPermissionDeniedTitle": "Mikrofonåtkomst nekad",
+    "micPermissionDenied": {
+      "generic": "Mikrofonåtkomst nekades av operativsystemet. Bevilja mikrofonbehörighet i dina systeminställningar.",
+      "windows": "Aktivera mikrofonåtkomst i Inställningar → Integritet och säkerhet → Mikrofon (inklusive åtkomst till skrivbordsappar).",
+      "macos": "Bevilja mikrofonåtkomst i Systeminställningar → Integritet och säkerhet → Mikrofon.",
+      "linux": "Bevilja mikrofonåtkomst i systemets ljud- eller integritetsinställningar."
+    },
+    "noInputDeviceTitle": "Ingen mikrofon hittades",
+    "noInputDevice": "Ingen ljudenhet hittades. Anslut en mikrofon eller ett headset och försök igen.",
+    "recordingFailed": "Det gick inte att starta inspelningen: {{error}}",
+    "modelLoadFailed": "Det gick inte att läsa in modellen: {{model}}",
+    "modelLoadFailedUnknown": "okänd modell",
+    "loadModelsFailed": "Det gick inte att läsa in modellerna: {{error}}",
+    "switchModelFailed": "Det gick inte att byta modell: {{error}}",
+    "cancelDownloadFailed": "Det gick inte att avbryta nedladdningen: {{error}}",
+    "deleteModelFailed": "Det gick inte att ta bort modellen: {{error}}",
+    "extractModelFailed": "Det gick inte att packa upp modellen: {{error}}",
+    "downloadFailedTitle": "Nedladdningen misslyckades",
+    "pasteFailedTitle": "Det gick inte att klistra in texten",
+    "pasteFailed": "Texten kunde inte klistras in i den aktiva appen."
+  },
+  "appLanguage": {
+    "title": "Appens språk",
+    "description": "Ändra språket i Zynveliq-gränssnittet"
+  },
+  "overlay": {
+    "preparing": "Förbereder mikrofonen…",
+    "recording": "Spelar in",
+    "transcribing": "Transkriberar…",
+    "loading": "Laddar modell…",
+    "processing": "Rensar…",
+    "generating": "Skriver med Flow…",
+    "vision": "Tittar på din skärm…",
+    "notices": {
+      "flowNotConfigured": "Flow behöver en assistentmodell — inklistrat som diktering",
+      "flowFailed": "Flow kunde inte generera — inget klistrades in",
+      "cloudSttFailed": "Molntranskriberingen misslyckades — kontrollera nyckel och saldo i Inställningar",
+      "flowEmpty": "Säg ett kommando efter aktiveringsfrasen",
+      "cleanupFallback": "AI-rensningen kördes inte — klistrade in råtexten",
+      "cleanupModelRejected": "Leverantören för rensning avvisade modellen — kontrollera modellen i Inställningar",
+      "cloudSttFellBack": "Molntranskriberingen misslyckades — använde modellen på enheten",
+      "noSpeechModel": "Ingen talmodell än. Välj en på sidan Modeller"
+    },
+    "listening": "Lyssnar…",
+    "locked": "Spelar in handsfree — tryck på kortkommandot igen för att stoppa",
+    "cancel": "Avbryt",
+    "copy": "Kopiera transkriptionen",
+    "transcript": "Transkription",
+    "copied": "Kopierat",
+    "copyFailed": "Kunde inte kopiera — försök igen",
+    "done": "Klar",
+    "finish": "Avsluta",
+    "askAssistant": "Fråga assistenten i stället för att skriva in det här",
+    "recovery": {
+      "dismissed": "Avbruten",
+      "failed": "Transkriberingen misslyckades",
+      "undo": "Ångra",
+      "retry": "Försök igen"
+    },
+    "downloading": {
+      "title": "Talmodellen laddas ner…",
+      "percent": "Talmodellen laddas ner · {{percent}}%",
+      "hint": "Dikteringen fungerar när den är klar"
+    },
+    "update": {
+      "title": "{{model}} behöver uppdateras",
+      "hint": "Den nya versionen finns på sidan Modeller"
+    },
+    "handsFreeHint": "Tryck {{key}} för handsfree",
+    "lockedKeys": "Spelar in handsfree. Tryck på {{keys}} för att avsluta",
+    "finishKeys": "Avsluta ({{keys}})"
+  },
+  "reminders": {
+    "title": "Påminnelse",
+    "due": {
+      "now": "just nu",
+      "minutesAgo": "för {{count}} min sedan",
+      "hoursAgo": "för {{count}} h sedan"
+    },
+    "done": "Klar",
+    "snooze": "Snooza",
+    "snoozeFor_one": "{{count}} minut",
+    "snoozeFor_other": "{{count}} minuter",
+    "snoozedTimes_one": "Snoozad en gång",
+    "snoozedTimes_other": "Snoozad {{count}}×",
+    "later": "Dölj tills vidare — påminnelsen ligger kvar",
+    "settings": {
+      "label": "Påminnelser",
+      "description": "Be assistenten påminna dig om något; det visas här tills det är dags.",
+      "empty": "Inget schemalagt. Be assistenten påminna dig om något.",
+      "waiting": "Väntar på dig",
+      "cancel": "Avbryt påminnelsen",
+      "dueAt": "Förfaller {{when}}"
+    }
+  },
+  "assistant": {
+    "conversation": {
+      "title": "Konversation",
+      "newChat": "Ny chatt",
+      "type": "Skriv ett meddelande",
+      "backToVoice": "Tillbaka till röst",
+      "mute": "Stäng av mikrofonen",
+      "unmute": "Slå på mikrofonen",
+      "speakerOn": "Läs upp svar",
+      "speakerOff": "Sluta läsa upp svar",
+      "expand": "Öppna konversationen",
+      "collapse": "Fäll in",
+      "historyOpen": "Tidigare konversationer",
+      "historyClose": "Tillbaka till den här konversationen",
+      "end": "Avsluta konversationen",
+      "send": "Skicka",
+      "stop": "Stoppa svaret",
+      "placeholder": "Skriv till {{name}}",
+      "dismiss": "Stäng",
+      "retry": "Försök igen",
+      "details": "Detaljer",
+      "startHint": "Börja prata, eller skriv ett meddelande.",
+      "mutedHint": "Mikrofonen är av. Du kan fortfarande skriva.",
+      "heldHint": "Pausad medan du dikterar.",
+      "preparingVoice": "Förbereder rösten… {{progress}}%",
+      "history": {
+        "title": "Tidigare konversationer",
+        "hint": "Välj en för att fortsätta där du slutade. Din pågående konversation förblir öppen.",
+        "empty": "Inga sparade konversationer än.",
+        "noMatches": "Inget matchar sökningen.",
+        "noMeetings": "Inga konversationer om möten ännu. Öppna ett möte och välj Diskutera mötet.",
+        "loading": "Laddar…",
+        "failed": "Det gick inte att ladda dina konversationer.",
+        "more": "Visa fler",
+        "untitled": "Namnlös konversation",
+        "current": "Öppen nu",
+        "search": "Sök i konversationer",
+        "clearSearch": "Rensa sökning",
+        "scopeLabel": "Vilka konversationer",
+        "scopes": {
+          "all": "Alla",
+          "meetings": "Möten"
+        },
+        "groups": {
+          "today": "Idag",
+          "yesterday": "Igår",
+          "week": "Senaste 7 dagarna",
+          "earlier": "Tidigare"
+        },
+        "matchCount_one": "{{count}} konversation",
+        "matchCount_other": "{{count}} konversationer",
+        "messages_one": "{{count}} meddelande",
+        "messages_other": "{{count}} meddelanden"
+      },
+      "meeting": {
+        "about": "Om {{title}}",
+        "chipHint": "Assistenten har mötets anteckningar och kan söka i dess transkription.",
+        "untitled": "Namnlöst möte",
+        "startTitle": "Nu pratar vi om {{title}}",
+        "startHint": "Fråga vad som helst om det, eller vad du ska göra härnäst. Börja prata eller välj ett förslag:",
+        "prompts": {
+          "recap": "Ge mig en snabb sammanfattning",
+          "next": "Vad bör jag göra härnäst?",
+          "followUp": "Skriv ett uppföljningsmeddelande",
+          "missed": "Har jag missat något?"
+        }
+      },
+      "options": "Konversationsalternativ",
+      "pace": "Tid att tala klart",
+      "paceHint": "Hur länge den väntar efter att du pausar innan den svarar.",
+      "paces": {
+        "quick": "Snabb",
+        "natural": "Naturlig",
+        "patient": "Tålmodig"
+      },
+      "sensitivity": "Mikrofonkänslighet",
+      "sensitivityHint": "Hur lätt ett ljud räknas som att du pratar. Sänk den om bakgrundsljud eller assistentens egen röst hela tiden avbryter.",
+      "sensitivities": {
+        "low": "Låg — bullrigt rum eller högtalare",
+        "normal": "Normal",
+        "high": "Hög — tyst rum eller hörlurar"
+      },
+      "phase": {
+        "off": "Konversationen avslutad",
+        "starting": "Ansluter…",
+        "listening": "Lyssnar",
+        "hearing": "Lyssnar…",
+        "transcribing": "Transkriberar…",
+        "responding": "Tänker…",
+        "speaking": "Talar",
+        "muted": "Mikrofonen är av",
+        "held": "Pausad för diktering",
+        "error": "Konversationen avbröts"
+      },
+      "errors": {
+        "microphone": "Det gick inte att öppna mikrofonen. Tillåt mikrofonåtkomst och kontrollera att den inte används av en annan app.",
+        "device": "Mikrofonen kopplades från. Anslut den igen och försök sedan på nytt.",
+        "setup": "Det gick inte att starta samtalet. Kontrollera mikrofon, högtalare och assistentmodell i Inställningar.",
+        "turn": "Svaret kunde inte slutföras. Kontrollera detaljerna och försök sedan igen.",
+        "playback": "Det gick inte att spela upp röstsvaret. Kontrollera röstleverantören och utmatningsenheten.",
+        "tooLong": "Inspelningen nådde gränsen på en minut. Försök igen med en kortare replik.",
+        "history": "Det gick inte att öppna konversationen. Försök igen."
+      },
+      "chooseProfile": "Byt profil, just nu {{name}}",
+      "profiles": "Profiler",
+      "profileHint": "Ändringarna gäller från nästa svar.",
+      "chatOnlyProfile": "Den här profilen finns bara i chatten.",
+      "profileError": "Det gick inte att byta profil. Försök igen."
+    },
+    "title": "Assistent",
+    "character": {
+      "switch": "Byt profil"
+    },
+    "empty": "Fråga med röst via ditt assistentkortkommando,\neller skriv nedan.",
+    "inputPlaceholder": "Meddelande…",
+    "bar": {
+      "placeholder": "Fråga vad som helst…"
+    },
+    "send": "Skicka",
+    "stop": "Stoppa",
+    "cancel": "Avbryt",
+    "copy": "Kopiera",
+    "copyCode": "Kopiera koden",
+    "insert": "Infoga detta där du skrev",
+    "insertShort": "Infoga",
+    "insertReplace": "Ersätt den markerade texten med detta",
+    "insertReplaceShort": "Ersätt",
+    "selectionAttached_one": "{{count}} tecken markerat",
+    "selectionAttached_other": "{{count}} tecken markerade",
+    "regenerate": "Skapa svaret på nytt (det gamla finns kvar i Historik)",
+    "summarizing": "Sammanfattar tidigare meddelanden…",
+    "screenAttached": "Skärm",
+    "attach": {
+      "file": "Bifoga en bild eller fil",
+      "imageCount_one": "{{count}} bild",
+      "imageCount_other": "{{count}} bilder",
+      "dropHint": "Släpp för att bifoga"
+    },
+    "webSearch": {
+      "enable": "Aktivera webbsökning",
+      "disable": "Inaktivera webbsökning"
+    },
+    "tts": {
+      "enable": "Aktivera talade sammanfattningar",
+      "disable": "Inaktivera talade sammanfattningar",
+      "loading": "Laddar Kokoro-röstmodellen..."
+    },
+    "status": {
+      "listening": "Lyssnar…",
+      "locked": "Lyssnar",
+      "transcribing": "Transkriberar…",
+      "searching": "Söker på webben…",
+      "thinking": "Tänker…",
+      "speaking": "Talar…"
+    },
+    "tool": {
+      "search": "Söker på webben",
+      "screen": "Tittar på din skärm…",
+      "meetingSearch": "Söker i mötet",
+      "meetingRead": "Läser mötet",
+      "working": "Jobbar på det",
+      "elapsed": "{{seconds}} s"
+    },
+    "errors": {
+      "generic": "Något gick fel. Försök igen.",
+      "genericShort": "Något gick fel",
+      "no_provider": "Ingen assistentmodell är inställd ännu. Välj en leverantör i Inställningar → Assistent.",
+      "no_providerShort": "Ingen modell inställd",
+      "no_model": "Din leverantör har ingen modell vald. Välj en i Inställningar → Assistent.",
+      "no_modelShort": "Ingen modell vald",
+      "engine_start": "Den inbyggda modellen kunde inte starta. Försök igen eller välj en annan modell i Inställningar → Assistent.",
+      "engine_startShort": "Modellen kunde inte starta",
+      "provider": "Modellen kunde inte svara. Kontrollera din API-nyckel och anslutning och försök igen.",
+      "providerShort": "Fick inget svar",
+      "empty_reply": "Modellen blev klar utan att skriva något svar. Försök fråga igen eller välj en annan modell i Inställningar → Assistent.",
+      "empty_replyShort": "Tomt svar",
+      "vision_unsupported": "Den här modellen kan inte läsa din skärm. Välj en modell med skärmvisning i Inställningar → Assistent, eller fråga igen utan skärmvisning.",
+      "vision_unsupportedShort": "Modellen kan inte se bilder",
+      "screenshot_too_large": "Skärmbilden var för stor för den här leverantören. Försök igen — den komprimeras hårdare.",
+      "screenshot_too_largeShort": "Skärmbilden är för stor",
+      "screen_capture": "Kunde inte fånga skärmen. Försök igen eller fråga utan skärmvisning.",
+      "screen_captureShort": "Skärmbilden misslyckades",
+      "transcription": "Kunde inte transkribera din röst. Försök tala igen.",
+      "transcriptionShort": "Transkriberingen misslyckades",
+      "tts": "Det talade svaret misslyckades. Kontrollera dina TTS-inställningar eller läs svaret i panelen.",
+      "ttsShort": "Röstsvaret misslyckades",
+      "tts_local": "Den lokala rösten kunde inte laddas. Kontrollera din anslutning eller byt TTS-motor i Inställningar.",
+      "tts_localShort": "Rösten kunde inte laddas",
+      "tts_blocked": "Systemet blockerade rösten från att spelas upp av sig själv. Klicka var som helst i panelen för att höra svaret.",
+      "tts_blockedShort": "Tryck på panelen för att höra",
+      "tts_playback": "Kunde inte spela upp rösten på din utmatningsenhet. Kontrollera dina högtalar-/utmatningsinställningar och försök igen.",
+      "tts_playbackShort": "Uppspelningen av rösten misslyckades",
+      "tts_gpu": "Grafikkortet förvrängde rösten, så den tystades. Nästa svar använder processorrösten i stället.",
+      "tts_gpuShort": "Rösten tystad: grafikkortet förvrängde den",
+      "tts_gpu_slow": "Grafikkortet förvrängde rösten, så den tystades. Svaren körs nu på processorn, vilket är långsamt tills du laddar ner processorrösten under Modeller → Röst.",
+      "tts_gpu_slowShort": "Rösten tystad: grafikkortet förvrängde den",
+      "tts_gpu_forced": "Grafikkortet förvrängde rösten, så den tystades. Ställ in Körs på till Automatiskt eller Processor under Modeller → Röst.",
+      "tts_gpu_forcedShort": "Rösten tystad: grafikkortet förvrängde den",
+      "mic_denied": "Mikrofonåtkomsten är blockerad. Tillåt den i systemets integritetsinställningar.",
+      "mic_deniedShort": "Mikrofonåtkomst blockerad",
+      "mic_unavailable": "Ingen mikrofon hittades. Anslut en och försök igen.",
+      "mic_unavailableShort": "Ingen mikrofon hittades",
+      "mic_error": "Mikrofonen kunde inte starta. Den kanske används av ett annat program.",
+      "mic_errorShort": "Mikrofonen kunde inte starta",
+      "file_read": "Filen kunde inte bifogas.",
+      "file_readShort": "Kunde inte bifoga filen"
+    },
+    "notices": {
+      "web_search_failed": "Webbsökningen gav inga resultat — svarar utan dem.",
+      "web_search_failedShort": "Inga webbresultat",
+      "queued": "I kö — skickas så snart det här svaret är klart.",
+      "queuedShort": "I kö"
+    },
+    "engineSetup": {
+      "downloading": "Ställer in den lokala motorn (första körningen)… {{percent}}%",
+      "preparing": "Ställer in den lokala motorn (första körningen)…",
+      "extracting": "Installerar den lokala motorn…",
+      "short": "Ställer in motorn…"
+    },
+    "quick": {
+      "selection": "Markering",
+      "copied": "Kopierat"
+    }
+  },
+  "nav": {
+    "label": "Huvudmeny",
+    "home": "Hem",
+    "history": "Historik",
+    "assistant": "Assistent",
+    "meetings": "Möten",
+    "cleanup": "AI-rensning",
+    "dictionary": "Ordlista",
+    "models": "Modeller",
+    "settings": "Inställningar",
+    "status": {
+      "label": "Talmodell: {{model}}, {{status}}. Öppna inställningarna för tal till text.",
+      "setup": "Behöver konfigureras",
+      "needsUpdate": "Behöver uppdateras",
+      "cloud": "Moln · {{provider}}",
+      "loading": "Laddar…",
+      "error": "Kunde inte laddas",
+      "ready": "Klar",
+      "idle": "Laddas när du dikterar",
+      "noModel": "Ingen talmodell"
+    },
+    "insights": "Statistik"
+  },
+  "settingsDialog": {
+    "title": "Inställningar",
+    "tabs": {
+      "general": "Allmänt",
+      "shortcuts": "Kortkommandon",
+      "audio": "Ljud",
+      "dictation": "Diktering",
+      "privacy": "Integritet och data",
+      "advanced": "Avancerat",
+      "about": "Om",
+      "debug": "Felsökning"
+    },
+    "general": {
+      "appearance": "Utseende"
+    },
+    "shortcuts": {
+      "intro": "Alla kortkommandon fungerar i alla appar. Klicka på ett kortkommando för att spela in ett nytt.",
+      "dictation": "Diktering",
+      "assistant": "Assistent",
+      "mouse": "Mus",
+      "cleanupOff": "Slå på AI-rensning för att få det här kortkommandot.",
+      "assistantOff": "Assistenten är avstängd, så dess kortkommandon gör ingenting."
+    },
+    "audio": {
+      "microphone": "Mikrofon",
+      "otherAudio": "Annat ljud",
+      "otherAudioHint": "Musik, videor och samtal som spelas på datorn medan du dikterar eller frågar assistenten.",
+      "overlayHint": "Den lilla rutan som visas medan du spelar in."
+    },
+    "dictation": {
+      "intro": "Hur dina ord hamnar i appen du skriver i.",
+      "output": "Skrivning och inklistring",
+      "extras": "Extra"
+    },
+    "privacy": {
+      "intro": "Inspelningar och historik lagras bara på den här datorn. Välj hur länge inspelningar sparas.",
+      "recordingsFolder": "Mapp för inspelningar"
+    },
+    "advanced": {
+      "performance": "Prestanda"
+    },
+    "about": {
+      "appName": "Zynveliq",
+      "version": "Version {{version}}",
+      "project": "Projekt",
+      "docs": "Dokumentation",
+      "openDocs": "Öppna dokumentationen"
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "God morgon",
+      "afternoon": "God eftermiddag",
+      "evening": "God kväll",
+      "night": "Sent uppe"
+    },
+    "subtitleHold": "Håll ned ditt kortkommando i valfri app, prata och släpp. Dina ord visas där markören är.",
+    "subtitleTap": "Tryck på ditt kortkommando i valfri app, prata och tryck igen. Dina ord visas där markören är.",
+    "needsModel": {
+      "title": "Välj en talmodell för att börja diktera.",
+      "description": "Zynveliq behöver en modell för tal till text innan den kan skriva det du säger.",
+      "action": "Välj en modell"
+    },
+    "stats": {
+      "label": "Din användning",
+      "none": "–",
+      "spoken": "talat",
+      "words": "ord",
+      "wpm": "ord/min",
+      "wpmHint": "Ord per minut i dina inspelningar, pauser inräknade.",
+      "saved": "sparat",
+      "savedHint": "Jämfört med att skriva samma ord i {{wpm}} ord per minut.",
+      "empty": "Din statistik visas efter din första diktering.",
+      "streak_one": "{{count}} dag i rad",
+      "streak_other": "{{count}} dagar i rad",
+      "noStreak": "Diktera i dag för att starta en svit",
+      "today": "{{words}} ord i dag",
+      "duration": {
+        "seconds": "{{seconds}} s",
+        "minutes": "{{minutes}} min",
+        "hours": "{{hours}} h",
+        "hoursMinutes": "{{hours}} h {{minutes}} min"
+      },
+      "wordsLabel": "Dikterade ord",
+      "wpmLabel": "Ord per minut",
+      "savedLabel": "Sparad tid",
+      "streakLabel_one": "Dag i rad",
+      "streakLabel_other": "Dagar i rad",
+      "streakUnit_one": "dag i rad",
+      "streakUnit_other": "dagar i rad",
+      "seeInsights": "Visa statistik"
+    },
+    "shortcuts": {
+      "title": "Kortkommandon",
+      "edit": "Redigera kortkommandon",
+      "turnOn": "Slå på",
+      "off": "Avstängt",
+      "setKey": "Ange ett kortkommando",
+      "dictate": {
+        "title": "Diktera",
+        "hold": "Håll ned, prata, släpp. Dina ord skrivs där markören är.",
+        "tap": "Tryck för att starta, prata, tryck för att stoppa. Dina ord skrivs där markören är.",
+        "whatHold": "Håll ned, prata, släpp. Dina ord skrivs där markören är.",
+        "whatTap": "Tryck, prata, tryck igen. Dina ord skrivs där markören är."
+      },
+      "handsFree": {
+        "what": "Håll {{keys}}, tryck på {{key}} och släpp: den fortsätter lyssna tills du trycker på {{keys}} igen.",
+        "linux": "För att diktera handsfree på Linux, stäng av ”Håll för att prata”. Då startar en tryckning och nästa stoppar."
+      },
+      "cleanup": {
+        "title": "Diktera och rensa",
+        "description": "Samma som Diktera, men sedan rättar AI:n skiljetecken, utfyllnadsord och stil.",
+        "what": "Diktera, sedan rättar AI:n skiljetecken, utfyllnadsord och stil."
+      },
+      "ask": {
+        "title": "Fråga assistenten",
+        "description": "Ställ en fråga högt och få svaret i en flytande panel.",
+        "whatHold": "Håll ned, fråga, släpp. Svaret visas i en flytande panel.",
+        "whatTap": "Tryck, fråga, tryck igen. Svaret visas i en flytande panel."
+      },
+      "call": {
+        "title": "Starta en konversation",
+        "description": "En handsfree-konversation med talade svar.",
+        "what": "Prata fram och tillbaka, handsfree. Tryck igen för att avsluta."
+      },
+      "info": "Tryck på dessa i valfri app. Klicka på tangenterna för att ändra dem.",
+      "offHint": "Avstängt",
+      "cancel": {
+        "title": "Avbryt",
+        "what": "Stoppa en inspelning eller ett svar som läses upp."
+      },
+      "globe": {
+        "hint": "macOS reagerar också på 🌐-tangenten. Ställ in ”Tryck på 🌐-tangenten för att” på ”Gör ingenting” så att den bara dikterar.",
+        "open": "Tangentbordsinställningar"
+      },
+      "linux": {
+        "wayland": "Under Wayland skickar skrivbordet bara de här tangenterna till Zynveliq medan något av dess fönster ligger överst. Lägg till dem som kortkommandon i systeminställningarna för att använda dem i alla appar.",
+        "noAccess": "Zynveliq Keys kan inte läsa tangentbordet på den här datorn, så de här kortkommandona gör inget än.",
+        "setUp": "Ställ in",
+        "where": {
+          "gnome": "Öppna Inställningar → Tangentbord → Visa och anpassa kortkommandon → Anpassade kortkommandon, lägg till ett för varje kommando nedan och tryck på de tangenter du vill ha.",
+          "kde": "Öppna Systeminställningar → Tangentbord → Genvägar, välj Lägg till ny → Kommando eller skript för varje kommando nedan och tryck på de tangenter du vill ha.",
+          "other": "Lägg till ett eget kortkommando i skrivbordets tangentbordsinställningar, eller en bind-rad i kompositorns konfiguration, för varje kommando nedan."
+        },
+        "tapOnly": "Ett kortkommando som läggs till så fungerar som ”Tryck för att växla”: tryck en gång för att starta och en gång till för att stoppa.",
+        "access": "Eller låt Zynveliq Keys läsa tangentbordet. Kör det här i en terminal och logga sedan ut och in igen:",
+        "copy": "Kopiera",
+        "copied": "Kopierat"
+      }
+    },
+    "setup": {
+      "title": "Dina modeller",
+      "manage": "Hantera"
+    },
+    "recent": {
+      "title": "Senaste",
+      "viewAll": "Visa alla",
+      "copy": "Kopiera text",
+      "cleaned": "Rensad",
+      "tryPrefix": "Prova: klicka i rutan och tryck sedan på",
+      "trySuffixHold": "och håll ned medan du pratar.",
+      "trySuffixTap": "och prata. Tryck igen när du är klar.",
+      "tryPlaceholder": "Dina ord visas här…"
+    },
+    "activity": {
+      "title": "Senaste 30 dagarna",
+      "summary_one": "{{words}} ord på {{count}} dag",
+      "summary_other": "{{words}} ord på {{count}} dagar",
+      "chartLabel": "Dikterade ord per dag under de senaste {{days}} dagarna: {{words}} totalt.",
+      "words_one": "{{formatted}} ord",
+      "words_other": "{{formatted}} ord",
+      "today": "I dag"
+    }
+  },
+  "speechUpdate": {
+    "title": "{{model}} använde en äldre motor som Zynveliq inte längre har.",
+    "newVersion": "Den nya versionen är {{model}}.",
+    "ready": "{{model}} är hämtad och klar.",
+    "noVersion": "Välj en annan modell för att fortsätta diktera.",
+    "failed": "Det gick inte att hämta {{model}}.",
+    "download": "Hämta ny version ({{size}})",
+    "retry": "Försök igen",
+    "chooseAnother": "Välj en annan modell",
+    "progressLabel": "Hämtar den nya versionen",
+    "dialogTitle": "Zynveliq har en ny talmotor",
+    "dialogBody": "Den är snabbare och stabilare, så du stöter på färre problem. {{model}} körde på den gamla motorn och behöver sin nya version för att fortsätta fungera.",
+    "later": "Senare"
+  },
+  "modelsHub": {
+    "description": "Varje uppgift i Zynveliq utförs av en modell du väljer. Kör den på den här datorn för integritet, eller i molnet för hastighet.",
+    "addLocal": "Lägg till en modellfil",
+    "privacyNote": "Modeller på den här datorn skickar aldrig din röst eller text någonstans. Molnmodeller skickar den till leverantören du valt, med din API-nyckel.",
+    "inUse": "Används",
+    "needsSetup": "Behöver konfigureras",
+    "needsUpdate": "Behöver uppdateras",
+    "performance": "Prestanda",
+    "where": {
+      "device": "På den här datorn",
+      "cloud": "Moln",
+      "cloudWith": "Moln · {{provider}}",
+      "deviceShort": "Den här datorn"
+    },
+    "status": {
+      "voiceOff": "Upplästa svar är avstängda",
+      "assistantOff": "Assistenten är avstängd",
+      "noModel": "Ingen modell vald än",
+      "notDownloaded": "Modellen är inte nedladdad",
+      "needsUpdate": "{{model}} behöver uppdateras",
+      "noKey": "Lägg till en API-nyckel",
+      "noEndpoint": "Lägg till en slutpunkt"
+    },
+    "voice": {
+      "kokoroModel": "Kokoro-röst"
+    },
+    "usedBy": {
+      "label": "Används av",
+      "dictation": "Diktering",
+      "assistant": "Assistent",
+      "meetings": "Möten",
+      "cleanup": "AI-rensning",
+      "meetingNotes": "Mötesanteckningar",
+      "calls": "Konversationer",
+      "flow": "Generera med Flow",
+      "spokenReplies": "Upplästa svar"
+    },
+    "slots": {
+      "stt": {
+        "name": "Tal till text",
+        "description": "Omvandlar din röst till text.",
+        "whereHint": "På den här datorn är privat och gratis. Moln använder en leverantörs API och din nyckel.",
+        "catalogTitle": "Talmodeller",
+        "catalogDescription": "Alla modeller här körs på den här datorn. Snabbare modeller passar diktering; större är mer noggranna."
+      },
+      "cleanup": {
+        "name": "AI-rensning",
+        "description": "Utför dina talade ändringar, tillämpar en skrivstil och skriver mötesanteckningar.",
+        "turnOn": "Slå på AI-rensning",
+        "offNotice": "AI-rensning är avstängd. Mötesanteckningar använder fortfarande den här modellen.",
+        "borrowsNotice": "Ingen rensningsmodell är vald, så rensningen använder din assistents modell ({{model}}).",
+        "catalogTitle": "Rensningsmodeller"
+      },
+      "assistant": {
+        "name": "Assistent",
+        "description": "Svarar på dina frågor, tittar på din skärm och för konversationer.",
+        "openAssistant": "Öppna assistenten",
+        "offNotice": "Assistenten är avstängd. Generera med Flow och reservlösningen för rensning använder fortfarande den här modellen.",
+        "catalogTitle": "Assistentmodeller",
+        "fallbackNote": "AI-rensning och mötesanteckningar använder också den här modellen när de saknar en egen."
+      },
+      "voice": {
+        "name": "Röst",
+        "description": "Läser upp assistentens svar."
+      }
+    }
+  },
+  "cleanup": {
+    "description": "Utfyllnadsord tas redan bort i varje diktering. AI-rensning går längre: den utför dina talade ändringar och tillämpar en skrivstil.",
+    "toggle": "AI-rensning",
+    "how": {
+      "plain": "Skriver exakt det du sa.",
+      "cleaned": "Skriver det du sa, upprensat av AI.",
+      "off": "Slå på AI-rensning för att få det här kortkommandot.",
+      "change": "Ändra"
+    },
+    "model": {
+      "title": "Rensningsmodell",
+      "borrows": "Lånad från din assistent",
+      "own": "Körs varje gång du använder kortkommandot för rensning",
+      "change": "Ändra",
+      "info": "Körs varje gång du använder kortkommandot för rensning. Utan en egen modell använder rensningen assistentens."
+    },
+    "needsModel": {
+      "description": "AI-rensning behöver en modell innan den kan köras. Tills dess skrivs texten ut som du sa den.",
+      "action": "Välj en modell",
+      "short": "Välj en modell för att börja rensa upp."
+    },
+    "instructions": {
+      "title": "Instruktioner för rensning",
+      "description": "Grundprompten som talar om för modellen vad den ska rätta. De flesta ändrar den aldrig.",
+      "current": "Använder"
+    },
+    "styles": {
+      "title": "Skrivstil",
+      "description": "Hur den upprensade texten ska låta. Tillämpas efter rättningarna, så korrigeringarna förblir desamma.",
+      "createTitle": "Ny stil",
+      "createHint": "Beskriv hur du vill att din text ska låta.",
+      "editTitle": "Redigera stil",
+      "editorIntro": "Ge stilen ett namn och beskriv hur din text ska ändras. Den tillämpas efter rensningen, så korrigeringarna förblir desamma.",
+      "inUse": "Används",
+      "editNamed": "Redigera {{name}}",
+      "builtin": {
+        "none": "Rättar fel och lämnar dina formuleringar i fred.",
+        "professional": "Välformulerat och tydligt, för jobbmeddelanden och mejl.",
+        "friendly": "Varmt och avslappnat, som ett meddelande till en vän.",
+        "concise": "Skalar bort överflödiga ord och kommer till saken.",
+        "formal": "Hela meningar och ett formellt språk.",
+        "casual": "Ledigt och samtalsartat."
+      },
+      "groups": {
+        "builtin": "Inbyggda",
+        "custom": "Dina"
+      },
+      "manage": "Hantera",
+      "manageTitle": "Dina skrivstilar",
+      "noneYet": "Inga egna stilar än.",
+      "newStyle": "Ny stil",
+      "customHint": "En av dina egna stilar. Den tillämpas efter rättningarna.",
+      "preview": {
+        "youSay": "Du säger",
+        "itTypes": "Det skrivs",
+        "yourInstruction": "Din instruktion"
+      },
+      "samples": {
+        "raw": "vi borde ses i morgon klockan tio, nej förresten, elva, och gå igenom budgeten",
+        "none": "Vi borde ses i morgon klockan elva och gå igenom budgeten.",
+        "professional": "Jag föreslår att vi ses i morgon kl. 11.00 för att gå igenom budgeten.",
+        "friendly": "Ska vi ses i morgon klockan elva och gå igenom budgeten tillsammans?",
+        "concise": "Möte i morgon kl. 11 om budgeten.",
+        "formal": "Jag föreslår att vi sammanträffar i morgon klockan elva för att granska budgeten.",
+        "casual": "vi ses i morgon vid elva och kollar på budgeten"
+      },
+      "form": {
+        "name": "Namn",
+        "instruction": "Instruktioner",
+        "instructionTip": "Hur formuleringarna ska ändras. Tillämpas efter rensningen, så rättningarna förblir desamma.",
+        "instructionPlaceholder": "Till exempel: håll det ledigt och med små bokstäver, och gör om uttalade emojinamn till emojier."
+      },
+      "specialist": {
+        "ignored": "{{model}} gör bara grundläggande rensning och ignorerar därför skrivstilar. Använd en allmän modell för att tillämpa en stil.",
+        "changeModel": "Byt modell"
+      }
+    },
+    "shortcut": {
+      "title": "Kortkommando",
+      "info": "Ge rensningen ett eget kortkommando, eller låt dikteringskortkommandot rensa upp varje diktering så att du bara har en tangentkombination att komma ihåg.",
+      "separate": "Eget kortkommando",
+      "dictation": "Samma som diktering"
+    },
+    "skipShort": {
+      "title": "Hoppa över rensning för korta dikteringar",
+      "info": "Korta dikteringar, som en sökning eller ett snabbt svar, skrivs ut som du sa dem utan att vänta på modellen. Längre dikteringar rensas som vanligt.",
+      "limit": "Kortare än",
+      "limitInfo": "Räknas i ord. För språk som skrivs utan mellanslag, som kinesiska, japanska eller thailändska, uppskattas antalet ord utifrån antalet tecken.",
+      "words_one": "ord",
+      "words_other": "ord"
+    },
+    "shortcutRow": "Kortkommando"
+  },
+  "dictionary": {
+    "description": "Lär Zynveliq de namn och termer du använder, och skapa förkortningar som expanderar till längre text.",
+    "words": {
+      "title": "Dina ord",
+      "description": "Namn, fackuttryck och stavningar som Zynveliq alltid ska få rätt.",
+      "placeholder": "Lägg till ett namn, en term eller en stavning…",
+      "empty": "Inget här än. Lägg till orden som Zynveliq fortsätter att få fel."
+    },
+    "replacements": {
+      "title": "Ersättningar",
+      "description": "Säg en fras och få en annan text, till exempel att ”min e-post” blir din adress."
+    },
+    "addWord": "Lägg till ord"
+  },
+  "assistantPage": {
+    "description": "Fråga vad som helst med rösten, från vilken app som helst. Assistenten kan se din skärm, söka på webben och minnas det som är viktigt för dig.",
+    "offNotice": "Assistenten är avstängd. Dess kortkommandon gör ingenting och den använder inget minne förrän du slår på den igen.",
+    "hero": {
+      "askHold": "Håll ned, ställ din fråga, släpp. Svaret visas i en flytande panel.",
+      "askTap": "Tryck, ställ din fråga, tryck igen. Svaret visas i en flytande panel.",
+      "call": "Prata fram och tillbaka handsfree. Tryck igen för att avsluta.",
+      "title": "Fråga vad som helst, <em>var som helst.</em>",
+      "ask": "Fråga",
+      "callLabel": "Konversation",
+      "askHoldShort": "Håll ned, fråga, släpp",
+      "askTapShort": "Tryck, fråga, tryck igen",
+      "callShort": "Tryck igen för att avsluta",
+      "subtitle": "Ställ en fråga högt, eller starta en konversation och prata igenom det."
+    },
+    "models": {
+      "title": "Drivs av",
+      "assistant": "Tänker med",
+      "voice": "Läser upp svar"
+    },
+    "features": {
+      "title": "Vad den kan göra",
+      "vision": {
+        "title": "Skärmvisning",
+        "description": "Låt assistenten titta på din skärm när du frågar om den."
+      },
+      "webSearch": {
+        "title": "Webbsökning",
+        "description": "Söker på nätet efter aktuella, faktabaserade svar."
+      },
+      "reminders": {
+        "title": "Påminnelser",
+        "description": "Säg ”påminn mig om 20 minuter” så gör den det.",
+        "status": "Fråga med rösten"
+      },
+      "profiles": {
+        "title": "Profiler",
+        "description": "Personligheter som assistenten kan växla mellan, var och en med egna instruktioner.",
+        "status": "Standard"
+      },
+      "memory": {
+        "title": "Minne",
+        "description": "Det assistenten minns om dig, lagrat på den här datorn."
+      },
+      "behavior": {
+        "title": "Svar",
+        "description": "Hur långa svaren är och hur mycket av chatten den har i minnet."
+      },
+      "appearance": {
+        "title": "Panel",
+        "description": "Storlek, text, placering och opacitet för den flytande panelen.",
+        "status": "Anpassa"
+      }
+    },
+    "cards": {
+      "keySaved": "Nyckeln sparad",
+      "vision": {
+        "description": "Låt den titta på din skärm för att svara på frågor om det du ser.",
+        "timing": {
+          "immediate": "När jag börjar",
+          "onSend": "När jag skickar"
+        }
+      },
+      "webSearch": {
+        "description": "Söker på nätet efter aktuella, faktabaserade svar.",
+        "offHint": "Av: svaren kommer enbart från modellen och kan vara inaktuella.",
+        "keyFor": "API-nyckel för {{provider}}",
+        "getKey": "Skaffa en gratis nyckel på {{site}}.",
+        "hints": {
+          "tinyfish": "Gratis, inget kort",
+          "serper": "Google-resultat",
+          "brave": "Oberoende index",
+          "tavily": "Byggd för AI",
+          "exa": "Neural sökning",
+          "serpapi": "Google-resultat"
+        }
+      },
+      "reminders": {
+        "description": "Be den påminna dig, så dyker en notis upp när det är dags.",
+        "trySaying": "Prova att säga",
+        "examples": {
+          "one": "”Påminn mig om att ringa Sam om 20 minuter”",
+          "two": "”Klockan 18, påminn mig om att skicka fakturan”",
+          "three": "”Titta på det här och påminn mig i morgon”"
+        },
+        "upcoming": "Kommande",
+        "none": "Inget schemalagt än.",
+        "more_one": "och {{count}} till",
+        "more_other": "och {{count}} till"
+      },
+      "memory": {
+        "title": "Minne",
+        "description": "Minns det som är viktigt för dig, lagrat bara på den här datorn.",
+        "open": "Öppna minnet",
+        "manage_one": "Visa och redigera minnet · {{count}} anteckning",
+        "manage_other": "Visa och redigera minnet · {{count}} anteckningar",
+        "pausedHint": "Pausat: sparade minnen behålls men används inte."
+      },
+      "profiles": {
+        "title": "Profiler",
+        "description": "Personligheter med eget namn, egna instruktioner och egen svarsstil.",
+        "edit": "Redigera profiler",
+        "more": "+{{count}}"
+      },
+      "replies": {
+        "title": "Svar",
+        "description": "Hur långa svaren är, och hur mycket av chatten den har i minnet.",
+        "lengths": {
+          "default": "Standard",
+          "short": "Kort",
+          "medium": "Medel",
+          "long": "Lång"
+        },
+        "lengthHints": {
+          "default": "Så långt som frågan kräver.",
+          "short": "En mening eller två.",
+          "medium": "Ett kort stycke.",
+          "long": "Grundligt och detaljerat."
+        },
+        "history": "Meddelanden den har i minnet"
+      },
+      "panel": {
+        "title": "Flytande panel",
+        "description": "Hur panelen ser ut och var den öppnas. Förhandsvisningen uppdateras medan du ändrar.",
+        "positionHint": "Klicka på en plats på skärmen. Formen visar hur den öppnas: en hög kolumn längs en sida, eller en bred remsa längs över- eller underkanten. Dra panelen nära en plats så fäster den där."
+      }
+    },
+    "groups": {
+      "personal": "Personligt",
+      "replies": "Svar"
+    },
+    "rows": {
+      "replyLength": "Svarslängd",
+      "reminders": {
+        "none": "Inga inställda",
+        "count_one": "{{count}} inställd",
+        "count_other": "{{count}} inställda"
+      },
+      "memory": {
+        "edit": "Visa minnet",
+        "manage": "Hantera"
+      },
+      "profiles": {
+        "manage": "Hantera"
+      },
+      "screen": {
+        "ask": "Skärmvisning för frågor",
+        "call": "Skärmvisning i konversationer"
+      }
+    },
+    "tips": {
+      "thinksWith": "Modellen som svarar dig. AI-rensning och mötesanteckningar använder den också när de saknar en egen.",
+      "speaks": "Läser upp svar under en konversation.",
+      "screenAsk": "Låter assistenten titta när en fråga gäller din skärm, eller när du ber den. Frågor om markerad text besvaras utifrån texten. Skärmbilder skickas bara till din AI-leverantör.",
+      "screenCall": "Låter assistenten titta under en konversation när du ber den, eller när du pratar om något på skärmen.",
+      "captureTiming": "Fånga skärmen som den såg ut när du började fråga, eller när du skickar.",
+      "webSearch": "Söker på nätet när en fråga kräver aktuella fakta.",
+      "depth": "Snabb för enkla fakta, Djup för svåra frågor.",
+      "openRouterSearch": "Använder OpenRouters egen sökning och dina OpenRouter-krediter.",
+      "localSmart": "Låter modellen på enheten avgöra när den ska söka.",
+      "reminders": "Fråga bara: ”Påminn mig om att ringa Sam om 20 minuter.” En notis dyker upp när det är dags.",
+      "memory": "Minns det som är viktigt för dig. Lagras bara på den här datorn.",
+      "profiles": "Personligheter med eget namn, egna instruktioner och egen svarsstil.",
+      "replyLength": "Hur långa svaren brukar vara.",
+      "history": "Hur många av de senaste meddelandena den har i minnet.",
+      "summarize": "Sammanfattar långa chattar så att den inte glömmer början.",
+      "opacity": "Lägre låter skrivbordet synas igenom.",
+      "position": "Klicka på en plats på skärmen.",
+      "display": "Skärmen som panelen öppnas på."
+    },
+    "memory": {
+      "aboutTip": "En kort sammanfattning som den har i åtanke i varje svar. Den uppdateras medan ni pratar, och du kan redigera den när som helst.",
+      "aboutEmpty": "Inget än. Den fyller i detta medan ni pratar, eller så kan du skriva det själv.",
+      "write": "Skriv det",
+      "notesTitle": "Saker den minns",
+      "notesTip": "Fakta den har plockat upp från dina chattar, plus allt du lägger till. Varje svar använder de som passar.",
+      "notesEmpty": "Inget än. Den lär sig från dina chattar, eller lägg till något ovan.",
+      "showAll": "Visa alla {{count}}",
+      "showFewer": "Visa färre",
+      "detailTip": "Lätt använder bara sammanfattningen. Detaljerad lägger till fler anteckningar och är lite långsammare.",
+      "more": "Fler minnesalternativ",
+      "learnNow": "Lär från den här chatten nu",
+      "export": "Exportera minnet…",
+      "import": "Importera minne…",
+      "erase": "Radera minnet…",
+      "eraseTitle": "Radera minnet?",
+      "eraseBody_one": "Detta tar bort sammanfattningen och {{count}} anteckning. Det går inte att ångra.",
+      "eraseBody_other": "Detta tar bort sammanfattningen och alla {{count}} anteckningar. Det går inte att ångra.",
+      "eraseConfirm": "Radera",
+      "learnedToast": "Minnet uppdaterat från den här chatten",
+      "exportedToast": "Minnet exporterat",
+      "importedToast": "Minnet importerat",
+      "dialogDescription": "Det assistenten vet om dig. Det stannar på den här datorn, och du kan ändra eller radera vad som helst av det."
+    },
+    "profiles": {
+      "new": "Ny profil",
+      "newBlank": "Börja från början",
+      "newWithAi": "Beskriv den och låt AI skriva den",
+      "listMore": "Fler profilalternativ",
+      "import": "Importera från en fil…",
+      "restoreBuiltins": "Återställ inbyggda profiler",
+      "restored_one": "Återställde {{count}} profil",
+      "restored_other": "Återställde {{count}} profiler",
+      "restoredNone": "Alla inbyggda profiler finns redan här",
+      "inUse": "Används",
+      "use": "Använd den här profilen",
+      "more": "Fler alternativ för den här profilen",
+      "duplicate": "Duplicera",
+      "export": "Exportera…",
+      "exported": "Profilen exporterad",
+      "restoreDefault": "Återställ original",
+      "delete": "Ta bort profil…",
+      "deleteTitle": "Ta bort {{name}}?",
+      "deleteBody": "Det går inte att ångra.",
+      "addPicture": "Lägg till en bild",
+      "changePicture": "Byt bild",
+      "removePicture": "Ta bort bild",
+      "roleLabel": "Beskrivning",
+      "roleTip": "Några ord som visas under namnet.",
+      "rolePlaceholder": "Till exempel: korta, raka svar",
+      "instructionsLabel": "Instruktioner",
+      "instructionsTip": "Hur den här profilen tänker och pratar. Skickas med varje meddelande.",
+      "lengthLabel": "Svarslängd",
+      "lengthTip": "Standard följer Svarslängd på sidan Assistent.",
+      "lengths": {
+        "inherit": "Standard",
+        "short": "Kort",
+        "medium": "Medel",
+        "long": "Lång"
+      },
+      "greetingLabel": "Hälsning",
+      "greetingTip": "Valfritt. Visas när en ny chatt startar.",
+      "greetingPlaceholder": "Hej! Vad jobbar vi med?",
+      "aiTitle": "Beskriv en ny profil",
+      "aiBody": "Säg eller skriv hur den ska vara. Assistenten skriver dess namn och instruktioner.",
+      "aiCreate": "Skapa profil"
+    },
+    "panel": {
+      "where": "Var den öppnas",
+      "text": "Textstorlek",
+      "opacity": "Opacitet",
+      "screen": "Vilken skärm"
+    }
+  },
+  "meetingsPage": {
+    "transcript": "Transkription",
+    "notes": "Anteckningar",
+    "hero": {
+      "title": "Varje samtal, <em>nedskrivet.</em>",
+      "subtitle": "Uppdelat per talare, med anteckningar när det är slut."
+    },
+    "transcribedBy": "Transkriberat av",
+    "notesBy": "Anteckningar av",
+    "transcribedByTip": "Skriver transkriptionen. Det är din modell för tal till text, samma som dikteringen använder.",
+    "notesByTip": "Skriver anteckningarna och rubriken, och svarar på frågor om ett möte. Det är din assistentmodell."
+  },
+  "historyPage": {
+    "today": "I dag",
+    "yesterday": "I går",
+    "storage": "Lagring",
+    "showOriginal": "Visa original",
+    "showSaid": "Visa vad du sa",
+    "hideOriginal": "Dölj original",
+    "playRecording": "Spela upp inspelning",
+    "hideRecording": "Stäng spelaren",
+    "audioMissing": "Ljudfilen för den här inspelningen finns inte längre.",
+    "failed": "Transkriberingen misslyckades",
+    "retry": "Försök igen",
+    "dismissed": "Den här transkriptionen avfärdades.",
+    "recover": "Återställ",
+    "recoverTitle": "Transkribera den igen och behåll den",
+    "recoverError": "Kunde inte återställa den här transkriptionen. Försök igen.",
+    "more": "Fler åtgärder",
+    "chat": {
+      "continueInCall": "Fortsätt som konversation",
+      "assistantOff": "Slå på assistenten för att fortsätta den här chatten."
+    }
+  },
+  "pickers": {
+    "browse": "Hantera modeller",
+    "download": "Ladda ner fler modeller",
+    "choose": "Välj en modell",
+    "switchFailed": "Kunde inte byta modell. Försök igen.",
+    "borrowsAssistant": "Använder assistentens {{model}}",
+    "needsKey": "Kräver en API-nyckel",
+    "groups": {
+      "device": "På den här datorn",
+      "cloud": "Moln",
+      "setup": "Inte konfigurerad än"
+    },
+    "label": {
+      "assistant": "Assistentmodell",
+      "cleanup": "Modell för AI-rensning",
+      "stt": "Modell för tal till text",
+      "voice": "Röst"
+    },
+    "needsSetup": "Behöver konfigureras",
+    "finishSetup": "Slutför konfigurationen",
+    "setup": {
+      "title": "Konfigurera {{provider}}",
+      "bodyKey": "Klistra in din API-nyckel och välj sedan en modell.",
+      "bodyServer": "Ange din servers adress och välj sedan en modell.",
+      "bodyBoth": "Ange slutpunkten och din API-nyckel, och välj sedan en modell.",
+      "endpoint": "Slutpunktens URL",
+      "apiKey": "API-nyckel",
+      "apiKeyOptional": "API-nyckel (valfri)",
+      "keyPlaceholder": "Klistra in din nyckel",
+      "getKey": "Skaffa en nyckel på {{site}}",
+      "model": "Modell",
+      "modelPlaceholder": "Välj eller skriv en modell",
+      "loadModels": "Ladda modeller",
+      "noModels": "Inga modeller hittades. Skriv modellnamnet i stället.",
+      "typeInstead": "Skriv ett namn i stället",
+      "pickFromList": "Välj från listan",
+      "use": "Spara och använd",
+      "done": "Använder nu {{provider}}"
+    },
+    "voiceSetup": {
+      "bodyKey": "Klistra in din API-nyckel och välj sedan en röst.",
+      "bodyEndpoint": "Ange slutpunkten och din API-nyckel, och välj sedan en röst.",
+      "voice": "Röst",
+      "voicePlaceholder": "Välj en röst",
+      "loadVoices": "Ladda röster",
+      "noVoices": "Inga röster hittades. Klistra in ett röst-ID i stället.",
+      "model": "Modell (valfri)"
+    }
+  },
+  "catalog": {
+    "recommended": "Rekommenderad",
+    "searchHuggingFace": "Sök på Hugging Face",
+    "useFor": {
+      "button": "Använd för",
+      "label": "Använd {{model}} för…",
+      "assistant": "Assistent",
+      "cleanup": "AI-rensning",
+      "cleanupOnly": "Gjord enbart för rensning; den kan inte föra ett samtal."
+    },
+    "inUse": {
+      "assistant": "Assistent",
+      "cleanup": "AI-rensning"
+    },
+    "use": "Använd",
+    "useNamed": "Använd {{model}} för {{job}}",
+    "useForJob": "Använd för {{job}}",
+    "inUseShort": "Används",
+    "more": "Mer",
+    "moreFor": "Fler åtgärder för {{model}}",
+    "showDetails": "Visa fildetaljer",
+    "hideDetails": "Dölj fildetaljer",
+    "removeFromList": "Ta bort från listan",
+    "nowUsing": "Använder nu {{model}} för {{job}}.",
+    "yoursInfo": "Modeller du har laddat ner eller lagt till från din disk. Alla kan göra båda uppgifterna; via menyn ⋯ sätter du en av dem att göra den andra."
+  },
+  "models": {
+    "runsOn": "Körs på",
+    "options": "Alternativ",
+    "downloadTitle": "Ladda ner modeller",
+    "cleanupOff": "AI-rensning är avstängd. Mötesanteckningar använder fortfarande den här modellen.",
+    "assistantOff": "Assistenten är avstängd. Generera med Flow och rensning använder fortfarande den här modellen.",
+    "usedBy": "Används av: {{features}}."
+  },
+  "shortcutEditor": {
+    "change": "Ändra kortkommandot för {{name}}",
+    "useDefault": "Använd standard",
+    "turnOff": "Stäng av",
+    "turnedOff": "Kortkommandot för {{name}} är avstängt",
+    "undo": "Ångra",
+    "addAnother": "Lägg till fler",
+    "addAnotherHint": "Ge kortkommandot en andra uppsättning tangenter, till exempel en musknapp",
+    "addButtonOrKeys": "Lägg till musknapp eller tangenter",
+    "addButtonOrKeysHint": "Ge kortkommandot en musknapp eller en andra uppsättning tangenter, utöver de tangenter det har",
+    "mouseAddedAsOther": "{{button}} fungerar nu också för {{name}}. {{keys}} fungerar fortfarande.",
+    "mouseNeedsOtherSlot": "{{name}} har redan andra tangenter ({{keys}}). Klicka på dem för att lägga en musknapp där i stället.",
+    "mouseNeedsOwnKeys": "Ge {{name}} tangenter först. En musknapp läggs till bredvid dem.",
+    "remove": "Ta bort",
+    "or": "eller",
+    "changeOther": "Ändra de andra tangenterna för {{name}}",
+    "pressKeysOrButton": "Tryck på tangenter eller en musknapp…",
+    "mouseNeedsKeysEngine": "Musknappar kräver tangentbordsimplementeringen Zynveliq Keys (Inställningar → Avancerat → Experimentellt).",
+    "mouse": {
+      "middle": "Mittenknapp på musen",
+      "back": "Musknapp Bakåt",
+      "forward": "Musknapp Framåt"
+    }
+  },
+  "memoryManager": {
+    "status": {
+      "on": "På: används i svar och lär sig från chattar",
+      "off": "Av: inget används eller lärs in"
+    },
+    "incognitoHint": "Den här chatten används inte och inget lärs in från den",
+    "editNote": "Redigera anteckning",
+    "source": {
+      "learned": "Inlärd",
+      "added": "Tillagd av dig"
+    },
+    "filterLabel": "Visa anteckningar",
+    "filters": {
+      "all": "Alla",
+      "learned": "Inlärda {{count}}",
+      "added": "Mina {{count}}"
+    },
+    "search": "Sök i anteckningar",
+    "noMatches": "Inga anteckningar matchar.",
+    "detailHints": {
+      "light": "Bara sammanfattningen Om dig tas med i varje svar. Snabbast.",
+      "balanced": "Sammanfattningen plus några anteckningar som passar frågan.",
+      "detailed": "Sammanfattningen plus fler relevanta anteckningar. Rikast, lite långsammare."
+    },
+    "learnNow": "Lär från den här chatten",
+    "tips": {
+      "enable": "Låter assistenten använda och bygga upp ett minne om dig. Av som standard.",
+      "incognito": "Den här chatten varken används eller lärs in från.",
+      "aboutYou": "En kort sammanfattning som tas med i varje svar medan minnet är på."
+    }
+  },
+  "providerGrid": {
+    "showAll": "Visa alla {{count}} leverantörer",
+    "showFewer": "Visa färre"
+  },
+  "voiceEngines": {
+    "kokoro": "Bäst kvalitet",
+    "kitten": "Lättast",
+    "pocket": "14 röster",
+    "supertonic": "Snabb och tydlig",
+    "openai": "GPT-röster",
+    "elevenlabs": "Mest naturlig",
+    "openrouter": "Många röster",
+    "deepgram": "Snabb och billig",
+    "cartesia": "Lägst fördröjning",
+    "google": "Chirp 3 HD-röster",
+    "azure": "Neurala röster",
+    "groq": "Orpheus-röster",
+    "xai": "Grok-röster",
+    "mistral": "Voxtral-röster",
+    "inworld": "Uttrycksfulla röster",
+    "custom": "Din egen server",
+    "names": {
+      "kokoro": "Kokoro",
+      "kitten": "Kitten",
+      "pocket": "Pocket TTS",
+      "supertonic": "Supertonic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs",
+      "openrouter": "OpenRouter",
+      "deepgram": "Deepgram",
+      "cartesia": "Cartesia",
+      "google": "Google Cloud",
+      "azure": "Azure Speech",
+      "groq": "Groq",
+      "xai": "xAI",
+      "mistral": "Mistral",
+      "inworld": "Inworld",
+      "custom": "Anpassad"
+    }
+  },
+  "insights": {
+    "about": "Hur du använder Zynveliq, räknat på den här datorn.",
+    "nothingYet": "Din statistik visas när du har dikterat, frågat assistenten eller spelat in ett möte.",
+    "goHome": "Visa dina kortkommandon",
+    "figures": {
+      "dictations": "Antal dikteringar",
+      "dictationsInfo": "Varje diktering räknas en gång, oavsett hur lång den är.",
+      "questions": "Ställda frågor",
+      "meetings": "Inspelade möten"
+    },
+    "activityTitle": "Aktivitet",
+    "pages_one": "Ungefär {{count}} sida",
+    "pages_other": "Ungefär {{count}} sidor",
+    "longest_one": "Längst: {{count}} dag",
+    "longest_other": "Längst: {{count}} dagar",
+    "streakHint": "En dag räknas när du dikterar, frågar assistenten, för en konversation eller spelar in ett möte.",
+    "gridSummary_one": "{{words}} ord på {{count}} dag de senaste 6 månaderna",
+    "gridSummary_other": "{{words}} ord på {{count}} dagar de senaste 6 månaderna",
+    "gridSummaryAssistant_one": "{{questions}} på {{count}} dag de senaste 6 månaderna",
+    "gridSummaryAssistant_other": "{{questions}} på {{count}} dagar de senaste 6 månaderna",
+    "gridSummaryMeetings_one": "{{time}} mötestid på {{count}} dag de senaste 6 månaderna",
+    "gridSummaryMeetings_other": "{{time}} mötestid på {{count}} dagar de senaste 6 månaderna",
+    "gridSummaryAll_one": "Aktiv {{count}} dag de senaste 6 månaderna",
+    "gridSummaryAll_other": "Aktiv {{count}} dagar de senaste 6 månaderna",
+    "dayWords_one": "{{formatted}} ord",
+    "dayWords_other": "{{formatted}} ord",
+    "dayQuestions_one": "{{formatted}} fråga",
+    "dayQuestions_other": "{{formatted}} frågor",
+    "dayMeetings": "{{time}} mötestid",
+    "dayNoneFor": {
+      "all": "Inget den dagen",
+      "dictation": "Ingen diktering",
+      "assistant": "Inga frågor",
+      "meetings": "Inga möten"
+    },
+    "less": "Mindre",
+    "more": "Mer",
+    "busiest": "Mest aktiva dag",
+    "best": "Bästa dag",
+    "typical": "Typisk dag",
+    "typicalFor": {
+      "dictation": "Dagar du dikterar",
+      "assistant": "Dagar du frågar",
+      "meetings": "Dagar med möte"
+    },
+    "activity": {
+      "label": "Aktivitet att visa",
+      "all": "Allt",
+      "dictation": "Diktering",
+      "assistant": "Assistent",
+      "meetings": "Möten"
+    },
+    "assistantCard": {
+      "info": "Snabba frågor och det du sa i konversationer. De räknas kvar även när du tar bort konversationer.",
+      "noCalls": "Inga konversationer än"
+    },
+    "meetingsCard": {
+      "info": "Möten du har spelat in. De räknas kvar även när du tar bort ett möte."
+    },
+    "share": {
+      "button": "Dela",
+      "nothingYet": "Det finns något att dela när du har använt Zynveliq.",
+      "title": "Dela din statistik",
+      "private": "Skapas på den här datorn. Inget laddas upp.",
+      "size": "Storlek",
+      "formats": {
+        "square": "Kvadrat",
+        "story": "Story",
+        "wide": "Bred"
+      },
+      "formatHints": {
+        "square": "1080 × 1080, för flöden",
+        "story": "1080 × 1920, för stories",
+        "wide": "1600 × 900, för inlägg och länkar"
+      },
+      "previous": "Föregående kort",
+      "next": "Nästa kort",
+      "cardsLabel": "Kort",
+      "position": "Kort {{index}} av {{count}}",
+      "copy": "Kopiera bild",
+      "copied": "Kopierat",
+      "copyFailed": "Det gick inte att kopiera bilden",
+      "save": "Spara bild",
+      "saved": "Bilden sparades",
+      "saveFailed": "Det gick inte att spara bilden",
+      "showInFolder": "Visa i mapp",
+      "postOn": "Publicera på {{site}}",
+      "copiedForPost": "Kortet är kopierat. Tryck {{keys}} i det nya inlägget för att lägga till det.",
+      "savedForPost": "Kortet är sparat i Hämtade filer. {{site}} tar inte emot inklistrade bilder, så lägg till det med fotoknappen i det nya inlägget.",
+      "openSite": "Öppna {{site}}",
+      "openFailed": "Det gick inte att öppna {{site}}",
+      "more": "Fler appar",
+      "sheetTitle": "Min Zynveliq-statistik",
+      "shareFailed": "Det gick inte att öppna Dela",
+      "drawFailed": "Korten kunde inte ritas. Stäng och försök igen.",
+      "tagline": "Gratis · Öppen källkod · Fungerar offline",
+      "cards": {
+        "highlights": {
+          "title": "Mitt Zynveliq i siffror",
+          "words_one": "talat ord",
+          "words_other": "talade ord",
+          "streak_one": "dag i rad",
+          "streak_other": "dagar i rad",
+          "wpm": "ord per minut",
+          "questions_one": "ställd fråga",
+          "questions_other": "ställda frågor",
+          "meetings_one": "inspelat möte",
+          "meetings_other": "inspelade möten",
+          "saved": "sparat mot att skriva"
+        },
+        "words": {
+          "title": "Talat, inte skrivet",
+          "label_one": "talat ord",
+          "label_other": "talade ord",
+          "pages_one": "Ungefär {{count}} sida",
+          "pages_other": "Ungefär {{count}} sidor",
+          "books_one": "Lika långt som en hel roman",
+          "books_other": "Lika långt som {{count}} romaner"
+        },
+        "speed": {
+          "title": "Så snabbt pratar jag",
+          "label": "ord per minut",
+          "note": "{{times}}× snabbare än att skriva",
+          "you": "Prata",
+          "typing": "Typiskt skrivande"
+        },
+        "saved": {
+          "title": "Tid jag sparat",
+          "label": "inte vid tangentbordet",
+          "workdays_one": "En hel arbetsdag",
+          "workdays_other": "Ungefär {{count}} arbetsdagar"
+        },
+        "streak": {
+          "title": "På rulle",
+          "unit_one": "dag i rad",
+          "unit_other": "dagar i rad",
+          "longest_one": "Längsta svit: {{count}} dag",
+          "longest_other": "Längsta svit: {{count}} dagar",
+          "best": "Min längsta svit hittills"
+        },
+        "assistant": {
+          "title": "Min assistent",
+          "label_one": "fråga jag ställt",
+          "label_other": "frågor jag ställt",
+          "calls_one": "{{count}} konversation, {{time}} samtalstid",
+          "calls_other": "{{count}} konversationer, {{time}} samtalstid"
+        },
+        "meetings": {
+          "title": "Mina möten",
+          "label_one": "inspelat möte",
+          "label_other": "inspelade möten",
+          "note": "{{time}} inspelat, {{words}} ord nedskrivna",
+          "time": "{{time}} inspelat och nedskrivet"
+        },
+        "activity": {
+          "title": "Sex månader av prat",
+          "label_one": "aktiv dag",
+          "label_other": "aktiva dagar"
+        }
+      },
+      "post": {
+        "dictation_one": "Med Zynveliq har jag pratat in {{formatted}} ord på datorn i stället för att skriva det.",
+        "dictation_other": "Med Zynveliq har jag pratat in {{formatted}} ord på datorn i stället för att skriva dem.",
+        "asks_one": "Jag har ställt {{formatted}} fråga till Zynveliqs assistent utan att byta flik.",
+        "asks_other": "Jag har ställt {{formatted}} frågor till Zynveliqs assistent utan att byta flik.",
+        "meetings_one": "Zynveliq har spelat in {{formatted}} möte och skrivit anteckningarna åt mig.",
+        "meetings_other": "Zynveliq har spelat in {{formatted}} möten och skrivit anteckningarna åt mig."
+      }
+    }
+  },
+  "settingsNotice": {
+    "restored": "Dina inställningar var skadade och har återställts från en säkerhetskopia.",
+    "restoredDescription": "De senaste ändringarna kan saknas.",
+    "unrecoverableTitle": "Det gick inte att återställa dina inställningar",
+    "unrecoverableDescription": "Zynveliq startade med standardinställningarna. Den skadade filen sparades som {{file}}.",
+    "notSavingTitle": "Ändringar i inställningarna sparas inte",
+    "notSavingDescription": "Inställningsfilen kunde inte läsas och har därför lämnats orörd. Starta om Zynveliq för att försöka igen.",
+    "saveFailingTitle": "Inställningarna sparas inte",
+    "saveFailingDescription": "Dina senaste ändringar har inte sparats än. Zynveliq fortsätter att försöka.",
+    "dismiss": "Stäng"
+  }
+}

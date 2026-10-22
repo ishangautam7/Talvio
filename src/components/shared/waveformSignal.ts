@@ -1,0 +1,209 @@
+export const REST_HEIGHT = 0.1;
+export const MAX_HEIGHT = 0.8;
+export const AUDIO_STALE_MS = 180;
+export const SPEECH_RELEASE_MS = 120;
+const NOISE_GATE = 0.08;
+const clamp01 = (value: number) =>
+  Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+
+/** Detect input above the backend's normalized room noise. Detection is kept
+ * separate from display size, so moving nearer the mic does not enlarge it. */
+export function voiceEnergy(levels: readonly number[]): number {
+  if (!levels.length) return 0;
+  let sum = 0,
+    peak = 0;
+  for (const raw of levels) {
+    const value = clamp01(raw);
+    sum += value;
+    peak = Math.max(peak, value);
+  }
+  const signal = (sum / levels.length) * 0.34 + peak * 0.66;
+  return Math.pow(Math.max(0, (signal - NOISE_GATE) / (1 - NOISE_GATE)), 0.95);
+}
+
+/** The shape of the speaking wave, as travelling components rather than a fixed
+ * per-bar table. Each one contributes `cycles` crests across the row and moves
+ * along it once per `period`, so a crest is visibly handed from one bar to the
+ * next — that phase gradient is the whole difference between a wave and a row of
+ * bars pulsing in unison, which is what a single shared phase produced before.
+ *
+ * The periods are deliberately incommensurate and the third component travels
+ * the other way. Two same-direction waves alone read as a conveyor belt on a
+ * fixed beat; adding a slow counter-swell means the crests never line up the
+ * same way twice, so the silhouette keeps changing size without anything
+ * jumping. */
+const COMPONENTS = [
+  // Primary crest: ~1.5 crests in view, so a crest is always somewhere on the
+  // row, sweeping across it a little over once per second.
+  { cycles: 1.5, period: 0.9, direction: 1, weight: 0.5, offset: 0 },
+  // Shorter ripple riding along with it, at a slower tempo.
+  { cycles: 2.6, period: 1.37, direction: 1, weight: 0.33, offset: 1.7 },
+  // Long counter-travelling swell; breaks up any repeating march.
+  { cycles: 0.85, period: 1.13, direction: -1, weight: 0.24, offset: 3.1 },
+];
+const TOTAL_WEIGHT = COMPONENTS.reduce((sum, c) => sum + c.weight, 0);
+/** Bar height at a trough, and how much a full crest adds. The floor stays well
+ * clear of REST_HEIGHT so no bar reads as dead while speech is coming in. */
+const WAVE_FLOOR = 0.19;
+const WAVE_SPAN = 0.53;
+/** A slow breath over the whole row, so successive crests are not all the same
+ * height. Shallow on purpose: this is the "varies a little" part, not a pump. */
+const SWELL_PERIOD = 2.9;
+const SWELL_DEPTH = 0.14;
+
+/** Shortens the outermost bars so the row has a rounded silhouette and crests
+ * appear to enter and leave rather than being clipped at the ends. */
+const edgeTaper = (u: number) =>
+  0.68 + 0.32 * Math.pow(Math.sin(Math.PI * u), 0.75);
+
+/** Speech-gated activity, as a wave that travels along the row at a steady
+ * tempo and comfortable size. This is an activity indicator rather than a
+ * literal spectrum: `seconds` drives the motion and the microphone only decides
+ * whether it runs, so leaning into the mic changes nothing about how big it is. */
+export function speechWave(count: number, seconds: number): number[] {
+  const time = Number.isFinite(seconds) ? seconds : 0;
+  const swell =
+    1 - (SWELL_DEPTH * (1 - Math.sin((2 * Math.PI * time) / SWELL_PERIOD))) / 2;
+  return Array.from({ length: count }, (_, index) => {
+    const u = count === 1 ? 0.5 : index / (count - 1);
+    let sum = 0;
+    for (const { cycles, period, direction, weight, offset } of COMPONENTS)
+      sum +=
+        weight *
+        Math.sin(
+          2 * Math.PI * (cycles * u - (direction * time) / period) + offset,
+        );
+    const crest = 0.5 + sum / (2 * TOTAL_WEIGHT);
+    return edgeTaper(u) * (WAVE_FLOOR + WAVE_SPAN * swell * crest);
+  });
+}
+
+export function waveTargets(
+  levels: readonly number[],
+  count: number,
+  seconds = 0,
+): number[] {
+  return voiceEnergy(levels)
+    ? speechWave(count, seconds)
+    : Array(count).fill(REST_HEIGHT);
+}
+
+/** The working ripple: one soft crest travelling left to right across the bars
+ * while the app transcribes or cleans up.
+ *
+ * It replaced three dots that brightened in turn, which put a second, unrelated
+ * indicator in the place the user had just been watching the waveform, and whose
+ * blink read as nagging. Here the bars the user spoke into simply settle into a
+ * low, slow swell, so recording → working is one object changing pace rather
+ * than one object replaced by another.
+ *
+ * Deliberately smaller and slower than speech: the crest adds less than half a
+ * speaking crest's height and crosses the row in 1.6s, so it reads as "working
+ * on it" and never as "still listening". The crest is periodic over a span wider
+ * than the row, summed with its neighbours, so the loop has no seam — a crest
+ * leaving the right edge is already entering from the left. */
+const WORK_PERIOD = 1.6;
+const WORK_FLOOR = 0.15;
+const WORK_CREST = 0.24;
+/** Crest width, as a fraction of the row. About three bars of the pill. */
+const WORK_WIDTH = 0.2;
+/** Distance between successive crests, as a fraction of the row. Over 1, so
+ * there is always a moment with no crest in view: calmer than a conveyor. */
+const WORK_SPAN = 1.7;
+/** What working looks like without motion: a still, low row. */
+export const WORK_REST_HEIGHT = WORK_FLOOR + WORK_CREST * 0.25;
+
+export function workingWave(count: number, seconds: number): number[] {
+  const time = Number.isFinite(seconds) ? seconds : 0;
+  const cycle = (((time / WORK_PERIOD) % 1) + 1) % 1;
+  const centre = -(WORK_SPAN - 1) / 2 + WORK_SPAN * cycle;
+  return Array.from({ length: count }, (_, index) => {
+    const u = count === 1 ? 0.5 : index / (count - 1);
+    let crest = 0;
+    for (const shift of [-WORK_SPAN, 0, WORK_SPAN]) {
+      const distance = (u - centre - shift) / WORK_WIDTH;
+      crest += Math.exp(-distance * distance);
+    }
+    return WORK_FLOOR + WORK_CREST * Math.min(1, crest);
+  });
+}
+
+/** The working indicator when the wait has an estimate: the same light crest,
+ * but it travels once, left to right, at the pace of the work, and the bars it
+ * has passed stay raised behind it. So the row fills like a loading bar instead
+ * of sweeping and starting over, and when the work ends the last bars fill and
+ * it is visibly complete.
+ *
+ * `fill` is 0..1 (see `src/overlay/workProgress.ts`, which never lets it move
+ * backwards). `seconds` only adds life on top: a slow, shallow ripple along the
+ * filled bars and a breath in the crest, so a fill that is creeping through a
+ * longer-than-usual wait still looks like it is working rather than frozen.
+ *
+ * Returns each bar's height and how far the fill has covered it (0..1), which
+ * the waveform also uses to brighten bars as they fill. */
+const FILL_HEIGHT = 0.31;
+const FILL_CREST = 0.13;
+/** Crest width, in bars. */
+const FILL_CREST_WIDTH = 1.35;
+const FILL_RIPPLE = 0.025;
+const FILL_RIPPLE_PERIOD = 2.4;
+const FILL_BREATH_PERIOD = 1.8;
+
+export function progressWave(
+  count: number,
+  fill: number,
+  seconds: number,
+): { heights: number[]; covered: number[] } {
+  const f = Number.isFinite(fill) ? Math.max(0, Math.min(1, fill)) : 0;
+  const time = Number.isFinite(seconds) ? seconds : 0;
+  const front = f * count;
+  // The crest and the ripple both fade out over the last bars, so a finished
+  // row settles level instead of still moving when the check replaces it.
+  const remaining = count - front;
+  const crestScale =
+    Math.min(1, remaining / FILL_CREST_WIDTH) *
+    (0.88 + 0.12 * Math.sin((2 * Math.PI * time) / FILL_BREATH_PERIOD));
+  const rippleScale = Math.min(1, remaining / 2);
+  const covered: number[] = [];
+  const heights = Array.from({ length: count }, (_, index) => {
+    const u = count === 1 ? 0.5 : index / (count - 1);
+    const cover = Math.max(0, Math.min(1, front - index));
+    covered.push(cover);
+    const ripple =
+      FILL_RIPPLE *
+      rippleScale *
+      cover *
+      Math.sin(2 * Math.PI * (1.2 * u - time / FILL_RIPPLE_PERIOD));
+    const distance = (index + 0.5 - front) / FILL_CREST_WIDTH;
+    const crest =
+      FILL_CREST * Math.max(0, crestScale) * Math.exp(-distance * distance);
+    return WORK_FLOOR + (FILL_HEIGHT - WORK_FLOOR) * cover + ripple + crest;
+  });
+  return { heights, covered };
+}
+
+export interface Spring {
+  position: number;
+  velocity: number;
+}
+/** Exact critically damped response for one frame. No bouncing or perpetual
+ * motion; using elapsed time gives the same response on 60 and 120 Hz screens. */
+export function stepSpring(
+  spring: Spring,
+  target: number,
+  seconds: number,
+): Spring {
+  const dt = Math.min(0.05, Math.max(0, seconds));
+  const omega = target > spring.position ? 38 : 22;
+  const offset = spring.position - target;
+  const momentum = spring.velocity + omega * offset;
+  const decay = Math.exp(-omega * dt);
+  const position = target + (offset + momentum * dt) * decay;
+  const velocity = (spring.velocity - omega * momentum * dt) * decay;
+  if (Math.abs(position - target) < 0.0005 && Math.abs(velocity) < 0.005)
+    return { position: target, velocity: 0 };
+  return {
+    position: Math.max(REST_HEIGHT, Math.min(MAX_HEIGHT, position)),
+    velocity,
+  };
+}

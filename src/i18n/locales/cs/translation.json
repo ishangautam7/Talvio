@@ -1,0 +1,3701 @@
+{
+  "appearance": {
+    "title": "Vzhled",
+    "description": "Vyberte pro aplikaci a panel asistenta světlý, tmavý nebo systémový vzhled.",
+    "system": "Systémový",
+    "light": "Světlý",
+    "dark": "Tmavý",
+    "textSize": "Velikost textu",
+    "textSizeDescription": "Změňte velikost textu a ovládacích prvků v celé aplikaci.",
+    "textSizeSmall": "Malá",
+    "textSizeDefault": "Výchozí",
+    "textSizeLarge": "Velká",
+    "textSizeExtraLarge": "Extra velká"
+  },
+  "tray": {
+    "home": "Domů",
+    "openAssistant": "Otevřít asistenta",
+    "checkUpdates": "Zkontrolovat aktualizace…",
+    "sendFeedback": "Poslat zpětnou vazbu…",
+    "copyLastTranscript": "Zkopírovat poslední přepis",
+    "unloadModel": "Uvolnit model",
+    "model": "Model",
+    "quit": "Ukončit",
+    "cancel": "Zrušit"
+  },
+  "updates": {
+    "check": "Zkontrolovat aktualizace",
+    "checking": "Kontroluji…",
+    "upToDate": "Máte nejnovější verzi",
+    "checkFailed": "Aktualizace se nepodařilo zkontrolovat. Zkontrolujte připojení a zkuste to znovu.",
+    "noBuild": "Nová verze zatím pro tento systém není k dispozici.",
+    "available": "Je k dispozici verze {{version}}",
+    "availableShort": "Aktualizace k dispozici",
+    "installNow": "Aktualizovat",
+    "downloading": "Stahování… {{progress}} %",
+    "downloadingUnknown": "Stahování…",
+    "installing": "Instalace…",
+    "reopening": "Zynveliq se zavře, nainstaluje aktualizaci a za několik sekund se znovu otevře.",
+    "updatedTo": "Aktualizováno na verzi {{version}}",
+    "restart": "Restartovat",
+    "readyToRestart": "Aktualizace je nainstalovaná. Restartujte Zynveliq, abyste ji mohli začít používat.",
+    "installFailed": "Aktualizace se nenainstalovala. Můžete to zkusit znovu, nebo si stáhnout instalační program a spustit ho sami.",
+    "downloadFailed": "Stahování se nedokončilo. Zkontrolujte připojení a zkuste to znovu.",
+    "downloadInstaller": "Stáhnout instalační program",
+    "downloadInstead": "Raději stáhnout instalační program",
+    "downloadNewVersion": "Stáhnout novou verzi",
+    "installerSaved": "Instalační program je ve složce Stažené soubory",
+    "openInstaller": "Spustit instalační program",
+    "showInFolder": "Zobrazit ve složce",
+    "viewRelease": "Zobrazit na GitHubu",
+    "hint": {
+      "windows": "Zynveliq se zavře, nainstaluje aktualizaci a znovu se otevře. Nic dalšího nemusíte klikat.",
+      "macos": "Zynveliq se restartuje v nové verzi. macOS vás pak možná znovu požádá o povolení mikrofonu a zpřístupnění.",
+      "linux": "Zynveliq se restartuje v nové verzi. Instalace z balíčku .deb si nejdřív vyžádá vaše heslo."
+    },
+    "modes": {
+      "portable": "Toto je přenosná verze, která se nedokáže sama nahradit. Stáhněte novou verzi a zkopírujte do ní svou složku Data.",
+      "packageManager": "Zynveliq nainstaloval váš správce balíčků, takže ho aktualizujte tam, například příkazem yay -Syu zynveliq-bin.",
+      "download": "Tato kopie se nedokáže aktualizovat na místě. Stáhněte instalační program a spusťte ho, abyste získali novou verzi."
+    },
+    "pill": {
+      "available": "Aktualizace k dispozici",
+      "version": "Verze {{version}}",
+      "progress": "Aktualizace… {{progress}} %",
+      "working": "Aktualizace…",
+      "restart": "Restartovat a aktualizovat",
+      "installerReady": "Instalační program stažen"
+    }
+  },
+  "feedback": {
+    "button": "Poslat zpětnou vazbu",
+    "title": "Poslat zpětnou vazbu",
+    "description": "Každou zprávu čtu osobně, takže pište, jak vám to přijde pod ruku. Děkuji, že pomáháte Zynveliq vylepšovat.",
+    "kind": {
+      "label": "Druh zpětné vazby",
+      "bug": "Chyba",
+      "idea": "Nápad",
+      "question": "Dotaz"
+    },
+    "placeholder": {
+      "bug": "Co se stalo a co jste místo toho očekávali?",
+      "idea": "Co by vám Zynveliq vylepšilo?",
+      "question": "Co byste chtěli vědět?"
+    },
+    "messageLabel": "Zpráva",
+    "emailLabel": "E-mail pro odpověď",
+    "emailPlaceholder": "E-mail, pokud chcete odpověď",
+    "emailInvalid": "Tato e-mailová adresa nevypadá správně.",
+    "includeSystem": "Přiložit verzi aplikace a systému",
+    "systemDetails": "Odešle se přesně takto: {{system}}",
+    "remaining": "Zbývá {{count}}",
+    "screenshots": {
+      "add": "Přidat snímek obrazovky",
+      "pasteHint": "nebo vložte pomocí {{shortcut}}",
+      "remove": "Odebrat snímek obrazovky {{index}}",
+      "preview": "Snímek obrazovky {{index}}, {{width}} × {{height}}, {{size}}",
+      "working": "Zmenšuji snímek obrazovky…",
+      "limit": "Můžete přiložit nejvýše {{count}} snímků obrazovky.",
+      "notImage": "Tento soubor není obrázek.",
+      "tooLarge": "Tento obrázek je příliš velký na přiložení.",
+      "unreadable": "Tento obrázek se nepodařilo přečíst."
+    },
+    "send": "Odeslat",
+    "sending": "Odesílání…",
+    "sentTitle": "Děkuji, už je na cestě",
+    "sentBody": "Už ji mám a brzy si ji přečtu.",
+    "sentWithEmail": "Pokud bude potřeba něco doplnit, ozvu se vám na {{email}}.",
+    "screenshotsDropped_one": "Snímek obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
+    "screenshotsDropped_few": "{{count}} snímky obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
+    "screenshotsDropped_many": "{{count}} snímku obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
+    "screenshotsDropped_other": "{{count}} snímků obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
+    "sendAnother": "Poslat další",
+    "errors": {
+      "generic": "Zpětnou vazbu se nepodařilo odeslat. Vaše zpráva zůstala uložená tady, takže to za chvíli zkuste znovu."
+    },
+    "aboutRow": {
+      "title": "Zpětná vazba",
+      "description": "Nahlaste chybu, navrhněte nápad nebo položte dotaz.",
+      "button": "Poslat zpětnou vazbu"
+    }
+  },
+  "sidebar": {
+    "general": "Obecné",
+    "dictation": "Diktování",
+    "assistant": "Asistent",
+    "meetings": "Schůzky",
+    "history": "Historie",
+    "about": "O aplikaci",
+    "debug": "Ladění",
+    "characters": "Profily",
+    "memory": "Paměť",
+    "collapse": "Sbalit postranní panel",
+    "expand": "Rozbalit postranní panel"
+  },
+  "window": {
+    "minimize": "Minimalizovat",
+    "maximize": "Maximalizovat",
+    "restore": "Obnovit",
+    "close": "Zavřít"
+  },
+  "sectionSubtitles": {
+    "general": "Zkratky, mikrofon a vzhled aplikace.",
+    "dictation": "Model, který převádí váš hlas na text, a jak se výsledek čistí.",
+    "assistant": "Nastavte asistenta a pak vylaďte jeho hlas, zobrazení obrazovky a vyhledávání na webu.",
+    "meetings": "Nahrajte hovor, přečtěte si ho rozdělený podle mluvčích a udělejte z něj poznámky.",
+    "history": "Vaše nedávná diktování, generování pomocí Flow a chaty s asistentem, uložené na tomto zařízení.",
+    "about": "Verze, jazyk aplikace, umístění dat a poděkování.",
+    "debug": "Diagnostika a nástroje pro vývojáře."
+  },
+  "onboarding": {
+    "flow": {
+      "progress": "Krok {{current}} z {{total}}",
+      "steps": {
+        "setup": "Nastavení",
+        "tour": "Prohlídka"
+      }
+    },
+    "setup": {
+      "installed": "Nainstalováno",
+      "loadFailed": "Seznam modelů se nepodařilo načíst.",
+      "retry": "Zkusit znovu"
+    },
+    "tour": {
+      "features": "Co Zynveliq umí",
+      "count": "{{current}} z {{total}}",
+      "next": "Další",
+      "finish": "Otevřít Zynveliq",
+      "tabs": {
+        "dictate": "Diktování",
+        "ask": "Asistent",
+        "call": "Konverzace"
+      },
+      "keys": {
+        "hold": "Podržte a mluvte",
+        "tap": "Stiskněte pro start, znovu pro stop",
+        "call": "Stiskněte pro zahájení, znovu pro ukončení"
+      },
+      "steps": {
+        "label": "Jak to funguje",
+        "speak": "Řekněte, co chcete napsat",
+        "typed": "Napíše se to tam, kde je kurzor",
+        "select": "Označte text (volitelné)",
+        "use": "Vložte odpověď, nebo si ji jen přečtěte",
+        "talk": "Prostě mluvte",
+        "answer": "Odpovídá nahlas"
+      },
+      "mail": {
+        "window": "Nová zpráva",
+        "to": "Komu",
+        "toValue": "Sára",
+        "subject": "Předmět",
+        "subjectValue": "Pátek"
+      },
+      "dictate": {
+        "title": "Mluvte.\nPíše se samo.",
+        "cleanup": "Čištění pomocí AI, když ho chcete",
+        "said": "Ahoj Sáro, můžeme si přesunout hovor na pátek? Rozpočet ti pošlu ještě předtím."
+      },
+      "ask": {
+        "title": "Zeptejte se\nna cokoli.",
+        "chips": {
+          "translate": "Přeložit",
+          "decline": "Napsat odpověď",
+          "explain": "Vysvětlit",
+          "anything": "…cokoli"
+        },
+        "examples": {
+          "translate": {
+            "window": "Zprávy",
+            "doc": "Můžeme si přesunout hovor na pátek?",
+            "question": "Přelož to do španělštiny",
+            "answer": "¿Podemos pasar nuestra llamada al viernes?"
+          },
+          "decline": {
+            "window": "Pošta",
+            "doc": "Dobrý den, máte ve čtvrtek ve 3 čas přijít na revizi plánu?",
+            "question": "Napiš zdvořilou odpověď, že ve čtvrtek nemůžu",
+            "answer": "Děkuji za pozvání! Ve čtvrtek ve 3 bohužel nemůžu, ale v pátek dopoledne mám čas, pokud by to vyhovovalo."
+          },
+          "explain": {
+            "window": "Prohlížeč",
+            "doc": "The API returns 429 Too Many Requests.",
+            "question": "Co to znamená?",
+            "answer": "Posíláte požadavky rychleji, než služba dovoluje. Chvíli počkejte a pak to zkuste znovu pomaleji."
+          }
+        }
+      },
+      "call": {
+        "title": "Nebo to\nprostě probereme.",
+        "you": "Vy",
+        "assistant": "Asistent",
+        "said": "Pomoz mi připravit krátký proslov na páteční poradu týmu.",
+        "reply": "Jasně. Začněte výsledkem, na který jste nejvíc hrdí, uveďte dva důvody, proč se povedl, a skončete tím, co přijde dál."
+      }
+    },
+    "subtitle": "Pro začátek vyberte model pro přepis",
+    "steps": {
+      "progress": "Krok {{current}} z {{total}}",
+      "counter": "Krok {{current}} z {{total}} · {{label}}",
+      "speechToText": "Poslech",
+      "aiModel": "Dejte mu mozek",
+      "ready": "Připraveno"
+    },
+    "speechToText": {
+      "title": "Jak vás má Zynveliq slyšet?",
+      "subtitle": "Tohle převádí váš hlas na text, přímo na vašem počítači. Vyberte si jeden, kdykoli jej můžete změnit.",
+      "cards": {
+        "fast": {
+          "description": "Neuvěřitelně rychlý, přepisuje průběžně, jak mluvíte. Pouze angličtina."
+        },
+        "multilingual": {
+          "description": "V reálném čase ve 28 jazycích."
+        }
+      },
+      "downloadAndContinue": "Stáhnout a pokračovat",
+      "seeAllModels": "Zobrazit všechny modely",
+      "hideAllModels": "Zobrazit méně modelů",
+      "installedHint": "Už je nastaveno. Jakýkoli jiný model si můžete přidat později v Nastavení.",
+      "useInstalled": "Použít nainstalovaný model",
+      "continue": "Pokračovat",
+      "downloadingHint": "Stahuje se na pozadí. Jakýkoli jiný model máte v Nastavení na jedno kliknutí.",
+      "downloadStarted": "Váš model se stahuje na pozadí."
+    },
+    "aiModel": {
+      "title": "Přidat místní AI (volitelné)",
+      "subtitle": "Asistent, se kterým si můžete povídat, a náš vlastní model, který čistí vaše diktování. Vezměte si jedno, nebo obojí.",
+      "tiers": {
+        "small": {
+          "description": "Běží na jakémkoli počítači. Ideální pro úpravu vašich textů."
+        },
+        "mid": {
+          "description": "Rychlý všestranný model, který umí i odpovídat na otázky."
+        },
+        "capable": {
+          "description": "Nejlepší odpovědi a vidí i vaši obrazovku."
+        }
+      },
+      "seesScreen": "Model s viděním",
+      "textOnly": "Pouze text",
+      "recommendedForAssistant": "Doporučeno pro asistenta",
+      "download": "Stáhnout model",
+      "useDownloaded": "Použít stažený model",
+      "skip": "Zatím přeskočit",
+      "skipHint": "Obojí můžete přidat později v Nastavení.",
+      "continue": "Pokračovat",
+      "downloadingHint": "Stahuje se na pozadí. Aplikaci můžete začít používat hned.",
+      "downloadStarted": "Váš model se stahuje na pozadí."
+    },
+    "cleanup": {
+      "cardTitle": "SpeakoFlow Mini",
+      "cardDescription": "Použije vyslovené úpravy jako “new paragraph” nebo “scratch that”. Pouze v angličtině.",
+      "pill": "Vyčistí vaše diktování",
+      "recommendedForDictation": "Doporučeno pro diktování",
+      "download": "Stáhnout a zapnout",
+      "useDownloaded": "Zapnout"
+    },
+    "ready": {
+      "title": "Vše je připraveno.",
+      "subtitle": "Stačí dvě zkratky. Stisknout, mluvit, hotovo.",
+      "dictateLabel": "Diktujte kdekoli",
+      "dictateCaption": "Podržte, mluvte, pusťte. Vaše slova se napíšou sama.",
+      "assistantKeysLabel": "Zeptejte se asistenta",
+      "assistantKeysCaption": "Podržte a zeptejte se. Vidí i vaši obrazovku.",
+      "changeAnytime": "Kdykoli to můžete změnit v Nastavení.",
+      "hotkeyLabel": "Vaše klávesy pro diktování",
+      "downloadingAssistant": "Váš asistent se stěhuje k vám. Hotovo {{percentage}}%.",
+      "downloadingVoice": "Váš hlasový model přistává. Hotovo {{percentage}}%.",
+      "downloadingGeneric": "Stále se stahuje. Hotovo {{percentage}}%.",
+      "signOff": "A to je vše. Jděte něco říct.",
+      "openApp": "Otevřít Zynveliq"
+    },
+    "errors": {
+      "selectModel": "Tento model se nepodařilo vybrat. Zkuste to prosím znovu.",
+      "loadModels": "Nepodařilo se načíst dostupné modely.",
+      "downloadModel": "Nepodařilo se stáhnout model: {{error}}"
+    },
+    "downloadProgress": {
+      "sizeOf": "{{downloaded}} z {{total}} · {{percentage}}%"
+    },
+    "recommended": "Doporučeno",
+    "download": "Stáhnout",
+    "downloading": "Stahování…",
+    "customModelDescription": "Oficiálně nepodporováno",
+    "downloadFailed": "Stahování se nezdařilo. Zkuste to prosím znovu.",
+    "modelCard": {
+      "accuracy": "přesnost",
+      "speed": "rychlost"
+    },
+    "models": {
+      "parakeet-unified-en-0.6b-gguf": {
+        "description": "Neuvěřitelně rychlý, ideální pro každodenní diktování. Pouze angličtina."
+      },
+      "nemotron-3.5-asr-streaming-0.6b-gguf": {
+        "description": "Přepis v reálném čase ve 28 jazycích."
+      },
+      "canary-180m-flash-gguf": {
+        "description": "Malý a okamžitý — běží dobře na jakémkoli počítači."
+      },
+      "cohere-transcribe-03-2026-gguf": {
+        "description": "Pomalejší, ale nejpřesnější. 14 jazyků."
+      },
+      "whisper-medium-gguf": {
+        "description": "Nejlepší pro mnoho jazyků — podporuje jich téměř 100."
+      },
+      "gemma-3-1b": {
+        "description": "Velmi malý a rychlý, ale omezený pro volnou konverzaci. Pouze text."
+      },
+      "qwen3.5-2b": {
+        "description": "Malý a rychlý, umí pracovat i s obrázky. Dobrý na většině notebooků."
+      },
+      "qwen3.5-4b": {
+        "description": "Starší model pro práci s obrazem, jehož volitelné uvažování může zdržet odpovědi v konverzaci."
+      },
+      "qwen3.5-9b": {
+        "description": "Schopnější, ale pomalejší pro živou konverzaci, zejména se zapnutým uvažováním."
+      },
+      "qwen3.5-27b": {
+        "description": "Velký model pro práci s obrazem určený pro promyšlené úlohy, ne pro asistenta s rychlou odezvou."
+      },
+      "gemma-4-e2b": {
+        "description": "Nejrychlejší současná Gemma pro každodenní konverzaci. Na složité požadavky méně schopná."
+      },
+      "gemma-4-e4b": {
+        "description": "Lepší vyváženost kvality a rychlosti a ve výchozím nastavení nepřemýšlí."
+      },
+      "gemma-4-12b": {
+        "description": "Schopnější u složitějších otázek, ale výrazně pomalejší a nejlépe s výkonným GPU."
+      },
+      "gemma-3-4b": {
+        "description": "Rychlé, čisté odpovědi se zobrazením obrazovky, ale méně schopný než současné modely Gemma 4."
+      },
+      "kokoro-82m": {
+        "description": "Vestavěný místní hlas pro asistenta. Není potřeba nic stahovat."
+      },
+      "small": {
+        "name": "Whisper Small",
+        "description": "Rychlý a poměrně přesný."
+      },
+      "medium": {
+        "name": "Whisper Medium",
+        "description": "Dobrá přesnost při střední rychlosti."
+      },
+      "turbo": {
+        "name": "Whisper Turbo",
+        "description": "Vyvážená přesnost a rychlost."
+      },
+      "large": {
+        "name": "Whisper Large",
+        "description": "Velmi přesný, ale pomalý."
+      },
+      "parakeet-tdt-0.6b-v2": {
+        "name": "Parakeet V2",
+        "description": "Pouze angličtina. Výborný pro anglicky mluvící."
+      },
+      "parakeet-tdt-0.6b-v3": {
+        "name": "Parakeet V3",
+        "description": "Rychlý a přesný. 25 evropských jazyků."
+      },
+      "moonshine-base": {
+        "name": "Moonshine Base",
+        "description": "Velmi rychlý, pouze angličtina. Dobře zvládá přízvuky."
+      },
+      "moonshine-tiny-streaming-en": {
+        "name": "Moonshine V2 Tiny",
+        "description": "Ultrarychlý. Pouze angličtina."
+      },
+      "moonshine-small-streaming-en": {
+        "name": "Moonshine V2 Small",
+        "description": "Rychlý, pouze angličtina. Dobrý poměr rychlosti a přesnosti."
+      },
+      "moonshine-medium-streaming-en": {
+        "name": "Moonshine V2 Medium",
+        "description": "Pouze angličtina. Vyšší kvalita, o něco pomalejší."
+      },
+      "breeze-asr": {
+        "name": "Breeze ASR",
+        "description": "Vyladěný pro tchajwanskou mandarínštinu, včetně střídání s angličtinou."
+      },
+      "sense-voice-int8": {
+        "name": "SenseVoice",
+        "description": "Velmi rychlý. Čínština, angličtina, japonština, korejština a kantonština."
+      },
+      "gigaam-v3-e2e-ctc": {
+        "name": "GigaAM v3",
+        "description": "Pouze ruština. Rychlý a přesný."
+      },
+      "canary-180m-flash": {
+        "name": "Canary 180M Flash",
+        "description": "Velmi rychlý. Angličtina, němčina, španělština a francouzština, včetně překladu."
+      },
+      "canary-1b-v2": {
+        "name": "Canary 1B v2",
+        "description": "Přesný ve 25 evropských jazycích, včetně překladu."
+      },
+      "cohere-int8": {
+        "name": "Cohere",
+        "description": "Velký a pomalejší, ale velmi přesný. Mnoho jazyků."
+      }
+    },
+    "permissions": {
+      "title": "Vyžadována oprávnění",
+      "description": "Zynveliq potřebuje několik oprávnění pro správné fungování.",
+      "microphone": {
+        "title": "Přístup k mikrofonu",
+        "description": "Potřebný pro zachycení vašeho hlasu k přepisu."
+      },
+      "accessibility": {
+        "title": "Přístup k usnadnění",
+        "description": "Potřebný pro psaní přepsaného textu do vašich aplikací.",
+        "stuckHint": "Už je zapnuto v Nastavení systému? Po aktualizaci si macOS může ponechat oprávnění, které už této verzi neodpovídá.",
+        "reset": "Obnovit oprávnění",
+        "resetDone": "Teď v Nastavení systému znovu zapněte Zynveliq."
+      },
+      "grant": "Udělit oprávnění",
+      "granted": "Uděleno",
+      "waiting": "Čekání…",
+      "allGranted": "Vše připraveno!",
+      "errors": {
+        "checkFailed": "Nepodařilo se zkontrolovat oprávnění. Zkuste to prosím znovu.",
+        "requestFailed": "Nepodařilo se požádat o oprávnění. Zkuste to prosím znovu.",
+        "resetFailed": "Oprávnění se nepodařilo obnovit. Odeberte Zynveliq ze seznamu Zpřístupnění a přidejte ho znovu."
+      }
+    },
+    "frame": {
+      "setup": "Nastavení",
+      "tour": "Prohlídka"
+    },
+    "welcome": {
+      "line": "Mluvte a píše se to samo. Zeptejte se a dostanete odpověď.",
+      "start": "Začít",
+      "note": "Zabere to asi minutu."
+    },
+    "speech": {
+      "title": "Vyberte si hlasový model",
+      "body": "Běží na tomto počítači. Funguje i offline.",
+      "english": "Angličtina",
+      "languages_one": "{{count}} jazyk",
+      "languages_few": "{{count}} jazyky",
+      "languages_many": "{{count}} jazyka",
+      "languages_other": "{{count}} jazyků",
+      "about": {
+        "english": "Rychlý a přesný, pro angličtinu.",
+        "languages": "Sám pozná, jakým jazykem mluvíte.",
+        "small": "Malý a rychlý. Vhodný pro starší počítače.",
+        "accurate": "Nejpřesnější, ale větší ke stažení a pomalejší.",
+        "widest": "Zvládá nejvíc jazyků, ale běží pomaleji."
+      },
+      "anytime": "Další modely můžete přidat kdykoli.",
+      "download": "Stáhnout a pokračovat",
+      "continue": "Pokračovat",
+      "later": "Nastavit později",
+      "loading": "Hledám váš model pro přepis"
+    }
+  },
+  "modelSelector": {
+    "custom": "Vlastní",
+    "active": "Používá se",
+    "switching": "Přepínání…",
+    "noModelsAvailable": "Nejsou dostupné žádné modely",
+    "verifying": "Ověřování {{modelName}}…",
+    "verifyingGeneric": "Ověřování…",
+    "extracting": "Rozbaluji {{modelName}}…",
+    "extractingMultiple": "Rozbaluji {{count}} modelů…",
+    "extractingGeneric": "Rozbalování…",
+    "downloading": "Stahování {{percentage}}%",
+    "downloadingMultiple": "Stahování {{count}} modelů…",
+    "downloadDetails": "Podrobnosti stahování",
+    "downloadSize": "{{downloaded}} z {{total}}",
+    "modelReady": "Model připraven",
+    "loading": "Načítám {{modelName}}…",
+    "loadingGeneric": "Načítání…",
+    "modelError": "Chyba modelu",
+    "modelUnloaded": "Model uvolněn",
+    "noModelDownloadRequired": "Žádný model – je nutné stáhnout",
+    "llmSelectModel": "Vybrat model asistenta",
+    "llmModelTitle": "Model asistenta: {{model}}",
+    "deleteModel": "Smazat {{modelName}}",
+    "downloadSpeed": "{{speed}} MB/s",
+    "cancel": "Zrušit",
+    "cancelDownload": "Zrušit stahování",
+    "download": "Stáhnout",
+    "useModel": "Použít model",
+    "capabilities": {
+      "languageSelection": "Podporuje více vstupních jazyků",
+      "singleLanguage": "Podporuje pouze tento jazyk",
+      "multiLanguage": "Vícejazyčný",
+      "languageOnly": "Pouze {{language}}",
+      "languageList": "Jazyky, kterým {{model}} rozumí",
+      "translation": "Umí překládat do angličtiny",
+      "translate": "Přeložit do angličtiny",
+      "streaming": "Průběžný přepis",
+      "quantization": "Kvantizace",
+      "legacy": "Starší",
+      "retired": "Vyřazený"
+    }
+  },
+  "settings": {
+    "personalMemory": {
+      "enable": {
+        "label": "Pamatuj si mě",
+        "description": "Umožněte asistentovi udržovat a používat osobní paměť. Ve výchozím nastavení vypnuto."
+      },
+      "incognito": {
+        "label": "Anonymní chat",
+        "description": "V této konverzaci nepoužívat paměť a nic nového si nepamatovat."
+      },
+      "detail": {
+        "label": "Podrobnost paměti",
+        "description": "Kolik paměti se přidá do každé odpovědi. Více podrobností je bohatší, ale trochu pomalejší.",
+        "options": {
+          "light": "Nízká",
+          "balanced": "Vyvážená",
+          "detailed": "Podrobná"
+        }
+      },
+      "aboutYou": {
+        "label": "O vás",
+        "caption": "Krátké, vždy aktivní shrnutí, které má asistent na paměti.",
+        "fieldLabel": "Shrnutí",
+        "placeholder": "např. Preferuje krátké a přímé odpovědi. Pracuje v Rustu a TypeScriptu. Vyvíjí desktopového hlasového asistenta.",
+        "hint": "Vždy se přidává, když je paměť zapnutá. Nechte to na pár vět — je to obrázek o vás, který má asistent na první pohled.",
+        "edit": "Upravit",
+        "done": "Hotovo",
+        "empty": "Zatím nic uloženo — asistent to doplní, jak se bude učit, nebo klikněte na Upravit a napište si vlastní.",
+        "collapsedEmpty": "Zatím nic uloženo"
+      },
+      "notes": {
+        "label": "Poznámky",
+        "caption": "Konkrétní věci, které je dobré si pamatovat — naučené nebo přidané vámi.",
+        "empty": "Zatím žádné poznámky. Přidejte nějakou níže, nebo je nechte asistenta odvodit z vašich chatů.",
+        "add": "Přidat",
+        "addPlaceholder": "Přidejte něco k zapamatování…",
+        "delete": "Smazat poznámku",
+        "learned": "naučeno",
+        "added": "přidáno vámi"
+      },
+      "confidence": {
+        "high": "Vysoká jistota",
+        "medium": "Střední jistota",
+        "low": "Nízká jistota"
+      },
+      "actions": {
+        "label": "Správa"
+      },
+      "distill": {
+        "label": "Naučit se z tohoto chatu hned",
+        "description": "Vytáhne z aktuální konverzace trvalé informace do paměti, hned teď.",
+        "button": "Aktualizovat paměť"
+      },
+      "export": "Exportovat",
+      "import": "Importovat",
+      "wipe": {
+        "button": "Vymazat paměť",
+        "confirm": "Smazat vše, co si asistent pamatuje?",
+        "yes": "Smazat vše",
+        "cancel": "Zrušit"
+      }
+    },
+    "modelSettings": {
+      "title": "Nastavení {{model}}",
+      "noSettingsNeeded": "Tento model funguje automaticky – není co nastavovat."
+    },
+    "general": {
+      "title": "Obecné",
+      "recording": {
+        "title": "Nahrávání"
+      },
+      "groups": {
+        "sounds": "Zvuky",
+        "startup": "Spuštění a systémová lišta",
+        "overlay": "Překryv",
+        "updates": "Aktualizace",
+        "system": "Systém"
+      },
+      "shortcut": {
+        "title": "Zkratky",
+        "description": "Klávesové zkratky, které spouštějí a zastavují nahrávání.",
+        "loading": "Načítám zkratky…",
+        "none": "Žádné zkratky nejsou nastavené",
+        "notFound": "Zkratka nenalezena",
+        "pressKeys": "Stiskněte klávesy…",
+        "bindings": {
+          "transcribe": {
+            "name": "Diktovat",
+            "description": "Stiskem spustíte nahrávání, dalším stiskem ho zastavíte a text se napíše."
+          },
+          "transcribe_toggle": {
+            "name": "Diktování bez držení",
+            "description": "Stiskněte jednou pro spuštění, znovu pro zastavení — nemusíte nic držet."
+          },
+          "cancel": {
+            "name": "Zrušit",
+            "description": "Zastaví aktuální nahrávání nebo právě generovanou odpověď."
+          },
+          "transcribe_with_post_process": {
+            "name": "Diktovat a vyčistit",
+            "description": "Diktujte, text pak před vypsáním vyčistí AI."
+          },
+          "assistant": {
+            "name": "Zeptat se asistenta",
+            "description": "Zeptejte se asistenta hlasem; odpověď se průběžně vypisuje v plovoucím panelu."
+          },
+          "assistant_vision": {
+            "name": "Zeptat se s obrazovkou",
+            "description": "Zeptejte se hlasem a přiložte svou obrazovku, aby asistent viděl, na co se díváte."
+          },
+          "assistant_call": {
+            "name": "Zahájit konverzaci",
+            "description": "Mluvte s asistentem bez použití rukou a poslouchejte jeho odpovědi. Dalším stisknutím ukončíte."
+          },
+          "hands_free": {
+            "name": "Bez držení",
+            "description": "Stiskněte při držení kláves diktování a nahrávání bude pokračovat i po jejich puštění. Dalším stiskem kláves diktování skončíte."
+          }
+        },
+        "errors": {
+          "restore": "Nepodařilo se obnovit původní zkratku.",
+          "set": "Nepodařilo se nastavit zkratku: {{error}}",
+          "inUse": "„{{name}}“ už používá {{keys}}. Vyberte jiné klávesy, nebo nejdřív změňte tu zkratku.",
+          "sameAsOther": "{{keys}} už je pro tuto zkratku nastaveno.",
+          "reset": "Nepodařilo se resetovat zkratku."
+        },
+        "clickToChange": "Kliknutím změníte",
+        "notSet": "Nenastaveno"
+      },
+      "language": {
+        "title": "Jazyk",
+        "description": "Jazyk pro rozpoznávání řeči. Konkrétní jazyk může zlepšit přesnost.",
+        "descriptionUnsupported": "Tento model rozpozná jazyk automaticky.",
+        "searchPlaceholder": "Hledat jazyky…",
+        "noResults": "Žádné jazyky nenalezeny",
+        "auto": "Automaticky"
+      },
+      "chineseScript": {
+        "title": "Čínské písmo",
+        "description": "Čínské přepisy se zapíšou zjednodušenými nebo tradičními znaky. Ostatní jazyky zůstanou beze změny.",
+        "options": {
+          "auto": "Jak je přepsáno",
+          "simplified": "Zjednodušené",
+          "traditional": "Tradiční"
+        }
+      },
+      "pushToTalk": {
+        "dictation": "Zapnuto: nahrává se, dokud držíte klávesy. Vypnuto: jeden stisk spustí, další zastaví, takže každé diktování je bez držení.",
+        "assistant": "Zapnuto: poslouchá, dokud držíte klávesy. Vypnuto: jeden stisk spustí, další odešle.",
+        "dictationLabel": "Držet pro mluvení",
+        "assistantLabel": "Držet pro dotaz"
+      },
+      "handsFree": {
+        "unavailableKeys": "Funguje, když je diktování jen z modifikačních kláves, třeba Ctrl + Win. S {{keys}} raději vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
+        "unavailableEngine": "Vyžaduje klávesnicový modul Zynveliq Keys ({{where}}). Nebo vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
+        "taken": "{{name}} už používá {{keys}}, takže tato klávesa nic nedělá, dokud se jedno z nich nezmění.",
+        "needsKey": "Vyberte jednu klávesu, například mezerník nebo Enter. Samotná modifikační klávesa nemůže být klávesou pro režim bez držení.",
+        "pressKey": "Stiskněte klávesu…",
+        "descriptionOff": "Vypnuto. Klikněte na něj a stiskněte klávesu, třeba mezerník, a znovu se zapne.",
+        "linux": "V Linuxu raději vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
+        "whileDictating": "Během diktování stiskněte"
+      },
+      "silenceStop": {
+        "label": "Zastavit po tichu",
+        "description": "Diktování bez držení, ve kterém tak dlouho nezazní řeč, se samo zastaví a vloží text, jako byste znovu stiskli zkratku. Těsně před zastavením se na pilulce zkracuje čára; když znovu promluvíte, nahrávání pokračuje."
+      }
+    },
+    "models": {
+      "title": "Modely přepisu",
+      "description": "Modely vyměňují přesnost za rychlost — vyberte ten, který se hodí pro váš počítač.",
+      "yourModels": "Stažené modely",
+      "availableModels": "Dostupné ke stažení",
+      "view": {
+        "label": "Které modely zobrazit",
+        "all": "Všechny modely"
+      },
+      "recommendedFor": "Doporučené: {{language}}",
+      "recommendedAllDownloaded": "Všechny doporučené modely už máte.",
+      "browseAll": "Procházet všechny modely",
+      "downloaded": "Staženo",
+      "available": "Dostupné ke stažení",
+      "deleteConfirm": "Opravdu chcete smazat {{modelName}}? Abyste ho mohli znovu použít, budete ho muset znovu stáhnout.",
+      "deleteActiveConfirm": "{{modelName}} je váš aktivní model. Jeho smazáním se přepisy zastaví, dokud nevyberete jiný. Opravdu pokračovat?",
+      "deleteTitle": "Smazat model",
+      "categories": {
+        "stt": "Přepis",
+        "llm": "Asistent",
+        "tts": "Řeč"
+      },
+      "categoryDescriptions": {
+        "stt": "Modely vyměňují přesnost za rychlost — vyberte ten, který se hodí pro váš počítač.",
+        "llm": "Místní modely pro vestavěného asistenta a čištění pomocí AI.",
+        "tts": "Hlasy pro mluvené odpovědi asistenta. Kokoro běží na vašem zařízení."
+      },
+      "llmHint": "Po stažení vyberte tento model v sekci Asistent u vestavěného (místního) poskytovatele.",
+      "ttsHint": "Modely řeči běží na vašem zařízení a není potřeba nic stahovat.",
+      "filters": {
+        "all": "Vše",
+        "multiLanguage": "Vícejazyčný",
+        "translation": "Překlad",
+        "allLanguages": "Všechny jazyky",
+        "streamingHint": "Jen modely, které přepisují už během mluvení",
+        "translate": "Překlad",
+        "translateHint": "Jen modely, které umí překládat řeč do angličtiny",
+        "noMatch": "Těmto filtrům neodpovídá žádný model",
+        "clear": "Zrušit filtry"
+      },
+      "searchPlaceholder": "Hledat modely podle názvu…",
+      "clearSearch": "Vymazat hledání",
+      "noSearchResults": "Žádné modely s názvem „{{query}}“.",
+      "olderHint": "Starší formát. {{model}} ({{size}}) je novější verze tohoto modelu.",
+      "retiredHint": "Používá starší jádro, které Zynveliq už neobsahuje. Stáhněte místo něj {{model}} ({{size}}).",
+      "retired": {
+        "notice": "Tyto modely používaly starší jádro, které Zynveliq už neobsahuje.",
+        "newVersion": "Nová verze: {{model}} · {{size}}",
+        "getNewVersion": "Stáhnout novou verzi",
+        "useNewVersion": "Použít novou verzi",
+        "deleteOld": "Smazat staré soubory ({{size}})",
+        "deleteTitle": "Smazat staré soubory",
+        "deleteConfirm": "Smazat staré soubory těchto modelů ({{size}})? Stažené nové verze zůstanou."
+      },
+      "customModel": {
+        "addButton": "Prohledat Hugging Face",
+        "searchTitle": "Potřebujete jiný model?",
+        "searchDescription": "Najděte na Hugging Face model ve formátu GGUF. Jde o pokročilou možnost, takže nároky na hardware a kompatibilita se mohou lišit.",
+        "searchButton": "Prohledat Hugging Face",
+        "title": "Najděte model na Hugging Face",
+        "subtitle": "Prohledejte modely GGUF, vyberte verzi a stáhněte ji přímo do tohoto zařízení.",
+        "searchPlaceholder": "Hledat podle modelu nebo autora…",
+        "popularTitle": "Oblíbené modely GGUF",
+        "resultsTitle": "Výsledky hledání",
+        "resultCount_one": "{{count}} model",
+        "resultCount_few": "{{count}} modely",
+        "resultCount_many": "{{count}} modelu",
+        "resultCount_other": "{{count}} modelů",
+        "searching": "Prohledávám Hugging Face…",
+        "searchError": "Hledání se nezdařilo. Zkontrolujte připojení a zkuste to znovu.",
+        "tryAgain": "Zkusit znovu",
+        "noResults": "Žádné modely nenalezeny. Zkuste hledat jinak.",
+        "downloads": "{{value}} stažení",
+        "visionBadge": "Obraz",
+        "back": "Zpět na výsledky",
+        "loadingFiles": "Načítám dostupné soubory…",
+        "repoFilesError": "Soubory pro tento model se nepodařilo načíst.",
+        "noGgufFiles": "Tento repozitář neobsahuje žádné soubory .gguf ke stažení.",
+        "selectQuant": "Vyberte, co stáhnout",
+        "selectQuantHint": "Nejste si jistí? Q4_K_M je obvykle nejlepší kompromis mezi kvalitou, rychlostí a spotřebou paměti.",
+        "enableVision": "Zahrnout zobrazení obrazovky",
+        "enableVisionHint": "Stáhne se další soubor, aby model rozuměl obrázkům.",
+        "add": "Stáhnout",
+        "adding": "Spouštím…",
+        "addError": "Tento model se nepodařilo přidat. Zkuste to prosím znovu."
+      },
+      "localModel": {
+        "addButton": "Použít místní model",
+        "title": "Použijte model, který už máte",
+        "subtitle": "Přidejte soubor .gguf nebo .bin pro Whisper odkudkoli z tohoto zařízení, nebo připojte složku, ve které modely držíte. Nic se nekopíruje a nic se nestahuje.",
+        "pickFiles": "Vybrat soubory modelů",
+        "pickFilesHint": "Vyberte jeden nebo více souborů .gguf či .bin. Hodí se pro jediný model, který jste právě vytvořili.",
+        "linkFolder": "Připojit složku",
+        "linkFolderHint": "Prohledává se automaticky, včetně podsložek. Připojte klidně víc složek.",
+        "fileFilter": "Soubory modelů",
+        "filesAdded_one": "Přidán {{count}} model.",
+        "filesAdded_few": "Přidány {{count}} modely.",
+        "filesAdded_many": "Přidáno {{count}} modelu.",
+        "filesAdded_other": "Přidáno {{count}} modelů.",
+        "folderAdded_one": "Složka připojena. Nalezen {{count}} model.",
+        "folderAdded_few": "Složka propojena. Nalezeny {{count}} modely.",
+        "folderAdded_many": "Složka propojena. Nalezeno {{count}} modelu.",
+        "folderAdded_other": "Složka připojena. Nalezeno {{count}} modelů.",
+        "folderRemoved": "Složka odpojena. Vašich souborů se to nedotklo.",
+        "foldersTitle": "Připojené složky",
+        "foldersEmpty": "Zatím není připojena žádná složka. Připojte ji a každý model v ní se objeví ve vašem seznamu.",
+        "removeFolder": "Odpojit {{folder}}",
+        "rescan": "Prohledat znovu",
+        "rescanning": "Prohledávám…",
+        "rescanDone_one": "Nalezen {{count}} místní model.",
+        "rescanDone_few": "Nalezeny {{count}} místní modely.",
+        "rescanDone_many": "Nalezeno {{count}} místního modelu.",
+        "rescanDone_other": "Nalezeno {{count}} místních modelů.",
+        "footnote": "Připojené složky se znovu prohledají při spuštění Zynveliq, takže modely, které do nich přidáte později, se objeví samy. Odpojení složky nebo odebrání modelu ho odstraní jen z tohoto seznamu — vaše soubory zůstanou tam, kde jsou.",
+        "removeTitle": "Odebrat ze seznamu?",
+        "removeConfirm": "Odebrat „{{modelName}}“ ze seznamu modelů?\n\nSamotný soubor zůstane tam, kde je:\n{{path}}",
+        "missingBadge": "Soubor chybí",
+        "fileMissing": "Soubor tohoto modelu už tam není:\n{{path}}\n\nMohl být přesunut nebo přejmenován, případně je na disku, který není připojený.",
+        "foldersEmptyShort": "Zatím nejsou propojené žádné složky."
+      }
+    },
+    "sound": {
+      "title": "Zvuk",
+      "microphone": {
+        "title": "Mikrofon",
+        "description": "Vyberte preferované zařízení mikrofonu",
+        "placeholder": "Vyberte mikrofon…",
+        "loading": "Načítání…"
+      },
+      "audioFeedback": {
+        "label": "Zvuková odezva",
+        "description": "Přehrát zvuk při zahájení a ukončení nahrávání"
+      },
+      "soundTheme": {
+        "label": "Zvuk odezvy",
+        "description": "Vyberte zvuk, který se přehraje při zahájení a ukončení diktování",
+        "default": "Výchozí",
+        "preview": "Přehrát ukázku (nejprve start, pak stop)",
+        "themes": {
+          "marimba": "Marimba",
+          "pop": "Pop",
+          "click": "Cvaknutí",
+          "custom": "Vlastní"
+        }
+      },
+      "outputDevice": {
+        "title": "Výstupní zařízení",
+        "description": "Vyberte preferované výstupní zařízení pro zvuky odezvy",
+        "placeholder": "Vyberte výstupní zařízení…",
+        "loading": "Načítání…"
+      },
+      "volume": {
+        "title": "Hlasitost",
+        "description": "Upravte hlasitost zvukové odezvy"
+      },
+      "ducking": {
+        "label": "Při nahrávání",
+        "ariaLabel": "Ostatní zvuk při nahrávání",
+        "description": "Ztiší nebo ztlumí ostatní zvuk, zatímco nahráváte, aby vás nerušil a nedostal se do mikrofonu. Vrátí se, jakmile nahrávání skončí. Známé také jako ducking.",
+        "options": {
+          "off": "Beze změny",
+          "lower": "Ztišit",
+          "mute": "Ztlumit"
+        },
+        "amount": {
+          "label": "Ztišit o",
+          "description": "O kolik bude ostatní zvuk tišší. Posuňte posuvník, zatímco něco hraje, a uslyšíte to. Pokud během nahrávání sami změníte hlasitost, zůstane tak, jak jste ji nastavili."
+        }
+      }
+    },
+    "advanced": {
+      "title": "Pokročilé",
+      "groups": {
+        "app": "Aplikace",
+        "output": "Výstup",
+        "transcription": "Přepis",
+        "textReplacements": "Náhrady textu",
+        "history": "Historie",
+        "aiCorrection": "Čištění pomocí AI",
+        "experimental": "Experimentální"
+      },
+      "aiCorrection": {
+        "label": "Čištění pomocí AI (ve vývoji)",
+        "description": "Experimentální: vyčistěte své diktování pomocí AI. Zatím hrubé a nedoladěné — ve výchozím nastavení vypnuto.",
+        "info": "Spustí nad vaším diktováním jazykový model, který opraví interpunkci, odstraní vycpávková slova a případně upraví tón. Platí pouze pro diktování (nikoli pro chat s asistentem) a má vlastní zkratku. Přidává zpoždění, protože model běží až po přepisu; pokud selže nebo vyprší časový limit, vloží se místo toho váš původní text. Ve výchozím nastavení používá model vašeho asistenta. Tato funkce je stále ve vývoji — vestavěný místní model si zatím nemůžete vybrat z vlastního seznamu a než se stane hlavní funkcí, potřebuje ještě doladit."
+      },
+      "postProcessTimeout": {
+        "title": "Časový limit čištění pomocí AI",
+        "description": "Jak dlouho čekat na model, než to vzdá a vloží místo toho váš původní přepis. U vestavěného místního modelu nechte dost času na jeho načtení při prvním použití.",
+        "seconds": "{{seconds}} sekund"
+      },
+      "experimentalToggle": {
+        "label": "Experimentální funkce",
+        "description": "Zobrazí funkce, které jsou ve vývoji. Ve výchozím stavu vypnuto."
+      },
+      "lazyStreamClose": {
+        "label": "Ponechat mikrofon zapnutý mezi přepisy",
+        "description": "Rychlejší diktování za sebou. Může ovlivnit kvalitu zvuku Bluetooth."
+      },
+      "mouseButtonShortcuts": {
+        "label": "Tlačítka myši jako zkratky",
+        "description": "Použijte prostřední tlačítko myši nebo tlačítka Zpět a Vpřed jako zkratku: klikněte na klávesy zkratky a pak stiskněte tlačítko. Dokud je zkratkou, tlačítko nedělá nic jiného.",
+        "linux": "V Linuxu funguje jen prostřední tlačítko.",
+        "needsEngine": "Vyžaduje implementaci klávesnice Zynveliq Keys."
+      },
+      "longFormChunking": {
+        "title": "Rozdělovat dlouhé nahrávky",
+        "description": "Dlouhé diktáty se přepisují po částech v přirozených pauzách, takže modely, které nejsou stavěné na dlouhý zvuk, zůstanou přesné."
+      },
+      "acceleration": {
+        "title": "Zpracování řeči",
+        "description": "Automaticky používá grafickou kartu, a pokud máte dvě, tu dedikovanou. Zvolte Procesor, pokud diktování padá nebo ovladač grafiky dělá potíže. Je pomalejší, ale funguje všude.",
+        "auto": "Automaticky",
+        "cpu": "Procesor (CPU)"
+      },
+      "startHidden": {
+        "label": "Spouštět skrytě",
+        "description": "Spustit do systémové lišty bez otevření okna."
+      },
+      "autostart": {
+        "label": "Spouštět při startu",
+        "description": "Automaticky otevřít Zynveliq po přihlášení."
+      },
+      "showTrayIcon": {
+        "label": "Zobrazit ikonu v systémové liště",
+        "description": "Ponechat Zynveliq v systémové liště."
+      },
+      "trayIconColor": {
+        "label": "Barevná ikona v systémové liště",
+        "description": "Zobrazí barevné logo místo bílé ikony. Zapněte, pokud máte světlý panel a bílá ikona je špatně vidět."
+      },
+      "closeBehavior": {
+        "label": "Ukončit aplikaci při zavření okna",
+        "description": "Když je vypnuto, zavřením okna zůstane Zynveliq běžet v systémové liště a vaše zkratky dál fungují. Když je zapnuto, zavřením okna se aplikace úplně ukončí."
+      },
+      "overlayStyle": {
+        "title": "Překryv",
+        "description": "Jak vypadá překryv nahrávání během diktování. Žádný jej skryje, Minimální je kompaktní lišta a Průběžný zobrazí čitelnou kartu s vašimi slovy, jak mluvíte (u modelů, které to podporují).",
+        "options": {
+          "none": "Žádný",
+          "minimal": "Minimální",
+          "live": "Průběžný"
+        }
+      },
+      "overlayLinger": {
+        "title": "Ponechat hotový text na obrazovce",
+        "description": "Jak dlouho zůstane živá karta zobrazená po dokončení diktování, abyste si mohli přečíst nebo zkopírovat, co se napsalo. Když na kartu najedete myší, zůstane otevřená.",
+        "options": {
+          "quick": "Krátce (1 sekunda)",
+          "standard": "Standardně (3 sekundy)",
+          "long": "Déle (6 sekund)",
+          "extended": "Mnohem déle (10 sekund)"
+        }
+      },
+      "overlay": {
+        "title": "Pozice překryvu",
+        "description": "Kde se na obrazovce nachází překryv nahrávání.",
+        "options": {
+          "none": "Žádné",
+          "bottom": "Dole",
+          "top": "Nahoře",
+          "topleft": "Vlevo nahoře",
+          "topright": "Vpravo nahoře",
+          "bottomleft": "Vlevo dole",
+          "bottomright": "Vpravo dole"
+        }
+      },
+      "pasteMethod": {
+        "title": "Způsob vložení",
+        "description": "Jak se přepsaný text vkládá do aktivní aplikace.",
+        "options": {
+          "clipboard": "Schránka ({{modifier}}+V)",
+          "clipboardCtrlShiftV": "Schránka (Ctrl+Shift+V)",
+          "clipboardShiftInsert": "Schránka (Shift+Insert)",
+          "direct": "Přímé",
+          "none": "Žádné",
+          "externalScript": "Externí skript"
+        },
+        "externalScriptPlaceholder": "/cesta/k/vasemu/skriptu.sh"
+      },
+      "typingTool": {
+        "title": "Nástroj pro psaní",
+        "description": "Linuxový nástroj používaný pro způsob vložení Přímé.",
+        "options": {
+          "auto": "Automaticky (doporučeno)"
+        }
+      },
+      "clipboardHandling": {
+        "title": "Práce se schránkou",
+        "description": "Zda přepis po vložení zůstane ve schránce.",
+        "options": {
+          "dontModify": "Neměnit schránku",
+          "copyToClipboard": "Kopírovat do schránky"
+        }
+      },
+      "autoSubmit": {
+        "title": "Automatické odeslání",
+        "description": "Po vložení textu automaticky odeslat kombinaci kláves.",
+        "options": {
+          "off": "Vypnuto",
+          "enter": "Enter",
+          "cmdEnter": "Cmd+Enter",
+          "superEnter": "Super+Enter",
+          "ctrlEnter": "Ctrl+Enter"
+        }
+      },
+      "translateToEnglish": {
+        "label": "Překládat do angličtiny",
+        "description": "Překládat řeč z jiných jazyků do angličtiny.",
+        "descriptionUnsupported": "Překlad není podporován modelem {{model}}."
+      },
+      "modelUnload": {
+        "title": "Uvolnění modelu",
+        "description": "Uvolnit paměť, když je model takto dlouho nečinný.",
+        "options": {
+          "never": "Nikdy",
+          "immediately": "Okamžitě",
+          "min2": "Po 2 minutách",
+          "min5": "Po 5 minutách",
+          "min10": "Po 10 minutách",
+          "min15": "Po 15 minutách",
+          "hour1": "Po 1 hodině",
+          "sec15": "Po 15 sekundách (Debug)"
+        }
+      },
+      "customWords": {
+        "title": "Vlastní slova",
+        "description": "Jména, produkty a fráze, které má Zynveliq psát po vašem.",
+        "info": "Příklad: přidejte „Kokoro“, pokud Zynveliq napíše „Coco row“.",
+        "placeholder": "Přidejte jméno, termín nebo krátkou frázi",
+        "add": "Přidat",
+        "empty": "Zatím žádná vlastní slova.",
+        "remove": "Odebrat {{word}}",
+        "duplicate": "\"{{word}}\" již existuje"
+      },
+      "autoLearn": {
+        "label": "Učit se slova, která opravím",
+        "description": "Zapamatuje si váš pravopis, když opravíte slovo, které Zynveliq napsal špatně.",
+        "info": "Čte jen pole, do kterého právě psal, a to asi minutu. Nic se nenahrává a každé slovo, které se naučí, je uvedené tady.",
+        "unsupported": "Učení z oprav je zatím dostupné jen ve Windows. Slova můžete dál přidávat ručně výše.",
+        "learnedTitle": "Naučeno z vašich oprav",
+        "learnedEmpty": "Zatím nic naučeno. Opravte špatně slyšené slovo v aplikaci, do které jste diktovali, a objeví se tady.",
+        "keep": "Ponechat {{word}} ve vlastních slovech",
+        "remove": "Zapomenout {{word}}",
+        "clearAll": "Zapomenout vše",
+        "reviewHint": "Jsou to odhady. Zaškrtnutím slovo přesunete do svých vlastních slov, nebo ho odeberte. Nad {{max}} se nejstarší zahazují."
+      },
+      "textReplacements": {
+        "title": "Náhrady textu",
+        "description": "Nahraďte v přepisu určitou frázi textem, který používáte často. Příklad: z „můj e-mail“ se stane „alex@example.com“.",
+        "rulesTitle": "Pravidla náhrad",
+        "rulesHint": "Určete, co Zynveliq slyší a co má vložit.",
+        "empty": "Vytvořte pravidlo pro frázi, kterou často říkáte.",
+        "addFirst": "Vytvořit první pravidlo",
+        "addRule": "Přidat náhradu",
+        "manageRules": "Náhrady ({{count}})",
+        "searchLabel": "Vyslovená fráze",
+        "searchPlaceholder": "můj e-mail",
+        "replaceLabel": "Vložit tento text",
+        "replacePlaceholder": "alex@example.com",
+        "advanced": "Pokročilé možnosti",
+        "regex": "Regex",
+        "trimBefore": "Odstranit mezeru před",
+        "trimAfter": "Odstranit mezeru za",
+        "enabledLabel": "Zapnuto",
+        "remove": "Odebrat pravidlo",
+        "import": "Importovat",
+        "export": "Exportovat",
+        "importSuccess": "Importováno {{count}} pravidel náhrad",
+        "importError": "Import se nezdařil: soubor není platný seznam náhrad",
+        "exportSuccess": "Náhrady byly exportovány",
+        "exportError": "Náhrady se nepodařilo exportovat",
+        "magicHint": "Ve vkládaném textu můžete použít [date], [time], [uppercase], [lowercase], [capitalize] nebo [nospace].",
+        "capitalization": {
+          "label": "Velikost písmen",
+          "none": "Žádná",
+          "uppercase": "VELKÁ PÍSMENA",
+          "lowercase": "malá písmena",
+          "capitalize": "První velké"
+        }
+      }
+    },
+    "postProcessing": {
+      "title": "Čištění pomocí AI",
+      "readiness": {
+        "checking": "Kontroluji nastavení čištění pomocí AI…",
+        "checkFailed": "Nastavení čištění pomocí AI se nepodařilo zkontrolovat.",
+        "ready": "Připraveno — {{provider}}.",
+        "assistantFallback": "Připraveno — používá se model vašeho asistenta ({{provider}}).",
+        "selectPrompt": "Vyberte prompt pro čištění.",
+        "selectModel": "Vyberte model pro tohoto poskytovatele.",
+        "addApiKey": "Přidejte API klíč pro tohoto poskytovatele.",
+        "providerMissing": "Vybraný poskytovatel už není dostupný."
+      },
+      "errors": {
+        "saveFailed": "Nastavení čištění pomocí AI se nepodařilo uložit.",
+        "modelsLoadFailed": "Modely pro tohoto poskytovatele se nepodařilo načíst.",
+        "promptCreateFailed": "Prompt se nepodařilo vytvořit.",
+        "promptSelectFailed": "Prompt byl vytvořen, ale nepodařilo se ho vybrat.",
+        "promptUpdateFailed": "Prompt se nepodařilo aktualizovat.",
+        "promptDeleteFailed": "Prompt se nepodařilo smazat.",
+        "promptRestoreFailed": "Prompt se nepodařilo obnovit.",
+        "toneSelectFailed": "Styl psaní se nepodařilo vybrat.",
+        "toneCreateFailed": "Styl psaní se nepodařilo vytvořit.",
+        "toneSelectAfterCreateFailed": "Styl byl vytvořen, ale nepodařilo se ho vybrat.",
+        "toneUpdateFailed": "Styl psaní se nepodařilo aktualizovat.",
+        "toneDeleteFailed": "Styl psaní se nepodařilo smazat."
+      },
+      "enable": {
+        "title": "Čištění pomocí AI"
+      },
+      "hotkey": {
+        "title": "Zkratka"
+      },
+      "tone": {
+        "title": "2 · Styl psaní",
+        "description": "Přidává se nad systémový prompt: mění to, jak vyčištěný text zní, ne to, co se opravuje. „Žádný“ ponechá váš projev beze změny.",
+        "options": {
+          "none": "Žádný (pouze vyčistit)",
+          "formal": "Formální",
+          "casual": "Neformální",
+          "professional": "Profesionální",
+          "friendly": "Přátelský",
+          "concise": "Stručný"
+        },
+        "edit": "Upravit",
+        "closeEditor": "Zavřít",
+        "createNew": "Vytvořit styl",
+        "nameLabel": "Název stylu",
+        "namePlaceholder": "Například Klidný a čistý",
+        "instructionsLabel": "Instrukce stylu",
+        "instructionsPlaceholder": "Popište přesně, jak se má formulace změnit. Příklad: Odstraňte vulgarismy a nahraďte je klidnou, neutrální formulací.",
+        "instructionsHint": "Tato pravidla určují formulaci po vyčištění. Zůstávají oddělená od vašeho promptu pro čištění.",
+        "createTone": "Vytvořit styl",
+        "updateTone": "Uložit změny",
+        "deleteTone": "Smazat styl",
+        "cancel": "Zrušit"
+      },
+      "api": {
+        "title": "API (kompatibilní s OpenAI)",
+        "location": {
+          "title": "Kde to běží",
+          "description": "Spusťte čištění privátně se staženým modelem, nebo použijte cloudového poskytovatele."
+        },
+        "provider": {
+          "title": "Poskytovatel",
+          "description": "Vyberte poskytovatele kompatibilního s OpenAI."
+        },
+        "appleIntelligence": {
+          "title": "Apple Intelligence",
+          "description": "Běží plně na zařízení. Není potřeba API klíč ani síťové připojení.",
+          "requirements": "Vyžaduje Mac s Apple Silicon a macOS Tahoe (26.0) nebo novější. Apple Intelligence musí být povoleno v Nastavení systému.",
+          "unavailable": "Apple Intelligence není na tomto zařízení k dispozici. Vyžaduje Mac s Apple Silicon a macOS Tahoe (26.0) nebo novější a povolené Apple Intelligence v Nastavení systému."
+        },
+        "baseUrl": {
+          "title": "Základní URL",
+          "description": "Základní URL API pro vybraného poskytovatele. Lze upravit u Custom, Local a Azure OpenAI (nastavte ji na svůj prostředek, např. https://your-resource.openai.azure.com/openai/v1).",
+          "placeholder": "https://api.openai.com/v1",
+          "managed": "Základní URL spravuje vybraný poskytovatel."
+        },
+        "apiKey": {
+          "title": "API klíč",
+          "description": "API klíč pro vybraného poskytovatele.",
+          "placeholder": "sk-..."
+        },
+        "builtin": {
+          "modelDescription": "Vyberte model, který jste si stáhli. Běží na vašem zařízení bez API klíče a bez nastavování.",
+          "modelPlaceholder": "Vyberte stažený model",
+          "noModels": "Zatím žádné místní modely. Stáhněte si nějaký z katalogu modelů.",
+          "ready": "Běží zcela na vašem zařízení. Bez API klíče, bez nastavování."
+        },
+        "model": {
+          "title": "Model",
+          "descriptionApple": "Zadejte volitelný číselný limit délky nebo ponechte výchozí předvolbu na zařízení.",
+          "descriptionCustom": "Zadejte identifikátor modelu, který váš vlastní poskytovatel očekává.",
+          "descriptionDefault": "Vyberte model dostupný u vybraného poskytovatele.",
+          "placeholderApple": "Apple Intelligence",
+          "placeholderWithOptions": "Vyhledejte nebo vyberte model",
+          "placeholderNoOptions": "Zadejte název modelu",
+          "refreshModels": "Obnovit modely"
+        },
+        "testConnection": {
+          "title": "Otestovat připojení",
+          "description": "Pošle jeden krátký požadavek a ověří, že se čištění pomocí AI k tomuto modelu opravdu dostane. Modely v zařízení se nejdřív načtou, takže první test může chvíli trvat.",
+          "button": "Otestovat připojení",
+          "testing": "Testování…"
+        }
+      },
+      "prompts": {
+        "title": "Prompt",
+        "selectedPrompt": {
+          "title": "Prompt",
+          "description": "Základní instrukce: co model opravuje a co musí nechat beze změny. Přepsaný text se posílá zvlášť, takže pište jen instrukce."
+        },
+        "noPrompts": "Nejsou k dispozici žádné prompty",
+        "nonePrompt": "Žádný (bez promptu)",
+        "selectPrompt": "Vyberte prompt",
+        "createNew": "Vytvořit nový prompt",
+        "edit": "Upravit",
+        "closeEditor": "Zavřít",
+        "promptLabel": "Název promptu",
+        "promptLabelPlaceholder": "Zadejte název promptu",
+        "promptInstructions": "Instrukce promptu",
+        "promptInstructionsPlaceholder": "Napište instrukce pro vyčištění přepisu. Příklad: Oprav gramatiku a interpunkci a pak text přepiš jako uhlazenou, profesionální zprávu.",
+        "promptTip": "Tip: Přepsaný text se modelu odesílá automaticky — stačí napsat instrukce. (Starší prompty s <code>${output}</code> stále fungují.)",
+        "updatePrompt": "Aktualizovat prompt",
+        "deletePrompt": "Smazat prompt",
+        "restorePrompt": "Obnovit doporučený",
+        "createPrompt": "Vytvořit prompt",
+        "cancel": "Zrušit",
+        "selectToEdit": "Vyberte výše prompt, abyste zobrazili a upravili jeho podrobnosti.",
+        "createFirst": "Klikněte nahoře na „Vytvořit nový prompt“ a vytvořte svůj první prompt pro čištění."
+      }
+    },
+    "dictation": {
+      "hero": {
+        "eyebrow": "Právě naslouchá pomocí",
+        "loading": "Načítám váš model…",
+        "noModelTitle": "Zatím žádný model",
+        "noModelCaption": "Vyberte model, aby se váš hlas měnil na text.",
+        "chooseModel": "Vybrat model",
+        "changeModel": "Změnit model",
+        "streams": "Přepisuje průběžně",
+        "accuracy": "Přesnost",
+        "speed": "Rychlost"
+      },
+      "catalog": {
+        "title": "Vyberte si model",
+        "description": "Každý model běží na vašem zařízení — vyměňte přesnost za rychlost a vyberte ten, který se hodí."
+      },
+      "cloud": {
+        "groupTitle": "Kde běží přepis",
+        "engine": {
+          "title": "Modul převodu řeči na text",
+          "description": "Na tomto počítači, nebo u hostovaného poskytovatele s vaším vlastním klíčem.",
+          "info": "Na mém zařízení spustí model, který jste stáhli: soukromě, zdarma a offline. Cloud posílá vaši nahrávku poskytovateli, kterého si vyberete a který účtuje za minutu zvuku; výměnou dostanete špičkový model bez stahování a bez GPU."
+        },
+        "bypassNotice": "Cloudový přepis je zapnutý, takže model výše se nepoužívá a zůstává uvolněný.",
+        "provider": {
+          "title": "Poskytovatel"
+        },
+        "key": {
+          "title": "API klíč",
+          "stored": "Klíč je uložený v systémové klíčence.",
+          "missing": "Pro tohoto poskytovatele zatím není uložen žádný klíč.",
+          "placeholder": "Vložte svůj API klíč",
+          "replacePlaceholder": "Vložte nový klíč, který nahradí uložený",
+          "save": "Uložit",
+          "saved": "API klíč uložen",
+          "clear": "Odebrat",
+          "getOne": "Získat klíč"
+        },
+        "endpoint": {
+          "title": "Koncový bod",
+          "description": "Základní URL přepisového serveru kompatibilního s OpenAI.",
+          "azureDescription": "Koncový bod vašeho prostředku Azure, najdete ho v části Klíče a koncový bod na portálu Azure. MAI-Transcribe vyžaduje prostředek v oblasti Central India, Southeast Asia, East US, West US, West US 2 nebo North Europe.",
+          "azurePlaceholder": "https://your-resource.cognitiveservices.azure.com"
+        },
+        "amazon": {
+          "credentials": {
+            "title": "Přístupový klíč AWS",
+            "missing": "Zatím není uložen žádný klíč. Použijte přístupový klíč uživatele nebo role IAM s oprávněním volat transcribe:StartStreamTranscriptionWebSocket.",
+            "keyId": "ID přístupového klíče",
+            "secret": "Tajný přístupový klíč",
+            "sessionToken": "Token relace (jen pro dočasné přihlašovací údaje)",
+            "invalid": "Tohle nevypadá jako klíč AWS. ID přístupového klíče obsahuje jen písmena a číslice a žádné pole nesmí obsahovat mezery ani dvojtečky.",
+            "permission": "Potřebné oprávnění"
+          },
+          "region": {
+            "title": "Oblast",
+            "description": "Kde Amazon Transcribe běží. Nejrychleji odpovídá oblast, která je vám nejblíž."
+          },
+          "streaming": "Vždy zapnuto: Amazon Transcribe přepisuje jen živě. Když se spojení během nahrávání přeruší, nahrávka se odešle znovu rychlostí řeči, takže dokončení trvá stejně dlouho jako nahrávka.",
+          "language": "Amazon Transcribe musí znát jazyk. Automatický režim vybírá mezi angličtinou, jazykem aplikace a několika dalšími běžnými jazyky, proto zvolte svůj jazyk, pokud mluvíte jiným.",
+          "unsupportedLanguage": "Amazon Transcribe neumí tento jazyk přepisovat živě v oblasti {{region}}. Zvolte jiný jazyk nebo oblast. Do té doby diktování Amazon Transcribe nepoužije."
+        },
+        "model": {
+          "title": "Model",
+          "info": "Zadejte jakýkoli model, který poskytovatel nabízí, nebo načtěte seznam. U ElevenLabs zvolte scribe_v2_realtime pro přepis během mluvení a scribe_v2 pro přepis až po skončení.",
+          "load": "Načíst modely"
+        },
+        "streaming": {
+          "label": "Přepisovat, zatímco mluvím",
+          "description": "Text přichází, ještě když mluvíte, takže po puštění klávesy se dopíše už jen posledních pár slov.",
+          "needsRealtimeModel": "Chcete-li tohle použít, vyberte výše model pro reálný čas — aktuální přepisuje až po skončení."
+        },
+        "keyterms": {
+          "label": "Posílat moje vlastní slova",
+          "description": "Předá poskytovateli váš vlastní slovník, aby dával přednost tomuto pravopisu.",
+          "unsupported": "{{provider}} nepřijímá seznam slov, proto se vaše vlastní slova opravují místo toho na tomto počítači."
+        },
+        "noVerbatim": {
+          "label": "Odstranit vycpávková slova",
+          "description": "Vynechá „ehm“, „no“, přeřeknutí a opakování. Vypněte, pokud chcete přesně to, co jste řekli, slovo od slova."
+        },
+        "language": {
+          "description": "Jazyk, kterým mluvíte. Každý zdejší poskytovatel odpovídá ve stejném jazyce — když ho uvedete předem, zlepší se přesnost, a volba Automaticky nechá jazyk rozpoznat sama."
+        },
+        "translate": {
+          "supported": "{{provider}} umí místo jazyka, kterým jste mluvili, vrátit angličtinu. Pouze angličtinu — žádné přepisové API nepřekládá do jiného jazyka."
+        },
+        "test": {
+          "title": "Otestovat připojení",
+          "description": "Odešle jednu sekundu zvuku a ověří klíč, koncový bod a model.",
+          "action": "Spustit test",
+          "running": "Testování…"
+        }
+      },
+      "aiCleanup": {
+        "groupTitle": "Čištění pomocí AI",
+        "modelGroupTitle": "Model pro čištění",
+        "unloadTimeout": {
+          "title": "Ponechat model pro čištění načtený",
+          "description": "Jak dlouho zůstane místní model pro čištění v paměti po tom, co ho přestanete používat. Delší doba znamená žádné načítání před dalším diktováním; nečinný model zabírá paměť, ale ne procesor. Nezávislé na nastavení asistenta."
+        },
+        "model": {
+          "emptyTitle": "Zatím žádný model pro čištění",
+          "emptyDescription": "SpeakoFlow Mini je malé stažení vytvořené právě pro tohle.",
+          "choose": "Vybrat model",
+          "tunedBadge": "Vyladěn na čištění"
+        },
+        "catalog": {
+          "title": "Vyberte si model pro čištění",
+          "description": "Čištění se spustí po každém diktování, takže rychlost je důležitější než velikost. Vše běží offline.",
+          "recommendedTitle": "Doporučeno pro čištění",
+          "recommendedDescription": "SpeakoFlow Mini je vytrénovaný právě na tuhle jednu úlohu a zvládá ji lépe než mnohem větší modely."
+        },
+        "promptGroupTitle": "Instrukce pro čištění",
+        "tunedModelNotice": "Tento model je doladěný na čištění anglického diktování, takže funguje nejlépe s doporučeným promptem a bez stylu.",
+        "tunedModelNoticeDismiss": "Skrýt tento tip",
+        "tunedModelNoticeRestore": "Zobrazit tip k modelu",
+        "title": "Vylepšit mé diktování pomocí AI",
+        "caption": "Experimentální — po diktování uklidí interpunkci a vycpávková slova.",
+        "info": "Čištění přepíše, co jste řekli, pomocí modelu AI, ještě než se to napíše. Může chvíli trvat, a když je pomalé, použijí se vaše původní slova."
+      },
+      "spokenEmoji": {
+        "title": "Diktované emoji",
+        "description": "Vyslovením “happy emoji” nebo “thumbs up emoji” vložíte 😊 nebo 👍. Běžné varianty a drobné chyby přepisu se zpracují přímo v zařízení; neznámé názvy zůstanou jako text."
+      },
+      "flow": {
+        "groupTitle": "Generovat s Flow",
+        "enableLabel": "Generovat s Flow",
+        "enableDescription": "Začněte diktování aktivační frází a AI za vás napíše výsledek — „Hey Flow, napiš zdvořilý e-mail s prosbou o přesunutí schůzky“ vloží hotový e-mail.",
+        "phraseLabel": "Aktivační fráze",
+        "phraseDescription": "Flow se aktivuje jen tehdy, když diktování začíná touto frází. Kdekoli jinde se stejná slova vloží jako běžné diktování. Používá model vašeho asistenta; když necháte prázdné, vrátí se „Hey Flow“.",
+        "phrasePlaceholder": "Hey Flow",
+        "screenLabel": "Povolit přístup k obrazovce",
+        "screenDescription": "Umožněte Flow udělat jeden snímek obrazovky, když příkaz zjevně odkazuje na vaši obrazovku, například „podívej se na tento e-mail a navrhni odpověď“. O tom, jestli je potřeba, rozhoduje model. Nezávisí to na přístupu asistenta k obrazovce."
+      },
+      "output": {
+        "title": "Možnosti výstupu"
+      }
+    },
+    "history": {
+      "title": "Historie",
+      "storage": {
+        "title": "Ukládání nahrávek",
+        "description": "Tato nastavení ovlivňují nahrávky diktování a Flow. Uložené nahrávky se uchovávají vždy. Chaty s asistentem mají vlastní ukládání."
+      },
+      "filters": {
+        "label": "Typ historie",
+        "all": "Vše",
+        "recordings": "Diktování",
+        "flow": "Flow",
+        "asks": "Asistent",
+        "calls": "Konverzace"
+      },
+      "openFolder": "Otevřít složku nahrávek",
+      "loading": "Načítám historii…",
+      "empty": "Zatím tu nic není. Vaše diktování, generování pomocí Flow a chaty s asistentem se zobrazí tady.",
+      "emptyRecordings": "Zatím žádná diktování.",
+      "emptyFlow": "Zatím žádné generování pomocí Flow.",
+      "emptyAsks": "Zatím žádné dotazy.",
+      "emptyCalls": "Zatím žádné konverzace.",
+      "flowLabel": "Flow",
+      "kinds": {
+        "ask": "Asistent",
+        "call": "Konverzace"
+      },
+      "flowTranscriptLabel": "Řekli jste",
+      "originalTranscriptionLabel": "Původní přepis",
+      "flowOutputLabel": "Výstup Flow",
+      "finalTextLabel": "Konečný text",
+      "flowNoOutput": "Flow nevygeneroval žádný výstup.",
+      "copyToClipboard": "Kopírovat přepis do schránky",
+      "copyFlowOutput": "Kopírovat výstup Flow",
+      "copyFinalText": "Kopírovat konečný text",
+      "save": "Uložit přepis",
+      "unsave": "Odebrat z uložených",
+      "delete": "Smazat záznam",
+      "deleteError": "Nepodařilo se smazat záznam. Zkuste to prosím znovu.",
+      "retranscribe": "Přepsat znovu",
+      "retranscribeError": "Opětovný přepis se nezdařil. Zkuste to prosím znovu.",
+      "transcribing": "Přepisuji…",
+      "transcriptionFailed": "Přepis selhal – zkuste to znovu pomocí ikony opakování.",
+      "copyConversation": "Kopírovat konverzaci",
+      "copyAnswer": "Kopírovat odpověď",
+      "noAnswer": "K tomuto dotazu se neuložila žádná odpověď.",
+      "resumeConversation": "Pokračovat v této konverzaci v asistentovi",
+      "branchConversation": "Pokračovat odsud jako nová konverzace. Tato zůstane beze změny.",
+      "showConversation": "Zobrazit konverzaci",
+      "hideConversation": "Skrýt konverzaci",
+      "roleUser": "Vy",
+      "roleAssistant": "Asistent",
+      "screenshotAttached": "Obraz",
+      "messageCount_one": "{{count}} zpráva",
+      "messageCount_few": "{{count}} zprávy",
+      "messageCount_many": "{{count}} zprávy",
+      "messageCount_other": "{{count}} zpráv",
+      "deleteAssistantError": "Konverzaci se nepodařilo smazat. Zkuste to prosím znovu.",
+      "openFolderError": "Složku s nahrávkami se nepodařilo otevřít."
+    },
+    "debug": {
+      "title": "Ladění",
+      "logDirectory": {
+        "title": "Složka protokolů",
+        "description": ""
+      },
+      "logLevel": {
+        "title": "Úroveň protokolování",
+        "description": "",
+        "levels": {
+          "error": "Chyba",
+          "warn": "Varování",
+          "info": "Informace",
+          "debug": "Ladění",
+          "trace": "Trasování"
+        }
+      },
+      "updateChecks": {
+        "label": "Automaticky kontrolovat aktualizace",
+        "description": "Hledá novou verzi při spuštění Zynveliq a každých 12 hodin. Ručně můžete zkontrolovat kdykoli."
+      },
+      "soundTheme": {
+        "label": "Zvukový motiv",
+        "description": ""
+      },
+      "wordCorrectionThreshold": {
+        "title": "Práh korekce slov",
+        "description": "Citlivost pro opravy vlastních slov"
+      },
+      "historyLimit": {
+        "title": "Limit nahrávek",
+        "description": "Maximální počet nahrávek diktování a Flow bez hvězdičky, které se uchovají. Nahrávky s hvězdičkou se uchovávají vždy a chaty s asistentem se nepočítají. Nejnižší povolená hodnota je 1.",
+        "entries": "nahrávek"
+      },
+      "recordingRetention": {
+        "title": "Automatické mazání nahrávek",
+        "description": "Vyberte, jak se mají mazat neuložené nahrávky. Změny se použijí okamžitě a nikdy neovlivní chaty s asistentem.",
+        "never": "Nikdy",
+        "preserveLimit": "Ponechat určitý počet",
+        "days3": "Po 3 dnech",
+        "weeks2": "Po 2 týdnech",
+        "months3": "Po 3 měsících",
+        "customDays": "Po zadaném počtu dní",
+        "customDaysTitle": "Smazat po",
+        "customDaysDescription": "Nahrávky bez hvězdičky se smažou, jakmile jsou staré tolik dní. Nahrávky s hvězdičkou se uchovávají vždy.",
+        "days": "dnech",
+        "placeholder": "Vyberte dobu uchování…",
+        "savedToast": "Doba uchování uložena.",
+        "appliedToast": "Doba uchování nahrávek byla použita",
+        "saveFailed": "Nastavení uchování se nepodařilo uložit.",
+        "confirmTitle_one": "Tím se smaže {{count}} nahrávka",
+        "confirmTitle_few": "Tím se smažou {{count}} nahrávky",
+        "confirmTitle_many": "Tím se smaže {{count}} nahrávky",
+        "confirmTitle_other": "Tím se smaže {{count}} nahrávek",
+        "confirmTitleUnknown": "Tím se mohou smazat nahrávky",
+        "confirmBody": "Zvuk i přepis se z tohoto zařízení odstraní a nepůjde je obnovit. Nahrávky s hvězdičkou zůstanou zachovány.",
+        "confirmAction_one": "Smazat {{count}} nahrávku",
+        "confirmAction_few": "Smazat {{count}} nahrávky",
+        "confirmAction_many": "Smazat {{count}} nahrávky",
+        "confirmAction_other": "Smazat {{count}} nahrávek",
+        "confirmActionUnknown": "Přesto použít"
+      },
+      "alwaysOnMicrophone": {
+        "label": "Vždy zapnutý mikrofon",
+        "description": "Udržuje mikrofon připravený, aby se nikdy neztratila první slova. Spotřebuje o něco více baterie."
+      },
+      "clamshellMicrophone": {
+        "title": "Mikrofon při zavřeném víku",
+        "description": "Mikrofon, který se použije při zavřeném víku notebooku"
+      },
+      "postProcessingToggle": {
+        "label": "Čištění pomocí AI",
+        "description": "Po přepisu vyčistit diktování pomocí AI"
+      },
+      "appendTrailingSpace": {
+        "label": "Přidat koncovou mezeru",
+        "description": "Přidá mezeru za každý diktát. Se zapnutými chytrými mezerami platí jen tam, kde pole nelze přečíst."
+      },
+      "smartSpacing": {
+        "label": "Chytré mezery",
+        "description": "Přizpůsobí každý diktát textu, který už v poli je, takže můžete přestat a pokračovat, aniž by se slova slila.",
+        "info": "Před vložením se Zynveliq podívá na několik znaků kolem kurzoru a mezeru přidá jen tam, kde je potřeba. Když aplikace svůj text skrývá, použije místo toho svůj poslední diktát. Nic se neukládá ani nikam neodesílá. V macOS se používá oprávnění Zpřístupnění, které Zynveliq už má. V Linuxu sdílejí aplikace Chrome, Electron a Qt svůj text jen tehdy, když je v prostředí zapnuté zpřístupnění."
+      },
+      "smartSpacingFixCase": {
+        "label": "Opravovat velká písmena",
+        "description": "Začne diktát malým písmenem, když pokračuje ve větě. Jména, zkratky a „I“ si velká písmena ponechají."
+      },
+      "smartSpacingJoin": {
+        "label": "Spojovat přerušené věty",
+        "description": "Odstraní tečku, kterou Zynveliq přidal, když jste se zastavili uprostřed věty, například „I went to the.“"
+      },
+      "keyboardImplementation": {
+        "title": "Implementace klávesnice",
+        "description": "Zvolte backend pro klávesové zkratky.",
+        "bindingsReset": "Klávesové zkratky byly nekompatibilní a byly obnoveny na výchozí hodnoty"
+      },
+      "paths": {
+        "appData": "Data aplikace:",
+        "models": "Modely:",
+        "settings": "Nastavení:"
+      },
+      "pasteDelay": {
+        "title": "Zpoždění vložení",
+        "description": "Počet milisekund čekání před vložením. Zvyšte, pokud se vkládá nesprávný text."
+      },
+      "recordingBuffer": {
+        "title": "Extra vyrovnávací paměť nahrávání",
+        "description": "Počet milisekund, po které se pokračuje v nahrávání po uvolnění klávesy."
+      }
+    },
+    "about": {
+      "title": "O aplikaci",
+      "version": {
+        "title": "Verze",
+        "description": ""
+      },
+      "updates": {
+        "title": "Aktualizace",
+        "button": "Zkontrolovat aktualizace",
+        "disabledHint": "Automatické kontroly aktualizací jsou vypnuté. Zapněte je v sekci Obecné."
+      },
+      "folders": {
+        "title": "Složky"
+      },
+      "appDataDirectory": {
+        "title": "Složka dat aplikace",
+        "description": "Kam Zynveliq ukládá vaše modely, historii a nastavení."
+      },
+      "sourceCode": {
+        "title": "Zdrojový kód",
+        "description": "",
+        "button": "Zobrazit na GitHubu"
+      },
+      "license": {
+        "title": "Licence",
+        "description": "Zynveliq je open source pod licencí MIT a staví na projektu Handy (také MIT) od CJ Paise.",
+        "button": "Zobrazit licenci"
+      },
+      "supportDevelopment": {
+        "title": "Podpořte vývoj",
+        "description": "Pomozte nám dál vyvíjet Zynveliq",
+        "button": "Přispět"
+      }
+    },
+    "assistant": {
+      "enable": {
+        "title": "Asistent",
+        "label": "Zapnout asistenta",
+        "description": "Vypnutím necháte ze Zynveliq jen diktování. Plovoucí panel se zavře a už se nenačte, jeho zkratky se uvolní a paměť, kterou zabírá, se vrátí. Generovat s Flow a čištění pomocí AI fungují dál."
+      },
+      "shortcuts": {
+        "title": "Zkratky"
+      },
+      "brain": {
+        "title": "Mozek asistenta",
+        "whereLabel": "Kde to běží",
+        "testLabel": "Otestovat připojení",
+        "testDescription": "Pošle jednu krátkou otázku a ověří, že se asistent k tomuto modelu opravdu dostane. Modely v zařízení se nejdřív načtou, takže první test může chvíli trvat.",
+        "testButton": "Otestovat připojení",
+        "testing": "Testování…",
+        "onDevice": "Na tomto počítači",
+        "cloud": "Cloud",
+        "downloadModel": "Procházet a stahovat modely",
+        "downloadModelDescription": "Vyberte doporučený model nebo prohledejte Hugging Face.",
+        "downloadModelAction": "Procházet modely",
+        "catalogTitle": "Vyberte model pro toto zařízení",
+        "catalogDescription": "Stáhněte si soukromý místní model. Zůstane na tomto počítači a nepotřebuje API klíč.",
+        "currentModelTitle": "Aktuální model",
+        "currentModelDescription": "Vybraný pro vestavěného asistenta na tomto zařízení.",
+        "recommendedTitle": "Doporučené modely",
+        "recommendedDescription": "Tři volby zaměřené na konverzaci: nejrychlejší, doporučená a schopnější, ale pomalejší.",
+        "acceleratorDetected": "{{name}} · {{memory}} GB nahlášené grafické paměti",
+        "acceleratorDetectedDedicated": "{{name}} · {{memory}} GB dedikované VRAM",
+        "acceleratorDetectedIntegrated": "{{name}} · {{memory}} GB sdílené grafické paměti",
+        "acceleratorDetectedNoMemory": "Zjištěno {{name}} · grafická paměť nenahlášena",
+        "acceleratorUnknownWithMemory": "Grafická paměť není k dispozici · {{memory}} GB systémové RAM pro záložní běh na CPU",
+        "acceleratorUnknown": "Grafická paměť není k dispozici · rychlost odpovědí nelze předpovědět",
+        "details": "Podrobnosti",
+        "detailFile": "Soubor",
+        "detailLocation": "Umístění",
+        "detailFormat": "Formát",
+        "detailId": "ID modelu",
+        "switchBeforeDelete": "Tento model se používá. Než ho smažete, přepněte na jiný.",
+        "deleteModelConfirm": "Smazat {{modelName}}? Odeberou se jeho stažené soubory i uložený záznam.",
+        "deleteModelFailed": "Model se nepodařilo smazat.",
+        "finderSectionTitle": "Další modely na zařízení",
+        "finderTitle": "Procházet Hugging Face",
+        "finderDescription": "Prohledejte tisíce modelů GGUF a stáhněte si jeden přímo do Zynveliq.",
+        "finderAction": "Najít model",
+        "huggingFaceTitle": "Vaše modely",
+        "catalogEmpty": "Právě teď nejsou dostupné žádné doporučené místní modely."
+      },
+      "subpages": {
+        "profilesCaption": "Přepněte jméno, roli a osobnost asistenta.",
+        "memoryCaption": "Co si o vás asistent pamatuje mezi chaty."
+      },
+      "provider": {
+        "title": "Poskytovatel asistenta",
+        "saveFailed": "Poskytovatele asistenta se nepodařilo přepnout.",
+        "providerLabel": "Poskytovatel",
+        "providerDescription": "Poskytovatel, který odpovídá na dotazy asistenta.",
+        "baseUrlLabel": "Základní URL",
+        "baseUrlDescription": "Základní URL kompatibilní s OpenAI. URL adresy Azure se normalizují automaticky.",
+        "apiKeyLabel": "API klíč",
+        "apiKeyDescription": "Sdílený s čištěním pomocí AI.",
+        "apiKeyPlaceholder": "Zadejte API klíč…",
+        "modelLabel": "Model",
+        "modelDescription": "Název modelu nebo nasazení, které se použije pro odpovědi asistenta.",
+        "modelPlaceholder": "např. gpt-4o-mini",
+        "modelSearchPlaceholder": "Vyhledejte nebo napište model…",
+        "modelUse": "Použít \"{{model}}\"",
+        "loadModels": "Načíst modely",
+        "loadingModels": "Načítání…",
+        "noModelsFound": "Nevrátily se žádné modely. Napište název modelu ručně.",
+        "builtinModelDescription": "Vyberte stažený místní model. Běží na vašem zařízení bez API klíče.",
+        "builtinModelPlaceholder": "Vyberte stažený model",
+        "builtinNoModels": "Na vašem zařízení zatím nejsou žádné modely — stáhněte si nějaký níže.",
+        "builtinReady": "Běží zcela na vašem zařízení. Bez API klíče, bez nastavování.",
+        "builtinEngineMissing": "Při prvním použití se automaticky (jednorázově) stáhne malé místní jádro a pak vše běží zcela offline. Není potřeba nic nastavovat.",
+        "builtinEngineDownloading": "Stahuji místní jádro… {{percent}}%",
+        "builtinEnginePreparing": "Stahuji místní jádro…",
+        "builtinEngineExtracting": "Instaluji místní jádro…",
+        "builtinEngineReady": "Místní jádro je připravené.",
+        "contextSizeLabel": "Kontextové okno",
+        "contextSizeDescription": "Kolik z konverzace dokáže model přečíst najednou. Větší hodnota si pamatuje víc, ale zabere více paměti a načítá se pomaleji.",
+        "unloadTimeoutLabel": "Uvolnit z paměti po",
+        "unloadTimeoutDescription": "Uvolněte paměť tím, že se místní model po této době nečinnosti odloží. Při dalším použití se načte automaticky."
+      },
+      "systemPrompt": {
+        "title": "Systémový prompt",
+        "label": "Systémový prompt asistenta",
+        "description": "Určuje chování asistenta."
+      },
+      "characters": {
+        "title": "Profily",
+        "description": "Persony s vlastním jménem, instrukcemi a délkou odpovědí. Přepnout je můžete kdykoli v panelu.",
+        "galleryLabel": "Vaše profily",
+        "editSection": "Upravit profil",
+        "avatarLabel": "Avatar",
+        "active": "Aktivní",
+        "meowsOnly": "Jen mňouká",
+        "builtin": "Vestavěný",
+        "custom": "Vlastní",
+        "new": "Nový",
+        "newName": "Nový profil",
+        "copyName": "Kopie {{name}}",
+        "createAi": "Vytvořit pomocí AI",
+        "import": "Importovat",
+        "aiTitle": "Popište svůj profil",
+        "aiClose": "Zavřít",
+        "aiPlaceholder": "např. stručný autor poznámek k vydání nebo trpělivý učitel, který vysvětlí každý krok",
+        "aiDictate": "Nadiktovat popis",
+        "aiDictateStop": "Zastavit diktování",
+        "generate": "Vygenerovat",
+        "avatarUpload": "Nahrát obrázek",
+        "avatarRemove": "Odebrat",
+        "nameLabel": "Jméno",
+        "roleLabel": "Role",
+        "rolePlaceholder": "Krátký popis zobrazený na kartě (nepovinné)",
+        "promptLabel": "Instrukce (systémový prompt)",
+        "responseLength": {
+          "label": "Délka odpovědi",
+          "hint": "Jak dlouhé jsou odpovědi tohoto profilu. „Zdědit“ se řídí vaším globálním nastavením asistenta.",
+          "options": {
+            "inherit": "Zdědit globální",
+            "short": "Krátká",
+            "medium": "Střední",
+            "long": "Dlouhá"
+          }
+        },
+        "greetingLabel": "Pozdrav (nepovinné)",
+        "greetingPlaceholder": "Nepovinná úvodní věta zobrazená v prázdném chatu",
+        "catNote": "Kočka AI úplně ignoruje — jen mňouká. Tady není co nastavovat.",
+        "duplicate": "Duplikovat",
+        "export": "Exportovat",
+        "restoreDefault": "Obnovit výchozí",
+        "restoreBuiltins": "Obnovit vestavěné",
+        "moreActions": "Další akce",
+        "expand": "Rozbalit",
+        "collapse": "Sbalit",
+        "delete": "Smazat",
+        "deleteConfirm": "Smazat tento profil? Tuto akci nelze vzít zpět.",
+        "emptyState": "Zatím žádné profily. Vytvořte si první a dejte asistentovi osobnost."
+      },
+      "behavior": {
+        "title": "Chování"
+      },
+      "memory": {
+        "label": "Paměť konverzace",
+        "description": "Kolik posledních zpráv se v každém kole posílá jako kontext. 0 paměť vypne."
+      },
+      "autoSummarize": {
+        "label": "Shrnovat dlouhé chaty",
+        "description": "Zhušťuje dlouhé chaty, aby asistent nezapomněl jejich začátek."
+      },
+      "responseLength": {
+        "label": "Délka odpovědi",
+        "description": "Preferovaná délka odpovědi. „Bez vlivu“ ponechá váš prompt bez změny.",
+        "options": {
+          "default": "Bez vlivu",
+          "short": "Krátká",
+          "medium": "Střední",
+          "long": "Dlouhá"
+        }
+      },
+      "vision": {
+        "timing": {
+          "label": "Kdy snímat"
+        },
+        "screenRecording": {
+          "description": "Zobrazení obrazovky vyžaduje na macOS oprávnění k nahrávání obrazovky. Udělte ho v Nastavení systému a pak Zynveliq restartujte, aby se změna projevila.",
+          "grant": "Otevřít Nastavení systému"
+        }
+      },
+      "webSearch": {
+        "title": "Vyhledávání na webu",
+        "enableLabel": "Povolit vyhledávání na webu",
+        "enableDescription": "Umožněte asistentovi hledat na webu, když dotaz potřebuje aktuální informace.",
+        "openRouterNativeLabel": "Použít vestavěné vyhledávání OpenRouter",
+        "openRouterNativeDescription": "Když je zapnuto, vyhledávání provádí sám OpenRouter (svým režimem :online) a spotřebovává vaše kredity OpenRouter. Když je vypnuto, aplikace hledá přes vašeho poskytovatele vyhledávání níže.",
+        "providerLabel": "Poskytovatel vyhledávání",
+        "providerDescription": "Serper je dobrá výchozí volba. Každý poskytovatel má bezplatný tarif a TinyFish je zdarma bez karty.",
+        "providers": {
+          "serper": "Serper (Google, rychlý)",
+          "brave": "Brave Search",
+          "tavily": "Tavily (vyhledávání s AI)",
+          "exa": "Exa (neuronové)",
+          "serpapi": "SerpAPI (Google)",
+          "tinyfish": "TinyFish (zdarma, bez karty)"
+        },
+        "apiKeyLabel": "API klíč",
+        "apiKeyDescription": "Klíč pro vybraného poskytovatele vyhledávání.",
+        "apiKeyPlaceholder": "Zadejte API klíč…",
+        "fetchContentLabel": "Číst celé stránky (nejvyšší kvalita)",
+        "fetchContentDescription": "Číst celý text každého výsledku místo úryvků. Lepší odpovědi, ale pomalejší.",
+        "maxResultsLabel": "Kolik zdrojů použít",
+        "maxResultsDescription": "Kolik výsledků přečíst (1–10).",
+        "depthLabel": "Hloubka hledání",
+        "depthDescription": "Rychlá na jednoduchá fakta, Standardní na většinu dotazů, Hluboká na ty náročné.",
+        "depthOptions": {
+          "low": "Rychlá",
+          "medium": "Standardní",
+          "high": "Hluboká"
+        },
+        "localSmartLabel": "Chytré rozhodování o hledání (místní model)",
+        "localSmartDescription": "Nechte místní model rozhodnout, kdy hledat. Když je vypnuto, použije se rychlá kontrola klíčových slov.",
+        "creditBudgetLabel": "Denní limit kreditů Firecrawl",
+        "creditBudgetDescription": "Denní strop kreditů Firecrawl, po jehož vyčerpání se hledání pozastaví. 0 = bez limitu.",
+        "testLabel": "Otestovat hledání",
+        "testDescription": "Spustí ukázkové hledání s aktuálním poskytovatelem a klíčem.",
+        "testButton": "Otestovat hledání",
+        "testing": "Hledám…",
+        "testResult": "Získáno {{count}} výsledků."
+      },
+      "tts": {
+        "title": "Hlasový výstup",
+        "enableLabel": "Předčítat odpovědi během konverzací",
+        "enableDescription": "Čte odpovědi nahlas, když vedete živou konverzaci. Rychlé textové odpovědi se nikdy nepředčítají.",
+        "stopOnDictationLabel": "Zastavit řeč při začátku diktování",
+        "stopOnDictationDescription": "Zastaví odpověď, která se ještě přehrává, jakmile začnete diktovat.",
+        "engineLabel": "Jádro",
+        "engineDescription": "Hlasy na tomto počítači jsou zdarma, soukromé a fungují bez internetu. Cloudové hlasy používají API klíč od daného poskytovatele. Vlastní se připojí k řečovému serveru, který provozujete sami.",
+        "sectionLocal": "Na tomto počítači",
+        "sectionLocalHint": "Zdarma a soukromě. Běží na tomto počítači a funguje offline.",
+        "sectionCloud": "Cloud",
+        "sectionCloudHint": "Vyžaduje API klíč od poskytovatele. Vlastní se připojí k řečovému serveru, který provozujete sami.",
+        "readyLabel": "Připraveno k použití",
+        "kokoroSetupLabel": "Hlasový model Kokoro",
+        "kokoroSetupDescription": "Stačí ho jednou stáhnout a mluvené odpovědi pak běží privátně na tomto zařízení.",
+        "kokoroDownload": "Stáhnout Kokoro",
+        "kokoroDownloading": "Stahuji Kokoro",
+        "kokoroReady": "Připraveno na tomto zařízení",
+        "kokoroRetry": "Zkusit stažení znovu",
+        "runsOnLabel": "Běží na",
+        "runsOn": {
+          "auto": "Automaticky",
+          "gpu": "Grafické kartě",
+          "cpu": "Procesoru"
+        },
+        "runsOnStatus": {
+          "checking": "Používá grafickou kartu, když funguje, a jinak procesor.",
+          "gpu": "Mluví na grafické kartě.",
+          "processor": "Mluví na procesoru.",
+          "gpuUnusable": "Mluví na procesoru, protože grafická karta na tomto počítači hlas spustit nedokáže.",
+          "needsPack": "Grafická karta na tomto počítači hlas spustit nedokáže. Pro rychlé odpovědi si níže stáhněte procesorový hlas.",
+          "cpuNeedsPack": "Stáhněte si níže procesorový hlas. Do té doby Kokoro běží uvnitř aplikace, což je pomalé.",
+          "loadFailed": "Procesorový hlas se na tomto počítači nepodařilo spustit, takže Kokoro zatím běží uvnitř aplikace.",
+          "noNativeSlow": "Grafická karta na tomto počítači hlas spustit nedokáže, takže Kokoro běží pomalu uvnitř aplikace. Cloudový hlas by byl rychlejší.",
+          "gpuForcedUnusable": "Grafická karta na tomto počítači hlas správně nespustí. Nastavte Běží na na Automaticky nebo Procesoru."
+        },
+        "kokoroNativeLabel": "Procesorový hlas",
+        "kokoroNativeDescription": "Umožní Kokoro rychle mluvit na procesoru, když to grafická karta nezvládne. Stažení {{size}}.",
+        "kittenSizeLabel": "Velikost Kitten",
+        "kittenSizeDescription": "Všechny tři velikosti mají stejných osm hlasů. Větší zní přirozeněji, ale déle trvá, než začnou mluvit, hlavně na slabém procesoru.",
+        "kittenSizes": {
+          "nano": "Nano · nejrychlejší ({{size}})",
+          "micro": "Micro · vyvážený ({{size}})",
+          "mini": "Mini · nejpřirozenější ({{size}})"
+        },
+        "packLabel": {
+          "kitten": "Hlas Kitten",
+          "pocket": "Hlas Pocket TTS",
+          "supertonic": "Hlas Supertonic"
+        },
+        "packDescription": {
+          "kitten": "Malý hlas, který běží na procesoru. Stažení {{size}}.",
+          "pocket": "Přirozeně znějící hlas od Kyutai, určený pro procesory, se 14 mluvčími. Stažení {{size}}.",
+          "supertonic": "Rychlý a zřetelný hlas od Supertone s deseti mluvčími. Stažení {{size}}."
+        },
+        "voiceNamedFemale": "{{name}} (žena)",
+        "voiceNamedMale": "{{name}} (muž)",
+        "voiceNumberedFemale": "Žena {{n}}",
+        "voiceNumberedMale": "Muž {{n}}",
+        "packSize": "{{size}} MB",
+        "packDownload": "Stáhnout ({{size}})",
+        "packDownloading": "Stahování",
+        "packInstalling": "Nastavování",
+        "packCancel": "Zrušit stahování",
+        "packRemove": "Odebrat",
+        "packUnsupported": "V tomto systému není k dispozici",
+        "kittenSuggestLabel": "Vyzkoušejte Kitten",
+        "kittenSuggestDescription": "Tento počítač má slabší procesor. Kitten je lehčí hlas, který tu odpovídá rychleji.",
+        "kittenSuggestButton": "Použít Kitten",
+        "engines": {
+          "kokoro": "Kokoro (místní, zdarma)",
+          "kitten": "Kitten (místní, lehký)",
+          "pocket": "Pocket TTS (místní)",
+          "supertonic": "Supertonic (místní)",
+          "openai": "OpenAI",
+          "elevenlabs": "ElevenLabs",
+          "openrouter": "OpenRouter",
+          "deepgram": "Deepgram Aura",
+          "cartesia": "Cartesia Sonic",
+          "google": "Google Cloud TTS",
+          "azure": "Azure AI Speech",
+          "groq": "Groq Orpheus",
+          "xai": "xAI Grok Voice",
+          "mistral": "Mistral Voxtral",
+          "inworld": "Inworld TTS",
+          "custom": "Vlastní server (kompatibilní s OpenAI)"
+        },
+        "voiceLabel": "Hlas",
+        "voiceDescription": "Hlas Kokoro pro mluvené odpovědi.",
+        "dtypeLabel": "Přesnost Kokoro",
+        "dtypeDescription": "Jen pro Kokoro běžící uvnitř aplikace. fp32 má nejvyšší kvalitu, q8 je menší. Změna znovu načte model. Pokud hlas zní zkresleně, nastavte Běží na na Procesoru.",
+        "speedLabel": "Rychlost přehrávání",
+        "speedDescription": "1× je normální rychlost.",
+        "speedRange": "{{engine}} podporuje {{min}}× až {{max}}×; jiné rychlosti použijí nejbližší limit.",
+        "speedUnsupported": "{{engine}} vždy mluví svou přirozenou rychlostí.",
+        "speedValue": "{{value}}×",
+        "speedCustomLabel": "Vlastní rychlost přehrávání",
+        "volumeLabel": "Hlasitost hlasu",
+        "volumeDescription": "Jak hlasité jsou mluvené odpovědi. Nezávislé na zvucích zpětné vazby.",
+        "expressivenessLabel": "Výraznost",
+        "expressivenessDescription": "Jak moc se projev hlasu mění, od klidného a vyrovnaného po živý a emotivní.",
+        "expressivenessInfo": "Je to nastavení Stability od ElevenLabs, jen obrácené. Dokud s ním nepohnete, každý hlas používá své vlastní uložené nastavení. Úplně na výrazném konci může projev občas znít nevyrovnaně.",
+        "expressivenessSteady": "Klidný",
+        "expressivenessExpressive": "Výrazný",
+        "expressivenessDefault": "Výchozí pro hlas",
+        "expressivenessReset": "Použít výchozí nastavení hlasu",
+        "expressivenessLevels": {
+          "verySteady": "Velmi klidný",
+          "steady": "Klidný",
+          "balanced": "Vyvážený",
+          "lively": "Živý",
+          "veryExpressive": "Velmi výrazný"
+        },
+        "audioTagsLabel": "Zvukové značky",
+        "audioTagsDescription": "Nechte hlas přednášet odpovědi s pokyny jako [laughs] a [whispers] a se zvukovými efekty jako [applause].",
+        "audioTagsNeedsModel": "Vyžaduje model Eleven v3 nebo v4, například eleven_v4. Vyberte ho v poli Model a pak to zapněte.",
+        "audioTagsInfo": "Asistent vkládá do mluvených odpovědí krátké pokyny v hranatých závorkách a hlas ElevenLabs je zahraje nebo přehraje jako zvuky, místo aby je přečetl. Požádejte o scénu, třeba dav, který vás povzbuzuje, a asistent ji postaví z efektů. Chat zobrazuje pokyny tak, jak byly napsány. Zahrají je jen hlasy ElevenLabs v3 a v4; u každého jiného hlasu se před mluvením odstraní.",
+        "audioTagIntensityLabel": "Přednes",
+        "audioTagIntensityDescription": "Jak často hlas reaguje a přidává efekty, od jemného nádechu po celé představení.",
+        "audioTagIntensityLevels": {
+          "subtle": "Jemný",
+          "balanced": "Vyvážený",
+          "theatrical": "Divadelní"
+        },
+        "testLabel": "Otestovat hlas",
+        "testDescription": "Přehraje krátkou ukázku s aktuálním nastavením.",
+        "testButton": "Otestovat hlas",
+        "testing": "Testuji…",
+        "testOk": "Přehráno ✓",
+        "testFailed": "Kokoro nedokázal vytvořit ukázku. Zkuste to znovu, nebo nastavte Běží na na Procesoru.",
+        "testGpuMoved": "Grafická karta ukázku zkreslila, takže byla ztlumena. Kokoro teď používá procesor, otestujte to znovu a uslyšíte ho.",
+        "testGpuForced": "Grafická karta ukázku zkreslila, takže byla ztlumena. Nastavte Běží na na Automaticky nebo Procesoru.",
+        "testGpuSuspect": "Ukázka vyšla zkreslená, takže byla ztlumena. Otestujte to znovu a ověřte grafickou kartu.",
+        "testPhrase": "Ahoj! Toto je test hlasového výstupu Zynveliq.",
+        "downloadStart": "Stahuji hlas Kokoro…",
+        "downloadProgress": "Stahuji hlas Kokoro… {{progress}}%",
+        "downloadReady": "Hlas Kokoro je připravený ✓",
+        "downloadError": "Hlasový model Kokoro se nepodařilo stáhnout",
+        "baseUrlLabel": "Základní URL",
+        "baseUrlDescription": "Adresa vašeho řečového serveru kompatibilní s OpenAI, např. http://localhost:8880/v1. Funguje s Kokoro-FastAPI, Speaches, Chatterbox, Orpheus-FastAPI, LocalAI a dalšími servery, které nabízejí /v1/audio/speech. Funguje i úplná URL /audio/speech.",
+        "azureBaseUrlLabel": "URL služby Speech",
+        "azureBaseUrlDescription": "Vaše URL Azure Speech z portálu, např. https://eastus2.tts.speech.microsoft.com.",
+        "apiKeyLabel": "API klíč",
+        "apiKeyDescription": "Váš API klíč pro {{provider}}. Každé hlasové jádro má vlastní klíč.",
+        "apiKeyOptionalDescription": "Potřeba jen v případě, že ho váš server vyžaduje.",
+        "modelLabel": "Model",
+        "modelDescription": "Model, který mluví. Nechte prázdné pro výchozí model jádra, zobrazený šedě.",
+        "remoteVoiceLabel": "Název hlasu",
+        "remoteVoiceDescription": "Hlas pro TTS kompatibilní s OpenAI, např. alloy, echo, nova, shimmer.",
+        "azureVoiceLabel": "Název hlasu",
+        "azureVoiceDescription": "Název hlasu Azure, např. en-US-JennyNeural. Kliknutím na Načíst hlasy je můžete prohlížet.",
+        "voiceLoadDescription": "Stiskněte Načíst hlasy a zobrazte hlasy tohoto jádra, nebo zadejte ID hlasu.",
+        "deepgramVoiceDescription": "U Deepgramu je hlas zároveň modelem, např. aura-2-thalia-en. Pro procházení stiskněte Načíst hlasy.",
+        "loadVoices": "Načíst hlasy",
+        "voicesLoading": "Načítání…",
+        "voicesPick": "Vyberte z {{count}} hlasů…",
+        "loadModels": "Načíst modely",
+        "modelsLoading": "Načítání…",
+        "modelsPick": "Vyberte z {{count}} modelů…",
+        "modelsUse": "Použít \"{{model}}\"",
+        "voicesUse": "Použít \"{{voice}}\"",
+        "elevenVoiceLabel": "ID hlasu",
+        "elevenVoiceDescription": "ID hlasu ElevenLabs (z karty Voices v jejich řídicím panelu).",
+        "promptLabel": "Prompt pro shrnutí",
+        "promptDescription": "Instrukce pro vytvoření krátkého mluveného shrnutí každé odpovědi.",
+        "kokoroVoices": {
+          "usFemale": "{{name}} (americká žena)",
+          "usFemaleSoft": "{{name}} (americká žena, jemný)",
+          "usMale": "{{name}} (americký muž)",
+          "ukFemale": "{{name}} (britská žena)",
+          "ukMale": "{{name}} (britský muž)"
+        },
+        "dtypes": {
+          "fp32": "fp32 (nejlepší kvalita, WebGPU)",
+          "fp16": "fp16 (poloviční přesnost)",
+          "q8": "q8 (8bitový, rychlý na CPU)",
+          "q4": "q4 (4bitový, nejrychlejší)",
+          "q4f16": "q4f16 (4bitový smíšený)"
+        }
+      },
+      "appearance": {
+        "title": "Vzhled panelu",
+        "previewLabel": "Náhled",
+        "previewDescription": "Živý náhled panelu s vaší velikostí textu a průhledností.",
+        "previewUser": "Ahoj, co všechno umíš?",
+        "previewAssistant": "Hodně! Zeptejte se mě na cokoli — můžu se i podívat na vaši obrazovku.",
+        "fontSizeLabel": "Velikost textu",
+        "fontSizeDescription": "Velikost textu chatu v panelu asistenta.",
+        "fontSizes": {
+          "small": "Malá",
+          "medium": "Střední",
+          "large": "Velká",
+          "extraLarge": "Extra velká"
+        },
+        "askDisplayLabel": "Na které obrazovce",
+        "askDisplayDescription": "Obrazovka, na které se asistent otevře. Ve výchozím nastavení ta, na které je myš.",
+        "askDisplays": {
+          "cursor": "Obrazovka s myší",
+          "numbered": "Obrazovka {{number}} ({{width}}×{{height}}){{suffix}}",
+          "mainSuffix": " · hlavní"
+        },
+        "askAnchorLabel": "Kde se otevře",
+        "askAnchorDescription": "Kde se asistent pokaždé otevře.",
+        "askAnchors": {
+          "center": "Uprostřed obrazovky",
+          "top": "Nahoře",
+          "bottom": "Dole",
+          "left": "Vlevo",
+          "right": "Vpravo"
+        },
+        "opacityLabel": "Průhlednost panelu",
+        "opacityDescription": "Jak neprůhledný plovoucí panel je. 100 % je zcela plný; nižší hodnoty nechají prosvítat rozostřenou plochu."
+      }
+    },
+    "thinking": {
+      "title": "Přemýšlení",
+      "description": {
+        "cleanup": "Jak dlouho model s uvažováním přemýšlí, než vyčistí váš diktát. Vypnuto je nejrychlejší a modely, které přemýšlejí vždy, například gpt-oss, použijí svou nejnižší úroveň. Zvyšte to jen tehdy, když čištění dělá chyby, protože přidává zpoždění ke každému diktátu.",
+        "assistant": "Jak dlouho model s uvažováním přemýšlí, než odpoví. Vypnuto je nejrychlejší a modely, které přemýšlejí vždy, například gpt-oss, použijí svou nejnižší úroveň. Vyšší úrovně zvládají těžké otázky lépe, ale déle trvá, než začnou odpovídat."
+      },
+      "unsupported": {
+        "builtin": "Modely v tomto počítači vždy odpovídají bez přemýšlení, a proto jsou rychlé.",
+        "anthropic": "Anthropic aplikacím nedovoluje toto nastavit, takže rozhoduje Claude. Chcete-li to nastavit, použijte Claude přes OpenRouter.",
+        "apple": "Apple Intelligence nemá nastavení přemýšlení."
+      },
+      "options": {
+        "off": "Vypnuto",
+        "low": "Nízké",
+        "medium": "Střední",
+        "high": "Vysoké"
+      }
+    }
+  },
+  "footer": {
+    "downloadingModel": "Stahuji {{model}}…",
+    "checkingUpdates": "Kontroluji aktualizace…",
+    "updateAvailable": "Dostupná aktualizace: {{version}}",
+    "updateAvailableShort": "Dostupná aktualizace",
+    "upToDate": "Vše aktuální",
+    "downloadUpdate": "Stáhnout aktualizaci",
+    "restart": "Restartovat",
+    "updateCheckingDisabled": "Kontrola aktualizací vypnuta",
+    "downloading": "Stahování… {{progress}}%",
+    "installing": "Instalace…",
+    "preparing": "Příprava…",
+    "checkForUpdates": "Zkontrolovat aktualizace",
+    "checkFailed": "Kontrola aktualizací se nezdařila",
+    "updateFailed": "Aktualizace se nezdařila",
+    "clickToRetry": "Kliknutím to zkuste znovu",
+    "portableUpdateTitle": "Vyžadována ruční aktualizace",
+    "portableUpdateMessage": "Přenosné instalace nelze aktualizovat automaticky. Postup aktualizace: stáhněte si nejnovější instalátor NSIS z GitHub Releases, nainstalujte ho do stejné složky a pak zkopírujte svou složku Data/ (nastavení, modely, nahrávky) ze staré verze do nové.",
+    "portableUpdateButton": "Otevřít GitHub Releases"
+  },
+  "meetings": {
+    "newTitle": "Schůzka {{when}}",
+    "speakers": {
+      "me": "Vy",
+      "others": "Ostatní",
+      "numbered": "Mluvčí {{number}}"
+    },
+    "recorder": {
+      "idleTitle": "Nahrát schůzku",
+      "idleCaption": "Zachytí váš mikrofon a ostatní účastníky jako dva samostatné proudy.",
+      "recording": "Nahrávání",
+      "paused": "Pozastaveno",
+      "liveCaption": "Přepisuje se průběžně, jak lidé mluví.",
+      "start": "Začít nahrávat",
+      "starting": "Spouštění…",
+      "stop": "Zastavit",
+      "stopping": "Zastavování…",
+      "stoppingHint": "Dokončuje se přepis. U dlouhé schůzky to může chvíli trvat.",
+      "pause": "Pozastavit",
+      "resume": "Pokračovat",
+      "transcriptEmpty": "Zatím nic přepsáno. Text se tu objeví, jak lidé mluví."
+    },
+    "offer": {
+      "detected": "Zdá se, že máte hovor. Nahrát ho?",
+      "detectedApp": "Zdá se, že {{app}} je v hovoru. Nahrát ho?",
+      "idle": "Nenahrává se",
+      "record": "Nahrát tento hovor",
+      "dismiss": "Tentokrát ne"
+    },
+    "autoDetect": {
+      "title": "Nabízet nahrávání hovorů",
+      "description": "Všimne si, když jiná aplikace začne používat váš mikrofon, a nabídne nahrávání. Nikdy nezačne sama. Když se splete, kartu prostě zavřete.",
+      "unsupported": "Rozpoznávání hovorů je zatím dostupné jen ve Windows. V tomto systému spusťte schůzku sami."
+    },
+    "indicator": {
+      "title": "Plovoucí indikátor",
+      "description": "Malá pilulka, která ukazuje, že nahrávání běží. Kliknutím zobrazíte živý přepis. Vypněte ji, pokud chcete mít čistou obrazovku; nahrávání pak zůstane tady a zastavíte ho z této stránky.",
+      "hide": "Skrýt plovoucí indikátor",
+      "show": "Zobrazit plovoucí indikátor"
+    },
+    "notesPrefs": {
+      "autoTitle": "Psát poznámky po skončení hovoru",
+      "autoDescription": "Vypněte, pokud potřebujete jen přepis. Poznámky k jedné schůzce můžete i tak napsat z jejího přepisu.",
+      "languageTitle": "Jazyk poznámek",
+      "languageDescription": "Ve výchozím nastavení jsou poznámky v jazyce, kterým se na schůzce mluvilo. Vyberte jazyk, chcete-li je mít vždy v něm.",
+      "auto": "Stejný jako schůzka",
+      "autoHint": "Jazyk, kterým se mluvilo po většinu schůzky"
+    },
+    "pill": {
+      "expand": "Otevřít živý přepis",
+      "collapse": "Zpět na malou pilulku",
+      "copy": "Kopírovat přepis",
+      "copied": "Přepis zkopírován",
+      "stop": "Zastavit nahrávání",
+      "listening": "Poslouchám. Co lidé říkají, se objeví tady.",
+      "micOnly": "Zachytává se jen váš mikrofon — nic z toho, co řeknou ostatní účastníci, v tomto přepisu nebude."
+    },
+    "ask": {
+      "placeholder": "Zeptejte se na cokoli k této schůzce…",
+      "send": "Zeptat se",
+      "stop": "Zastavit",
+      "thinking": "Čtu přepis…",
+      "title": "Zeptat se na tuto schůzku",
+      "empty": "Zeptejte se, co se rozhodlo, kdo má co na starosti, nebo na cokoli dalšího, co zaznělo.",
+      "clear": "Vymazat tyto otázky",
+      "youAsked": "Zeptali jste se"
+    },
+    "systemAudio": {
+      "liveTitle": "Nahrává se jen váš hlas",
+      "liveBody": "Systémový zvuk se nepodařilo zachytit, takže tato schůzka bude obsahovat vaši stranu konverzace a nic z toho, co řekli ostatní účastníci.",
+      "unavailableTitle": "Ostatní účastníky nelze na tomto počítači nahrávat",
+      "unavailableBody": "Zachytávání systémového zvuku není k dispozici, takže schůzka nahraná teď by obsahovala jen váš vlastní hlas.",
+      "help": "Nápověda k nastavení"
+    },
+    "list": {
+      "title": "Nahrané schůzky",
+      "emptyTitle": "Zatím žádné schůzky",
+      "emptyHint": "Před hovorem spusťte nahrávání a Zynveliq uchová přepis rozdělený podle toho, kdo mluvil.",
+      "loadMore": "Načíst další",
+      "speakers_one": "{{count}} mluvčí",
+      "speakers_few": "{{count}} mluvčí",
+      "speakers_many": "{{count}} mluvčího",
+      "speakers_other": "{{count}} mluvčích",
+      "hasNotes": "Poznámky vytvořeny"
+    },
+    "status": {
+      "recording": "Nahrává se",
+      "processing": "Zpracovává se",
+      "complete": "Dokončeno",
+      "interrupted": "Přerušeno"
+    },
+    "delete": {
+      "action": "Smazat schůzku",
+      "whileRecording": "Před smazáním této schůzky zastavte nahrávání.",
+      "confirmTitle": "Smazat tuto schůzku?",
+      "confirmBody": "Její přepis, poznámky a zvuk budou z tohoto počítače odstraněny. Tuto akci nelze vrátit."
+    },
+    "detail": {
+      "title": "Schůzka",
+      "rename": "Přejmenovat schůzku",
+      "gone": "Tato schůzka byla smazána.",
+      "tabsLabel": "Zobrazení schůzky"
+    },
+    "tabs": {
+      "myNotes": "Moje myšlenky",
+      "transcript": "Přepis",
+      "summary": "Shrnutí",
+      "ask": "Dotazy"
+    },
+    "discuss": {
+      "button": "Probrat tuto schůzku",
+      "hint": "Proberte tuto schůzku s asistentem. Ví, co zaznělo, a umí dohledávat v přepisu.",
+      "whileRecording": "K dispozici po zastavení nahrávání.",
+      "nothingYet": "Zatím nebylo nic přepsáno.",
+      "failed": "Konverzaci se nepodařilo zahájit: {{error}}",
+      "earlier": "Dřívější diskuse",
+      "continue": "Pokračovat v této diskusi",
+      "untitled": "Diskuse bez názvu",
+      "messages_one": "{{count}} zpráva",
+      "messages_few": "{{count}} zprávy",
+      "messages_many": "{{count}} zprávy",
+      "messages_other": "{{count}} zpráv",
+      "more": "Další najdete v části Předchozí konverzace."
+    },
+    "myNotes": {
+      "description": "Napište, co je pro vás důležité. Při vytváření poznámek se to spojí s přepisem.",
+      "placeholder": "Co si z této schůzky chcete zapamatovat…",
+      "saving": "Ukládání…",
+      "saved": "Uloženo"
+    },
+    "transcript": {
+      "empty": "Tato schůzka nemá přepis.",
+      "loadingMore": "Načítá se další část přepisu…",
+      "renameSpeaker": "Přejmenovat tohoto mluvčího",
+      "copyTitle": "Zkopírovat celý přepis se jmény mluvčích",
+      "lowConfidence": "Nejisté",
+      "lowConfidenceHelp": "Toto označení mluvčího je odhad. Slova jsou přepsaná tak, jak zazněla; nejisté je jen to, kdo je řekl."
+    },
+    "diarize": {
+      "title": "Rozlišit mluvčí",
+      "ready": "Rozdělí ostatní účastníky na Mluvčí 1, Mluvčí 2 a tak dále.",
+      "needsModel": "Vyžaduje jednorázové stažení {{size}} MB. Pak běží na vašem počítači a každá další schůzka se označí automaticky.",
+      "install": "Stáhnout a rozpoznat",
+      "downloading": "Stahování…",
+      "identify": "Rozpoznat mluvčí",
+      "running": "Poslouchám…",
+      "progress": "Porovnávám hlasy, {{done}} z {{total}} úseků.",
+      "oneSpeaker": "V tomto hovoru byl jen jeden další hlas, takže není koho rozlišovat.",
+      "skipped": {
+        "modelNotInstalled": "Model pro mluvčí zatím není nainstalovaný.",
+        "noSystemAudio": "Tato schůzka nemá nahrávku ostatních účastníků.",
+        "audioUnreadable": "Nahrávku ostatních účastníků se nepodařilo přečíst. Stává se to, když se aplikace během schůzky zavřela.",
+        "tooFewSegments": "Od ostatních účastníků není dost řeči na porovnání.",
+        "alreadyDone": "Mluvčí v této schůzce už byli rozpoznáni.",
+        "modelUnusable": "Model pro mluvčí se nepodařilo načíst, a tak byl odebrán. Stáhněte ho znovu."
+      }
+    },
+    "summary": {
+      "template": "Šablona",
+      "languageAuto": "Jazyk schůzky",
+      "templates": {
+        "general": "Obecná",
+        "standup": "Stand-up",
+        "one_on_one": "Schůzka mezi čtyřma očima",
+        "interview": "Pohovor",
+        "action_items": "Úkoly"
+      },
+      "templateHints": {
+        "general": "Shrnutí, hlavní poznatky, témata, rozhodnutí a další kroky. Výchozí volba.",
+        "standup": "Podle osob: co dokončili, co je čeká a co je blokuje.",
+        "one_on_one": "Témata, zpětná vazba a k čemu se kdo zavázal.",
+        "interview": "Poznatky o kandidátovi, bez verdiktu.",
+        "action_items": "Jen úkoly, rozdělené na vaše a ostatních."
+      },
+      "generate": "Vytvořit poznámky",
+      "regenerate": "Vytvořit znovu",
+      "rewrite": "Přepsat s jinou šablonou",
+      "generating": "Píšu poznámky…",
+      "writing": "Píšu poznámky k této schůzce. U dlouhého hovoru to chvíli trvá.",
+      "autoCaption": "Napsáno po skončení hovoru",
+      "retryCaption": "Poznámky k této schůzce zatím nebyly napsány.",
+      "whileRecording": "Poznámky se napíšou automaticky, jakmile nahrávání skončí.",
+      "copy": "Kopírovat",
+      "copied": "Zkopírováno",
+      "toggleTask": "Označit tento krok jako hotový nebo nehotový",
+      "failed": "Poznámky se nepodařilo napsat: {{error}}",
+      "tryAgain": "Zkusit znovu",
+      "empty": "K této schůzce zatím nejsou poznámky.",
+      "needsTranscript": "Není žádný přepis ke shrnutí.",
+      "skipped_one": "Jednu část přepisu se nepodařilo shrnout, takže v poznámkách chybí.",
+      "skipped_few": "{{count}} části přepisu se nepodařilo shrnout, takže v poznámkách chybí.",
+      "skipped_many": "{{count}} části přepisu se nepodařilo shrnout, takže v poznámkách chybí.",
+      "skipped_other": "{{count}} částí přepisu se nepodařilo shrnout, takže v poznámkách chybí."
+    },
+    "errors": {
+      "startFailed": "Schůzku se nepodařilo zahájit: {{error}}",
+      "stopFailed": "Schůzku se nepodařilo zastavit: {{error}}",
+      "pauseFailed": "Nahrávání se nepodařilo změnit: {{error}}",
+      "loadFailed": "Schůzky se nepodařilo načíst: {{error}}",
+      "transcriptFailed": "Přepis se nepodařilo načíst: {{error}}",
+      "deleteFailed": "Schůzku se nepodařilo smazat: {{error}}",
+      "renameFailed": "Schůzku se nepodařilo přejmenovat: {{error}}",
+      "renameSpeakerFailed": "Mluvčího se nepodařilo přejmenovat: {{error}}",
+      "notesSaveFailed": "Vaše poznámky se nepodařilo uložit: {{error}}",
+      "copyFailed": "Poznámky se nepodařilo zkopírovat: {{error}}",
+      "generateFailed": "Poznámky se nepodařilo vytvořit: {{error}}"
+    }
+  },
+  "common": {
+    "loading": "Načítání…",
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "reset": "Obnovit",
+    "add": "Přidat",
+    "remove": "Odebrat",
+    "delete": "Smazat",
+    "edit": "Upravit",
+    "create": "Vytvořit",
+    "update": "Aktualizovat",
+    "close": "Zavřít",
+    "open": "Otevřít",
+    "default": "Výchozí",
+    "enabled": "Zapnuto",
+    "disabled": "Vypnuto",
+    "on": "Zapnuto",
+    "off": "Vypnuto",
+    "yes": "Ano",
+    "no": "Ne",
+    "noOptionsFound": "Nenalezeny žádné možnosti",
+    "back": "Zpět",
+    "showAdvanced": "Další možnosti",
+    "showLess": "Zobrazit méně",
+    "beta": "Beta",
+    "select": "Vyberte…",
+    "search": "Hledat",
+    "moreInfo": "Další informace",
+    "change": "Změnit",
+    "saveFailed": "Změnu se nepodařilo uložit. Zkuste to znovu.",
+    "more": "Více",
+    "hideTips": "Skrýt tipy",
+    "showTips": "Zobrazit tipy",
+    "play": "Přehrát",
+    "pause": "Pozastavit",
+    "unknownSize": "Neznámá velikost"
+  },
+  "accessibility": {
+    "permissionsRequired": "Vyžadována oprávnění usnadnění přístupu",
+    "permissionsDescription": "Zynveliq potřebuje oprávnění usnadnění přístupu, aby mohlo psát přepsaný text.",
+    "openSettings": "Otevřít Nastavení systému",
+    "dismiss": "Zavřít"
+  },
+  "errors": {
+    "loadDirectory": "Nepodařilo se načíst složku: {{error}}",
+    "micPermissionDeniedTitle": "Přístup k mikrofonu byl odepřen",
+    "micPermissionDenied": {
+      "generic": "Přístup k mikrofonu byl odepřen operačním systémem. Povolte prosím přístup k mikrofonu v nastavení systému.",
+      "windows": "Povolte přístup k mikrofonu v Nastavení → Soukromí a zabezpečení → Mikrofon (včetně přístupu desktopových aplikací).",
+      "macos": "Povolte přístup k mikrofonu v Nastavení systému → Soukromí a zabezpečení → Mikrofon.",
+      "linux": "Povolte přístup k mikrofonu v nastavení zvuku nebo soukromí vašeho systému."
+    },
+    "noInputDeviceTitle": "Mikrofon nebyl nalezen",
+    "noInputDevice": "Nebylo detekováno žádné zvukové vstupní zařízení. Připojte mikrofon nebo sluchátka a zkuste to znovu.",
+    "recordingFailed": "Nepodařilo se spustit nahrávání: {{error}}",
+    "modelLoadFailed": "Nepodařilo se načíst model: {{model}}",
+    "modelLoadFailedUnknown": "neznámý model",
+    "loadModelsFailed": "Modely se nepodařilo načíst: {{error}}",
+    "switchModelFailed": "Model se nepodařilo přepnout: {{error}}",
+    "cancelDownloadFailed": "Stahování se nepodařilo zrušit: {{error}}",
+    "deleteModelFailed": "Model se nepodařilo smazat: {{error}}",
+    "extractModelFailed": "Model se nepodařilo rozbalit: {{error}}",
+    "downloadFailedTitle": "Stahování se nezdařilo",
+    "pasteFailedTitle": "Text se nepodařilo vložit",
+    "pasteFailed": "Text nebylo možné vložit do aktivní aplikace."
+  },
+  "appLanguage": {
+    "title": "Jazyk aplikace",
+    "description": "Změňte jazyk rozhraní Zynveliq"
+  },
+  "overlay": {
+    "preparing": "Připravuji mikrofon…",
+    "recording": "Nahrávání",
+    "transcribing": "Přepisuji…",
+    "loading": "Načítání modelu…",
+    "processing": "Čistím…",
+    "generating": "Píšu s Flow…",
+    "vision": "Dívám se na vaši obrazovku…",
+    "notices": {
+      "flowNotConfigured": "Flow potřebuje model asistenta — vloženo jako diktování",
+      "flowFailed": "Flow nedokázal nic vygenerovat — nic se nevložilo",
+      "cloudSttFailed": "Cloudový přepis selhal — zkontrolujte klíč a kredit v Nastavení",
+      "flowEmpty": "Po aktivační frázi vyslovte příkaz",
+      "cleanupFallback": "Čištění pomocí AI neproběhlo — vložen původní text",
+      "cleanupModelRejected": "Poskytovatel čištění tento model odmítl — zkontrolujte model v Nastavení",
+      "cloudSttFellBack": "Cloudový přepis selhal — použit model v zařízení",
+      "noSpeechModel": "Zatím žádný model pro přepis. Vyberte si ho na stránce Modely"
+    },
+    "listening": "Poslouchám…",
+    "locked": "Nahrávám bez držení — dalším stiskem zkratky nahrávání zastavíte",
+    "cancel": "Zrušit",
+    "copy": "Zkopírovat přepis",
+    "transcript": "Přepis",
+    "copied": "Zkopírováno",
+    "copyFailed": "Nepodařilo se zkopírovat — zkuste to znovu",
+    "done": "Hotovo",
+    "finish": "Dokončit",
+    "askAssistant": "Zeptat se asistenta místo vypsání tohoto textu",
+    "recovery": {
+      "dismissed": "Zrušeno",
+      "failed": "Přepis se nezdařil",
+      "undo": "Zpět",
+      "retry": "Zkusit znovu"
+    },
+    "downloading": {
+      "title": "Stahuje se model pro přepis…",
+      "percent": "Stahuje se model pro přepis · {{percent}} %",
+      "hint": "Diktování začne fungovat po dokončení"
+    },
+    "update": {
+      "title": "{{model}} potřebuje aktualizaci",
+      "hint": "Nová verze je na stránce Modely"
+    },
+    "handsFreeHint": "Stiskněte {{key}} pro diktování bez držení",
+    "lockedKeys": "Nahrávám bez držení. Stiskněte {{keys}} pro dokončení",
+    "finishKeys": "Dokončit ({{keys}})"
+  },
+  "reminders": {
+    "title": "Připomínka",
+    "due": {
+      "now": "právě teď",
+      "minutesAgo": "před {{count}} min",
+      "hoursAgo": "před {{count}} h"
+    },
+    "done": "Hotovo",
+    "snooze": "Odložit",
+    "snoozeFor_one": "{{count}} minuta",
+    "snoozeFor_few": "{{count}} minuty",
+    "snoozeFor_many": "{{count}} minuty",
+    "snoozeFor_other": "{{count}} minut",
+    "snoozedTimes_one": "Odloženo jednou",
+    "snoozedTimes_few": "Odloženo {{count}}×",
+    "snoozedTimes_many": "Odloženo {{count}}×",
+    "snoozedTimes_other": "Odloženo {{count}}×",
+    "later": "Zatím skrýt — připomínka zůstane nastavená",
+    "settings": {
+      "label": "Připomínky",
+      "description": "Požádejte asistenta, aby vám něco připomněl; připomínka je tu uvedená, dokud nenastane její čas.",
+      "empty": "Nic naplánováno. Požádejte asistenta, aby vám něco připomněl.",
+      "waiting": "Čeká na vás",
+      "cancel": "Zrušit tuto připomínku",
+      "dueAt": "Termín {{when}}"
+    }
+  },
+  "assistant": {
+    "conversation": {
+      "title": "Konverzace",
+      "newChat": "Nový chat",
+      "type": "Napište zprávu",
+      "backToVoice": "Zpět k hlasu",
+      "mute": "Ztlumit mikrofon",
+      "unmute": "Zapnout mikrofon",
+      "speakerOn": "Číst odpovědi nahlas",
+      "speakerOff": "Přestat číst odpovědi nahlas",
+      "expand": "Otevřít konverzaci",
+      "collapse": "Sbalit",
+      "historyOpen": "Předchozí konverzace",
+      "historyClose": "Zpět k této konverzaci",
+      "end": "Ukončit konverzaci",
+      "send": "Odeslat",
+      "stop": "Zastavit odpověď",
+      "placeholder": "Zpráva pro {{name}}",
+      "dismiss": "Zavřít",
+      "retry": "Zkusit znovu",
+      "details": "Podrobnosti",
+      "startHint": "Začněte mluvit, nebo napište zprávu.",
+      "mutedHint": "Mikrofon je vypnutý. Psát můžete dál.",
+      "heldHint": "Pozastaveno, dokud diktujete.",
+      "preparingVoice": "Připravuji hlas… {{progress}} %",
+      "history": {
+        "title": "Předchozí konverzace",
+        "hint": "Vyberte jednu a pokračujte tam, kde jste skončili. Aktuální konverzace zůstane otevřená.",
+        "empty": "Zatím žádné uložené konverzace.",
+        "noMatches": "Hledání nic neodpovídá.",
+        "noMeetings": "Zatím žádné konverzace o schůzkách. Otevřete schůzku a zvolte Probrat tuto schůzku.",
+        "loading": "Načítání…",
+        "failed": "Vaše konverzace se nepodařilo načíst.",
+        "more": "Zobrazit další",
+        "untitled": "Konverzace bez názvu",
+        "current": "Právě otevřená",
+        "search": "Hledat v konverzacích",
+        "clearSearch": "Vymazat hledání",
+        "scopeLabel": "Které konverzace",
+        "scopes": {
+          "all": "Vše",
+          "meetings": "Schůzky"
+        },
+        "groups": {
+          "today": "Dnes",
+          "yesterday": "Včera",
+          "week": "Posledních 7 dní",
+          "earlier": "Dříve"
+        },
+        "matchCount_one": "{{count}} konverzace",
+        "matchCount_few": "{{count}} konverzace",
+        "matchCount_many": "{{count}} konverzace",
+        "matchCount_other": "{{count}} konverzací",
+        "messages_one": "{{count}} zpráva",
+        "messages_few": "{{count}} zprávy",
+        "messages_many": "{{count}} zprávy",
+        "messages_other": "{{count}} zpráv"
+      },
+      "meeting": {
+        "about": "O schůzce {{title}}",
+        "chipHint": "Asistent má poznámky z této schůzky a může prohledávat její přepis.",
+        "untitled": "Schůzka bez názvu",
+        "startTitle": "Pojďme probrat {{title}}",
+        "startHint": "Zeptejte se na cokoli, co se jí týká, nebo co dělat dál. Začněte mluvit, nebo si vyberte:",
+        "prompts": {
+          "recap": "Udělej mi rychlé shrnutí",
+          "next": "Co mám udělat dál?",
+          "followUp": "Napiš návrh navazující zprávy",
+          "missed": "Neuniklo mi něco?"
+        }
+      },
+      "options": "Možnosti konverzace",
+      "pace": "Čas na domluvení",
+      "paceHint": "Jak dlouho po vaší pauze čekat, než přijde odpověď.",
+      "paces": {
+        "quick": "Rychle",
+        "natural": "Přirozeně",
+        "patient": "Trpělivě"
+      },
+      "sensitivity": "Citlivost mikrofonu",
+      "sensitivityHint": "Jak snadno se zvuk počítá jako vaše řeč. Snižte ji, pokud do hovoru stále skáče hluk v pozadí nebo vlastní hlas asistenta.",
+      "sensitivities": {
+        "low": "Nízká — hlučná místnost nebo reproduktory",
+        "normal": "Normální",
+        "high": "Vysoká — tichá místnost nebo sluchátka"
+      },
+      "phase": {
+        "off": "Konverzace ukončena",
+        "starting": "Připojování…",
+        "listening": "Poslouchám",
+        "hearing": "Poslouchám…",
+        "transcribing": "Přepisuji…",
+        "responding": "Přemýšlím…",
+        "speaking": "Mluvím",
+        "muted": "Mikrofon vypnutý",
+        "held": "Pozastaveno kvůli diktování",
+        "error": "Konverzace přerušena"
+      },
+      "errors": {
+        "microphone": "Mikrofon se nepodařilo otevřít. Povolte přístup k mikrofonu a zkontrolujte, že ho nepoužívá jiná aplikace.",
+        "device": "Mikrofon se odpojil. Připojte ho znovu a zkuste to znovu.",
+        "setup": "Konverzaci se nepodařilo zahájit. Zkontrolujte v Nastavení mikrofon, reproduktor a model asistenta.",
+        "turn": "Tuto odpověď se nepodařilo dokončit. Podívejte se na podrobnosti a zkuste to znovu.",
+        "playback": "Hlasovou odpověď se nepodařilo přehrát. Zkontrolujte poskytovatele hlasu a výstupní zařízení.",
+        "tooLong": "Nahrávka dosáhla limitu jedné minuty. Zkuste to znovu a mluvte kratší dobu.",
+        "history": "Tuto konverzaci se nepodařilo otevřít. Zkuste to znovu."
+      },
+      "chooseProfile": "Změnit profil, aktuálně {{name}}",
+      "profiles": "Profily",
+      "profileHint": "Změny se projeví v příští odpovědi.",
+      "chatOnlyProfile": "Tento profil je dostupný jen v chatu.",
+      "profileError": "Profil se nepodařilo přepnout. Zkuste to znovu."
+    },
+    "title": "Asistent",
+    "character": {
+      "switch": "Přepnout profil"
+    },
+    "empty": "Zeptejte se hlasem pomocí zkratky asistenta,\nnebo pište níže.",
+    "inputPlaceholder": "Zpráva…",
+    "bar": {
+      "placeholder": "Zeptejte se na cokoli…"
+    },
+    "send": "Odeslat",
+    "stop": "Zastavit",
+    "cancel": "Zrušit",
+    "copy": "Kopírovat",
+    "copyCode": "Kopírovat kód",
+    "insert": "Vložit tam, kde jste psali",
+    "insertShort": "Vložit",
+    "insertReplace": "Nahradit tímto vybraný text",
+    "insertReplaceShort": "Nahradit",
+    "selectionAttached_one": "Vybrán {{count}} znak",
+    "selectionAttached_few": "Vybrány {{count}} znaky",
+    "selectionAttached_many": "Vybráno {{count}} znaku",
+    "selectionAttached_other": "Vybráno {{count}} znaků",
+    "regenerate": "Vygenerovat odpověď znovu (původní zůstane v Historii)",
+    "summarizing": "Shrnuji předchozí zprávy…",
+    "screenAttached": "Obrazovka",
+    "attach": {
+      "file": "Přiložit obrázek nebo soubor",
+      "imageCount_one": "{{count}} obrázek",
+      "imageCount_few": "{{count}} obrázky",
+      "imageCount_many": "{{count}} obrázku",
+      "imageCount_other": "{{count}} obrázků",
+      "dropHint": "Přetažením přiložíte"
+    },
+    "webSearch": {
+      "enable": "Zapnout vyhledávání na webu",
+      "disable": "Vypnout vyhledávání na webu"
+    },
+    "tts": {
+      "enable": "Zapnout hlasová shrnutí",
+      "disable": "Vypnout hlasová shrnutí",
+      "loading": "Načítám hlasový model Kokoro..."
+    },
+    "status": {
+      "listening": "Poslouchám…",
+      "locked": "Poslouchám",
+      "transcribing": "Přepisuji…",
+      "searching": "Hledám na webu…",
+      "thinking": "Přemýšlím…",
+      "speaking": "Mluvím…"
+    },
+    "tool": {
+      "search": "Hledám na webu",
+      "screen": "Dívám se na vaši obrazovku…",
+      "meetingSearch": "Prohledávám schůzku",
+      "meetingRead": "Čtu schůzku",
+      "working": "Pracuji na tom",
+      "elapsed": "{{seconds}} s"
+    },
+    "errors": {
+      "generic": "Něco se pokazilo. Zkuste to prosím znovu.",
+      "genericShort": "Něco se pokazilo",
+      "no_provider": "Zatím není nastavený žádný model asistenta. Vyberte poskytovatele v Nastavení → Asistent.",
+      "no_providerShort": "Žádný model nastavený",
+      "no_model": "U vašeho poskytovatele není vybraný žádný model. Vyberte jej v Nastavení → Asistent.",
+      "no_modelShort": "Není vybraný žádný model",
+      "engine_start": "Vestavěný model se nepodařilo spustit. Zkuste to znovu, nebo vyberte jiný model v Nastavení → Asistent.",
+      "engine_startShort": "Model se nespustil",
+      "provider": "Model nedokázal odpovědět. Zkontrolujte svůj API klíč a připojení a zkuste to znovu.",
+      "providerShort": "Odpověď se nepodařilo získat",
+      "empty_reply": "Model skončil, aniž by napsal odpověď. Zkuste se zeptat znovu, nebo vyberte jiný model v Nastavení → Asistent.",
+      "empty_replyShort": "Prázdná odpověď",
+      "vision_unsupported": "Tento model neumí číst vaši obrazovku. Vyberte v Nastavení → Asistent model, který zvládá obraz, nebo se zeptejte znovu bez zobrazení obrazovky.",
+      "vision_unsupportedShort": "Model nevidí obrázky",
+      "screenshot_too_large": "Snímek obrazovky byl pro tohoto poskytovatele příliš velký. Zkuste to prosím znovu — komprimuje se víc.",
+      "screenshot_too_largeShort": "Snímek obrazovky je příliš velký",
+      "screen_capture": "Obrazovku se nepodařilo sejmout. Zkuste to znovu, nebo se zeptejte bez zobrazení obrazovky.",
+      "screen_captureShort": "Snímání obrazovky selhalo",
+      "transcription": "Váš hlas se nepodařilo přepsat. Zkuste prosím promluvit znovu.",
+      "transcriptionShort": "Přepis selhal",
+      "tts": "Mluvená odpověď se nezdařila. Zkontrolujte nastavení TTS, nebo si odpověď přečtěte v panelu.",
+      "ttsShort": "Hlasová odpověď selhala",
+      "tts_local": "Místní hlas se nepodařilo načíst. Zkontrolujte připojení, nebo v Nastavení přepněte jádro TTS.",
+      "tts_localShort": "Hlas se nepodařilo načíst",
+      "tts_blocked": "Váš systém zablokoval samostatné přehrání hlasu. Klikněte kdekoli v panelu a odpověď si poslechnete.",
+      "tts_blockedShort": "Klepnutím na panel si to poslechnete",
+      "tts_playback": "Hlas se nepodařilo přehrát na vašem výstupním zařízení. Zkontrolujte nastavení reproduktorů a výstupu a zkuste to znovu.",
+      "tts_playbackShort": "Přehrání hlasu selhalo",
+      "tts_gpu": "Grafická karta hlas zkreslila, takže byl ztlumen. Další odpověď místo toho použije procesorový hlas.",
+      "tts_gpuShort": "Hlas ztlumen: grafická karta ho zkreslila",
+      "tts_gpu_slow": "Grafická karta hlas zkreslila, takže byl ztlumen. Odpovědi teď běží na procesoru, což je pomalé, dokud si nestáhnete procesorový hlas v Modely → Hlas.",
+      "tts_gpu_slowShort": "Hlas ztlumen: grafická karta ho zkreslila",
+      "tts_gpu_forced": "Grafická karta hlas zkreslila, takže byl ztlumen. V Modely → Hlas nastavte Běží na na Automaticky nebo Procesoru.",
+      "tts_gpu_forcedShort": "Hlas ztlumen: grafická karta ho zkreslila",
+      "mic_denied": "Přístup k mikrofonu je zablokovaný. Povolte ho v nastavení soukromí svého systému.",
+      "mic_deniedShort": "Přístup k mikrofonu blokován",
+      "mic_unavailable": "Nebyl nalezen žádný mikrofon. Připojte ho a zkuste to znovu.",
+      "mic_unavailableShort": "Mikrofon nenalezen",
+      "mic_error": "Mikrofon se nepodařilo spustit. Možná ho používá jiná aplikace.",
+      "mic_errorShort": "Mikrofon se nespustil",
+      "file_read": "Tento soubor se nepodařilo přiložit.",
+      "file_readShort": "Soubor se nepodařilo přiložit"
+    },
+    "notices": {
+      "web_search_failed": "Vyhledávání na webu nevrátilo žádné výsledky — odpovídám bez nich.",
+      "web_search_failedShort": "Žádné výsledky z webu",
+      "queued": "Ve frontě — odešle se, jakmile tato odpověď skončí.",
+      "queuedShort": "Ve frontě"
+    },
+    "engineSetup": {
+      "downloading": "Nastavuji místní jádro (první spuštění)… {{percent}}%",
+      "preparing": "Nastavuji místní jádro (první spuštění)…",
+      "extracting": "Instaluji místní jádro…",
+      "short": "Nastavuji jádro…"
+    },
+    "quick": {
+      "selection": "Výběr",
+      "copied": "Zkopírováno"
+    }
+  },
+  "nav": {
+    "label": "Hlavní",
+    "home": "Domů",
+    "history": "Historie",
+    "assistant": "Asistent",
+    "meetings": "Schůzky",
+    "cleanup": "Čištění pomocí AI",
+    "dictionary": "Slovník",
+    "models": "Modely",
+    "settings": "Nastavení",
+    "status": {
+      "label": "Model pro přepis: {{model}}, {{status}}. Otevřít nastavení převodu řeči na text.",
+      "setup": "Vyžaduje nastavení",
+      "needsUpdate": "Vyžaduje aktualizaci",
+      "cloud": "Cloud · {{provider}}",
+      "loading": "Načítání…",
+      "error": "Nepodařilo se načíst",
+      "ready": "Připraveno",
+      "idle": "Načte se při diktování",
+      "noModel": "Žádný model pro přepis"
+    },
+    "insights": "Přehledy"
+  },
+  "settingsDialog": {
+    "title": "Nastavení",
+    "tabs": {
+      "general": "Obecné",
+      "shortcuts": "Zkratky",
+      "audio": "Zvuk",
+      "dictation": "Diktování",
+      "privacy": "Soukromí a data",
+      "advanced": "Pokročilé",
+      "about": "O aplikaci",
+      "debug": "Ladění"
+    },
+    "general": {
+      "appearance": "Vzhled"
+    },
+    "shortcuts": {
+      "intro": "Každá zkratka funguje v jakékoli aplikaci. Kliknutím na zkratku nahrajete novou.",
+      "dictation": "Diktování",
+      "assistant": "Asistent",
+      "mouse": "Myš",
+      "cleanupOff": "Pro tuto zkratku zapněte čištění pomocí AI.",
+      "assistantOff": "Asistent je vypnutý, takže jeho zkratky nic nedělají."
+    },
+    "audio": {
+      "microphone": "Mikrofon",
+      "otherAudio": "Ostatní zvuk",
+      "otherAudioHint": "Hudba, videa a hovory, které hrají v počítači, zatímco diktujete nebo se ptáte asistenta.",
+      "overlayHint": "Malá pilulka, která se zobrazuje během nahrávání."
+    },
+    "dictation": {
+      "intro": "Jak se vaše slova dostanou do aplikace, do které píšete.",
+      "output": "Psaní a vkládání",
+      "extras": "Doplňky"
+    },
+    "privacy": {
+      "intro": "Nahrávky a historie se ukládají jen na tomto počítači. Zvolte, jak dlouho se nahrávky uchovávají.",
+      "recordingsFolder": "Složka s nahrávkami"
+    },
+    "advanced": {
+      "performance": "Výkon"
+    },
+    "about": {
+      "appName": "Zynveliq",
+      "version": "Verze {{version}}",
+      "project": "Projekt",
+      "docs": "Dokumentace",
+      "openDocs": "Otevřít dokumentaci"
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "Dobré ráno",
+      "afternoon": "Dobré odpoledne",
+      "evening": "Dobrý večer",
+      "night": "Pracujete dlouho do noci"
+    },
+    "subtitleHold": "V jakékoli aplikaci podržte zkratku, mluvte a pusťte. Vaše slova se objeví tam, kde je kurzor.",
+    "subtitleTap": "V jakékoli aplikaci stiskněte zkratku, mluvte a stiskněte ji znovu. Vaše slova se objeví tam, kde je kurzor.",
+    "needsModel": {
+      "title": "Pro diktování vyberte model pro přepis.",
+      "description": "Zynveliq potřebuje model převodu řeči na text, než bude moct psát, co říkáte.",
+      "action": "Vybrat model"
+    },
+    "stats": {
+      "label": "Vaše používání",
+      "none": "–",
+      "spoken": "namluveno",
+      "words": "slov",
+      "wpm": "sl./min",
+      "wpmHint": "Slova za minutu napříč vašimi nahrávkami, včetně pauz.",
+      "saved": "ušetřeno",
+      "savedHint": "Ve srovnání s psaním stejných slov rychlostí {{wpm}} slov za minutu.",
+      "empty": "Vaše čísla se objeví po prvním diktování.",
+      "streak_one": "{{count}} den v řadě",
+      "streak_few": "{{count}} dny v řadě",
+      "streak_many": "{{count}} dne v řadě",
+      "streak_other": "{{count}} dní v řadě",
+      "noStreak": "Nadiktujte dnes něco a začněte sérii",
+      "today": "Dnes {{words}} slov",
+      "duration": {
+        "seconds": "{{seconds}} s",
+        "minutes": "{{minutes}} min",
+        "hours": "{{hours}} h",
+        "hoursMinutes": "{{hours}} h {{minutes}} min"
+      },
+      "wordsLabel": "Nadiktovaná slova",
+      "wpmLabel": "Slova za minutu",
+      "savedLabel": "Ušetřený čas",
+      "streakLabel_one": "Den v řadě",
+      "streakLabel_few": "Dny v řadě",
+      "streakLabel_many": "Dne v řadě",
+      "streakLabel_other": "Dní v řadě",
+      "streakUnit_one": "den v řadě",
+      "streakUnit_few": "dny v řadě",
+      "streakUnit_many": "dne v řadě",
+      "streakUnit_other": "dní v řadě",
+      "seeInsights": "Zobrazit přehledy"
+    },
+    "shortcuts": {
+      "title": "Zkratky",
+      "edit": "Upravit zkratky",
+      "turnOn": "Zapnout",
+      "off": "Vypnuto",
+      "setKey": "Nastavit zkratku",
+      "dictate": {
+        "title": "Diktovat",
+        "hold": "Podržte, mluvte, pusťte. Vaše slova se napíšou tam, kde je kurzor.",
+        "tap": "Stiskem spusťte, mluvte, stiskem zastavte. Vaše slova se napíšou tam, kde je kurzor.",
+        "whatHold": "Podržte, mluvte, pusťte. Slova se napíšou tam, kde je kurzor.",
+        "whatTap": "Stiskněte, mluvte, stiskněte znovu. Slova se napíšou tam, kde je kurzor."
+      },
+      "handsFree": {
+        "what": "Podržte {{keys}}, stiskněte {{key}} a pusťte: poslouchá dál, dokud znovu nestisknete {{keys}}.",
+        "linux": "Pro diktování bez držení v Linuxu vypněte „Držet pro mluvení“. Jeden stisk pak spustí a další zastaví."
+      },
+      "cleanup": {
+        "title": "Diktovat a vyčistit",
+        "description": "Stejné jako Diktovat, jen AI navíc opraví interpunkci, vycpávková slova a styl.",
+        "what": "Diktujte a AI opraví interpunkci, vycpávková slova a styl."
+      },
+      "ask": {
+        "title": "Zeptat se asistenta",
+        "description": "Položte otázku nahlas a odpověď dostanete v plovoucím panelu.",
+        "whatHold": "Podržte, zeptejte se, pusťte. Odpověď se zobrazí v plovoucím panelu.",
+        "whatTap": "Stiskněte, zeptejte se, stiskněte znovu. Odpověď se zobrazí v plovoucím panelu."
+      },
+      "call": {
+        "title": "Zahájit konverzaci",
+        "description": "Konverzace bez použití rukou s mluvenými odpověďmi.",
+        "what": "Povídejte si bez použití rukou. Dalším stiskem ukončíte."
+      },
+      "info": "Stiskněte je v jakékoli aplikaci. Kliknutím na klávesy je změníte.",
+      "offHint": "Vypnuto",
+      "cancel": {
+        "title": "Zrušit",
+        "what": "Zastaví nahrávání nebo předčítanou odpověď."
+      },
+      "globe": {
+        "hint": "macOS na klávesu 🌐 také reaguje. Nastavte „Stisknutím klávesy 🌐“ na „Nedělat nic“, aby sloužila jen k diktování.",
+        "open": "Nastavení klávesnice"
+      },
+      "linux": {
+        "wayland": "Ve Waylandu předává pracovní prostředí tyto klávesy aplikaci Zynveliq jen tehdy, když je některé z jejích oken vpředu. Chcete-li je používat v každé aplikaci, přidejte je jako zkratky v nastavení systému.",
+        "noAccess": "Zynveliq Keys na tomto počítači nemůže číst klávesnici, takže tyto zkratky zatím nic nedělají.",
+        "setUp": "Nastavit",
+        "where": {
+          "gnome": "Otevřete Nastavení → Klávesnice → Zobrazit a přizpůsobit klávesové zkratky → Vlastní zkratky, přidejte jednu pro každý příkaz níže a stiskněte požadované klávesy.",
+          "kde": "Otevřete Nastavení systému → Klávesnice → Zkratky, pro každý příkaz níže zvolte Přidat nový → Příkaz nebo skript a stiskněte požadované klávesy.",
+          "other": "Pro každý příkaz níže přidejte vlastní zkratku v nastavení klávesnice svého prostředí, nebo řádek bind v konfiguraci kompozitoru."
+        },
+        "tapOnly": "Takto přidaná zkratka funguje jako „Stiskem zapnout/vypnout“: jedním stiskem začnete, dalším skončíte.",
+        "access": "Nebo povolte Zynveliq Keys číst klávesnici. Spusťte toto v terminálu a pak se odhlaste a znovu přihlaste:",
+        "copy": "Kopírovat",
+        "copied": "Zkopírováno"
+      }
+    },
+    "setup": {
+      "title": "Vaše modely",
+      "manage": "Spravovat"
+    },
+    "recent": {
+      "title": "Nedávné",
+      "viewAll": "Zobrazit vše",
+      "copy": "Kopírovat text",
+      "cleaned": "Vyčištěno",
+      "tryPrefix": "Vyzkoušejte to: klikněte do pole a pak stiskněte",
+      "trySuffixHold": "a držte, dokud mluvíte.",
+      "trySuffixTap": "a mluvte. Až skončíte, stiskněte znovu.",
+      "tryPlaceholder": "Tady se objeví vaše slova…"
+    },
+    "activity": {
+      "title": "Posledních 30 dní",
+      "summary_one": "Nadiktováno slov: {{words}} · {{count}} aktivní den",
+      "summary_few": "Nadiktováno slov: {{words}} · {{count}} aktivní dny",
+      "summary_many": "Nadiktováno slov: {{words}} · {{count}} aktivního dne",
+      "summary_other": "Nadiktováno slov: {{words}} · {{count}} aktivních dní",
+      "chartLabel": "Nadiktovaná slova po dnech za posledních {{days}} dní: celkem {{words}}.",
+      "words_one": "{{formatted}} slovo",
+      "words_few": "{{formatted}} slova",
+      "words_many": "{{formatted}} slova",
+      "words_other": "{{formatted}} slov",
+      "today": "Dnes"
+    }
+  },
+  "speechUpdate": {
+    "title": "{{model}} používal starší jádro, které Zynveliq už neobsahuje.",
+    "newVersion": "Jeho nová verze je {{model}}.",
+    "ready": "{{model}} je stažený a připravený.",
+    "noVersion": "Vyberte jiný model, abyste mohli dál diktovat.",
+    "failed": "{{model}} se nepodařilo stáhnout.",
+    "download": "Stáhnout novou verzi ({{size}})",
+    "retry": "Zkusit znovu",
+    "chooseAnother": "Vybrat jiný model",
+    "progressLabel": "Stahování nové verze",
+    "dialogTitle": "Zynveliq má nový řečový engine",
+    "dialogBody": "Je rychlejší a stabilnější, takže narazíte na méně problémů. {{model}} běžel na starém enginu a potřebuje svou novou verzi, aby dál fungoval.",
+    "later": "Později"
+  },
+  "modelsHub": {
+    "description": "Každou úlohu v Zynveliq obstarává model, který si vyberete. Spusťte ho na tomto počítači kvůli soukromí, nebo v cloudu kvůli rychlosti.",
+    "addLocal": "Přidat soubor modelu",
+    "privacyNote": "Modely na tomto počítači nikam neposílají váš hlas ani text. Cloudové modely je posílají vybranému poskytovateli pomocí vašeho API klíče.",
+    "inUse": "Používá se",
+    "needsSetup": "Vyžaduje nastavení",
+    "needsUpdate": "Vyžaduje aktualizaci",
+    "performance": "Výkon",
+    "where": {
+      "device": "Na tomto počítači",
+      "cloud": "Cloud",
+      "cloudWith": "Cloud · {{provider}}",
+      "deviceShort": "Tento počítač"
+    },
+    "status": {
+      "voiceOff": "Mluvené odpovědi jsou vypnuté",
+      "assistantOff": "Asistent je vypnutý",
+      "noModel": "Zatím není vybrán žádný model",
+      "notDownloaded": "Model není stažený",
+      "needsUpdate": "{{model}} potřebuje aktualizaci",
+      "noKey": "Přidejte API klíč",
+      "noEndpoint": "Přidejte koncový bod"
+    },
+    "voice": {
+      "kokoroModel": "Hlas Kokoro"
+    },
+    "usedBy": {
+      "label": "Používá",
+      "dictation": "Diktování",
+      "assistant": "Asistent",
+      "meetings": "Schůzky",
+      "cleanup": "Čištění pomocí AI",
+      "meetingNotes": "Poznámky ze schůzek",
+      "calls": "Konverzace",
+      "flow": "Generovat s Flow",
+      "spokenReplies": "Mluvené odpovědi"
+    },
+    "slots": {
+      "stt": {
+        "name": "Převod řeči na text",
+        "description": "Převádí váš hlas na text.",
+        "whereHint": "Na tomto počítači je to soukromé a zdarma. Cloud používá API poskytovatele a váš klíč.",
+        "catalogTitle": "Modely řeči",
+        "catalogDescription": "Všechny modely zde běží na tomto počítači. Rychlejší modely se hodí pro diktování, větší jsou přesnější."
+      },
+      "cleanup": {
+        "name": "Čištění pomocí AI",
+        "description": "Provádí vaše vyslovené úpravy, uplatňuje styl psaní a píše poznámky ze schůzek.",
+        "turnOn": "Zapnout čištění pomocí AI",
+        "offNotice": "Čištění pomocí AI je vypnuté. Poznámky ze schůzek tento model stále používají.",
+        "borrowsNotice": "Není nastaven žádný model pro čištění, proto čištění používá model vašeho asistenta ({{model}}).",
+        "catalogTitle": "Modely pro čištění"
+      },
+      "assistant": {
+        "name": "Asistent",
+        "description": "Odpovídá na vaše otázky, dívá se na vaši obrazovku a vede konverzace.",
+        "openAssistant": "Otevřít asistenta",
+        "offNotice": "Asistent je vypnutý. Generovat s Flow a záložní čištění tento model stále používají.",
+        "catalogTitle": "Modely asistenta",
+        "fallbackNote": "Čištění pomocí AI a poznámky ze schůzek používají tento model také, pokud nemají vlastní."
+      },
+      "voice": {
+        "name": "Hlas",
+        "description": "Předčítá odpovědi asistenta nahlas."
+      }
+    }
+  },
+  "cleanup": {
+    "description": "Vycpávková slova se odstraňují z každého diktování. Čištění pomocí AI jde dál: provádí vaše vyslovené úpravy a uplatňuje styl psaní.",
+    "toggle": "Čištění pomocí AI",
+    "how": {
+      "plain": "Napíše přesně to, co jste řekli.",
+      "cleaned": "Napíše to, co jste řekli, vyčištěné pomocí AI.",
+      "off": "Pro tuto zkratku zapněte čištění pomocí AI.",
+      "change": "Změnit"
+    },
+    "model": {
+      "title": "Model pro čištění",
+      "borrows": "Převzatý od vašeho asistenta",
+      "own": "Spouští se při každém použití zkratky pro čištění",
+      "change": "Změnit",
+      "info": "Spouští se při každém použití zkratky pro čištění. Bez vlastního modelu používá čištění model vašeho asistenta."
+    },
+    "needsModel": {
+      "description": "Čištění pomocí AI potřebuje ke spuštění model. Do té doby se váš text napíše tak, jak jste ho řekli.",
+      "action": "Vybrat model",
+      "short": "Vyberte model a začněte čistit."
+    },
+    "instructions": {
+      "title": "Instrukce pro čištění",
+      "description": "Základní prompt, který modelu říká, co má opravit. Většina lidí ho nikdy nemění.",
+      "current": "Používá se"
+    },
+    "styles": {
+      "title": "Styl psaní",
+      "description": "Jak má vyčištěný text znít. Uplatní se až po opravách, takže opravy zůstanou stejné.",
+      "createTitle": "Nový styl",
+      "createHint": "Popište, jak má váš text znít.",
+      "editTitle": "Upravit styl",
+      "editorIntro": "Pojmenujte styl a popište, jak se má váš text změnit. Uplatní se po čištění, takže opravy zůstanou stejné.",
+      "inUse": "Používá se",
+      "editNamed": "Upravit {{name}}",
+      "builtin": {
+        "none": "Opraví chyby a vaše formulace nechá beze změny.",
+        "professional": "Uhlazený a jasný, pro pracovní zprávy a e-maily.",
+        "friendly": "Vřelý a uvolněný, jako vzkaz kamarádovi.",
+        "concise": "Odstraní zbytečná slova a jde rovnou k věci.",
+        "formal": "Celé věty a formální vyjadřování.",
+        "casual": "Volný a hovorový."
+      },
+      "groups": {
+        "builtin": "Vestavěné",
+        "custom": "Vaše"
+      },
+      "manage": "Spravovat",
+      "manageTitle": "Vaše styly psaní",
+      "noneYet": "Zatím nemáte žádné vlastní styly.",
+      "newStyle": "Nový styl",
+      "customHint": "Jeden z vašich vlastních stylů. Uplatní se po opravách.",
+      "preview": {
+        "youSay": "Řeknete",
+        "itTypes": "Napíše se",
+        "yourInstruction": "Vaše instrukce"
+      },
+      "samples": {
+        "raw": "měli bychom se sejít zítra v deset, vlastně ne, v jedenáct, a projít ten rozpočet",
+        "none": "Měli bychom se sejít zítra v jedenáct a projít rozpočet.",
+        "professional": "Navrhuji, abychom se zítra v 11:00 sešli a prošli rozpočet.",
+        "friendly": "Co kdybychom se zítra v jedenáct sešli a prošli spolu rozpočet?",
+        "concise": "Zítra v 11 schůzka k rozpočtu.",
+        "formal": "Dovoluji si navrhnout, abychom se zítra v jedenáct hodin sešli k projednání rozpočtu.",
+        "casual": "sejdem se zítra v jedenáct a projdem rozpočet"
+      },
+      "form": {
+        "name": "Název",
+        "instruction": "Instrukce",
+        "instructionTip": "Jak se má formulace změnit. Uplatní se po čištění, takže opravy zůstanou stejné.",
+        "instructionPlaceholder": "Například: piš hovorově a malými písmeny a vyslovené názvy emoji převeď na emoji."
+      },
+      "specialist": {
+        "ignored": "{{model}} provádí jen základní úpravu, takže styly psaní ignoruje. Chcete-li použít styl, zvolte obecný model.",
+        "changeModel": "Změnit model"
+      }
+    },
+    "shortcut": {
+      "title": "Zkratka",
+      "info": "Dejte čištění vlastní zkratku, nebo nechte zkratku pro diktování čistit každé diktování, abyste si museli pamatovat jen jednu kombinaci kláves.",
+      "separate": "Vlastní zkratka",
+      "dictation": "Stejná jako diktování"
+    },
+    "skipShort": {
+      "title": "Nečistit krátká diktování",
+      "info": "Krátká diktování, třeba hledání nebo rychlá odpověď, se napíšou tak, jak jste je řekli, bez čekání na model. Delší se dál čistí.",
+      "limit": "Kratší než",
+      "limitInfo": "Počítá se ve slovech. U jazyků psaných bez mezer, jako je čínština, japonština nebo thajština, se počet slov odhaduje z počtu znaků.",
+      "words_one": "slovo",
+      "words_few": "slova",
+      "words_many": "slova",
+      "words_other": "slov"
+    },
+    "shortcutRow": "Zkratka"
+  },
+  "dictionary": {
+    "description": "Naučte Zynveliq jména a výrazy, které používáte, a nastavte zkratky, které se rozvinou do delšího textu.",
+    "words": {
+      "title": "Vaše slova",
+      "description": "Jména, odborné výrazy a pravopis, které má Zynveliq vždy napsat správně.",
+      "placeholder": "Přidejte jméno, výraz nebo pravopis…",
+      "empty": "Zatím tu nic není. Přidejte slova, která Zynveliq stále píše špatně."
+    },
+    "replacements": {
+      "title": "Náhrady",
+      "description": "Řekněte frázi a dostanete jiný text, například z „můj e-mail“ se stane vaše adresa."
+    },
+    "addWord": "Přidat slovo"
+  },
+  "assistantPage": {
+    "description": "Ptejte se hlasem na cokoli, z jakékoli aplikace. Asistent vidí vaši obrazovku, vyhledává na webu a pamatuje si, na čem vám záleží.",
+    "offNotice": "Asistent je vypnutý. Jeho zkratky nic nedělají a nepoužívá žádnou paměť, dokud ho znovu nezapnete.",
+    "hero": {
+      "askHold": "Podržte, položte otázku, pusťte. Odpověď se zobrazí v plovoucím panelu.",
+      "askTap": "Stiskněte, položte otázku, stiskněte znovu. Odpověď se zobrazí v plovoucím panelu.",
+      "call": "Povídejte si bez použití rukou. Dalším stiskem ukončíte.",
+      "title": "Ptejte se na cokoli, <em>odkudkoli.</em>",
+      "ask": "Zeptat se",
+      "callLabel": "Konverzace",
+      "askHoldShort": "Podržte, ptejte se, pusťte",
+      "askTapShort": "Stiskněte, ptejte se, stiskněte znovu",
+      "callShort": "Dalším stiskem ukončíte",
+      "subtitle": "Položte otázku nahlas, nebo zahajte konverzaci a proberte to."
+    },
+    "models": {
+      "title": "Pohání ho",
+      "assistant": "Přemýšlí s",
+      "voice": "Předčítá odpovědi"
+    },
+    "features": {
+      "title": "Co umí",
+      "vision": {
+        "title": "Zobrazení obrazovky",
+        "description": "Nechte asistenta podívat se na vaši obrazovku, když se na ni ptáte."
+      },
+      "webSearch": {
+        "title": "Vyhledávání na webu",
+        "description": "Vyhledá informace online pro aktuální, věcné odpovědi."
+      },
+      "reminders": {
+        "title": "Připomínky",
+        "description": "Řekněte „připomeň mi to za 20 minut“ a připomene.",
+        "status": "Požádejte hlasem"
+      },
+      "profiles": {
+        "title": "Profily",
+        "description": "Persony, mezi kterými asistent může přepínat, každá s vlastními instrukcemi.",
+        "status": "Výchozí"
+      },
+      "memory": {
+        "title": "Paměť",
+        "description": "Co si o vás asistent pamatuje, uložené na tomto počítači."
+      },
+      "behavior": {
+        "title": "Odpovědi",
+        "description": "Jak dlouhé jsou odpovědi a kolik z chatu si pamatuje."
+      },
+      "appearance": {
+        "title": "Panel",
+        "description": "Velikost, text, umístění a průhlednost plovoucího panelu.",
+        "status": "Přizpůsobit"
+      }
+    },
+    "cards": {
+      "keySaved": "Klíč uložen",
+      "vision": {
+        "description": "Nechte ho podívat se na obrazovku, aby mohl odpovídat na otázky o tom, co vidíte.",
+        "timing": {
+          "immediate": "Když začnu",
+          "onSend": "Když odešlu"
+        }
+      },
+      "webSearch": {
+        "description": "Vyhledá informace online pro aktuální, věcné odpovědi.",
+        "offHint": "Vypnuto: odpovědi pocházejí jen z modelu a mohou být zastaralé.",
+        "keyFor": "API klíč pro {{provider}}",
+        "getKey": "Klíč zdarma získáte na {{site}}.",
+        "hints": {
+          "tinyfish": "Zdarma, bez karty",
+          "serper": "Výsledky Google",
+          "brave": "Nezávislý index",
+          "tavily": "Vytvořeno pro AI",
+          "exa": "Neuronové vyhledávání",
+          "serpapi": "Výsledky Google"
+        }
+      },
+      "reminders": {
+        "description": "Požádejte ho o připomenutí a ve správnou chvíli vyskočí poznámka.",
+        "trySaying": "Zkuste říct",
+        "examples": {
+          "one": "„Připomeň mi, ať za 20 minut zavolám Samovi“",
+          "two": "„V 18:00 mi připomeň poslat fakturu“",
+          "three": "„Podívej se na tohle a zítra mi to připomeň“"
+        },
+        "upcoming": "Nadcházející",
+        "none": "Zatím nic naplánováno.",
+        "more_one": "a {{count}} další",
+        "more_few": "a {{count}} další",
+        "more_many": "a {{count}} dalších",
+        "more_other": "a {{count}} dalších"
+      },
+      "memory": {
+        "title": "Paměť",
+        "description": "Pamatuje si, na čem vám záleží, uloženo jen na tomto počítači.",
+        "open": "Otevřít paměť",
+        "manage_one": "Zobrazit a upravit paměť · {{count}} poznámka",
+        "manage_few": "Zobrazit a upravit paměť · {{count}} poznámky",
+        "manage_many": "Zobrazit a upravit paměť · {{count}} poznámky",
+        "manage_other": "Zobrazit a upravit paměť · {{count}} poznámek",
+        "pausedHint": "Pozastaveno: uložené vzpomínky se uchovávají, ale nepoužívají."
+      },
+      "profiles": {
+        "title": "Profily",
+        "description": "Persony s vlastním jménem, instrukcemi a stylem odpovědí.",
+        "edit": "Upravit profily",
+        "more": "+{{count}}"
+      },
+      "replies": {
+        "title": "Odpovědi",
+        "description": "Jak dlouhé jsou odpovědi a kolik z chatu si pamatuje.",
+        "lengths": {
+          "default": "Výchozí",
+          "short": "Krátké",
+          "medium": "Střední",
+          "long": "Dlouhé"
+        },
+        "lengthHints": {
+          "default": "Tak dlouhé, jak otázka vyžaduje.",
+          "short": "Věta nebo dvě.",
+          "medium": "Krátký odstavec.",
+          "long": "Důkladné a podrobné."
+        },
+        "history": "Zprávy, které si pamatuje"
+      },
+      "panel": {
+        "title": "Plovoucí panel",
+        "description": "Jak panel vypadá a kde se otevírá. Náhled se aktualizuje při každé změně.",
+        "positionHint": "Klikněte na místo na obrazovce. Tvar odpovídá tomu, jak se panel otevře: vysoký sloupec u boku, nebo široký pruh nahoře či dole. Přetáhněte panel k některému místu a přichytí se tam."
+      }
+    },
+    "groups": {
+      "personal": "Osobní",
+      "replies": "Odpovědi"
+    },
+    "rows": {
+      "replyLength": "Délka odpovědi",
+      "reminders": {
+        "none": "Žádné nastavené",
+        "count_one": "{{count}} připomínka",
+        "count_few": "{{count}} připomínky",
+        "count_many": "{{count}} připomínky",
+        "count_other": "{{count}} připomínek"
+      },
+      "memory": {
+        "edit": "Zobrazit paměť",
+        "manage": "Spravovat"
+      },
+      "profiles": {
+        "manage": "Spravovat"
+      },
+      "screen": {
+        "ask": "Zobrazení obrazovky u otázek",
+        "call": "Zobrazení obrazovky v konverzacích"
+      }
+    },
+    "tips": {
+      "thinksWith": "Model, který vám odpovídá. Čištění pomocí AI a poznámky ze schůzek ho používají také, pokud nemají vlastní.",
+      "speaks": "Během konverzace předčítá odpovědi nahlas.",
+      "screenAsk": "Umožní asistentovi podívat se, když se otázka týká vaší obrazovky nebo když ho o to požádáte. Na otázky k označenému textu odpovídá z textu. Snímky obrazovky jdou jen k vašemu poskytovateli AI.",
+      "screenCall": "Umožní asistentovi během konverzace podívat se, když ho o to požádáte nebo když mluvíte o něčem na obrazovce.",
+      "captureTiming": "Zachytit obrazovku tak, jak vypadala, když jste se začali ptát, nebo když odešlete.",
+      "webSearch": "Vyhledá informace online, když otázka vyžaduje aktuální fakta.",
+      "depth": "Rychlé pro jednoduchá fakta, Hloubkové pro náročné otázky.",
+      "openRouterSearch": "Používá vlastní vyhledávání OpenRouter a vaše kredity OpenRouter.",
+      "localSmart": "Nechá model v zařízení rozhodnout, kdy vyhledávat.",
+      "reminders": "Stačí požádat: „Připomeň mi, ať za 20 minut zavolám Samovi.“ Ve správnou chvíli vyskočí poznámka.",
+      "memory": "Pamatuje si, na čem vám záleží. Uloženo jen na tomto počítači.",
+      "profiles": "Persony s vlastním jménem, instrukcemi a stylem odpovědí.",
+      "replyLength": "Jak dlouhé obvykle odpovědi jsou.",
+      "history": "Kolik nedávných zpráv si pamatuje.",
+      "summarize": "Zhušťuje dlouhé chaty, aby nezapomněl jejich začátek.",
+      "opacity": "Nižší hodnota nechá prosvítat plochu.",
+      "position": "Klikněte na místo na obrazovce.",
+      "display": "Obrazovka, na které se panel otevře."
+    },
+    "memory": {
+      "aboutTip": "Krátké shrnutí, které má na paměti v každé odpovědi. Aktualizuje se, jak spolu mluvíte, a kdykoli ho můžete upravit.",
+      "aboutEmpty": "Zatím nic. Doplní se, jak spolu mluvíte, nebo ho můžete napsat sami.",
+      "write": "Napsat",
+      "notesTitle": "Co si pamatuje",
+      "notesTip": "Fakta zachycená z vašich chatů a cokoli, co přidáte. Každá odpověď použije ta, která se hodí.",
+      "notesEmpty": "Zatím nic. Učí se z vašich chatů, nebo něco přidejte výše.",
+      "showAll": "Zobrazit vše ({{count}})",
+      "showFewer": "Zobrazit méně",
+      "detailTip": "Lehká používá jen shrnutí. Podrobná přidává více poznámek a je o něco pomalejší.",
+      "more": "Další možnosti paměti",
+      "learnNow": "Naučit se z tohoto chatu hned",
+      "export": "Exportovat paměť…",
+      "import": "Importovat paměť…",
+      "erase": "Vymazat paměť…",
+      "eraseTitle": "Vymazat paměť?",
+      "eraseBody_one": "Tím se smaže shrnutí a {{count}} poznámka. Tuto akci nelze vrátit zpět.",
+      "eraseBody_few": "Tím se smaže shrnutí a všechny {{count}} poznámky. Tuto akci nelze vrátit zpět.",
+      "eraseBody_many": "Tím se smaže shrnutí a {{count}} poznámky. Tuto akci nelze vrátit zpět.",
+      "eraseBody_other": "Tím se smaže shrnutí a všech {{count}} poznámek. Tuto akci nelze vrátit zpět.",
+      "eraseConfirm": "Vymazat",
+      "learnedToast": "Paměť aktualizována z tohoto chatu",
+      "exportedToast": "Paměť exportována",
+      "importedToast": "Paměť importována",
+      "dialogDescription": "Co o vás asistent ví. Zůstává na tomto počítači a cokoli z toho můžete změnit nebo vymazat."
+    },
+    "profiles": {
+      "new": "Nový profil",
+      "newBlank": "Začít od nuly",
+      "newWithAi": "Popsat ho a nechat AI napsat",
+      "listMore": "Další možnosti profilů",
+      "import": "Importovat ze souboru…",
+      "restoreBuiltins": "Vrátit vestavěné profily",
+      "restored_one": "Vrácen {{count}} profil",
+      "restored_few": "Vráceny {{count}} profily",
+      "restored_many": "Vráceno {{count}} profilu",
+      "restored_other": "Vráceno {{count}} profilů",
+      "restoredNone": "Všechny vestavěné profily už tu jsou",
+      "inUse": "Používá se",
+      "use": "Použít tento profil",
+      "more": "Další možnosti tohoto profilu",
+      "duplicate": "Duplikovat",
+      "export": "Exportovat…",
+      "exported": "Profil exportován",
+      "restoreDefault": "Obnovit původní",
+      "delete": "Smazat profil…",
+      "deleteTitle": "Smazat {{name}}?",
+      "deleteBody": "Tuto akci nelze vrátit zpět.",
+      "addPicture": "Přidat obrázek",
+      "changePicture": "Změnit obrázek",
+      "removePicture": "Odebrat obrázek",
+      "roleLabel": "Popis",
+      "roleTip": "Pár slov zobrazených pod jménem.",
+      "rolePlaceholder": "Například: krátké, přímé odpovědi",
+      "instructionsLabel": "Instrukce",
+      "instructionsTip": "Jak tento profil přemýšlí a mluví. Posílá se s každou zprávou.",
+      "lengthLabel": "Délka odpovědi",
+      "lengthTip": "Výchozí se řídí délkou odpovědi na stránce Asistent.",
+      "lengths": {
+        "inherit": "Výchozí",
+        "short": "Krátké",
+        "medium": "Střední",
+        "long": "Dlouhé"
+      },
+      "greetingLabel": "Pozdrav",
+      "greetingTip": "Volitelné. Zobrazí se na začátku nového chatu.",
+      "greetingPlaceholder": "Ahoj! Na čem budeme pracovat?",
+      "aiTitle": "Popište nový profil",
+      "aiBody": "Řekněte nebo napište, jaký má být. Asistent mu napíše jméno a instrukce.",
+      "aiCreate": "Vytvořit profil"
+    },
+    "panel": {
+      "where": "Kde se otevírá",
+      "text": "Velikost textu",
+      "opacity": "Průhlednost",
+      "screen": "Obrazovka"
+    }
+  },
+  "meetingsPage": {
+    "transcript": "Přepis",
+    "notes": "Poznámky",
+    "hero": {
+      "title": "Každý hovor <em>zapsaný.</em>",
+      "subtitle": "Rozdělený podle mluvčích, s poznámkami po skončení."
+    },
+    "transcribedBy": "Přepisuje",
+    "notesBy": "Poznámky píše",
+    "transcribedByTip": "Píše přepis. Je to váš model pro převod řeči na text, stejný, jaký používá diktování.",
+    "notesByTip": "Píše poznámky a název a odpovídá na otázky ke schůzce. Je to model vašeho asistenta."
+  },
+  "historyPage": {
+    "today": "Dnes",
+    "yesterday": "Včera",
+    "storage": "Úložiště",
+    "showOriginal": "Zobrazit původní",
+    "showSaid": "Zobrazit, co jste řekli",
+    "hideOriginal": "Skrýt původní",
+    "playRecording": "Přehrát nahrávku",
+    "hideRecording": "Zavřít přehrávač",
+    "audioMissing": "Zvukový soubor této nahrávky už není k dispozici.",
+    "failed": "Přepis selhal",
+    "retry": "Zkusit znovu",
+    "dismissed": "Tento přepis byl zahozen.",
+    "recover": "Obnovit",
+    "recoverTitle": "Znovu přepsat a ponechat",
+    "recoverError": "Tento přepis se nepodařilo obnovit. Zkuste to znovu.",
+    "more": "Další akce",
+    "chat": {
+      "continueInCall": "Pokračovat jako konverzace",
+      "assistantOff": "Chcete-li v tomto chatu pokračovat, zapněte asistenta."
+    }
+  },
+  "pickers": {
+    "browse": "Spravovat modely",
+    "download": "Stáhnout další modely",
+    "choose": "Vybrat model",
+    "switchFailed": "Model se nepodařilo přepnout. Zkuste to znovu.",
+    "borrowsAssistant": "Používá {{model}} asistenta",
+    "needsKey": "Vyžaduje API klíč",
+    "groups": {
+      "device": "Na tomto počítači",
+      "cloud": "Cloud",
+      "setup": "Zatím nenastaveno"
+    },
+    "label": {
+      "assistant": "Model asistenta",
+      "cleanup": "Model pro čištění pomocí AI",
+      "stt": "Model pro převod řeči na text",
+      "voice": "Hlas"
+    },
+    "needsSetup": "Vyžaduje nastavení",
+    "finishSetup": "Dokončit nastavení",
+    "setup": {
+      "title": "Nastavit {{provider}}",
+      "bodyKey": "Vložte svůj API klíč a pak vyberte model.",
+      "bodyServer": "Zadejte adresu svého serveru a pak vyberte model.",
+      "bodyBoth": "Zadejte koncový bod a svůj API klíč a pak vyberte model.",
+      "endpoint": "URL koncového bodu",
+      "apiKey": "API klíč",
+      "apiKeyOptional": "API klíč (volitelné)",
+      "keyPlaceholder": "Vložte svůj klíč",
+      "getKey": "Klíč získáte na {{site}}",
+      "model": "Model",
+      "modelPlaceholder": "Vyberte nebo napište model",
+      "loadModels": "Načíst modely",
+      "noModels": "Nebyly nalezeny žádné modely. Napište místo toho název modelu.",
+      "typeInstead": "Napsat název ručně",
+      "pickFromList": "Vybrat ze seznamu",
+      "use": "Uložit a použít",
+      "done": "Nyní se používá {{provider}}"
+    },
+    "voiceSetup": {
+      "bodyKey": "Vložte svůj API klíč a pak vyberte hlas.",
+      "bodyEndpoint": "Zadejte koncový bod a svůj API klíč a pak vyberte hlas.",
+      "voice": "Hlas",
+      "voicePlaceholder": "Vyberte hlas",
+      "loadVoices": "Načíst hlasy",
+      "noVoices": "Nebyly nalezeny žádné hlasy. Vložte místo toho ID hlasu.",
+      "model": "Model (volitelné)"
+    }
+  },
+  "catalog": {
+    "recommended": "Doporučeno",
+    "searchHuggingFace": "Hledat na Hugging Face",
+    "useFor": {
+      "button": "Použít pro",
+      "label": "Použít {{model}} pro…",
+      "assistant": "Asistent",
+      "cleanup": "Čištění pomocí AI",
+      "cleanupOnly": "Určen jen pro čištění, neumí vést konverzaci."
+    },
+    "inUse": {
+      "assistant": "Asistent",
+      "cleanup": "Čištění pomocí AI"
+    },
+    "use": "Použít",
+    "useNamed": "Použít {{model}} pro {{job}}",
+    "useForJob": "Použít pro {{job}}",
+    "inUseShort": "Používá se",
+    "more": "Další",
+    "moreFor": "Další akce pro {{model}}",
+    "showDetails": "Zobrazit podrobnosti souboru",
+    "hideDetails": "Skrýt podrobnosti souboru",
+    "removeFromList": "Odebrat ze seznamu",
+    "nowUsing": "{{model}} se nyní používá pro {{job}}.",
+    "yoursInfo": "Modely, které jste stáhli nebo přidali z disku. Každý z nich zvládne obě úlohy; v nabídce ⋯ ho můžete nasadit na tu druhou."
+  },
+  "models": {
+    "runsOn": "Běží na",
+    "options": "Možnosti",
+    "downloadTitle": "Stáhnout modely",
+    "cleanupOff": "Čištění pomocí AI je vypnuté. Poznámky ze schůzek tento model stále používají.",
+    "assistantOff": "Asistent je vypnutý. Generovat s Flow a čištění tento model stále používají.",
+    "usedBy": "Používá: {{features}}."
+  },
+  "shortcutEditor": {
+    "change": "Změnit zkratku {{name}}",
+    "useDefault": "Výchozí",
+    "turnOff": "Vypnout",
+    "turnedOff": "Zkratka {{name}} je vypnutá",
+    "undo": "Zpět",
+    "addAnother": "Přidat další",
+    "addAnotherHint": "Přiřadit této zkratce druhou sadu kláves, třeba tlačítko myši",
+    "addButtonOrKeys": "Přidat tlačítko myši nebo klávesy",
+    "addButtonOrKeysHint": "Přiřadit této zkratce tlačítko myši nebo druhou sadu kláves, vedle kláves, které už má",
+    "mouseAddedAsOther": "{{button}} teď funguje i pro {{name}}. {{keys}} funguje dál.",
+    "mouseNeedsOtherSlot": "{{name}} už má jiné klávesy ({{keys}}). Klikněte na ně a nastavte tam tlačítko myši.",
+    "mouseNeedsOwnKeys": "Nejdřív zkratce {{name}} přiřaďte klávesy. Tlačítko myši se přidá k nim.",
+    "remove": "Odebrat",
+    "or": "nebo",
+    "changeOther": "Změnit další klávesy zkratky {{name}}",
+    "pressKeysOrButton": "Stiskněte klávesy nebo tlačítko myši…",
+    "mouseNeedsKeysEngine": "Tlačítka myši vyžadují implementaci klávesnice Zynveliq Keys (Nastavení → Pokročilé → Experimentální).",
+    "mouse": {
+      "middle": "Prostřední tlačítko myši",
+      "back": "Tlačítko myši Zpět",
+      "forward": "Tlačítko myši Vpřed"
+    }
+  },
+  "memoryManager": {
+    "status": {
+      "on": "Zapnuto: používá se v odpovědích a učí se z chatů",
+      "off": "Vypnuto: nic se nepoužívá ani neučí"
+    },
+    "incognitoHint": "Tento chat se nepoužívá a nic se z něj neučí",
+    "editNote": "Upravit poznámku",
+    "source": {
+      "learned": "Naučené",
+      "added": "Přidáno vámi"
+    },
+    "filterLabel": "Zobrazit poznámky",
+    "filters": {
+      "all": "Vše",
+      "learned": "Naučené {{count}}",
+      "added": "Moje {{count}}"
+    },
+    "search": "Hledat v poznámkách",
+    "noMatches": "Žádné poznámky neodpovídají.",
+    "detailHints": {
+      "light": "Do každé odpovědi jde jen shrnutí O vás. Nejrychlejší.",
+      "balanced": "Shrnutí a několik poznámek, které se k otázce hodí.",
+      "detailed": "Shrnutí a více relevantních poznámek. Nejbohatší, o něco pomalejší."
+    },
+    "learnNow": "Naučit se z tohoto chatu",
+    "tips": {
+      "enable": "Umožní asistentovi používat a vytvářet paměť o vás. Ve výchozím nastavení vypnuto.",
+      "incognito": "Tento chat se nepoužívá a nic se z něj neučí.",
+      "aboutYou": "Krátké shrnutí zahrnuté v každé odpovědi, když je paměť zapnutá."
+    }
+  },
+  "providerGrid": {
+    "showAll": "Zobrazit všechny poskytovatele ({{count}})",
+    "showFewer": "Zobrazit méně"
+  },
+  "voiceEngines": {
+    "kokoro": "Nejlepší kvalita",
+    "kitten": "Nejlehčí",
+    "pocket": "14 hlasů",
+    "supertonic": "Rychlý a zřetelný",
+    "openai": "Hlasy GPT",
+    "elevenlabs": "Nejpřirozenější",
+    "openrouter": "Mnoho hlasů",
+    "deepgram": "Rychlé, levné",
+    "cartesia": "Nejnižší latence",
+    "google": "Hlasy Chirp 3 HD",
+    "azure": "Neuronové hlasy",
+    "groq": "Hlasy Orpheus",
+    "xai": "Hlasy Grok",
+    "mistral": "Hlasy Voxtral",
+    "inworld": "Expresivní hlasy",
+    "custom": "Váš vlastní server",
+    "names": {
+      "kokoro": "Kokoro",
+      "kitten": "Kitten",
+      "pocket": "Pocket TTS",
+      "supertonic": "Supertonic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs",
+      "openrouter": "OpenRouter",
+      "deepgram": "Deepgram",
+      "cartesia": "Cartesia",
+      "google": "Google Cloud",
+      "azure": "Azure Speech",
+      "groq": "Groq",
+      "xai": "xAI",
+      "mistral": "Mistral",
+      "inworld": "Inworld",
+      "custom": "Vlastní"
+    }
+  },
+  "insights": {
+    "about": "Jak používáte Zynveliq, spočítáno na tomto počítači.",
+    "nothingYet": "Přehledy se zobrazí, jakmile začnete diktovat, ptát se asistenta nebo nahrávat schůzky.",
+    "goHome": "Zobrazit zkratky",
+    "figures": {
+      "dictations": "Počet diktování",
+      "dictationsInfo": "Každé diktování se počítá jednou, ať je jakkoli dlouhé.",
+      "questions": "Položené otázky",
+      "meetings": "Nahrané schůzky"
+    },
+    "activityTitle": "Aktivita",
+    "pages_one": "Přibližně {{count}} strana",
+    "pages_few": "Přibližně {{count}} strany",
+    "pages_many": "Přibližně {{count}} strany",
+    "pages_other": "Přibližně {{count}} stran",
+    "longest_one": "Nejdelší: {{count}} den",
+    "longest_few": "Nejdelší: {{count}} dny",
+    "longest_many": "Nejdelší: {{count}} dne",
+    "longest_other": "Nejdelší: {{count}} dní",
+    "streakHint": "Den se započítá, když diktujete, ptáte se asistenta, vedete s ním konverzaci nebo nahráváte schůzku.",
+    "gridSummary_one": "Za posledních 6 měsíců slov: {{words}} · {{count}} aktivní den",
+    "gridSummary_few": "Za posledních 6 měsíců slov: {{words}} · {{count}} aktivní dny",
+    "gridSummary_many": "Za posledních 6 měsíců slov: {{words}} · {{count}} aktivního dne",
+    "gridSummary_other": "Za posledních 6 měsíců slov: {{words}} · {{count}} aktivních dní",
+    "gridSummaryAssistant_one": "Za posledních 6 měsíců {{questions}} · {{count}} aktivní den",
+    "gridSummaryAssistant_few": "Za posledních 6 měsíců {{questions}} · {{count}} aktivní dny",
+    "gridSummaryAssistant_many": "Za posledních 6 měsíců {{questions}} · {{count}} aktivního dne",
+    "gridSummaryAssistant_other": "Za posledních 6 měsíců {{questions}} · {{count}} aktivních dní",
+    "gridSummaryMeetings_one": "Za posledních 6 měsíců {{time}} schůzek · {{count}} aktivní den",
+    "gridSummaryMeetings_few": "Za posledních 6 měsíců {{time}} schůzek · {{count}} aktivní dny",
+    "gridSummaryMeetings_many": "Za posledních 6 měsíců {{time}} schůzek · {{count}} aktivního dne",
+    "gridSummaryMeetings_other": "Za posledních 6 měsíců {{time}} schůzek · {{count}} aktivních dní",
+    "gridSummaryAll_one": "Za posledních 6 měsíců {{count}} aktivní den",
+    "gridSummaryAll_few": "Za posledních 6 měsíců {{count}} aktivní dny",
+    "gridSummaryAll_many": "Za posledních 6 měsíců {{count}} aktivního dne",
+    "gridSummaryAll_other": "Za posledních 6 měsíců {{count}} aktivních dní",
+    "dayWords_one": "{{formatted}} slovo",
+    "dayWords_few": "{{formatted}} slova",
+    "dayWords_many": "{{formatted}} slova",
+    "dayWords_other": "{{formatted}} slov",
+    "dayQuestions_one": "{{formatted}} otázka",
+    "dayQuestions_few": "{{formatted}} otázky",
+    "dayQuestions_many": "{{formatted}} otázky",
+    "dayQuestions_other": "{{formatted}} otázek",
+    "dayMeetings": "{{time}} schůzek",
+    "dayNoneFor": {
+      "all": "Žádná aktivita",
+      "dictation": "Žádné diktování",
+      "assistant": "Žádné otázky",
+      "meetings": "Žádné schůzky"
+    },
+    "less": "Méně",
+    "more": "Více",
+    "busiest": "Nejrušnější den",
+    "best": "Nejlepší den",
+    "typical": "Běžný den",
+    "typicalFor": {
+      "dictation": "Ve dny, kdy diktujete",
+      "assistant": "Ve dny, kdy se ptáte",
+      "meetings": "Ve dny se schůzkou"
+    },
+    "activity": {
+      "label": "Co zobrazit",
+      "all": "Vše",
+      "dictation": "Diktování",
+      "assistant": "Asistent",
+      "meetings": "Schůzky"
+    },
+    "assistantCard": {
+      "info": "Rychlé dotazy a to, co jste řekli v konverzacích. Započítané zůstávají, i když konverzace smažete.",
+      "noCalls": "Zatím žádné konverzace"
+    },
+    "meetingsCard": {
+      "info": "Schůzky, které jste nahráli. Započítané zůstávají, i když schůzku smažete."
+    },
+    "share": {
+      "button": "Sdílet",
+      "nothingYet": "Až začnete Zynveliq používat, bude co sdílet.",
+      "title": "Sdílet přehledy",
+      "private": "Vytvořeno na tomto počítači. Nic se nikam neodesílá.",
+      "size": "Velikost",
+      "formats": {
+        "square": "Čtverec",
+        "story": "Příběh",
+        "wide": "Široký"
+      },
+      "formatHints": {
+        "square": "1080 × 1080, pro feed",
+        "story": "1080 × 1920, pro příběhy",
+        "wide": "1600 × 900, pro příspěvky a odkazy"
+      },
+      "previous": "Předchozí karta",
+      "next": "Další karta",
+      "cardsLabel": "Karty",
+      "position": "Karta {{index}} z {{count}}",
+      "copy": "Kopírovat obrázek",
+      "copied": "Zkopírováno",
+      "copyFailed": "Obrázek se nepodařilo zkopírovat",
+      "save": "Uložit obrázek",
+      "saved": "Obrázek uložen",
+      "saveFailed": "Obrázek se nepodařilo uložit",
+      "showInFolder": "Zobrazit ve složce",
+      "postOn": "Zveřejnit na {{site}}",
+      "copiedForPost": "Karta je zkopírovaná. V novém příspěvku ji přidáte klávesami {{keys}}.",
+      "savedForPost": "Karta je uložená ve Stažených souborech. {{site}} vložený obrázek nepřijme, přidejte ji proto tlačítkem pro fotku v novém příspěvku.",
+      "openSite": "Otevřít {{site}}",
+      "openFailed": "{{site}} se nepodařilo otevřít",
+      "more": "Další aplikace",
+      "sheetTitle": "Moje přehledy Zynveliq",
+      "shareFailed": "Sdílení se nepodařilo otevřít",
+      "drawFailed": "Karty se nepodařilo vykreslit. Zavřete toto okno a zkuste to znovu.",
+      "tagline": "Zdarma · Open source · Funguje offline",
+      "cards": {
+        "highlights": {
+          "title": "Můj Zynveliq v číslech",
+          "words_one": "namluvené slovo",
+          "words_few": "namluvená slova",
+          "words_many": "namluveného slova",
+          "words_other": "namluvených slov",
+          "streak_one": "den v řadě",
+          "streak_few": "dny v řadě",
+          "streak_many": "dne v řadě",
+          "streak_other": "dní v řadě",
+          "wpm": "slov za minutu",
+          "questions_one": "položená otázka",
+          "questions_few": "položené otázky",
+          "questions_many": "položené otázky",
+          "questions_other": "položených otázek",
+          "meetings_one": "nahraná schůzka",
+          "meetings_few": "nahrané schůzky",
+          "meetings_many": "nahrané schůzky",
+          "meetings_other": "nahraných schůzek",
+          "saved": "ušetřeno oproti psaní"
+        },
+        "words": {
+          "title": "Řečeno, ne napsáno",
+          "label_one": "namluvené slovo",
+          "label_few": "namluvená slova",
+          "label_many": "namluveného slova",
+          "label_other": "namluvených slov",
+          "pages_one": "Přibližně {{count}} strana",
+          "pages_few": "Přibližně {{count}} strany",
+          "pages_many": "Přibližně {{count}} strany",
+          "pages_other": "Přibližně {{count}} stran",
+          "books_one": "Vydalo by to na celý román",
+          "books_few": "Vydalo by to na {{count}} romány",
+          "books_many": "Vydalo by to na {{count}} románu",
+          "books_other": "Vydalo by to na {{count}} románů"
+        },
+        "speed": {
+          "title": "Jak rychle mluvím",
+          "label": "slov za minutu",
+          "note": "{{times}}× rychleji než psaní",
+          "you": "Hlas",
+          "typing": "Běžné psaní"
+        },
+        "saved": {
+          "title": "Ušetřený čas",
+          "label": "méně u klávesnice",
+          "workdays_one": "Celý pracovní den",
+          "workdays_few": "Přibližně {{count}} pracovní dny",
+          "workdays_many": "Přibližně {{count}} pracovního dne",
+          "workdays_other": "Přibližně {{count}} pracovních dní"
+        },
+        "streak": {
+          "title": "Jsem v ráži",
+          "unit_one": "den",
+          "unit_few": "dny",
+          "unit_many": "dne",
+          "unit_other": "dní",
+          "longest_one": "Můj rekord: {{count}} den",
+          "longest_few": "Můj rekord: {{count}} dny",
+          "longest_many": "Můj rekord: {{count}} dne",
+          "longest_other": "Můj rekord: {{count}} dní",
+          "best": "Moje dosud nejdelší série"
+        },
+        "assistant": {
+          "title": "Můj asistent",
+          "label_one": "položená otázka",
+          "label_few": "položené otázky",
+          "label_many": "položené otázky",
+          "label_other": "položených otázek",
+          "calls_one": "{{count}} konverzace, {{time}} mluvení",
+          "calls_few": "{{count}} konverzace, {{time}} mluvení",
+          "calls_many": "{{count}} konverzace, {{time}} mluvení",
+          "calls_other": "{{count}} konverzací, {{time}} mluvení"
+        },
+        "meetings": {
+          "title": "Moje schůzky",
+          "label_one": "nahraná schůzka",
+          "label_few": "nahrané schůzky",
+          "label_many": "nahrané schůzky",
+          "label_other": "nahraných schůzek",
+          "note": "Nahráno {{time}}, slov v poznámkách: {{words}}",
+          "time": "Nahráno a sepsáno: {{time}}"
+        },
+        "activity": {
+          "title": "Půl roku nahlas",
+          "label_one": "aktivní den",
+          "label_few": "aktivní dny",
+          "label_many": "aktivního dne",
+          "label_other": "aktivních dní"
+        }
+      },
+      "post": {
+        "dictation_one": "Místo psaní mluvím do počítače. Díky Zynveliq už je to {{formatted}} slovo.",
+        "dictation_few": "Místo psaní mluvím do počítače. Díky Zynveliq už jsou to {{formatted}} slova.",
+        "dictation_many": "Místo psaní mluvím do počítače. Díky Zynveliq už je to {{formatted}} slova.",
+        "dictation_other": "Místo psaní mluvím do počítače. Díky Zynveliq už je to {{formatted}} slov.",
+        "asks_one": "Ptám se asistenta Zynveliq bez přepínání panelů: už je to {{formatted}} otázka.",
+        "asks_few": "Ptám se asistenta Zynveliq bez přepínání panelů: už jsou to {{formatted}} otázky.",
+        "asks_many": "Ptám se asistenta Zynveliq bez přepínání panelů: už je to {{formatted}} otázky.",
+        "asks_other": "Ptám se asistenta Zynveliq bez přepínání panelů: už je to {{formatted}} otázek.",
+        "meetings_one": "Zynveliq mi nahrál už {{formatted}} schůzku a sepsal z ní poznámky.",
+        "meetings_few": "Zynveliq mi nahrál už {{formatted}} schůzky a sepsal z nich poznámky.",
+        "meetings_many": "Zynveliq mi nahrál už {{formatted}} schůzky a sepsal z nich poznámky.",
+        "meetings_other": "Zynveliq mi nahrál už {{formatted}} schůzek a sepsal z nich poznámky."
+      }
+    }
+  },
+  "settingsNotice": {
+    "restored": "Vaše nastavení byla poškozená, a proto byla obnovena ze zálohy.",
+    "restoredDescription": "Nejnovější změny mohou chybět.",
+    "unrecoverableTitle": "Nastavení se nepodařilo obnovit",
+    "unrecoverableDescription": "Zynveliq se spustil s výchozím nastavením. Poškozený soubor byl uložen jako {{file}}.",
+    "notSavingTitle": "Změny nastavení se neuloží",
+    "notSavingDescription": "Soubor s nastavením nešlo přečíst, a tak zůstal beze změny. Restartujte Zynveliq a zkuste to znovu.",
+    "saveFailingTitle": "Nastavení se neukládá",
+    "saveFailingDescription": "Vaše poslední změny zatím nejsou uložené. Zynveliq to bude zkoušet dál.",
+    "dismiss": "Zavřít"
+  }
+}

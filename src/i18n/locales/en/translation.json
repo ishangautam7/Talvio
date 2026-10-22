@@ -1,0 +1,3593 @@
+{
+  "appearance": {
+    "title": "Appearance",
+    "description": "Choose a light, dark, or system-matched theme for the app and assistant panel.",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "textSize": "Text size",
+    "textSizeDescription": "Scale the size of text and controls across the app.",
+    "textSizeSmall": "Small",
+    "textSizeDefault": "Default",
+    "textSizeLarge": "Large",
+    "textSizeExtraLarge": "Extra large"
+  },
+  "tray": {
+    "home": "Home",
+    "openAssistant": "Open assistant",
+    "checkUpdates": "Check for updates…",
+    "sendFeedback": "Send feedback…",
+    "copyLastTranscript": "Copy last transcript",
+    "unloadModel": "Unload model",
+    "model": "Model",
+    "quit": "Quit",
+    "cancel": "Cancel"
+  },
+  "updates": {
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "upToDate": "You're on the latest version",
+    "checkFailed": "Couldn't check for updates. Check your connection and try again.",
+    "noBuild": "The new version isn't available for this system yet.",
+    "available": "Version {{version}} is available",
+    "availableShort": "Update available",
+    "installNow": "Update now",
+    "downloading": "Downloading… {{progress}}%",
+    "downloadingUnknown": "Downloading…",
+    "installing": "Installing…",
+    "reopening": "Zynveliq is closing to install the update and will reopen in a few seconds.",
+    "updatedTo": "Updated to version {{version}}",
+    "restart": "Restart now",
+    "readyToRestart": "The update is installed. Restart Zynveliq to start using it.",
+    "installFailed": "The update didn't install. You can try again, or download the installer and run it yourself.",
+    "downloadFailed": "The download didn't finish. Check your connection and try again.",
+    "downloadInstaller": "Download installer",
+    "downloadInstead": "Download installer instead",
+    "downloadNewVersion": "Download new version",
+    "installerSaved": "The installer is in your Downloads folder",
+    "openInstaller": "Run installer",
+    "showInFolder": "Show in folder",
+    "viewRelease": "View on GitHub",
+    "hint": {
+      "windows": "Zynveliq closes, installs the update, and opens again. Nothing else to click.",
+      "macos": "Zynveliq restarts on the new version. macOS may ask you to allow Microphone and Accessibility again afterwards.",
+      "linux": "Zynveliq restarts on the new version. A .deb install asks for your password first."
+    },
+    "modes": {
+      "portable": "This is the portable build, which can't replace itself. Download the new version and copy your Data folder into it.",
+      "packageManager": "Your package manager installed Zynveliq, so update it there, for example with yay -Syu zynveliq-bin.",
+      "download": "This copy can't update itself in place. Download the installer and run it to get the new version."
+    },
+    "pill": {
+      "available": "Update available",
+      "version": "Version {{version}}",
+      "progress": "Updating… {{progress}}%",
+      "working": "Updating…",
+      "restart": "Restart to update",
+      "installerReady": "Installer downloaded"
+    }
+  },
+  "feedback": {
+    "button": "Send feedback",
+    "title": "Send feedback",
+    "description": "I read every message myself, so say it however it comes out. Thanks for helping make Zynveliq better.",
+    "kind": {
+      "label": "Kind of feedback",
+      "bug": "Bug",
+      "idea": "Idea",
+      "question": "Question"
+    },
+    "placeholder": {
+      "bug": "What happened, and what did you expect instead?",
+      "idea": "What would make Zynveliq better for you?",
+      "question": "What would you like to know?"
+    },
+    "messageLabel": "Message",
+    "emailLabel": "Email for a reply",
+    "emailPlaceholder": "Email, if you'd like a reply",
+    "emailInvalid": "That email address doesn't look right.",
+    "includeSystem": "Include app version and OS",
+    "systemDetails": "Sent exactly as: {{system}}",
+    "remaining": "{{count}} left",
+    "screenshots": {
+      "add": "Add screenshot",
+      "pasteHint": "or paste with {{shortcut}}",
+      "remove": "Remove screenshot {{index}}",
+      "preview": "Screenshot {{index}}, {{width}} × {{height}}, {{size}}",
+      "working": "Shrinking screenshot…",
+      "limit": "You can attach up to {{count}} screenshots.",
+      "notImage": "That file isn't an image.",
+      "tooLarge": "That image is too large to attach.",
+      "unreadable": "That image couldn't be read."
+    },
+    "send": "Send",
+    "sending": "Sending…",
+    "sentTitle": "Thanks, it's on its way",
+    "sentBody": "It's with me now, and I'll read it soon.",
+    "sentWithEmail": "If there's something to follow up on, you'll hear back at {{email}}.",
+    "screenshotsDropped_one": "The screenshot couldn't be stored, but your message arrived.",
+    "screenshotsDropped_other": "{{count}} screenshots couldn't be stored, but your message arrived.",
+    "sendAnother": "Send another",
+    "errors": {
+      "generic": "Couldn't send your feedback. Your message is saved here, so try again in a moment."
+    },
+    "aboutRow": {
+      "title": "Feedback",
+      "description": "Report a bug, suggest an idea, or ask a question.",
+      "button": "Send feedback"
+    }
+  },
+  "sidebar": {
+    "general": "General",
+    "dictation": "Dictation",
+    "assistant": "Assistant",
+    "meetings": "Meetings",
+    "history": "History",
+    "about": "About",
+    "debug": "Debug",
+    "characters": "Profiles",
+    "memory": "Memory",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "sectionSubtitles": {
+    "general": "Shortcuts, your microphone, and how the app looks.",
+    "dictation": "The model that turns your voice into text, and how it's cleaned up.",
+    "assistant": "Set up the assistant, then tune its voice, screen vision, and web search.",
+    "meetings": "Record a call, read it back split by speaker, and turn it into notes.",
+    "history": "Your recent dictations, Flow generations, and assistant chats, stored on this device.",
+    "about": "Version, app language, data locations, and credits.",
+    "debug": "Diagnostics and developer tools."
+  },
+  "onboarding": {
+    "flow": {
+      "progress": "Step {{current}} of {{total}}",
+      "steps": {
+        "setup": "Set up",
+        "tour": "Tour"
+      }
+    },
+    "setup": {
+      "installed": "Installed",
+      "loadFailed": "Couldn't load the list of models.",
+      "retry": "Try again"
+    },
+    "tour": {
+      "features": "What Zynveliq does",
+      "count": "{{current}} of {{total}}",
+      "next": "Next",
+      "finish": "Open Zynveliq",
+      "tabs": {
+        "dictate": "Dictation",
+        "ask": "Assistant",
+        "call": "Conversation"
+      },
+      "keys": {
+        "hold": "Hold to talk",
+        "tap": "Tap to start, tap to stop",
+        "call": "Press to start, again to end"
+      },
+      "steps": {
+        "label": "How it works",
+        "speak": "Say what you want to type",
+        "typed": "It's typed where your cursor is",
+        "select": "Select text (optional)",
+        "use": "Insert the answer, or just read it",
+        "talk": "Just talk",
+        "answer": "It answers out loud"
+      },
+      "mail": {
+        "window": "New message",
+        "to": "To",
+        "toValue": "Sara",
+        "subject": "Subject",
+        "subjectValue": "Friday"
+      },
+      "dictate": {
+        "title": "Talk.\nIt types.",
+        "cleanup": "AI cleanup, when you want it",
+        "said": "Hi Sara, can we move our call to Friday? I'll send the budget before then."
+      },
+      "ask": {
+        "title": "Ask for\nanything.",
+        "chips": {
+          "translate": "Translate",
+          "decline": "Write a reply",
+          "explain": "Explain",
+          "anything": "…anything"
+        },
+        "examples": {
+          "translate": {
+            "window": "Messages",
+            "doc": "Can we move our call to Friday?",
+            "question": "Translate this to Spanish",
+            "answer": "¿Podemos pasar nuestra llamada al viernes?"
+          },
+          "decline": {
+            "window": "Mail",
+            "doc": "Hi, are you free to join the planning review on Thursday at 3?",
+            "question": "Write a polite reply saying I can't make Thursday",
+            "answer": "Thanks for the invite! I can't make Thursday at 3, but I'm free Friday morning if that works."
+          },
+          "explain": {
+            "window": "Browser",
+            "doc": "The API returns 429 Too Many Requests.",
+            "question": "What does this mean?",
+            "answer": "You're sending requests faster than the service allows. Wait a moment, then try again more slowly."
+          }
+        }
+      },
+      "call": {
+        "title": "Or just\ntalk it through.",
+        "you": "You",
+        "assistant": "Assistant",
+        "said": "Help me plan a short talk for Friday's team meeting.",
+        "reply": "Sure. Open with the one result you're proudest of, give two reasons it worked, and end on what's next."
+      }
+    },
+    "subtitle": "To get started, choose a transcription model",
+    "steps": {
+      "progress": "Step {{current}} of {{total}}",
+      "counter": "Step {{current}} of {{total}} · {{label}}",
+      "speechToText": "Hear you",
+      "aiModel": "Give it a brain",
+      "ready": "You're ready"
+    },
+    "speechToText": {
+      "title": "How should Zynveliq hear you?",
+      "subtitle": "This turns your voice into text, right on your machine. Pick one, switch anytime.",
+      "cards": {
+        "fast": {
+          "description": "Blazingly fast, streams as you speak. English only."
+        },
+        "multilingual": {
+          "description": "Real-time in 28 languages."
+        }
+      },
+      "downloadAndContinue": "Download and continue",
+      "seeAllModels": "See all models",
+      "hideAllModels": "Show fewer models",
+      "installedHint": "Already set up. You can grab any other model later in Settings.",
+      "useInstalled": "Use installed model",
+      "continue": "Continue",
+      "downloadingHint": "It downloads in the background. Any other model is one click away in Settings.",
+      "downloadStarted": "Downloading your model in the background."
+    },
+    "aiModel": {
+      "title": "Add local AI (optional)",
+      "subtitle": "An assistant to talk to, plus our own model that cleans up your dictation. Take either, or both.",
+      "tiers": {
+        "small": {
+          "description": "Runs on any machine. Great for tidying up your writing."
+        },
+        "mid": {
+          "description": "A quick all-rounder that can also answer questions."
+        },
+        "capable": {
+          "description": "The sharpest answers, and it can see your screen."
+        }
+      },
+      "seesScreen": "Vision model",
+      "textOnly": "Text only",
+      "recommendedForAssistant": "Recommended for assistant",
+      "download": "Download model",
+      "useDownloaded": "Use downloaded model",
+      "skip": "Skip for now",
+      "skipHint": "You can add either of these later in Settings.",
+      "continue": "Continue",
+      "downloadingHint": "It downloads in the background. Start using the app right away.",
+      "downloadStarted": "Downloading your model in the background."
+    },
+    "cleanup": {
+      "cardTitle": "SpeakoFlow Mini",
+      "cardDescription": "Applies spoken edits like \"new paragraph\" and \"scratch that\". English only.",
+      "pill": "Cleans your dictation",
+      "recommendedForDictation": "Recommended for dictation",
+      "download": "Download and turn on",
+      "useDownloaded": "Turn it on"
+    },
+    "ready": {
+      "title": "You're ready.",
+      "subtitle": "Two shortcuts are all you need. Press, talk, done.",
+      "dictateLabel": "Dictate anywhere",
+      "dictateCaption": "Hold, talk, let go. Your words type themselves.",
+      "assistantKeysLabel": "Ask the assistant",
+      "assistantKeysCaption": "Hold and ask. It can even see your screen.",
+      "changeAnytime": "You can change these anytime in Settings.",
+      "hotkeyLabel": "Your dictation keys",
+      "downloadingAssistant": "Your assistant is moving in. {{percentage}}% there.",
+      "downloadingVoice": "Your voice model is landing. {{percentage}}% there.",
+      "downloadingGeneric": "Still downloading. {{percentage}}% there.",
+      "signOff": "That's it. Go say something.",
+      "openApp": "Open Zynveliq"
+    },
+    "errors": {
+      "selectModel": "Couldn't select that model. Please try again.",
+      "loadModels": "Couldn't load the available models.",
+      "downloadModel": "Couldn't download the model: {{error}}"
+    },
+    "downloadProgress": {
+      "sizeOf": "{{downloaded}} of {{total}} · {{percentage}}%"
+    },
+    "recommended": "Recommended",
+    "download": "Download",
+    "downloading": "Downloading…",
+    "customModelDescription": "Not officially supported",
+    "downloadFailed": "Download failed. Please try again.",
+    "modelCard": {
+      "accuracy": "accuracy",
+      "speed": "speed"
+    },
+    "models": {
+      "parakeet-unified-en-0.6b-gguf": {
+        "description": "Blazingly fast, great for everyday dictation. English only."
+      },
+      "nemotron-3.5-asr-streaming-0.6b-gguf": {
+        "description": "Real-time transcription in 28 languages."
+      },
+      "canary-180m-flash-gguf": {
+        "description": "Tiny and instant — runs well on any machine."
+      },
+      "cohere-transcribe-03-2026-gguf": {
+        "description": "Slower, but the most accurate. 14 languages."
+      },
+      "whisper-medium-gguf": {
+        "description": "Best for many languages — nearly 100 supported."
+      },
+      "gemma-3-1b": {
+        "description": "Very small and quick, but limited for open-ended conversation. Text only."
+      },
+      "qwen3.5-2b": {
+        "description": "Small and fast, and it can see images. Good on most laptops."
+      },
+      "qwen3.5-4b": {
+        "description": "A legacy vision model whose optional reasoning can delay conversational replies."
+      },
+      "qwen3.5-9b": {
+        "description": "More capable, but slower for live conversation, especially when reasoning is enabled."
+      },
+      "qwen3.5-27b": {
+        "description": "A large vision model for deliberate tasks, not a low-latency assistant."
+      },
+      "gemma-4-e2b": {
+        "description": "The quickest current Gemma for everyday conversation. Less capable on complex requests."
+      },
+      "gemma-4-e4b": {
+        "description": "A stronger quality-and-speed balance, and it doesn't think by default."
+      },
+      "gemma-4-12b": {
+        "description": "More capable for nuanced questions, but noticeably slower and best with a strong GPU."
+      },
+      "gemma-3-4b": {
+        "description": "Fast, clean answers with screen vision, but less capable than current Gemma 4 models."
+      },
+      "kokoro-82m": {
+        "description": "Built-in local voice for the assistant. No download needed."
+      },
+      "small": {
+        "name": "Whisper Small",
+        "description": "Fast and fairly accurate."
+      },
+      "medium": {
+        "name": "Whisper Medium",
+        "description": "Good accuracy at a medium speed."
+      },
+      "turbo": {
+        "name": "Whisper Turbo",
+        "description": "A balance of accuracy and speed."
+      },
+      "large": {
+        "name": "Whisper Large",
+        "description": "Very accurate, but slow."
+      },
+      "parakeet-tdt-0.6b-v2": {
+        "name": "Parakeet V2",
+        "description": "English only. Excellent for English speakers."
+      },
+      "parakeet-tdt-0.6b-v3": {
+        "name": "Parakeet V3",
+        "description": "Fast and accurate. 25 European languages."
+      },
+      "moonshine-base": {
+        "name": "Moonshine Base",
+        "description": "Very fast, English only. Handles accents well."
+      },
+      "moonshine-tiny-streaming-en": {
+        "name": "Moonshine V2 Tiny",
+        "description": "Ultra-fast. English only."
+      },
+      "moonshine-small-streaming-en": {
+        "name": "Moonshine V2 Small",
+        "description": "Fast, English only. A good balance of speed and accuracy."
+      },
+      "moonshine-medium-streaming-en": {
+        "name": "Moonshine V2 Medium",
+        "description": "English only. Higher quality, a little slower."
+      },
+      "breeze-asr": {
+        "name": "Breeze ASR",
+        "description": "Tuned for Taiwanese Mandarin, with English code-switching."
+      },
+      "sense-voice-int8": {
+        "name": "SenseVoice",
+        "description": "Very fast. Chinese, English, Japanese, Korean, and Cantonese."
+      },
+      "gigaam-v3-e2e-ctc": {
+        "name": "GigaAM v3",
+        "description": "Russian only. Fast and accurate."
+      },
+      "canary-180m-flash": {
+        "name": "Canary 180M Flash",
+        "description": "Very fast. English, German, Spanish, and French, with translation."
+      },
+      "canary-1b-v2": {
+        "name": "Canary 1B v2",
+        "description": "Accurate across 25 European languages, with translation."
+      },
+      "cohere-int8": {
+        "name": "Cohere",
+        "description": "Large and slower, but very accurate. Many languages."
+      }
+    },
+    "permissions": {
+      "title": "Permissions required",
+      "description": "Zynveliq needs a couple of permissions to work properly.",
+      "microphone": {
+        "title": "Microphone access",
+        "description": "Required to hear your voice for transcription."
+      },
+      "accessibility": {
+        "title": "Accessibility access",
+        "description": "Required to type transcribed text into your applications.",
+        "stuckHint": "Already switched on in System Settings? After an update, macOS can keep a permission that no longer matches this version.",
+        "reset": "Reset permission",
+        "resetDone": "Now switch Zynveliq on again in System Settings."
+      },
+      "grant": "Grant permission",
+      "granted": "Granted",
+      "waiting": "Waiting…",
+      "allGranted": "All set!",
+      "errors": {
+        "checkFailed": "Couldn't check permissions. Please try again.",
+        "requestFailed": "Couldn't request permission. Please try again.",
+        "resetFailed": "Couldn't reset the permission. Remove Zynveliq from the Accessibility list and add it again."
+      }
+    },
+    "frame": {
+      "setup": "Set up",
+      "tour": "Tour"
+    },
+    "welcome": {
+      "line": "Talk, and it types. Ask, and it answers.",
+      "start": "Get started",
+      "note": "Takes about a minute."
+    },
+    "speech": {
+      "title": "Pick your voice model",
+      "body": "Runs on this computer. Works offline.",
+      "english": "English",
+      "languages_one": "{{count}} language",
+      "languages_other": "{{count}} languages",
+      "about": {
+        "english": "Fast and accurate, for English.",
+        "languages": "Works out which language you're speaking.",
+        "small": "Tiny and quick. Good for older computers.",
+        "accurate": "The most accurate, but a larger download and slower.",
+        "widest": "Covers the most languages, but runs slower."
+      },
+      "anytime": "You can add more models anytime.",
+      "download": "Download and continue",
+      "continue": "Continue",
+      "later": "Set up later",
+      "loading": "Finding your speech model"
+    }
+  },
+  "modelSelector": {
+    "custom": "Custom",
+    "active": "In use",
+    "switching": "Switching…",
+    "noModelsAvailable": "No models available",
+    "verifying": "Verifying {{modelName}}…",
+    "verifyingGeneric": "Verifying…",
+    "extracting": "Extracting {{modelName}}…",
+    "extractingMultiple": "Extracting {{count}} models…",
+    "extractingGeneric": "Extracting…",
+    "downloading": "Downloading {{percentage}}%",
+    "downloadingMultiple": "Downloading {{count}} models…",
+    "downloadDetails": "Download details",
+    "downloadSize": "{{downloaded}} of {{total}}",
+    "modelReady": "Model ready",
+    "loading": "Loading {{modelName}}…",
+    "loadingGeneric": "Loading…",
+    "modelError": "Model error",
+    "modelUnloaded": "Model unloaded",
+    "noModelDownloadRequired": "No model — download required",
+    "llmSelectModel": "Select assistant model",
+    "llmModelTitle": "Assistant model: {{model}}",
+    "deleteModel": "Delete {{modelName}}",
+    "downloadSpeed": "{{speed}} MB/s",
+    "cancel": "Cancel",
+    "cancelDownload": "Cancel download",
+    "download": "Download",
+    "useModel": "Use model",
+    "capabilities": {
+      "languageSelection": "Supports multiple input languages",
+      "singleLanguage": "Supports this language only",
+      "multiLanguage": "Multi-language",
+      "languageOnly": "{{language}} only",
+      "languageList": "Languages {{model}} understands",
+      "translation": "Can translate to English",
+      "translate": "Translate to English",
+      "streaming": "Streaming",
+      "quantization": "Quantization",
+      "legacy": "Older",
+      "retired": "Retired"
+    }
+  },
+  "settings": {
+    "personalMemory": {
+      "enable": {
+        "label": "Remember me",
+        "description": "Let the assistant keep and use a personal memory. Off by default."
+      },
+      "incognito": {
+        "label": "Incognito chat",
+        "description": "For this conversation, don't use memory and don't learn anything new."
+      },
+      "detail": {
+        "label": "Memory detail",
+        "description": "How much memory to add to each reply. More detail is richer but a little slower.",
+        "options": {
+          "light": "Light",
+          "balanced": "Balanced",
+          "detailed": "Detailed"
+        }
+      },
+      "aboutYou": {
+        "label": "About you",
+        "caption": "A short, always-on summary the assistant keeps in mind.",
+        "fieldLabel": "Summary",
+        "placeholder": "e.g. Prefers short, direct answers. Works in Rust and TypeScript. Building a desktop voice assistant.",
+        "hint": "Always included when memory is on. Keep it to a few sentences — this is the assistant's at-a-glance picture of you.",
+        "edit": "Edit",
+        "done": "Done",
+        "empty": "Nothing saved yet — the assistant fills this in as it learns, or click Edit to write your own.",
+        "collapsedEmpty": "Nothing saved yet"
+      },
+      "notes": {
+        "label": "Notes",
+        "caption": "Specific things worth remembering — learned or added by you.",
+        "empty": "No notes yet. Add one below, or let the assistant learn them from your chats.",
+        "add": "Add",
+        "addPlaceholder": "Add something to remember…",
+        "delete": "Delete note",
+        "learned": "learned",
+        "added": "added by you"
+      },
+      "confidence": {
+        "high": "High confidence",
+        "medium": "Medium confidence",
+        "low": "Low confidence"
+      },
+      "actions": {
+        "label": "Manage"
+      },
+      "distill": {
+        "label": "Learn from this chat now",
+        "description": "Pull durable facts from your current conversation into memory, right now.",
+        "button": "Update memory"
+      },
+      "export": "Export",
+      "import": "Import",
+      "wipe": {
+        "button": "Wipe memory",
+        "confirm": "Delete everything the assistant remembers?",
+        "yes": "Delete all",
+        "cancel": "Cancel"
+      }
+    },
+    "modelSettings": {
+      "title": "{{model}} settings",
+      "noSettingsNeeded": "This model works automatically — nothing to configure."
+    },
+    "general": {
+      "title": "General",
+      "recording": {
+        "title": "Recording"
+      },
+      "groups": {
+        "sounds": "Sounds",
+        "startup": "Startup and tray",
+        "overlay": "Overlay",
+        "updates": "Updates",
+        "system": "System"
+      },
+      "shortcut": {
+        "title": "Shortcuts",
+        "description": "The keyboard shortcuts that start and stop recording.",
+        "loading": "Loading shortcuts…",
+        "none": "No shortcuts configured",
+        "notFound": "Shortcut not found",
+        "pressKeys": "Press keys…",
+        "bindings": {
+          "transcribe": {
+            "name": "Dictate",
+            "description": "Press to start recording, press again to stop and type it out."
+          },
+          "transcribe_toggle": {
+            "name": "Hands-free dictation",
+            "description": "Press once to start, again to stop — no holding needed."
+          },
+          "cancel": {
+            "name": "Cancel",
+            "description": "Stops the current recording or a streaming reply."
+          },
+          "transcribe_with_post_process": {
+            "name": "Dictate and clean up",
+            "description": "Dictate, then clean it up with AI before it's typed out."
+          },
+          "assistant": {
+            "name": "Ask the assistant",
+            "description": "Ask the assistant by voice; the answer streams into the floating panel."
+          },
+          "assistant_vision": {
+            "name": "Ask with screen",
+            "description": "Ask by voice with your screen attached so it can see what you're looking at."
+          },
+          "assistant_call": {
+            "name": "Start a conversation",
+            "description": "Talk with the assistant hands-free and hear its replies. Press again to end."
+          },
+          "hands_free": {
+            "name": "Hands-free",
+            "description": "Press while holding the dictation keys to keep recording after you let go. Press the dictation keys again to finish."
+          }
+        },
+        "errors": {
+          "restore": "Couldn't restore the original shortcut.",
+          "set": "Couldn't set the shortcut: {{error}}",
+          "inUse": "{{name}} already uses {{keys}}. Pick other keys, or change that shortcut first.",
+          "sameAsOther": "{{keys}} is already set for this shortcut.",
+          "reset": "Couldn't reset the shortcut."
+        },
+        "clickToChange": "Click to change",
+        "notSet": "Not set"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Language for speech recognition. A specific language can improve accuracy.",
+        "descriptionUnsupported": "This model detects the language automatically.",
+        "searchPlaceholder": "Search languages…",
+        "noResults": "No languages found",
+        "auto": "Auto"
+      },
+      "chineseScript": {
+        "title": "Chinese script",
+        "description": "Write Chinese transcripts in Simplified or Traditional characters. Other languages are left as they are.",
+        "options": {
+          "auto": "As transcribed",
+          "simplified": "Simplified",
+          "traditional": "Traditional"
+        }
+      },
+      "pushToTalk": {
+        "dictation": "On: it records while you hold the keys. Off: one press starts and the next one stops, so every dictation is hands-free.",
+        "assistant": "On: it listens while you hold the keys. Off: one press starts and the next one sends.",
+        "dictationLabel": "Hold to talk",
+        "assistantLabel": "Hold to ask"
+      },
+      "handsFree": {
+        "unavailableKeys": "Works when Dictate is modifier keys alone, like Ctrl + Win. With {{keys}}, turn off Hold to talk instead: every dictation then keeps going until you press the keys again.",
+        "unavailableEngine": "Needs the Zynveliq Keys keyboard engine ({{where}}). Or turn off Hold to talk: every dictation then keeps going until you press the keys again.",
+        "taken": "{{name}} already uses {{keys}}, so this key does nothing until one of them changes.",
+        "needsKey": "Pick one key, like Space or Enter. A modifier on its own can't be the hands-free key.",
+        "pressKey": "Press a key…",
+        "descriptionOff": "Turned off. Click it and press a key, like Space, to turn it back on.",
+        "linux": "On Linux, turn off Hold to talk instead: every dictation then keeps going until you press the keys again.",
+        "whileDictating": "While dictating, press"
+      },
+      "silenceStop": {
+        "label": "Stop after silence",
+        "description": "A hands-free dictation that hears no speech for this long stops and pastes by itself, as if you had pressed the shortcut again. A line on the pill runs out just before it stops; speaking again keeps it going."
+      }
+    },
+    "models": {
+      "title": "Transcription models",
+      "description": "Models trade accuracy for speed — pick one that fits your machine.",
+      "yourModels": "Downloaded models",
+      "availableModels": "Available to download",
+      "view": {
+        "label": "Which models to show",
+        "all": "All models"
+      },
+      "recommendedFor": "Recommended for {{language}}",
+      "recommendedAllDownloaded": "You already have every recommended model.",
+      "browseAll": "Browse all models",
+      "downloaded": "Downloaded",
+      "available": "Available to download",
+      "deleteConfirm": "Are you sure you want to delete {{modelName}}? You'll need to download it again to use it.",
+      "deleteActiveConfirm": "{{modelName}} is your active model. Deleting it will stop transcriptions until you pick a new one. Are you sure?",
+      "deleteTitle": "Delete model",
+      "categories": {
+        "stt": "Transcription",
+        "llm": "Assistant",
+        "tts": "Speech"
+      },
+      "categoryDescriptions": {
+        "stt": "Models trade accuracy for speed — pick one that fits your machine.",
+        "llm": "Local models for the built-in assistant and AI cleanup.",
+        "tts": "Voices for the assistant's spoken replies. Kokoro runs on your machine."
+      },
+      "llmHint": "After downloading, pick this model in the Assistant section under the built-in (local) provider.",
+      "ttsHint": "Speech models run on your machine and need no download.",
+      "filters": {
+        "all": "All",
+        "multiLanguage": "Multi-language",
+        "translation": "Translation",
+        "allLanguages": "All languages",
+        "streamingHint": "Only models that transcribe as you speak",
+        "translate": "Translate",
+        "translateHint": "Only models that can translate speech into English",
+        "noMatch": "No models match these filters",
+        "clear": "Clear filters"
+      },
+      "searchPlaceholder": "Search models by name…",
+      "clearSearch": "Clear search",
+      "noSearchResults": "No models named “{{query}}”.",
+      "olderHint": "Older format. {{model}} ({{size}}) is the newer version of this model.",
+      "retiredHint": "Uses an older engine Zynveliq no longer includes. Get {{model}} ({{size}}) instead.",
+      "retired": {
+        "notice": "These models used an older engine that Zynveliq no longer includes.",
+        "newVersion": "New version: {{model}} · {{size}}",
+        "getNewVersion": "Get new version",
+        "useNewVersion": "Use new version",
+        "deleteOld": "Delete old files ({{size}})",
+        "deleteTitle": "Delete old files",
+        "deleteConfirm": "Delete the old files of these models ({{size}})? New versions you have downloaded are kept."
+      },
+      "customModel": {
+        "addButton": "Search Hugging Face",
+        "searchTitle": "Need a different model?",
+        "searchDescription": "Search Hugging Face for a GGUF model. This is an advanced option, so hardware needs and compatibility can vary.",
+        "searchButton": "Search Hugging Face",
+        "title": "Find a model on Hugging Face",
+        "subtitle": "Search GGUF models, choose a version, and download it directly to this device.",
+        "searchPlaceholder": "Search by model or creator…",
+        "popularTitle": "Popular GGUF models",
+        "resultsTitle": "Search results",
+        "resultCount_one": "{{count}} model",
+        "resultCount_other": "{{count}} models",
+        "searching": "Searching Hugging Face…",
+        "searchError": "Search failed. Check your connection and try again.",
+        "tryAgain": "Try again",
+        "noResults": "No models found. Try a different search.",
+        "downloads": "{{value}} downloads",
+        "visionBadge": "Vision",
+        "back": "Back to results",
+        "loadingFiles": "Loading available files…",
+        "repoFilesError": "Couldn't load files for this model.",
+        "noGgufFiles": "This repository has no downloadable .gguf files.",
+        "selectQuant": "Choose a download",
+        "selectQuantHint": "Not sure? Q4_K_M is usually the best balance of quality, speed, and memory use.",
+        "enableVision": "Include screen vision",
+        "enableVisionHint": "Downloads an extra file so the model can understand images.",
+        "add": "Download",
+        "adding": "Starting…",
+        "addError": "Couldn't add this model. Please try again."
+      },
+      "localModel": {
+        "addButton": "Use a local model",
+        "title": "Use a model you already have",
+        "subtitle": "Add a .gguf or Whisper .bin from this device, or link a folder. Nothing is copied.",
+        "pickFiles": "Choose model files",
+        "pickFilesHint": "Pick one or more .gguf or .bin files. Good for a single model you just built.",
+        "linkFolder": "Link a folder",
+        "linkFolderHint": "Scanned automatically, including subfolders. Link as many folders as you like.",
+        "fileFilter": "Model files",
+        "filesAdded_one": "Added {{count}} model.",
+        "filesAdded_other": "Added {{count}} models.",
+        "folderAdded_one": "Folder linked. Found {{count}} model.",
+        "folderAdded_other": "Folder linked. Found {{count}} models.",
+        "folderRemoved": "Folder unlinked. Your files were not touched.",
+        "foldersTitle": "Linked folders",
+        "foldersEmpty": "No folders linked yet. Link one and every model inside it appears in your list.",
+        "removeFolder": "Unlink {{folder}}",
+        "rescan": "Rescan",
+        "rescanning": "Rescanning…",
+        "rescanDone_one": "{{count}} local model found.",
+        "rescanDone_other": "{{count}} local models found.",
+        "footnote": "Linked folders are rescanned when Zynveliq starts, so models you add to them later show up on their own. Unlinking a folder or removing a model only removes it from this list — your files stay where they are.",
+        "removeTitle": "Remove from list?",
+        "removeConfirm": "Remove \"{{modelName}}\" from your model list?\n\nThe file itself stays where it is:\n{{path}}",
+        "missingBadge": "File missing",
+        "fileMissing": "This model's file isn't there any more:\n{{path}}\n\nIt may have been moved or renamed, or be on a drive that isn't connected.",
+        "foldersEmptyShort": "No folders linked yet."
+      }
+    },
+    "sound": {
+      "title": "Sound",
+      "microphone": {
+        "title": "Microphone",
+        "description": "Select your preferred microphone device",
+        "placeholder": "Select microphone…",
+        "loading": "Loading…"
+      },
+      "audioFeedback": {
+        "label": "Audio feedback",
+        "description": "Play a sound when recording starts and stops"
+      },
+      "soundTheme": {
+        "label": "Feedback sound",
+        "description": "Choose the start/stop cue played during dictation",
+        "default": "Default",
+        "preview": "Preview sound (plays start then stop)",
+        "themes": {
+          "marimba": "Marimba",
+          "pop": "Pop",
+          "click": "Click",
+          "custom": "Custom"
+        }
+      },
+      "outputDevice": {
+        "title": "Output device",
+        "description": "Select your preferred audio output device for feedback sounds",
+        "placeholder": "Select output device…",
+        "loading": "Loading…"
+      },
+      "volume": {
+        "title": "Volume",
+        "description": "Adjust the volume of audio feedback sounds"
+      },
+      "ducking": {
+        "label": "While recording",
+        "ariaLabel": "Other audio while recording",
+        "description": "Lower or mute other audio while you record, so it doesn't distract you or reach the microphone. It comes back as soon as the recording ends. Also known as ducking.",
+        "options": {
+          "off": "Unchanged",
+          "lower": "Lower",
+          "mute": "Mute"
+        },
+        "amount": {
+          "label": "Lower by",
+          "description": "How much quieter other audio gets. Drag the slider while something is playing to hear it. If you change the volume yourself during a recording, it stays where you put it."
+        }
+      }
+    },
+    "advanced": {
+      "title": "Advanced",
+      "groups": {
+        "app": "App",
+        "output": "Output",
+        "transcription": "Transcription",
+        "textReplacements": "Text replacements",
+        "history": "History",
+        "aiCorrection": "AI cleanup",
+        "experimental": "Experimental"
+      },
+      "aiCorrection": {
+        "label": "AI cleanup (in development)",
+        "description": "Experimental: clean up your dictation with AI. Rough and unpolished — off by default.",
+        "info": "Runs a language model over your dictation to fix punctuation, remove filler words, and optionally adjust the tone. Applies to dictation only (not the assistant chat) and runs on its own shortcut. It adds a delay since the model runs after transcription; if it fails or times out, your raw text is pasted instead. Uses your assistant's model by default. This feature is still in development — you can't yet pick a built-in local model from its own list, and it needs more tuning before it's a main feature."
+      },
+      "postProcessTimeout": {
+        "title": "AI cleanup timeout",
+        "description": "How long to wait for the model before giving up and pasting your raw transcription instead. On the built-in local model, allow enough time for it to load on first use.",
+        "seconds": "{{seconds}} seconds"
+      },
+      "experimentalToggle": {
+        "label": "Experimental features",
+        "description": "Reveal in-development features. Off by default."
+      },
+      "lazyStreamClose": {
+        "label": "Keep mic open between transcriptions",
+        "description": "Faster back-to-back dictation. May affect Bluetooth audio quality."
+      },
+      "mouseButtonShortcuts": {
+        "label": "Mouse buttons as shortcuts",
+        "description": "Use your mouse's middle, Back or Forward button as a shortcut: click a shortcut's keys, then press the button. While it is a shortcut, the button does nothing else.",
+        "linux": "On Linux only the middle button works.",
+        "needsEngine": "Needs the Zynveliq Keys keyboard implementation."
+      },
+      "longFormChunking": {
+        "title": "Split long recordings",
+        "description": "Long dictations are transcribed in pieces at natural pauses, which keeps models that are not built for long audio accurate."
+      },
+      "acceleration": {
+        "title": "Speech processing",
+        "description": "Auto uses your graphics card, the dedicated one if you have two. Choose Processor if dictation crashes or your graphics driver has problems. It's slower but works everywhere.",
+        "auto": "Auto",
+        "cpu": "Processor (CPU)"
+      },
+      "startHidden": {
+        "label": "Start hidden",
+        "description": "Launch to the tray without opening the window."
+      },
+      "autostart": {
+        "label": "Launch on startup",
+        "description": "Open Zynveliq automatically when you sign in."
+      },
+      "showTrayIcon": {
+        "label": "Show tray icon",
+        "description": "Keep Zynveliq in your system tray."
+      },
+      "trayIconColor": {
+        "label": "Color tray icon",
+        "description": "Show the color logo instead of the white icon. Turn this on if your panel is light and the white icon is hard to see."
+      },
+      "closeBehavior": {
+        "label": "Quit when I close the window",
+        "description": "When off, closing the window keeps Zynveliq running in the tray so your hotkeys still work. When on, closing the window quits the app completely."
+      },
+      "overlayStyle": {
+        "title": "Overlay",
+        "description": "How the recording overlay looks while you dictate. None hides it, Minimal is the compact pill, and Live shows a readable card with your words as you speak (for models that support it).",
+        "options": {
+          "none": "None",
+          "minimal": "Minimal",
+          "live": "Live"
+        }
+      },
+      "overlayLinger": {
+        "title": "Keep finished text on screen",
+        "description": "How long the Live card stays up after you finish dictating, so you can read or copy what was typed. Hovering over the card keeps it open.",
+        "options": {
+          "quick": "Briefly (1 second)",
+          "standard": "Standard (3 seconds)",
+          "long": "Longer (6 seconds)",
+          "extended": "Much longer (10 seconds)"
+        }
+      },
+      "overlay": {
+        "title": "Overlay position",
+        "description": "Where the recording overlay sits on your screen.",
+        "options": {
+          "none": "None",
+          "bottom": "Bottom",
+          "top": "Top",
+          "topleft": "Top left",
+          "topright": "Top right",
+          "bottomleft": "Bottom left",
+          "bottomright": "Bottom right"
+        }
+      },
+      "pasteMethod": {
+        "title": "Paste method",
+        "description": "How transcribed text is inserted into the active app.",
+        "options": {
+          "clipboard": "Clipboard ({{modifier}}+V)",
+          "clipboardCtrlShiftV": "Clipboard (Ctrl+Shift+V)",
+          "clipboardShiftInsert": "Clipboard (Shift+Insert)",
+          "direct": "Direct",
+          "none": "None",
+          "externalScript": "External script"
+        },
+        "externalScriptPlaceholder": "/path/to/your/script.sh"
+      },
+      "typingTool": {
+        "title": "Typing tool",
+        "description": "Linux tool used for the Direct paste method.",
+        "options": {
+          "auto": "Auto (recommended)"
+        }
+      },
+      "clipboardHandling": {
+        "title": "Clipboard handling",
+        "description": "Whether the transcription stays in your clipboard after pasting.",
+        "options": {
+          "dontModify": "Don't modify clipboard",
+          "copyToClipboard": "Copy to clipboard"
+        }
+      },
+      "autoSubmit": {
+        "title": "Auto submit",
+        "description": "Send a key combination automatically after the text is inserted.",
+        "options": {
+          "off": "Off",
+          "enter": "Enter",
+          "cmdEnter": "Cmd+Enter",
+          "superEnter": "Super+Enter",
+          "ctrlEnter": "Ctrl+Enter"
+        }
+      },
+      "translateToEnglish": {
+        "label": "Translate to English",
+        "description": "Translate speech from other languages to English.",
+        "descriptionUnsupported": "Translation is not supported by the {{model}} model."
+      },
+      "modelUnload": {
+        "title": "Unload model",
+        "description": "Free memory when the model has been idle for this long.",
+        "options": {
+          "never": "Never",
+          "immediately": "Immediately",
+          "min2": "After 2 minutes",
+          "min5": "After 5 minutes",
+          "min10": "After 10 minutes",
+          "min15": "After 15 minutes",
+          "hour1": "After 1 hour",
+          "sec15": "After 15 seconds (Debug)"
+        }
+      },
+      "customWords": {
+        "title": "Custom words",
+        "description": "Names, products, and phrases Zynveliq should spell your way.",
+        "info": "Example: add “Kokoro” if Zynveliq writes “Coco row.”",
+        "placeholder": "Add a name, term, or short phrase",
+        "add": "Add",
+        "empty": "No custom words yet.",
+        "remove": "Remove {{word}}",
+        "duplicate": "\"{{word}}\" already exists"
+      },
+      "autoLearn": {
+        "label": "Learn words I correct",
+        "description": "Remembers your spelling when you fix a word Zynveliq got wrong.",
+        "info": "It reads only the field it just typed into, for about a minute. Nothing is uploaded, and every word it learns is listed here.",
+        "unsupported": "Learning from corrections is only available on Windows so far. You can still add words by hand above.",
+        "learnedTitle": "Learned from your corrections",
+        "learnedEmpty": "Nothing learned yet. Fix a misheard word in the app you dictated into and it appears here.",
+        "keep": "Keep {{word}} in my custom words",
+        "remove": "Forget {{word}}",
+        "clearAll": "Forget all",
+        "reviewHint": "These are guesses. Tick one to move it into your own custom words, or remove it. The oldest are dropped past {{max}}."
+      },
+      "textReplacements": {
+        "title": "Text replacements",
+        "description": "Replace a phrase in your transcript with text you use often. Example: “my email” becomes “alex@example.com”.",
+        "rulesTitle": "Replacement rules",
+        "rulesHint": "Choose what Zynveliq hears and what it should insert.",
+        "empty": "Create a rule for a phrase you say often.",
+        "addFirst": "Create first rule",
+        "addRule": "Add replacement",
+        "manageRules": "Replacements ({{count}})",
+        "searchLabel": "Spoken phrase",
+        "searchPlaceholder": "my email",
+        "replaceLabel": "Insert this text",
+        "replacePlaceholder": "alex@example.com",
+        "advanced": "Advanced options",
+        "regex": "Regex",
+        "trimBefore": "Trim before",
+        "trimAfter": "Trim after",
+        "enabledLabel": "Enabled",
+        "remove": "Remove rule",
+        "import": "Import",
+        "export": "Export",
+        "importSuccess": "Imported {{count}} replacement rules",
+        "importError": "Could not import: the file is not a valid replacements list",
+        "exportSuccess": "Replacements exported",
+        "exportError": "Could not export replacements",
+        "magicHint": "Use [date], [time], [uppercase], [lowercase], [capitalize], or [nospace] in the inserted text.",
+        "capitalization": {
+          "label": "Caps",
+          "none": "None",
+          "uppercase": "UPPERCASE",
+          "lowercase": "lowercase",
+          "capitalize": "Capitalize"
+        }
+      }
+    },
+    "postProcessing": {
+      "title": "AI cleanup",
+      "readiness": {
+        "checking": "Checking AI cleanup setup…",
+        "checkFailed": "Couldn’t check AI cleanup setup.",
+        "ready": "Ready — {{provider}}.",
+        "assistantFallback": "Ready — using your Assistant model ({{provider}}).",
+        "selectPrompt": "Select a cleanup prompt.",
+        "selectModel": "Select a model for this provider.",
+        "addApiKey": "Add an API key for this provider.",
+        "providerMissing": "The selected provider is no longer available."
+      },
+      "errors": {
+        "saveFailed": "Couldn’t save the AI cleanup setting.",
+        "modelsLoadFailed": "Couldn’t load models for this provider.",
+        "promptCreateFailed": "Couldn’t create the prompt.",
+        "promptSelectFailed": "Created the prompt, but couldn’t select it.",
+        "promptUpdateFailed": "Couldn’t update the prompt.",
+        "promptDeleteFailed": "Couldn’t delete the prompt.",
+        "promptRestoreFailed": "Couldn’t restore the prompt.",
+        "toneSelectFailed": "Couldn’t select the writing style.",
+        "toneCreateFailed": "Couldn’t create the writing style.",
+        "toneSelectAfterCreateFailed": "Created the style, but couldn’t select it.",
+        "toneUpdateFailed": "Couldn’t update the writing style.",
+        "toneDeleteFailed": "Couldn’t delete the writing style."
+      },
+      "enable": {
+        "title": "AI cleanup"
+      },
+      "hotkey": {
+        "title": "Shortcut"
+      },
+      "tone": {
+        "title": "2 · Writing style",
+        "description": "Layered on top of the system prompt: it changes how the cleaned text reads, not what gets corrected. “None” leaves your voice alone.",
+        "options": {
+          "none": "None (cleanup only)",
+          "formal": "Formal",
+          "casual": "Casual",
+          "professional": "Professional",
+          "friendly": "Friendly",
+          "concise": "Concise"
+        },
+        "edit": "Edit",
+        "closeEditor": "Close",
+        "createNew": "Create style",
+        "nameLabel": "Style name",
+        "namePlaceholder": "For example, Calm and clean",
+        "instructionsLabel": "Style instructions",
+        "instructionsPlaceholder": "Describe exactly how the wording should change. Example: Remove profanity and replace it with calm, neutral wording.",
+        "instructionsHint": "These rules shape the wording after cleanup. They stay separate from your cleanup prompt.",
+        "createTone": "Create style",
+        "updateTone": "Save changes",
+        "deleteTone": "Delete style",
+        "cancel": "Cancel"
+      },
+      "api": {
+        "title": "API (OpenAI-compatible)",
+        "location": {
+          "title": "Where it runs",
+          "description": "Run cleanup privately with a downloaded model or use a cloud provider."
+        },
+        "provider": {
+          "title": "Provider",
+          "description": "Select an OpenAI-compatible provider."
+        },
+        "appleIntelligence": {
+          "title": "Apple Intelligence",
+          "description": "Runs fully on-device. No API key or network access is required.",
+          "requirements": "Requires an Apple Silicon Mac running macOS Tahoe (26.0) or later. Apple Intelligence must be enabled in System Settings.",
+          "unavailable": "Apple Intelligence is not available on this device. Requires an Apple Silicon Mac running macOS Tahoe (26.0) or later with Apple Intelligence enabled in System Settings."
+        },
+        "baseUrl": {
+          "title": "Base URL",
+          "description": "API base URL for the selected provider. Editable for Custom, Local, and Azure OpenAI (set it to your resource, e.g. https://your-resource.openai.azure.com/openai/v1).",
+          "placeholder": "https://api.openai.com/v1",
+          "managed": "Base URL is managed by the selected provider."
+        },
+        "apiKey": {
+          "title": "API key",
+          "description": "API key for the selected provider.",
+          "placeholder": "sk-..."
+        },
+        "builtin": {
+          "modelDescription": "Pick a model you've downloaded. It runs on your machine with no API key or setup.",
+          "modelPlaceholder": "Select a downloaded model",
+          "noModels": "No local models yet. Download one from the model catalog.",
+          "ready": "Runs fully on your machine. No API key, no setup."
+        },
+        "model": {
+          "title": "Model",
+          "descriptionApple": "Provide an optional numeric length limit or keep the default on-device preset.",
+          "descriptionCustom": "Provide the model identifier your custom provider expects.",
+          "descriptionDefault": "Choose a model exposed by the selected provider.",
+          "placeholderApple": "Apple Intelligence",
+          "placeholderWithOptions": "Search or select a model",
+          "placeholderNoOptions": "Type a model name",
+          "refreshModels": "Refresh models"
+        },
+        "testConnection": {
+          "title": "Test connection",
+          "description": "Sends one short request to check AI cleanup can actually reach this model. On-device models load first, so the first test can take a while.",
+          "button": "Test connection",
+          "testing": "Testing…"
+        }
+      },
+      "prompts": {
+        "title": "Prompt",
+        "selectedPrompt": {
+          "title": "Prompt",
+          "description": "The base instruction: what the model corrects, and what it must leave alone. Your transcribed text is sent separately, so just write instructions."
+        },
+        "noPrompts": "No prompts available",
+        "nonePrompt": "None (no prompt)",
+        "selectPrompt": "Select a prompt",
+        "createNew": "Create new prompt",
+        "edit": "Edit",
+        "closeEditor": "Close",
+        "promptLabel": "Prompt label",
+        "promptLabelPlaceholder": "Enter prompt name",
+        "promptInstructions": "Prompt instructions",
+        "promptInstructionsPlaceholder": "Write instructions for cleaning up the transcript. Example: Fix grammar and punctuation, then rewrite it as a polished, professional message.",
+        "promptTip": "Tip: Your transcribed text is sent to the model automatically — just write instructions. (Older prompts that use <code>${output}</code> still work.)",
+        "updatePrompt": "Update prompt",
+        "deletePrompt": "Delete prompt",
+        "restorePrompt": "Restore recommended",
+        "createPrompt": "Create prompt",
+        "cancel": "Cancel",
+        "selectToEdit": "Select a prompt above to view and edit its details.",
+        "createFirst": "Click 'Create new prompt' above to create your first cleanup prompt."
+      }
+    },
+    "dictation": {
+      "hero": {
+        "eyebrow": "Now listening with",
+        "loading": "Loading your model…",
+        "noModelTitle": "No model yet",
+        "noModelCaption": "Pick a model so your voice becomes text.",
+        "chooseModel": "Choose a model",
+        "changeModel": "Change model",
+        "streams": "Streams live",
+        "accuracy": "Accuracy",
+        "speed": "Speed"
+      },
+      "catalog": {
+        "title": "Choose your model",
+        "description": "Every model runs on your machine — trade accuracy for speed and pick the one that fits."
+      },
+      "cloud": {
+        "groupTitle": "Where transcription runs",
+        "engine": {
+          "title": "Speech-to-text engine",
+          "description": "On this machine, or a hosted provider you bring a key for.",
+          "info": "On my device runs a model you downloaded: private, free, and offline. Cloud sends your recording to a provider you choose and is billed by them per minute of audio, in exchange for a frontier model with no download and no GPU."
+        },
+        "bypassNotice": "Cloud transcription is on, so the model above is not used and stays unloaded.",
+        "provider": {
+          "title": "Provider"
+        },
+        "key": {
+          "title": "API key",
+          "stored": "A key is saved in your system keychain.",
+          "missing": "No key saved yet for this provider.",
+          "placeholder": "Paste your API key",
+          "replacePlaceholder": "Paste a new key to replace the saved one",
+          "save": "Save",
+          "saved": "API key saved",
+          "clear": "Remove",
+          "getOne": "Get a key"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "description": "Base URL of an OpenAI-compatible transcription server.",
+          "azureDescription": "Your Azure resource's endpoint, from Keys and Endpoint in the Azure portal. MAI-Transcribe needs a resource in Central India, Southeast Asia, East US, West US, West US 2, or North Europe.",
+          "azurePlaceholder": "https://your-resource.cognitiveservices.azure.com"
+        },
+        "amazon": {
+          "credentials": {
+            "title": "AWS access key",
+            "missing": "No key saved yet. Use an access key for an IAM user or role allowed to call transcribe:StartStreamTranscriptionWebSocket.",
+            "keyId": "Access key ID",
+            "secret": "Secret access key",
+            "sessionToken": "Session token (temporary credentials only)",
+            "invalid": "This doesn't look like an AWS key. The access key ID is letters and digits, and no field can contain spaces or colons.",
+            "permission": "Permission it needs"
+          },
+          "region": {
+            "title": "Region",
+            "description": "Where Amazon Transcribe runs. The one closest to you answers fastest."
+          },
+          "streaming": "Always on: Amazon Transcribe only transcribes live. If the connection drops mid-recording, the recording is sent again at speaking speed, so finishing takes as long as the recording did.",
+          "language": "Amazon Transcribe has to be told the language. Auto picks among English, your app language and a few other common languages, so choose yours if you speak something else.",
+          "unsupportedLanguage": "Amazon Transcribe can't transcribe this language live in {{region}}. Choose another language or region. Until then, dictation won't use Amazon Transcribe."
+        },
+        "model": {
+          "title": "Model",
+          "info": "Type any model the provider offers, or load the list. For ElevenLabs, pick scribe_v2_realtime to transcribe as you speak and scribe_v2 to transcribe once you stop.",
+          "load": "Load models"
+        },
+        "streaming": {
+          "label": "Transcribe as I speak",
+          "description": "Text arrives while you are still talking, so releasing the key only flushes the last few words.",
+          "needsRealtimeModel": "Choose a realtime model above to use this — the current one only transcribes after you stop."
+        },
+        "keyterms": {
+          "label": "Send my custom words",
+          "description": "Passes your custom vocabulary to the provider so it biases toward those spellings.",
+          "unsupported": "{{provider}} can't take a word list, so your custom words are corrected on this computer instead."
+        },
+        "noVerbatim": {
+          "label": "Remove filler words",
+          "description": "Drops \"um\", \"uh\", false starts, and repeats. Turn this off to get back exactly what you said, word for word."
+        },
+        "language": {
+          "description": "The language you speak. Every provider here answers in that same language — telling it up front improves accuracy, and Auto lets it detect the language itself."
+        },
+        "translate": {
+          "supported": "{{provider}} can return English instead of the language you spoke. Only English — no transcription API translates into another language."
+        },
+        "test": {
+          "title": "Test connection",
+          "description": "Sends one second of audio to check the key, endpoint, and model.",
+          "action": "Run test",
+          "running": "Testing…"
+        }
+      },
+      "aiCleanup": {
+        "groupTitle": "AI cleanup",
+        "modelGroupTitle": "Cleanup model",
+        "unloadTimeout": {
+          "title": "Keep cleanup model loaded",
+          "description": "How long the on-device cleanup model stays in memory after you stop using it. Longer means no reload before your next dictation; an idle model uses memory but no CPU. Separate from the assistant's setting."
+        },
+        "model": {
+          "emptyTitle": "No cleanup model yet",
+          "emptyDescription": "SpeakoFlow Mini is a small download built for this.",
+          "choose": "Choose a model",
+          "tunedBadge": "Tuned for cleanup"
+        },
+        "catalog": {
+          "title": "Choose your cleanup model",
+          "description": "Cleanup runs after every dictation, so speed matters more than size. Everything runs offline.",
+          "recommendedTitle": "Recommended for cleanup",
+          "recommendedDescription": "SpeakoFlow Mini is trained for this one job and beats much larger models at it."
+        },
+        "promptGroupTitle": "Cleanup instructions",
+        "tunedModelNotice": "This model is fine-tuned for English dictation cleanup, so it works best on the recommended prompt with no style.",
+        "tunedModelNoticeDismiss": "Hide this tip",
+        "tunedModelNoticeRestore": "Show model tip",
+        "title": "Fix up my dictation with AI",
+        "caption": "Experimental — tidies punctuation and filler after you dictate.",
+        "info": "Cleanup rewrites what you said with an AI model before it's typed. It can take a moment and falls back to your raw words if it's slow."
+      },
+      "spokenEmoji": {
+        "title": "Spoken emoji",
+        "description": "Say “happy emoji” or “thumbs up emoji” to insert 😊 or 👍. Common aliases and minor speech-to-text errors are handled on your device; unknown names stay as text."
+      },
+      "flow": {
+        "groupTitle": "Generate with Flow",
+        "enableLabel": "Generate with Flow",
+        "enableDescription": "Start a dictation with the activation phrase to have AI write the result for you — “Hey Flow, write a polite email asking to reschedule” pastes the finished email.",
+        "phraseLabel": "Activation phrase",
+        "phraseDescription": "Flow activates only when a dictation begins with this phrase. Anywhere else, the same words paste as normal dictation. Uses your assistant's model; leave empty to reset to “Hey Flow”.",
+        "phrasePlaceholder": "Hey Flow",
+        "screenLabel": "Allow screen access",
+        "screenDescription": "Let Flow take one screenshot when a command clearly refers to your screen, like “look at this email and draft a reply”. The model decides if it's needed. Separate from the assistant's screen access."
+      },
+      "output": {
+        "title": "Output options"
+      }
+    },
+    "history": {
+      "title": "History",
+      "storage": {
+        "title": "Recording storage",
+        "description": "These controls affect dictation and Flow recordings. Starred recordings are always kept. Assistant chats have separate storage."
+      },
+      "filters": {
+        "label": "History type",
+        "all": "All",
+        "recordings": "Dictations",
+        "flow": "Flow",
+        "asks": "Assistant",
+        "calls": "Conversations"
+      },
+      "openFolder": "Open recordings folder",
+      "loading": "Loading history…",
+      "empty": "Nothing here yet. Your dictations, Flow generations, and assistant chats will appear here.",
+      "emptyRecordings": "No dictations yet.",
+      "emptyFlow": "No Flow generations yet.",
+      "emptyAsks": "No questions asked yet.",
+      "emptyCalls": "No conversations yet.",
+      "flowLabel": "Flow",
+      "kinds": {
+        "ask": "Assistant",
+        "call": "Conversation"
+      },
+      "flowTranscriptLabel": "You said",
+      "originalTranscriptionLabel": "Original transcription",
+      "flowOutputLabel": "Flow output",
+      "finalTextLabel": "Final text",
+      "flowNoOutput": "No Flow output was generated.",
+      "copyToClipboard": "Copy transcription to clipboard",
+      "copyFlowOutput": "Copy Flow output",
+      "copyFinalText": "Copy final text",
+      "save": "Save transcription",
+      "unsave": "Remove from saved",
+      "delete": "Delete entry",
+      "deleteError": "Couldn't delete the entry. Please try again.",
+      "retranscribe": "Re-transcribe",
+      "retranscribeError": "Couldn't re-transcribe. Please try again.",
+      "transcribing": "Transcribing…",
+      "transcriptionFailed": "Transcription failed — use the retry icon to try again.",
+      "copyConversation": "Copy conversation",
+      "copyAnswer": "Copy answer",
+      "noAnswer": "No answer was saved for this question.",
+      "resumeConversation": "Continue this conversation in the assistant",
+      "branchConversation": "Continue from here as a new conversation. This one is kept unchanged.",
+      "showConversation": "Show conversation",
+      "hideConversation": "Hide conversation",
+      "roleUser": "You",
+      "roleAssistant": "Assistant",
+      "screenshotAttached": "Vision",
+      "messageCount_one": "{{count}} message",
+      "messageCount_other": "{{count}} messages",
+      "deleteAssistantError": "Couldn't delete the conversation. Please try again.",
+      "openFolderError": "Couldn't open the recordings folder."
+    },
+    "debug": {
+      "title": "Debug",
+      "logDirectory": {
+        "title": "Log directory",
+        "description": ""
+      },
+      "logLevel": {
+        "title": "Log level",
+        "description": "",
+        "levels": {
+          "error": "Error",
+          "warn": "Warning",
+          "info": "Info",
+          "debug": "Debug",
+          "trace": "Trace"
+        }
+      },
+      "updateChecks": {
+        "label": "Check for updates automatically",
+        "description": "Looks for a new version when Zynveliq starts and every 12 hours. You can always check by hand."
+      },
+      "soundTheme": {
+        "label": "Sound theme",
+        "description": ""
+      },
+      "wordCorrectionThreshold": {
+        "title": "Word correction threshold",
+        "description": "Sensitivity for custom word corrections"
+      },
+      "historyLimit": {
+        "title": "Recording limit",
+        "description": "Maximum unstarred dictation and Flow recordings to keep. Starred recordings are always kept, and assistant chats are not counted. The lowest allowed value is 1.",
+        "entries": "recordings"
+      },
+      "recordingRetention": {
+        "title": "Auto-delete recordings",
+        "description": "Choose how unstarred recordings are cleaned up. Changes apply immediately and never affect assistant chats.",
+        "never": "Never",
+        "preserveLimit": "Keep a set number",
+        "days3": "After 3 days",
+        "weeks2": "After 2 weeks",
+        "months3": "After 3 months",
+        "customDays": "After a set number of days",
+        "customDaysTitle": "Delete after",
+        "customDaysDescription": "Unstarred recordings are deleted once they are this many days old. Starred recordings are always kept.",
+        "days": "days",
+        "placeholder": "Select retention period…",
+        "savedToast": "Retention saved.",
+        "appliedToast": "Recording retention applied",
+        "saveFailed": "Couldn’t save the retention setting.",
+        "confirmTitle_one": "This deletes {{count}} recording",
+        "confirmTitle_other": "This deletes {{count}} recordings",
+        "confirmTitleUnknown": "This may delete recordings",
+        "confirmBody": "The audio and the transcript are removed from this device and cannot be recovered. Starred recordings are kept.",
+        "confirmAction_one": "Delete {{count}} recording",
+        "confirmAction_other": "Delete {{count}} recordings",
+        "confirmActionUnknown": "Apply anyway"
+      },
+      "alwaysOnMicrophone": {
+        "label": "Always-on microphone",
+        "description": "Keep the mic warm so the first words are never clipped. Uses a little more battery."
+      },
+      "clamshellMicrophone": {
+        "title": "Clamshell microphone",
+        "description": "Microphone to use when laptop lid is closed"
+      },
+      "postProcessingToggle": {
+        "label": "AI cleanup",
+        "description": "Clean up your dictation with AI after transcription"
+      },
+      "appendTrailingSpace": {
+        "label": "Append trailing space",
+        "description": "Add a space after every dictation. With Smart spacing on, this only applies where a field can't be read."
+      },
+      "smartSpacing": {
+        "label": "Smart spacing",
+        "description": "Fit each dictation to the text already in the field, so you can stop and continue without words running together.",
+        "info": "Before pasting, Zynveliq looks at the few characters around the cursor and adds a space only where one is needed. Where an app hides its text, it uses its own last dictation instead. Nothing is stored or sent anywhere. On macOS this uses the Accessibility permission Zynveliq already has. On Linux, Chrome, Electron and Qt apps share their text only when the desktop accessibility setting is on."
+      },
+      "smartSpacingFixCase": {
+        "label": "Fix capital letters",
+        "description": "Start a dictation in lowercase when it continues a sentence. Names, acronyms and \"I\" keep their capitals."
+      },
+      "smartSpacingJoin": {
+        "label": "Join sentences you paused in",
+        "description": "Remove the period Zynveliq added when you stopped mid-sentence, as in \"I went to the.\""
+      },
+      "keyboardImplementation": {
+        "title": "Keyboard implementation",
+        "description": "Choose the keyboard shortcut backend.",
+        "bindingsReset": "Keyboard shortcuts were incompatible and reset to defaults"
+      },
+      "paths": {
+        "appData": "App Data:",
+        "models": "Models:",
+        "settings": "Settings:"
+      },
+      "pasteDelay": {
+        "title": "Paste delay",
+        "description": "Milliseconds to wait before pasting. Increase if the wrong text is pasted."
+      },
+      "recordingBuffer": {
+        "title": "Extra recording buffer",
+        "description": "Milliseconds to keep recording after you release the key."
+      }
+    },
+    "about": {
+      "title": "About",
+      "version": {
+        "title": "Version",
+        "description": ""
+      },
+      "updates": {
+        "title": "Updates",
+        "button": "Check for updates",
+        "disabledHint": "Automatic update checks are off. Turn them on in General."
+      },
+      "folders": {
+        "title": "Folders"
+      },
+      "appDataDirectory": {
+        "title": "App data folder",
+        "description": "Where Zynveliq keeps your models, history, and settings."
+      },
+      "sourceCode": {
+        "title": "Source code",
+        "description": "",
+        "button": "View on GitHub"
+      },
+      "license": {
+        "title": "License",
+        "description": "Zynveliq is open source under the MIT License, building on Handy (also MIT) by CJ Pais.",
+        "button": "View license"
+      },
+      "supportDevelopment": {
+        "title": "Support development",
+        "description": "Help us keep building Zynveliq",
+        "button": "Donate"
+      }
+    },
+    "assistant": {
+      "enable": {
+        "title": "Assistant",
+        "label": "Enable the assistant",
+        "description": "Turn this off to make Zynveliq dictation-only. The floating panel is closed and never loaded, its hotkeys are freed, and the memory it uses is returned. Generate with Flow and AI cleanup keep working."
+      },
+      "shortcuts": {
+        "title": "Shortcuts"
+      },
+      "brain": {
+        "title": "Assistant brain",
+        "whereLabel": "Where it runs",
+        "testLabel": "Test connection",
+        "testDescription": "Sends one short question to check the assistant can actually reach this model. On-device models load first, so the first test can take a while.",
+        "testButton": "Test connection",
+        "testing": "Testing…",
+        "onDevice": "On this computer",
+        "cloud": "Cloud",
+        "downloadModel": "Browse and download models",
+        "downloadModelDescription": "Pick a recommended model or search Hugging Face.",
+        "downloadModelAction": "Browse models",
+        "catalogTitle": "Choose an on-device model",
+        "catalogDescription": "Download a private local model. It stays on this machine and needs no API key.",
+        "currentModelTitle": "Current model",
+        "currentModelDescription": "Selected for the built-in assistant on this device.",
+        "recommendedTitle": "Recommended models",
+        "recommendedDescription": "Three conversation-first choices: quickest, recommended, and more capable but slower.",
+        "acceleratorDetected": "{{name}} · {{memory}} GB reported graphics memory",
+        "acceleratorDetectedDedicated": "{{name}} · {{memory}} GB dedicated VRAM",
+        "acceleratorDetectedIntegrated": "{{name}} · {{memory}} GB shared graphics memory",
+        "acceleratorDetectedNoMemory": "{{name}} detected · graphics memory not reported",
+        "acceleratorUnknownWithMemory": "Graphics memory unavailable · {{memory}} GB system RAM for CPU fallback",
+        "acceleratorUnknown": "Graphics memory unavailable · response speed cannot be predicted",
+        "details": "Details",
+        "detailFile": "File",
+        "detailLocation": "Location",
+        "detailFormat": "Format",
+        "detailId": "Model ID",
+        "switchBeforeDelete": "This model is in use. Switch to another one before deleting it.",
+        "deleteModelConfirm": "Delete {{modelName}}? Its downloaded files and saved entry will be removed.",
+        "deleteModelFailed": "Could not delete the model.",
+        "finderSectionTitle": "More on-device models",
+        "finderTitle": "Browse Hugging Face",
+        "finderDescription": "Search thousands of GGUF models and download one directly to Zynveliq.",
+        "finderAction": "Find a model",
+        "huggingFaceTitle": "Your models",
+        "catalogEmpty": "No recommended local models are available right now."
+      },
+      "subpages": {
+        "profilesCaption": "Switch the assistant's name, role, and personality.",
+        "memoryCaption": "What the assistant remembers about you between chats."
+      },
+      "provider": {
+        "title": "Assistant provider",
+        "saveFailed": "Couldn’t switch the Assistant provider.",
+        "providerLabel": "Provider",
+        "providerDescription": "The provider that answers assistant questions.",
+        "baseUrlLabel": "Base URL",
+        "baseUrlDescription": "OpenAI-compatible base URL. Azure URLs are normalized automatically.",
+        "apiKeyLabel": "API key",
+        "apiKeyDescription": "Shared with AI cleanup.",
+        "apiKeyPlaceholder": "Enter API key…",
+        "modelLabel": "Model",
+        "modelDescription": "Model or deployment name to use for assistant answers.",
+        "modelPlaceholder": "e.g. gpt-4o-mini",
+        "modelSearchPlaceholder": "Search or type a model…",
+        "modelUse": "Use \"{{model}}\"",
+        "loadModels": "Load models",
+        "loadingModels": "Loading…",
+        "noModelsFound": "No models returned. Type the model name instead.",
+        "builtinModelDescription": "Pick a downloaded local model. It runs on your machine with no API key.",
+        "builtinModelPlaceholder": "Select a downloaded model",
+        "builtinNoModels": "No models on your machine yet — download one below.",
+        "builtinReady": "Runs fully on your machine. No API key, no setup.",
+        "builtinEngineMissing": "First use downloads a small local engine automatically (one time), then runs fully offline. No setup needed.",
+        "builtinEngineDownloading": "Downloading the local engine… {{percent}}%",
+        "builtinEnginePreparing": "Downloading the local engine…",
+        "builtinEngineExtracting": "Installing the local engine…",
+        "builtinEngineReady": "Local engine ready.",
+        "contextSizeLabel": "Context window",
+        "contextSizeDescription": "How much of the conversation the model can read at once. Bigger remembers more but uses more memory and loads slower.",
+        "unloadTimeoutLabel": "Unload from memory after",
+        "unloadTimeoutDescription": "Free up memory by unloading the local model after it has been idle this long. It reloads automatically on next use."
+      },
+      "systemPrompt": {
+        "title": "System prompt",
+        "label": "Assistant system prompt",
+        "description": "Sets the assistant's behavior."
+      },
+      "characters": {
+        "title": "Profiles",
+        "description": "Personas with their own name, instructions, and reply length. Switch any time from the panel.",
+        "galleryLabel": "Your profiles",
+        "editSection": "Edit profile",
+        "avatarLabel": "Avatar",
+        "active": "Active",
+        "meowsOnly": "Meows only",
+        "builtin": "Built-in",
+        "custom": "Custom",
+        "new": "New",
+        "newName": "New profile",
+        "copyName": "{{name}} copy",
+        "createAi": "Create with AI",
+        "import": "Import",
+        "aiTitle": "Describe your profile",
+        "aiClose": "Close",
+        "aiPlaceholder": "e.g. a concise release-notes writer, or a patient tutor who explains every step",
+        "aiDictate": "Dictate the description",
+        "aiDictateStop": "Stop dictation",
+        "generate": "Generate",
+        "avatarUpload": "Upload image",
+        "avatarRemove": "Remove",
+        "nameLabel": "Name",
+        "roleLabel": "Role",
+        "rolePlaceholder": "Short description shown on the card (optional)",
+        "promptLabel": "Instructions (system prompt)",
+        "responseLength": {
+          "label": "Response length",
+          "hint": "How long this profile's replies run. \"Inherit\" follows your global Assistant setting.",
+          "options": {
+            "inherit": "Inherit global",
+            "short": "Short",
+            "medium": "Medium",
+            "long": "Long"
+          }
+        },
+        "greetingLabel": "Greeting (optional)",
+        "greetingPlaceholder": "Optional opening line shown in an empty chat",
+        "catNote": "The Cat ignores the AI entirely — it just meows. Nothing to configure here.",
+        "duplicate": "Duplicate",
+        "export": "Export",
+        "restoreDefault": "Restore default",
+        "restoreBuiltins": "Restore built-ins",
+        "moreActions": "More actions",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "delete": "Delete",
+        "deleteConfirm": "Delete this profile? This can't be undone.",
+        "emptyState": "No profiles yet. Create your first one to give the assistant a personality."
+      },
+      "behavior": {
+        "title": "Behavior"
+      },
+      "memory": {
+        "label": "Conversation memory",
+        "description": "How many recent messages are sent as context each turn. 0 disables memory."
+      },
+      "autoSummarize": {
+        "label": "Summarize long chats",
+        "description": "Condenses long chats so the assistant doesn't forget the start."
+      },
+      "responseLength": {
+        "label": "Response length",
+        "description": "Preferred reply length. \"No effect\" leaves your prompt untouched.",
+        "options": {
+          "default": "No effect",
+          "short": "Short",
+          "medium": "Medium",
+          "long": "Long"
+        }
+      },
+      "vision": {
+        "timing": {
+          "label": "Capture timing"
+        },
+        "screenRecording": {
+          "description": "Screen vision needs macOS Screen Recording permission. Grant it in System Settings, then restart Zynveliq for it to take effect.",
+          "grant": "Open System Settings"
+        }
+      },
+      "webSearch": {
+        "title": "Web search",
+        "enableLabel": "Allow web search",
+        "enableDescription": "Let the assistant search the web when a question needs current information.",
+        "openRouterNativeLabel": "Use OpenRouter's built-in search",
+        "openRouterNativeDescription": "When on, OpenRouter runs the search itself (its :online mode) using your OpenRouter credits. When off, the app searches with your search provider below.",
+        "providerLabel": "Search provider",
+        "providerDescription": "Serper is a good default. Every provider has a free tier, and TinyFish is free with no card.",
+        "providers": {
+          "serper": "Serper (Google, fast)",
+          "brave": "Brave Search",
+          "tavily": "Tavily (AI search)",
+          "exa": "Exa (neural)",
+          "serpapi": "SerpAPI (Google)",
+          "tinyfish": "TinyFish (free, no card)"
+        },
+        "apiKeyLabel": "API key",
+        "apiKeyDescription": "Key for the selected search provider.",
+        "apiKeyPlaceholder": "Enter API key…",
+        "fetchContentLabel": "Read full pages (best quality)",
+        "fetchContentDescription": "Read the full text of each result instead of snippets. Better answers, but slower.",
+        "maxResultsLabel": "Sources to use",
+        "maxResultsDescription": "How many results to read (1–10).",
+        "depthLabel": "Search depth",
+        "depthDescription": "Quick for simple facts, Standard for most questions, Deep for hard ones.",
+        "depthOptions": {
+          "low": "Quick",
+          "medium": "Standard",
+          "high": "Deep"
+        },
+        "localSmartLabel": "Smart search decisions (local model)",
+        "localSmartDescription": "Let the local model decide when to search. Off uses a fast keyword check instead.",
+        "creditBudgetLabel": "Daily Firecrawl credit limit",
+        "creditBudgetDescription": "Daily cap on Firecrawl credits before search pauses. 0 = no limit.",
+        "testLabel": "Test search",
+        "testDescription": "Run a sample search with the current provider and key.",
+        "testButton": "Test search",
+        "testing": "Searching…",
+        "testResult": "Got {{count}} results."
+      },
+      "tts": {
+        "title": "Voice output",
+        "enableLabel": "Speak replies during conversations",
+        "enableDescription": "Read replies out loud while you're in a live conversation. Quick text answers are never spoken.",
+        "stopOnDictationLabel": "Stop speech when dictation starts",
+        "stopOnDictationDescription": "Stop any reply that's still playing when you start dictating.",
+        "engineLabel": "Engine",
+        "engineDescription": "Voices on this computer are free and private, and work without the internet. Cloud voices use an API key from that provider. Custom connects to a speech server you run yourself.",
+        "sectionLocal": "On this computer",
+        "sectionLocalHint": "Free and private. Runs on this computer and works offline.",
+        "sectionCloud": "Cloud",
+        "sectionCloudHint": "Needs an API key from the provider. Custom connects to a speech server you run yourself.",
+        "readyLabel": "Ready to use",
+        "kokoroSetupLabel": "Kokoro voice model",
+        "kokoroSetupDescription": "Download it once, then spoken replies run privately on this device.",
+        "kokoroDownload": "Download Kokoro",
+        "kokoroDownloading": "Downloading Kokoro",
+        "kokoroReady": "Ready on this device",
+        "kokoroRetry": "Try download again",
+        "runsOnLabel": "Runs on",
+        "runsOn": {
+          "auto": "Automatic",
+          "gpu": "Graphics card",
+          "cpu": "Processor"
+        },
+        "runsOnStatus": {
+          "checking": "Uses the graphics card when it works, and the processor when it doesn't.",
+          "gpu": "Speaking on the graphics card.",
+          "processor": "Speaking on the processor.",
+          "gpuUnusable": "Speaking on the processor, because the graphics card can't run the voice on this computer.",
+          "needsPack": "The graphics card can't run the voice on this computer. Download the processor voice below for fast replies.",
+          "cpuNeedsPack": "Download the processor voice below. Until then Kokoro runs inside the app, which is slow.",
+          "loadFailed": "The processor voice couldn't start on this computer, so Kokoro runs inside the app for now.",
+          "noNativeSlow": "The graphics card can't run the voice on this computer, so Kokoro runs slowly inside the app. A cloud voice would be faster.",
+          "gpuForcedUnusable": "The graphics card can't run the voice properly on this computer. Set Runs on to Automatic or Processor."
+        },
+        "kokoroNativeLabel": "Processor voice",
+        "kokoroNativeDescription": "Lets Kokoro speak fast on the processor when the graphics card can't. {{size}} download.",
+        "kittenSizeLabel": "Kitten size",
+        "kittenSizeDescription": "All three sizes have the same eight voices. Bigger sizes sound more natural but take longer to start speaking, most of all on a small processor.",
+        "kittenSizes": {
+          "nano": "Nano · fastest ({{size}})",
+          "micro": "Micro · balanced ({{size}})",
+          "mini": "Mini · most natural ({{size}})"
+        },
+        "packLabel": {
+          "kitten": "Kitten voice",
+          "pocket": "Pocket TTS voice",
+          "supertonic": "Supertonic voice"
+        },
+        "packDescription": {
+          "kitten": "A small voice that runs on the processor. {{size}} download.",
+          "pocket": "Kyutai's natural-sounding voice, made for processors, with 14 speakers. {{size}} download.",
+          "supertonic": "Supertone's fast, clear voice, with ten speakers. {{size}} download."
+        },
+        "voiceNamedFemale": "{{name}} (female)",
+        "voiceNamedMale": "{{name}} (male)",
+        "voiceNumberedFemale": "Female {{n}}",
+        "voiceNumberedMale": "Male {{n}}",
+        "packSize": "{{size}} MB",
+        "packDownload": "Download ({{size}})",
+        "packDownloading": "Downloading",
+        "packInstalling": "Setting up",
+        "packCancel": "Cancel download",
+        "packRemove": "Remove",
+        "packUnsupported": "Not available on this system",
+        "kittenSuggestLabel": "Try Kitten",
+        "kittenSuggestDescription": "This computer has a small processor. Kitten is a lighter voice that replies faster here.",
+        "kittenSuggestButton": "Use Kitten",
+        "engines": {
+          "kokoro": "Kokoro (local, free)",
+          "kitten": "Kitten (local, light)",
+          "pocket": "Pocket TTS (local)",
+          "supertonic": "Supertonic (local)",
+          "openai": "OpenAI",
+          "elevenlabs": "ElevenLabs",
+          "openrouter": "OpenRouter",
+          "deepgram": "Deepgram Aura",
+          "cartesia": "Cartesia Sonic",
+          "google": "Google Cloud TTS",
+          "azure": "Azure AI Speech",
+          "groq": "Groq Orpheus",
+          "xai": "xAI Grok Voice",
+          "mistral": "Mistral Voxtral",
+          "inworld": "Inworld TTS",
+          "custom": "Custom server (OpenAI-compatible)"
+        },
+        "voiceLabel": "Voice",
+        "voiceDescription": "Kokoro voice for spoken replies.",
+        "dtypeLabel": "Kokoro precision",
+        "dtypeDescription": "Only for Kokoro running inside the app. fp32 is highest quality; q8 is smaller. Changing this reloads the model. If the voice sounds garbled, set Runs on to Processor.",
+        "speedLabel": "Playback speed",
+        "speedDescription": "1× is normal.",
+        "speedRange": "{{engine}} supports {{min}}× to {{max}}×; other speeds use the nearest limit.",
+        "speedUnsupported": "{{engine}} always speaks at its natural speed.",
+        "speedValue": "{{value}}×",
+        "speedCustomLabel": "Custom playback speed",
+        "volumeLabel": "Voice volume",
+        "volumeDescription": "How loud spoken replies are. Separate from the feedback sounds.",
+        "expressivenessLabel": "Expressiveness",
+        "expressivenessDescription": "How much the voice's delivery varies, from steady and even to lively and emotional.",
+        "expressivenessInfo": "This is ElevenLabs' Stability setting, turned around. Until you move it, each voice uses its own saved setting. The far expressive end can sometimes sound uneven.",
+        "expressivenessSteady": "Steady",
+        "expressivenessExpressive": "Expressive",
+        "expressivenessDefault": "Voice default",
+        "expressivenessReset": "Use the voice's default",
+        "expressivenessLevels": {
+          "verySteady": "Very steady",
+          "steady": "Steady",
+          "balanced": "Balanced",
+          "lively": "Lively",
+          "veryExpressive": "Very expressive"
+        },
+        "audioTagsLabel": "Audio tags",
+        "audioTagsDescription": "Let the voice perform its replies with cues like [laughs] and [whispers], and sound effects like [applause].",
+        "audioTagsNeedsModel": "Needs an Eleven v3 or v4 model, such as eleven_v4. Choose one under Model to turn this on.",
+        "audioTagsInfo": "The assistant writes short cues in square brackets into its spoken replies, and the ElevenLabs voice acts them out or plays them as sounds instead of reading them. Ask for a scene, like being cheered on by a crowd, and it builds one with effects. The chat shows the cues as written. Only ElevenLabs v3 and v4 voices perform them; every other voice has them removed before speaking.",
+        "audioTagIntensityLabel": "Performance",
+        "audioTagIntensityDescription": "How often the voice reacts and adds effects, from a light touch to a full performance.",
+        "audioTagIntensityLevels": {
+          "subtle": "Subtle",
+          "balanced": "Balanced",
+          "theatrical": "Theatrical"
+        },
+        "testLabel": "Test voice",
+        "testDescription": "Play a short sample with the current settings.",
+        "testButton": "Test voice",
+        "testing": "Testing…",
+        "testOk": "Played ✓",
+        "testFailed": "Kokoro couldn't make the sample. Try again, or set Runs on to Processor.",
+        "testGpuMoved": "Your graphics card garbled the sample, so it was muted. Kokoro now uses the processor, so test again to hear it.",
+        "testGpuForced": "Your graphics card garbled the sample, so it was muted. Set Runs on to Automatic or Processor.",
+        "testGpuSuspect": "The sample came out garbled, so it was muted. Test again to check your graphics card.",
+        "testPhrase": "Hi! This is a test of Zynveliq's voice output.",
+        "downloadStart": "Downloading Kokoro voice…",
+        "downloadProgress": "Downloading Kokoro voice… {{progress}}%",
+        "downloadReady": "Kokoro voice ready ✓",
+        "downloadError": "Couldn't download the Kokoro voice model",
+        "baseUrlLabel": "Base URL",
+        "baseUrlDescription": "Your speech server's OpenAI-compatible address, e.g. http://localhost:8880/v1. Works with Kokoro-FastAPI, Speaches, Chatterbox, Orpheus-FastAPI, LocalAI and other servers that offer /v1/audio/speech. A full /audio/speech URL also works.",
+        "azureBaseUrlLabel": "Speech URL",
+        "azureBaseUrlDescription": "Your Azure Speech URL from the portal, e.g. https://eastus2.tts.speech.microsoft.com.",
+        "apiKeyLabel": "API key",
+        "apiKeyDescription": "Your {{provider}} API key. Each voice engine keeps its own key.",
+        "apiKeyOptionalDescription": "Only needed if your server asks for one.",
+        "modelLabel": "Model",
+        "modelDescription": "The model that speaks. Leave it empty to use the engine's default, shown in grey.",
+        "remoteVoiceLabel": "Voice name",
+        "remoteVoiceDescription": "Voice for OpenAI-compatible TTS, e.g. alloy, echo, nova, shimmer.",
+        "azureVoiceLabel": "Voice name",
+        "azureVoiceDescription": "Azure voice name, e.g. en-US-JennyNeural. Click Load voices to browse.",
+        "voiceLoadDescription": "Press Load voices to see this engine's voices, or type a voice ID.",
+        "deepgramVoiceDescription": "A Deepgram voice is also its model, e.g. aura-2-thalia-en. Press Load voices to browse.",
+        "loadVoices": "Load voices",
+        "voicesLoading": "Loading…",
+        "voicesPick": "Pick from {{count}} voices…",
+        "loadModels": "Load models",
+        "modelsLoading": "Loading…",
+        "modelsPick": "Pick from {{count}} models…",
+        "modelsUse": "Use \"{{model}}\"",
+        "voicesUse": "Use \"{{voice}}\"",
+        "elevenVoiceLabel": "Voice ID",
+        "elevenVoiceDescription": "ElevenLabs voice ID (from the Voices tab in their dashboard).",
+        "promptLabel": "Summary Prompt",
+        "promptDescription": "Instructions for generating the brief spoken summary of each answer.",
+        "kokoroVoices": {
+          "usFemale": "{{name}} (US female)",
+          "usFemaleSoft": "{{name}} (US female, soft)",
+          "usMale": "{{name}} (US male)",
+          "ukFemale": "{{name}} (UK female)",
+          "ukMale": "{{name}} (UK male)"
+        },
+        "dtypes": {
+          "fp32": "fp32 (best quality, WebGPU)",
+          "fp16": "fp16 (half precision)",
+          "q8": "q8 (8-bit, fast on CPU)",
+          "q4": "q4 (4-bit, fastest)",
+          "q4f16": "q4f16 (4-bit mixed)"
+        }
+      },
+      "appearance": {
+        "title": "Panel appearance",
+        "previewLabel": "Preview",
+        "previewDescription": "Live preview of the panel with your text size and opacity.",
+        "previewUser": "Hey, what can you do?",
+        "previewAssistant": "Lots! Ask me anything — I can even look at your screen.",
+        "fontSizeLabel": "Text size",
+        "fontSizeDescription": "Size of the chat text in the assistant panel.",
+        "fontSizes": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large",
+          "extraLarge": "Extra large"
+        },
+        "askDisplayLabel": "Which screen",
+        "askDisplayDescription": "The screen the assistant opens on. By default, the one your mouse is on.",
+        "askDisplays": {
+          "cursor": "Screen my mouse is on",
+          "numbered": "Screen {{number}} ({{width}}×{{height}}){{suffix}}",
+          "mainSuffix": " · main"
+        },
+        "askAnchorLabel": "Where it opens",
+        "askAnchorDescription": "Where the assistant opens, every time.",
+        "askAnchors": {
+          "center": "Middle of the screen",
+          "top": "Top",
+          "bottom": "Bottom",
+          "left": "Left side",
+          "right": "Right side"
+        },
+        "opacityLabel": "Panel opacity",
+        "opacityDescription": "How opaque the floating panel is. 100% is fully solid; lower values let the desktop blur through."
+      }
+    },
+    "thinking": {
+      "title": "Thinking",
+      "description": {
+        "cleanup": "How long a reasoning model thinks before it cleans up your dictation. Off is fastest, and models that always think, such as gpt-oss, use their lowest level. Turn it up only if cleanup makes mistakes, since it adds a delay to every dictation.",
+        "assistant": "How long a reasoning model thinks before it answers. Off is fastest, and models that always think, such as gpt-oss, use their lowest level. Higher levels handle hard questions better but take longer to start answering."
+      },
+      "unsupported": {
+        "builtin": "Models on this computer always answer without thinking, which keeps them fast.",
+        "anthropic": "Anthropic doesn't let apps set this, so Claude decides. Use Claude through OpenRouter to set it.",
+        "apple": "Apple Intelligence has no thinking setting."
+      },
+      "options": {
+        "off": "Off",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    }
+  },
+  "footer": {
+    "downloadingModel": "Downloading {{model}}…",
+    "checkingUpdates": "Checking for updates…",
+    "updateAvailable": "Update available: {{version}}",
+    "updateAvailableShort": "Update available",
+    "upToDate": "Up to date",
+    "downloadUpdate": "Download update",
+    "restart": "Restart",
+    "updateCheckingDisabled": "Update checking disabled",
+    "downloading": "Downloading… {{progress}}%",
+    "installing": "Installing…",
+    "preparing": "Preparing…",
+    "checkForUpdates": "Check for updates",
+    "checkFailed": "Update check failed",
+    "updateFailed": "Update failed",
+    "clickToRetry": "Click to try again",
+    "portableUpdateTitle": "Manual update required",
+    "portableUpdateMessage": "Portable installs cannot be updated automatically. To update: download the latest NSIS installer from GitHub Releases, install it to the same folder, then copy your Data/ folder (settings, models, recordings) from the old version to the new one.",
+    "portableUpdateButton": "Open GitHub Releases"
+  },
+  "meetings": {
+    "newTitle": "Meeting {{when}}",
+    "speakers": {
+      "me": "You",
+      "others": "Others",
+      "numbered": "Speaker {{number}}"
+    },
+    "recorder": {
+      "idleTitle": "Record a meeting",
+      "idleCaption": "Captures your microphone and the other participants as two separate streams.",
+      "recording": "Recording",
+      "paused": "Paused",
+      "liveCaption": "Transcribing as people speak.",
+      "start": "Start recording",
+      "starting": "Starting…",
+      "stop": "Stop",
+      "stopping": "Stopping…",
+      "stoppingHint": "Finishing the transcript. This can take a moment on a long meeting.",
+      "pause": "Pause",
+      "resume": "Resume",
+      "transcriptEmpty": "Nothing transcribed yet. It appears here as people speak."
+    },
+    "offer": {
+      "detected": "You seem to be on a call. Record it?",
+      "detectedApp": "{{app}} seems to be in a call. Record it?",
+      "idle": "Not recording",
+      "record": "Record this call",
+      "dismiss": "Not this time"
+    },
+    "autoDetect": {
+      "title": "Offer to record calls",
+      "description": "Notices when another app starts using your microphone and offers to record. It never starts on its own. If it guesses wrong, just dismiss the card.",
+      "unsupported": "Call detection is only available on Windows so far. On this system, start a meeting yourself."
+    },
+    "indicator": {
+      "title": "Floating indicator",
+      "description": "A small pill that shows the recording is running. Click it for the live transcript. Turn it off to keep your screen clear; the recording then stays here, and you stop it from this page.",
+      "hide": "Hide the floating indicator",
+      "show": "Show the floating indicator"
+    },
+    "notesPrefs": {
+      "autoTitle": "Write notes when a call ends",
+      "autoDescription": "Turn this off if you only need the transcript. You can still write notes for one meeting from its transcript.",
+      "languageTitle": "Notes language",
+      "languageDescription": "By default the notes are in the language the meeting was held in. Pick one to always get them in that language.",
+      "auto": "Same as the meeting",
+      "autoHint": "The language most of the meeting was in"
+    },
+    "pill": {
+      "expand": "Open the live transcript",
+      "collapse": "Back to the small pill",
+      "copy": "Copy transcript",
+      "copied": "Transcript copied",
+      "stop": "Stop recording",
+      "listening": "Listening. What people say appears here.",
+      "micOnly": "Only your microphone is being captured — nothing the other participants say will be in this transcript."
+    },
+    "ask": {
+      "placeholder": "Ask anything about this meeting…",
+      "send": "Ask",
+      "stop": "Stop",
+      "thinking": "Reading the transcript…",
+      "title": "Ask about this meeting",
+      "empty": "Ask what was decided, who owns what, or anything else that came up.",
+      "clear": "Clear these questions",
+      "youAsked": "You asked"
+    },
+    "systemAudio": {
+      "liveTitle": "Only your voice is being recorded",
+      "liveBody": "System audio could not be captured, so this meeting will contain your side of the conversation and nothing the other participants said.",
+      "unavailableTitle": "The other participants cannot be recorded on this machine",
+      "unavailableBody": "System audio capture is unavailable, so a meeting recorded now would contain only your own voice.",
+      "help": "Setup help"
+    },
+    "list": {
+      "title": "Recorded meetings",
+      "emptyTitle": "No meetings yet",
+      "emptyHint": "Start recording before a call and Zynveliq keeps the transcript, split by who was speaking.",
+      "loadMore": "Load more",
+      "speakers_one": "{{count}} speaker",
+      "speakers_other": "{{count}} speakers",
+      "hasNotes": "Notes generated"
+    },
+    "status": {
+      "recording": "Recording",
+      "processing": "Processing",
+      "complete": "Complete",
+      "interrupted": "Interrupted"
+    },
+    "delete": {
+      "action": "Delete meeting",
+      "whileRecording": "Stop the recording before deleting this meeting.",
+      "confirmTitle": "Delete this meeting?",
+      "confirmBody": "Its transcript, notes and audio are removed from this computer. This can't be undone."
+    },
+    "detail": {
+      "title": "Meeting",
+      "rename": "Rename meeting",
+      "gone": "This meeting has been deleted.",
+      "tabsLabel": "Meeting views"
+    },
+    "tabs": {
+      "myNotes": "My thoughts",
+      "transcript": "Transcript",
+      "summary": "Summary",
+      "ask": "Ask"
+    },
+    "discuss": {
+      "button": "Discuss this meeting",
+      "hint": "Talk this meeting over with the assistant. It knows what was said and can look things up in the transcript.",
+      "whileRecording": "Available once the recording stops.",
+      "nothingYet": "Nothing was transcribed yet.",
+      "failed": "Couldn't start the conversation: {{error}}",
+      "earlier": "Earlier discussions",
+      "continue": "Continue this discussion",
+      "untitled": "Untitled discussion",
+      "messages_one": "{{count}} message",
+      "messages_other": "{{count}} messages",
+      "more": "More under Past conversations."
+    },
+    "myNotes": {
+      "description": "Type what matters to you. It is merged with the transcript when notes are generated.",
+      "placeholder": "What you want to remember from this meeting…",
+      "saving": "Saving…",
+      "saved": "Saved"
+    },
+    "transcript": {
+      "empty": "This meeting has no transcript.",
+      "loadingMore": "Loading more of the transcript…",
+      "renameSpeaker": "Rename this speaker",
+      "copyTitle": "Copy the whole transcript with speaker names",
+      "lowConfidence": "Uncertain",
+      "lowConfidenceHelp": "This speaker label is a guess. The words are transcribed as spoken; only who said them is uncertain."
+    },
+    "diarize": {
+      "title": "Tell the speakers apart",
+      "ready": "Group the other participants into Speaker 1, Speaker 2, and so on.",
+      "needsModel": "Needs a one-time {{size}} MB download. It then runs on your machine, and every later meeting is labelled automatically.",
+      "install": "Download and identify",
+      "downloading": "Downloading…",
+      "identify": "Identify speakers",
+      "running": "Listening…",
+      "progress": "Comparing voices, {{done}} of {{total}} passages.",
+      "oneSpeaker": "Only one other voice was on this call, so there is nobody to tell apart.",
+      "skipped": {
+        "modelNotInstalled": "The speaker model is not installed yet.",
+        "noSystemAudio": "This meeting has no recording of the other participants.",
+        "audioUnreadable": "The recording of the other participants could not be read. This happens when the app was closed mid-meeting.",
+        "tooFewSegments": "There is not enough speech from the other participants to compare.",
+        "alreadyDone": "The speakers in this meeting have already been identified.",
+        "modelUnusable": "The speaker model could not be loaded, so it has been removed. Download it again."
+      }
+    },
+    "summary": {
+      "template": "Template",
+      "languageAuto": "Meeting language",
+      "templates": {
+        "general": "General",
+        "standup": "Standup",
+        "one_on_one": "One-on-one",
+        "interview": "Interview",
+        "action_items": "Action items"
+      },
+      "templateHints": {
+        "general": "Summary, key takeaways, topics, decisions and next steps. The default.",
+        "standup": "Grouped by person: what they finished, what is next, what is blocking them.",
+        "one_on_one": "Topics, feedback, and what each person committed to.",
+        "interview": "Evidence about the candidate, with no verdict.",
+        "action_items": "Nothing but the tasks, split into yours and everyone else's."
+      },
+      "generate": "Generate notes",
+      "regenerate": "Regenerate",
+      "rewrite": "Rewrite with a different template",
+      "generating": "Writing notes…",
+      "writing": "Writing the notes for this meeting. This takes a moment on a long call.",
+      "autoCaption": "Written when the call ended",
+      "retryCaption": "The notes for this meeting have not been written yet.",
+      "whileRecording": "Notes are written automatically when the recording stops.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "toggleTask": "Mark this next step done or not done",
+      "failed": "The notes could not be written: {{error}}",
+      "tryAgain": "Try again",
+      "empty": "No notes for this meeting yet.",
+      "needsTranscript": "There is no transcript to summarize.",
+      "skipped_one": "One part of the transcript could not be summarized, so these notes have a gap in them.",
+      "skipped_other": "{{count}} parts of the transcript could not be summarized, so these notes have gaps in them."
+    },
+    "errors": {
+      "startFailed": "Couldn't start the meeting: {{error}}",
+      "stopFailed": "Couldn't stop the meeting: {{error}}",
+      "pauseFailed": "Couldn't change the recording: {{error}}",
+      "loadFailed": "Couldn't load meetings: {{error}}",
+      "transcriptFailed": "Couldn't load the transcript: {{error}}",
+      "deleteFailed": "Couldn't delete the meeting: {{error}}",
+      "renameFailed": "Couldn't rename the meeting: {{error}}",
+      "renameSpeakerFailed": "Couldn't rename the speaker: {{error}}",
+      "notesSaveFailed": "Couldn't save your notes: {{error}}",
+      "copyFailed": "Couldn't copy the notes: {{error}}",
+      "generateFailed": "Couldn't generate notes: {{error}}"
+    }
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "reset": "Reset",
+    "add": "Add",
+    "remove": "Remove",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "close": "Close",
+    "open": "Open",
+    "default": "Default",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "on": "On",
+    "off": "Off",
+    "yes": "Yes",
+    "no": "No",
+    "noOptionsFound": "No options found",
+    "back": "Back",
+    "showAdvanced": "More options",
+    "showLess": "Show less",
+    "beta": "Beta",
+    "select": "Select…",
+    "search": "Search",
+    "moreInfo": "More information",
+    "change": "Change",
+    "saveFailed": "Couldn't save that change. Try again.",
+    "more": "More",
+    "hideTips": "Hide tips",
+    "showTips": "Show tips",
+    "play": "Play",
+    "pause": "Pause",
+    "unknownSize": "Unknown size"
+  },
+  "accessibility": {
+    "permissionsRequired": "Accessibility permissions required",
+    "permissionsDescription": "Zynveliq needs accessibility permissions to type transcribed text.",
+    "openSettings": "Open System Settings",
+    "dismiss": "Dismiss"
+  },
+  "errors": {
+    "loadDirectory": "Couldn't load the directory: {{error}}",
+    "micPermissionDeniedTitle": "Microphone access denied",
+    "micPermissionDenied": {
+      "generic": "Microphone access was denied by the operating system. Please grant microphone permission in your system settings.",
+      "windows": "Enable microphone access in Settings → Privacy & security → Microphone (including desktop app access).",
+      "macos": "Grant microphone access in System Settings → Privacy & Security → Microphone.",
+      "linux": "Grant microphone access in your system's sound or privacy settings."
+    },
+    "noInputDeviceTitle": "No microphone found",
+    "noInputDevice": "No audio input device was detected. Please connect a microphone or headset and try again.",
+    "recordingFailed": "Couldn't start recording: {{error}}",
+    "modelLoadFailed": "Couldn't load model: {{model}}",
+    "modelLoadFailedUnknown": "unknown model",
+    "loadModelsFailed": "Couldn't load models: {{error}}",
+    "switchModelFailed": "Couldn't switch models: {{error}}",
+    "cancelDownloadFailed": "Couldn't cancel the download: {{error}}",
+    "deleteModelFailed": "Couldn't delete the model: {{error}}",
+    "extractModelFailed": "Couldn't extract the model: {{error}}",
+    "downloadFailedTitle": "Download failed",
+    "pasteFailedTitle": "Couldn't paste text",
+    "pasteFailed": "The text couldn't be pasted into the active app."
+  },
+  "appLanguage": {
+    "title": "App language",
+    "description": "Change the language of the Zynveliq interface"
+  },
+  "overlay": {
+    "preparing": "Getting mic ready…",
+    "recording": "Recording",
+    "transcribing": "Transcribing…",
+    "loading": "Loading model…",
+    "processing": "Cleaning up…",
+    "generating": "Writing with Flow…",
+    "vision": "Looking at your screen…",
+    "notices": {
+      "flowNotConfigured": "Flow needs an assistant model — pasted as dictation",
+      "flowFailed": "Flow couldn't generate — nothing was pasted",
+      "cloudSttFailed": "Cloud transcription failed — check your key and credit in Settings",
+      "flowEmpty": "Say a command after the activation phrase",
+      "cleanupFallback": "AI cleanup didn't run — pasted the raw text",
+      "cleanupModelRejected": "Your cleanup provider rejected that model — check the model in Settings",
+      "cloudSttFellBack": "Cloud transcription failed — used the on-device model",
+      "noSpeechModel": "No speech model yet. Pick one on the Models page"
+    },
+    "listening": "Listening…",
+    "locked": "Recording hands-free — press your shortcut again to finish",
+    "cancel": "Cancel",
+    "copy": "Copy the transcript",
+    "transcript": "Transcript",
+    "copied": "Copied",
+    "copyFailed": "Could not copy — try again",
+    "done": "Done",
+    "finish": "Finish",
+    "askAssistant": "Ask the assistant instead of typing this",
+    "recovery": {
+      "dismissed": "Dismissed",
+      "failed": "Transcription failed",
+      "undo": "Undo",
+      "retry": "Try again"
+    },
+    "downloading": {
+      "title": "Speech model downloading…",
+      "percent": "Speech model downloading · {{percent}}%",
+      "hint": "Dictation starts working when it's done"
+    },
+    "update": {
+      "title": "{{model}} needs an update",
+      "hint": "The new version is on the Models page"
+    },
+    "handsFreeHint": "Press {{key}} to go hands-free",
+    "lockedKeys": "Recording hands-free. Press {{keys}} to finish",
+    "finishKeys": "Finish ({{keys}})"
+  },
+  "reminders": {
+    "title": "Reminder",
+    "due": {
+      "now": "just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago"
+    },
+    "done": "Done",
+    "snooze": "Snooze",
+    "snoozeFor_one": "{{count}} minute",
+    "snoozeFor_other": "{{count}} minutes",
+    "snoozedTimes_one": "Snoozed once",
+    "snoozedTimes_other": "Snoozed {{count}}×",
+    "later": "Hide for now — the reminder stays set",
+    "settings": {
+      "label": "Reminders",
+      "description": "Ask the assistant to remind you about something; it's listed here until it's due.",
+      "empty": "Nothing scheduled. Ask the assistant to remind you about something.",
+      "waiting": "Waiting for you",
+      "cancel": "Cancel this reminder",
+      "dueAt": "Due {{when}}"
+    }
+  },
+  "assistant": {
+    "conversation": {
+      "title": "Conversation",
+      "newChat": "New chat",
+      "type": "Type a message",
+      "backToVoice": "Back to voice",
+      "mute": "Mute microphone",
+      "unmute": "Unmute microphone",
+      "speakerOn": "Read replies aloud",
+      "speakerOff": "Stop reading replies aloud",
+      "expand": "Open conversation",
+      "collapse": "Collapse",
+      "historyOpen": "Past conversations",
+      "historyClose": "Back to this conversation",
+      "end": "End conversation",
+      "send": "Send",
+      "stop": "Stop the reply",
+      "placeholder": "Message {{name}}",
+      "dismiss": "Dismiss",
+      "retry": "Try again",
+      "details": "Details",
+      "startHint": "Start talking, or type a message.",
+      "mutedHint": "Microphone off. You can still type.",
+      "heldHint": "Paused while you dictate.",
+      "preparingVoice": "Preparing the voice… {{progress}}%",
+      "history": {
+        "title": "Past conversations",
+        "hint": "Pick one to carry on where you left off. Your current conversation stays open.",
+        "empty": "No saved conversations yet.",
+        "noMatches": "Nothing matches that search.",
+        "noMeetings": "No conversations about meetings yet. Open a meeting and choose Discuss this meeting.",
+        "loading": "Loading…",
+        "failed": "Couldn't load your conversations.",
+        "more": "Show more",
+        "untitled": "Untitled conversation",
+        "current": "Open now",
+        "search": "Search conversations",
+        "clearSearch": "Clear search",
+        "scopeLabel": "Which conversations",
+        "scopes": {
+          "all": "All",
+          "meetings": "Meetings"
+        },
+        "groups": {
+          "today": "Today",
+          "yesterday": "Yesterday",
+          "week": "Previous 7 days",
+          "earlier": "Earlier"
+        },
+        "matchCount_one": "{{count}} conversation",
+        "matchCount_other": "{{count}} conversations",
+        "messages_one": "{{count}} message",
+        "messages_other": "{{count}} messages"
+      },
+      "meeting": {
+        "about": "About {{title}}",
+        "chipHint": "The assistant has this meeting's notes and can search its transcript.",
+        "untitled": "Untitled meeting",
+        "startTitle": "Let's talk about {{title}}",
+        "startHint": "Ask anything about it, or what to do next. Start talking, or pick one:",
+        "prompts": {
+          "recap": "Give me a quick recap",
+          "next": "What should I do next?",
+          "followUp": "Draft a follow-up message",
+          "missed": "Anything I might have missed?"
+        }
+      },
+      "options": "Conversation options",
+      "pace": "Time to finish speaking",
+      "paceHint": "How long to wait after you pause before replying.",
+      "paces": {
+        "quick": "Quick",
+        "natural": "Natural",
+        "patient": "Patient"
+      },
+      "sensitivity": "Microphone sensitivity",
+      "sensitivityHint": "How readily a sound counts as you speaking. Lower it if background noise or the assistant's own voice keeps cutting in.",
+      "sensitivities": {
+        "low": "Low — noisy room or speakers",
+        "normal": "Normal",
+        "high": "High — quiet room or headphones"
+      },
+      "phase": {
+        "off": "Conversation ended",
+        "starting": "Connecting…",
+        "listening": "Listening",
+        "hearing": "Listening…",
+        "transcribing": "Transcribing…",
+        "responding": "Thinking…",
+        "speaking": "Speaking",
+        "muted": "Microphone off",
+        "held": "Paused for dictation",
+        "error": "Conversation interrupted"
+      },
+      "errors": {
+        "microphone": "Couldn't open your microphone. Allow microphone access and check that it isn't in use by another app.",
+        "device": "Your microphone disconnected. Reconnect it, then try again.",
+        "setup": "Couldn't start conversation. Check your microphone, speaker, and assistant model in Settings.",
+        "turn": "This reply couldn't finish. Check the details, then try again.",
+        "playback": "Couldn't play the voice reply. Check your voice provider and output device.",
+        "tooLong": "That recording reached the one-minute limit. Try again with a shorter turn.",
+        "history": "Couldn't open that conversation. Try again."
+      },
+      "chooseProfile": "Change profile, currently {{name}}",
+      "profiles": "Profiles",
+      "profileHint": "Changes apply to your next reply.",
+      "chatOnlyProfile": "This profile is available in chat only.",
+      "profileError": "Could not switch profiles. Try again."
+    },
+    "title": "Assistant",
+    "character": {
+      "switch": "Switch persona"
+    },
+    "empty": "Ask by voice with your assistant shortcut,\nor type below.",
+    "inputPlaceholder": "Message…",
+    "bar": {
+      "placeholder": "Ask anything…"
+    },
+    "send": "Send",
+    "stop": "Stop",
+    "cancel": "Cancel",
+    "copy": "Copy",
+    "copyCode": "Copy code",
+    "insert": "Insert this where you were typing",
+    "insertShort": "Insert",
+    "insertReplace": "Replace your selected text with this",
+    "insertReplaceShort": "Replace",
+    "selectionAttached_one": "{{count}} character selected",
+    "selectionAttached_other": "{{count}} characters selected",
+    "regenerate": "Regenerate answer (the old one stays in History)",
+    "summarizing": "Summarizing earlier messages…",
+    "screenAttached": "Screen",
+    "attach": {
+      "file": "Attach an image or file",
+      "imageCount_one": "{{count}} image",
+      "imageCount_other": "{{count}} images",
+      "dropHint": "Drop to attach"
+    },
+    "webSearch": {
+      "enable": "Enable web search",
+      "disable": "Disable web search"
+    },
+    "tts": {
+      "enable": "Enable voice summaries",
+      "disable": "Disable voice summaries",
+      "loading": "Loading Kokoro voice model..."
+    },
+    "status": {
+      "listening": "Listening…",
+      "locked": "Listening",
+      "transcribing": "Transcribing…",
+      "searching": "Searching the web…",
+      "thinking": "Thinking…",
+      "speaking": "Speaking…"
+    },
+    "tool": {
+      "search": "Searching the web",
+      "screen": "Looking at your screen…",
+      "meetingSearch": "Searching the meeting",
+      "meetingRead": "Reading the meeting",
+      "working": "Working on it",
+      "elapsed": "{{seconds}}s"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "genericShort": "Something went wrong",
+      "no_provider": "No assistant model is set up yet. Pick a provider in Settings → Assistant.",
+      "no_providerShort": "No model set up",
+      "no_model": "Your provider has no model selected. Choose one in Settings → Assistant.",
+      "no_modelShort": "No model selected",
+      "engine_start": "The built-in model couldn't start. Try again, or pick a different model in Settings → Assistant.",
+      "engine_startShort": "Model couldn't start",
+      "provider": "The model couldn't answer. Check your API key and connection, then try again.",
+      "providerShort": "Couldn't get an answer",
+      "empty_reply": "The model finished without writing a reply. Try asking again, or pick a different model in Settings → Assistant.",
+      "empty_replyShort": "Empty reply",
+      "vision_unsupported": "This model can't read your screen. Pick a vision-capable model in Settings → Assistant, or ask again without screen vision.",
+      "vision_unsupportedShort": "Model can't see images",
+      "screenshot_too_large": "The screen capture was too large for this provider. Please try again — it will be compressed harder.",
+      "screenshot_too_largeShort": "Screen capture too large",
+      "screen_capture": "Couldn't capture the screen. Try again, or ask without screen vision.",
+      "screen_captureShort": "Screen capture failed",
+      "transcription": "Couldn't transcribe your voice. Please try speaking again.",
+      "transcriptionShort": "Transcription failed",
+      "tts": "The spoken reply failed. Check your TTS settings, or read the answer in the panel.",
+      "ttsShort": "Voice reply failed",
+      "tts_local": "The local voice couldn't load. Check your connection or switch TTS engines in Settings.",
+      "tts_localShort": "Voice couldn't load",
+      "tts_blocked": "Your system blocked the voice from playing on its own. Click anywhere in the panel to hear the reply.",
+      "tts_blockedShort": "Tap the panel to hear it",
+      "tts_playback": "Couldn't play the voice on your output device. Check your speaker/output settings, then try again.",
+      "tts_playbackShort": "Voice playback failed",
+      "tts_gpu": "Your graphics card garbled the voice, so it was muted. The next reply uses the processor voice instead.",
+      "tts_gpuShort": "Voice muted: graphics card garbled it",
+      "tts_gpu_slow": "Your graphics card garbled the voice, so it was muted. Replies now run on the processor, which is slow until you download the processor voice in Models → Voice.",
+      "tts_gpu_slowShort": "Voice muted: graphics card garbled it",
+      "tts_gpu_forced": "Your graphics card garbled the voice, so it was muted. Set Runs on to Automatic or Processor in Models → Voice.",
+      "tts_gpu_forcedShort": "Voice muted: graphics card garbled it",
+      "mic_denied": "Microphone access is blocked. Allow it in your system privacy settings.",
+      "mic_deniedShort": "Mic access blocked",
+      "mic_unavailable": "No microphone was found. Connect one and try again.",
+      "mic_unavailableShort": "No microphone found",
+      "mic_error": "The microphone couldn't start. It may be in use by another app.",
+      "mic_errorShort": "Mic couldn't start",
+      "file_read": "That file couldn't be attached.",
+      "file_readShort": "Couldn't attach file"
+    },
+    "notices": {
+      "web_search_failed": "Web search didn't return results — answering without them.",
+      "web_search_failedShort": "No web results",
+      "queued": "Queued — sending as soon as this reply finishes.",
+      "queuedShort": "Queued"
+    },
+    "engineSetup": {
+      "downloading": "Setting up the local engine (first run)… {{percent}}%",
+      "preparing": "Setting up the local engine (first run)…",
+      "extracting": "Installing the local engine…",
+      "short": "Setting up engine…"
+    },
+    "quick": {
+      "selection": "Selection",
+      "copied": "Copied"
+    }
+  },
+  "nav": {
+    "label": "Main",
+    "home": "Home",
+    "history": "History",
+    "assistant": "Assistant",
+    "meetings": "Meetings",
+    "cleanup": "AI cleanup",
+    "dictionary": "Dictionary",
+    "models": "Models",
+    "settings": "Settings",
+    "status": {
+      "label": "Speech model: {{model}}, {{status}}. Open speech-to-text settings.",
+      "setup": "Needs setup",
+      "needsUpdate": "Needs update",
+      "cloud": "Cloud · {{provider}}",
+      "loading": "Loading…",
+      "error": "Couldn't load",
+      "ready": "Ready",
+      "idle": "Loads when you dictate",
+      "noModel": "No speech model"
+    },
+    "insights": "Insights"
+  },
+  "settingsDialog": {
+    "title": "Settings",
+    "tabs": {
+      "general": "General",
+      "shortcuts": "Shortcuts",
+      "audio": "Audio",
+      "dictation": "Dictation",
+      "privacy": "Privacy & data",
+      "advanced": "Advanced",
+      "about": "About",
+      "debug": "Debug"
+    },
+    "general": {
+      "appearance": "Appearance"
+    },
+    "shortcuts": {
+      "intro": "Every shortcut works in any app. Click a shortcut to record a new one.",
+      "dictation": "Dictation",
+      "assistant": "Assistant",
+      "mouse": "Mouse",
+      "cleanupOff": "Turn on AI cleanup to get this shortcut.",
+      "assistantOff": "The assistant is turned off, so its shortcuts do nothing."
+    },
+    "audio": {
+      "microphone": "Microphone",
+      "otherAudio": "Other audio",
+      "otherAudioHint": "Music, videos and calls playing on your computer while you dictate or ask the assistant.",
+      "overlayHint": "The small pill that shows while you record."
+    },
+    "dictation": {
+      "intro": "How your words land in the app you are typing into.",
+      "output": "Typing and pasting",
+      "extras": "Extras"
+    },
+    "privacy": {
+      "intro": "Recordings and history are stored only on this computer. Choose how long recordings are kept.",
+      "recordingsFolder": "Recordings folder"
+    },
+    "advanced": {
+      "performance": "Performance"
+    },
+    "about": {
+      "appName": "Zynveliq",
+      "version": "Version {{version}}",
+      "project": "Project",
+      "docs": "Documentation",
+      "openDocs": "Open docs"
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Working late"
+    },
+    "subtitleHold": "Hold your shortcut in any app, talk, and let go. Your words appear where your cursor is.",
+    "subtitleTap": "Tap your shortcut in any app, talk, and tap it again. Your words appear where your cursor is.",
+    "needsModel": {
+      "title": "Pick a speech model to start dictating.",
+      "description": "Zynveliq needs a speech-to-text model before it can type what you say.",
+      "action": "Choose a model"
+    },
+    "stats": {
+      "label": "Your usage",
+      "none": "–",
+      "spoken": "spoken",
+      "words": "words",
+      "wpm": "WPM",
+      "wpmHint": "Words per minute across your recordings, pauses included.",
+      "saved": "saved",
+      "savedHint": "Compared with typing the same words at {{wpm}} words per minute.",
+      "empty": "Your numbers show up after your first dictation.",
+      "streak_one": "{{count}} day streak",
+      "streak_other": "{{count}} day streak",
+      "noStreak": "Dictate today to start a streak",
+      "today": "{{words}} words today",
+      "duration": {
+        "seconds": "{{seconds}} sec",
+        "minutes": "{{minutes}} min",
+        "hours": "{{hours}} hr",
+        "hoursMinutes": "{{hours}} hr {{minutes}} min"
+      },
+      "wordsLabel": "Words dictated",
+      "wpmLabel": "Words per minute",
+      "savedLabel": "Time saved",
+      "streakLabel_one": "Day streak",
+      "streakLabel_other": "Day streak",
+      "streakUnit_one": "day streak",
+      "streakUnit_other": "day streak",
+      "seeInsights": "See insights"
+    },
+    "shortcuts": {
+      "title": "Shortcuts",
+      "edit": "Edit shortcuts",
+      "turnOn": "Turn on",
+      "off": "Turned off",
+      "setKey": "Set a shortcut",
+      "dictate": {
+        "title": "Dictate",
+        "hold": "Hold, talk, let go. Your words are typed where your cursor is.",
+        "tap": "Tap to start, talk, tap to stop. Your words are typed where your cursor is.",
+        "whatHold": "Hold, talk, let go. Your words type where your cursor is.",
+        "whatTap": "Tap, talk, tap again. Your words type where your cursor is."
+      },
+      "handsFree": {
+        "what": "Hold {{keys}}, press {{key}}, then let go: it keeps listening until you press {{keys}} again.",
+        "linux": "To dictate hands-free on Linux, turn off Hold to talk. One press then starts and the next one stops."
+      },
+      "cleanup": {
+        "title": "Dictate and clean up",
+        "description": "Same as Dictate, then AI fixes punctuation, filler words, and style.",
+        "what": "Dictate, then AI fixes punctuation, fillers, and style."
+      },
+      "ask": {
+        "title": "Ask the assistant",
+        "description": "Ask a question out loud and get the answer in a floating panel.",
+        "whatHold": "Hold, ask, let go. The answer appears in a floating panel.",
+        "whatTap": "Tap, ask, tap again. The answer appears in a floating panel."
+      },
+      "call": {
+        "title": "Start a conversation",
+        "description": "A hands-free conversation with spoken replies.",
+        "what": "Talk back and forth, hands-free. Press again to end."
+      },
+      "info": "Press these in any app. Click the keys to change them.",
+      "offHint": "Turned off",
+      "cancel": {
+        "title": "Cancel",
+        "what": "Stop a recording, or a reply being read aloud."
+      },
+      "globe": {
+        "hint": "macOS also acts on the 🌐 key. Set “Press 🌐 key to” to Do Nothing so it only dictates.",
+        "open": "Keyboard settings"
+      },
+      "linux": {
+        "wayland": "On Wayland, your desktop only passes these keys to Zynveliq while one of its windows is in front. To use them in any app, add them as shortcuts in your system settings.",
+        "noAccess": "Zynveliq Keys can't read the keyboard on this computer, so these shortcuts do nothing yet.",
+        "setUp": "Set up",
+        "where": {
+          "gnome": "Open Settings → Keyboard → View and Customize Shortcuts → Custom Shortcuts, add one for each command below, and press the keys you want.",
+          "kde": "Open System Settings → Keyboard → Shortcuts, choose Add New → Command or Script for each command below, and press the keys you want.",
+          "other": "Add a custom shortcut in your desktop's keyboard settings, or a bind line in your compositor's config, for each command below."
+        },
+        "tapOnly": "A shortcut added this way works like Tap to toggle: press once to start and again to stop.",
+        "access": "Or let Zynveliq Keys read the keyboard. Run this in a terminal, then log out and back in:",
+        "copy": "Copy",
+        "copied": "Copied"
+      }
+    },
+    "setup": {
+      "title": "Your models",
+      "manage": "Manage"
+    },
+    "recent": {
+      "title": "Recent",
+      "viewAll": "View all",
+      "copy": "Copy text",
+      "cleaned": "Cleaned up",
+      "tryPrefix": "Try it: click in the box, then press",
+      "trySuffixHold": "and hold it while you talk.",
+      "trySuffixTap": "and talk. Press it again when you're done.",
+      "tryPlaceholder": "Your words will appear here…"
+    },
+    "activity": {
+      "title": "Last 30 days",
+      "summary_one": "{{words}} words on {{count}} day",
+      "summary_other": "{{words}} words on {{count}} days",
+      "chartLabel": "Words dictated each day over the last {{days}} days: {{words}} in total.",
+      "words_one": "{{formatted}} word",
+      "words_other": "{{formatted}} words",
+      "today": "Today"
+    }
+  },
+  "speechUpdate": {
+    "title": "{{model}} used an older engine that Zynveliq no longer includes.",
+    "newVersion": "Its new version is {{model}}.",
+    "ready": "{{model}} is downloaded and ready.",
+    "noVersion": "Choose another model to keep dictating.",
+    "failed": "Couldn't download {{model}}.",
+    "download": "Download new version ({{size}})",
+    "retry": "Try again",
+    "chooseAnother": "Choose another model",
+    "progressLabel": "Downloading the new version",
+    "dialogTitle": "Zynveliq has a new speech engine",
+    "dialogBody": "It's faster and more stable, so you'll run into fewer problems. {{model}} ran on the old engine and needs its new version to keep working.",
+    "later": "Later"
+  },
+  "modelsHub": {
+    "description": "Each job in Zynveliq is done by a model you choose. Run it on this computer for privacy, or in the cloud for speed.",
+    "addLocal": "Add a model file",
+    "privacyNote": "Models on this computer never send your voice or text anywhere. Cloud models send it to the provider you picked, using your API key.",
+    "inUse": "In use",
+    "needsSetup": "Needs setup",
+    "needsUpdate": "Needs update",
+    "performance": "Performance",
+    "where": {
+      "device": "On this computer",
+      "cloud": "Cloud",
+      "cloudWith": "Cloud · {{provider}}",
+      "deviceShort": "This computer"
+    },
+    "status": {
+      "voiceOff": "Spoken replies are off",
+      "assistantOff": "Assistant is turned off",
+      "noModel": "No model chosen yet",
+      "notDownloaded": "Model not downloaded",
+      "needsUpdate": "{{model}} needs an update",
+      "noKey": "Add an API key",
+      "noEndpoint": "Add an endpoint"
+    },
+    "voice": {
+      "kokoroModel": "Kokoro voice"
+    },
+    "usedBy": {
+      "label": "Used by",
+      "dictation": "Dictation",
+      "assistant": "Assistant",
+      "meetings": "Meetings",
+      "cleanup": "AI cleanup",
+      "meetingNotes": "Meeting notes",
+      "calls": "Conversations",
+      "flow": "Generate with Flow",
+      "spokenReplies": "Spoken replies"
+    },
+    "slots": {
+      "stt": {
+        "name": "Speech to text",
+        "description": "Turns your voice into text.",
+        "whereHint": "On this computer is private and free. Cloud uses a provider's API and your key.",
+        "catalogTitle": "Speech models",
+        "catalogDescription": "Every model here runs on this computer. Faster models suit dictation; larger ones are more accurate."
+      },
+      "cleanup": {
+        "name": "AI cleanup",
+        "description": "Follows your spoken edits and applies a writing style, and writes meeting notes.",
+        "turnOn": "Turn on AI cleanup",
+        "offNotice": "AI cleanup is off. Meeting notes still use this model.",
+        "borrowsNotice": "No cleanup model is set, so cleanup uses your assistant's model ({{model}}).",
+        "catalogTitle": "Cleanup models"
+      },
+      "assistant": {
+        "name": "Assistant",
+        "description": "Answers your questions, looks at your screen, and holds conversations.",
+        "openAssistant": "Open Assistant",
+        "offNotice": "The assistant is off. Generate with Flow and the cleanup fallback still use this model.",
+        "catalogTitle": "Assistant models",
+        "fallbackNote": "AI cleanup and meeting notes use this model too when they have none of their own."
+      },
+      "voice": {
+        "name": "Voice",
+        "description": "Reads the assistant's replies aloud."
+      }
+    }
+  },
+  "cleanup": {
+    "description": "Filler words are already removed on every dictation. AI cleanup goes further: it follows your spoken edits and applies a writing style.",
+    "toggle": "AI cleanup",
+    "how": {
+      "plain": "Types exactly what you said.",
+      "cleaned": "Types what you said, cleaned up by AI.",
+      "off": "Turn on AI cleanup to get this shortcut.",
+      "change": "Change"
+    },
+    "model": {
+      "title": "Cleanup model",
+      "borrows": "Borrowed from your assistant",
+      "own": "Runs every time you use the cleanup shortcut",
+      "change": "Change",
+      "info": "Runs every time you use the cleanup shortcut. With no model of its own, cleanup uses your assistant's."
+    },
+    "needsModel": {
+      "description": "AI cleanup needs a model before it can run. Until then, your text is typed as you said it.",
+      "action": "Choose a model",
+      "short": "Choose a model to start cleaning up."
+    },
+    "instructions": {
+      "title": "Cleanup instructions",
+      "description": "The base prompt that tells the model what to fix. Most people never change it.",
+      "current": "Using"
+    },
+    "styles": {
+      "title": "Writing style",
+      "description": "How cleaned text should read. Applied after the fixes, so corrections stay the same.",
+      "createTitle": "New style",
+      "createHint": "Describe how you want your text to sound.",
+      "editTitle": "Edit style",
+      "editorIntro": "Give the style a name and describe how your text should change. It's applied after cleanup, so the corrections stay the same.",
+      "inUse": "In use",
+      "editNamed": "Edit {{name}}",
+      "builtin": {
+        "none": "Fixes mistakes and leaves your wording alone.",
+        "professional": "Polished and clear, for work messages and email.",
+        "friendly": "Warm and relaxed, like a note to a friend.",
+        "concise": "Trims extra words and gets to the point.",
+        "formal": "Complete sentences and a formal register.",
+        "casual": "Loose and conversational."
+      },
+      "groups": {
+        "builtin": "Built in",
+        "custom": "Yours"
+      },
+      "manage": "Manage",
+      "manageTitle": "Your writing styles",
+      "noneYet": "No styles of your own yet.",
+      "newStyle": "New style",
+      "customHint": "One of your own styles. It's applied after the fixes.",
+      "preview": {
+        "youSay": "You say",
+        "itTypes": "It types",
+        "yourInstruction": "Your instruction"
+      },
+      "samples": {
+        "raw": "we should meet tomorrow at ten, actually no, eleven, and go over the budget",
+        "none": "We should meet tomorrow at eleven and go over the budget.",
+        "professional": "I suggest we meet tomorrow at 11:00 to review the budget.",
+        "friendly": "How about we meet tomorrow at eleven and go over the budget together?",
+        "concise": "Meet tomorrow at 11 to review the budget.",
+        "formal": "I propose that we meet tomorrow at eleven o'clock to review the budget.",
+        "casual": "let's meet tomorrow at eleven and go over the budget"
+      },
+      "form": {
+        "name": "Name",
+        "instruction": "Instructions",
+        "instructionTip": "How the wording should change. Applied after cleanup, so the fixes stay the same.",
+        "instructionPlaceholder": "For example: keep it casual and lowercase, and turn spoken emoji names into emoji."
+      },
+      "specialist": {
+        "ignored": "{{model}} only does plain cleanup, so it ignores writing styles. Use a general model to apply a style.",
+        "changeModel": "Change model"
+      }
+    },
+    "shortcut": {
+      "title": "Shortcut",
+      "info": "Give cleanup its own shortcut, or let your dictation shortcut clean up every dictation so there is one set of keys to remember.",
+      "separate": "Its own shortcut",
+      "dictation": "Same as dictation"
+    },
+    "skipShort": {
+      "title": "Skip cleanup for short dictations",
+      "info": "Short dictations, like a search or a quick reply, are typed as you said them, without waiting for the model. Longer ones are still cleaned up.",
+      "limit": "Shorter than",
+      "limitInfo": "Counted in words. In languages written without spaces, like Chinese, Japanese or Thai, words are estimated from the number of characters.",
+      "words_one": "word",
+      "words_other": "words"
+    },
+    "shortcutRow": "Shortcut"
+  },
+  "dictionary": {
+    "description": "Teach Zynveliq the names and terms you use, and set shortcuts that expand into longer text.",
+    "words": {
+      "title": "Your words",
+      "description": "Names, jargon, and spellings Zynveliq should always get right.",
+      "placeholder": "Add a name, a term, or a spelling…",
+      "empty": "Nothing here yet. Add the words Zynveliq keeps getting wrong."
+    },
+    "replacements": {
+      "title": "Replacements",
+      "description": "Say a phrase and get different text, like \"my email\" becoming your address."
+    },
+    "addWord": "Add word"
+  },
+  "assistantPage": {
+    "description": "Ask anything by voice, from any app. The assistant can see your screen, search the web, and remember what matters to you.",
+    "offNotice": "The assistant is turned off. Its shortcuts do nothing and it uses no memory until you turn it back on.",
+    "hero": {
+      "askHold": "Hold, ask your question, let go. The answer appears in a floating panel.",
+      "askTap": "Tap, ask your question, tap again. The answer appears in a floating panel.",
+      "call": "Talk back and forth hands-free. Press again to end.",
+      "title": "Ask anything, from <em>anywhere.</em>",
+      "ask": "Ask",
+      "callLabel": "Conversation",
+      "askHoldShort": "Hold, ask, let go",
+      "askTapShort": "Tap, ask, tap again",
+      "callShort": "Press again to end",
+      "subtitle": "Ask a question out loud, or start a conversation and talk it through."
+    },
+    "models": {
+      "title": "Powered by",
+      "assistant": "Thinks with",
+      "voice": "Speaks replies"
+    },
+    "features": {
+      "title": "What it can do",
+      "vision": {
+        "title": "Screen vision",
+        "description": "Let the assistant look at your screen when you ask about it."
+      },
+      "webSearch": {
+        "title": "Web search",
+        "description": "Look things up online for current, factual answers."
+      },
+      "reminders": {
+        "title": "Reminders",
+        "description": "Say \"remind me in 20 minutes\" and it will.",
+        "status": "Ask by voice"
+      },
+      "profiles": {
+        "title": "Profiles",
+        "description": "Personas the assistant can switch between, each with its own instructions.",
+        "status": "Default"
+      },
+      "memory": {
+        "title": "Memory",
+        "description": "What the assistant remembers about you, stored on this computer."
+      },
+      "behavior": {
+        "title": "Replies",
+        "description": "How long answers are and how much of the chat it keeps in mind."
+      },
+      "appearance": {
+        "title": "Panel",
+        "description": "Text, position, and opacity of the floating panel.",
+        "status": "Customize"
+      }
+    },
+    "cards": {
+      "keySaved": "Key saved",
+      "vision": {
+        "description": "Let it look at your screen to answer questions about what you see.",
+        "timing": {
+          "immediate": "When I start",
+          "onSend": "When I send"
+        }
+      },
+      "webSearch": {
+        "description": "Look things up online for current, factual answers.",
+        "offHint": "Off: answers come from the model alone, which may be out of date.",
+        "keyFor": "{{provider}} API key",
+        "getKey": "Get a free key at {{site}}.",
+        "hints": {
+          "tinyfish": "Free, no card",
+          "serper": "Google results",
+          "brave": "Independent index",
+          "tavily": "Built for AI",
+          "exa": "Neural search",
+          "serpapi": "Google results"
+        }
+      },
+      "reminders": {
+        "description": "Ask it to remind you, and a note pops up when it's time.",
+        "trySaying": "Try saying",
+        "examples": {
+          "one": "“Remind me to call Sam in 20 minutes”",
+          "two": "“At 6 pm, remind me to send the invoice”",
+          "three": "“Look at this and remind me tomorrow”"
+        },
+        "upcoming": "Coming up",
+        "none": "Nothing scheduled yet.",
+        "more_one": "and {{count}} more",
+        "more_other": "and {{count}} more"
+      },
+      "memory": {
+        "title": "Memory",
+        "description": "Remembers what matters to you, stored only on this computer.",
+        "open": "Open memory",
+        "manage_one": "See and edit memory · {{count}} note",
+        "manage_other": "See and edit memory · {{count}} notes",
+        "pausedHint": "Paused: saved memories are kept but not used."
+      },
+      "profiles": {
+        "title": "Profiles",
+        "description": "Personas with their own name, instructions, and reply style.",
+        "edit": "Edit profiles",
+        "more": "+{{count}}"
+      },
+      "replies": {
+        "title": "Replies",
+        "description": "How long answers are, and how much of the chat it keeps in mind.",
+        "lengths": {
+          "default": "Default",
+          "short": "Short",
+          "medium": "Medium",
+          "long": "Long"
+        },
+        "lengthHints": {
+          "default": "As long as the question needs.",
+          "short": "A sentence or two.",
+          "medium": "A short paragraph.",
+          "long": "Thorough and detailed."
+        },
+        "history": "Messages it keeps in mind"
+      },
+      "panel": {
+        "title": "Floating panel",
+        "description": "How the panel looks and where it opens. The preview updates as you change it.",
+        "positionHint": "Click a spot on the screen. The shape is the shape it opens in: a tall column down a side, or a wide strip along the top or bottom. Drag the panel near a spot and it snaps there."
+      }
+    },
+    "groups": {
+      "personal": "Personal",
+      "replies": "Replies"
+    },
+    "rows": {
+      "replyLength": "Reply length",
+      "reminders": {
+        "none": "None set",
+        "count_one": "{{count}} set",
+        "count_other": "{{count}} set"
+      },
+      "memory": {
+        "edit": "View memory",
+        "manage": "Manage"
+      },
+      "profiles": {
+        "manage": "Manage"
+      },
+      "screen": {
+        "ask": "Screen vision for questions",
+        "call": "Screen vision in conversations"
+      }
+    },
+    "tips": {
+      "thinksWith": "The model that answers you. AI cleanup and meeting notes use it too when they have none of their own.",
+      "speaks": "Reads replies aloud during a conversation.",
+      "screenAsk": "Lets the assistant look when a question is about your screen, or when you ask it to. Questions about selected text are answered from the text. Screenshots go only to your AI provider.",
+      "screenCall": "Lets the assistant look during a conversation when you ask it to, or when you're talking about something on your screen.",
+      "captureTiming": "Grab the screen as it was when you started asking, or when you send.",
+      "webSearch": "Looks things up online when a question needs current facts.",
+      "depth": "Quick for simple facts, Deep for hard questions.",
+      "openRouterSearch": "Uses OpenRouter's own search and your OpenRouter credits.",
+      "localSmart": "Lets the on-device model decide when to search.",
+      "reminders": "Just ask: \"Remind me to call Sam in 20 minutes.\" A note pops up when it's time.",
+      "memory": "Remembers what matters to you. Stored only on this computer.",
+      "profiles": "Personas with their own name, instructions, and reply style.",
+      "replyLength": "How long answers usually are.",
+      "history": "How many recent messages it keeps in mind.",
+      "summarize": "Condenses long chats so it doesn't forget the start.",
+      "opacity": "Lower lets your desktop show through.",
+      "position": "Click a spot on the screen.",
+      "display": "The screen the panel opens on."
+    },
+    "memory": {
+      "aboutTip": "A short summary it keeps in mind in every reply. It updates as you talk, and you can edit it any time.",
+      "aboutEmpty": "Nothing yet. It fills this in as you talk, or you can write it yourself.",
+      "write": "Write it",
+      "notesTitle": "Things it remembers",
+      "notesTip": "Facts it picked up from your chats, plus anything you add. Each reply uses the ones that fit.",
+      "notesEmpty": "Nothing yet. It learns from your chats, or add something above.",
+      "showAll": "Show all {{count}}",
+      "showFewer": "Show fewer",
+      "detailTip": "Light uses only the summary. Detailed adds more notes and is a little slower.",
+      "more": "More memory options",
+      "learnNow": "Learn from this chat now",
+      "export": "Export memory…",
+      "import": "Import memory…",
+      "erase": "Erase memory…",
+      "eraseTitle": "Erase memory?",
+      "eraseBody_one": "This deletes the summary and {{count}} note. It can't be undone.",
+      "eraseBody_other": "This deletes the summary and all {{count}} notes. It can't be undone.",
+      "eraseConfirm": "Erase",
+      "learnedToast": "Memory updated from this chat",
+      "exportedToast": "Memory exported",
+      "importedToast": "Memory imported",
+      "dialogDescription": "What the assistant knows about you. It stays on this computer, and you can change or erase any of it."
+    },
+    "profiles": {
+      "new": "New profile",
+      "newBlank": "Start from scratch",
+      "newWithAi": "Describe it and let AI write it",
+      "listMore": "More profile options",
+      "import": "Import from a file…",
+      "restoreBuiltins": "Bring back built-in profiles",
+      "restored_one": "Brought back {{count}} profile",
+      "restored_other": "Brought back {{count}} profiles",
+      "restoredNone": "All built-in profiles are already here",
+      "inUse": "In use",
+      "use": "Use this profile",
+      "more": "More options for this profile",
+      "duplicate": "Duplicate",
+      "export": "Export…",
+      "exported": "Profile exported",
+      "restoreDefault": "Restore original",
+      "delete": "Delete profile…",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteBody": "This can't be undone.",
+      "addPicture": "Add a picture",
+      "changePicture": "Change picture",
+      "removePicture": "Remove picture",
+      "roleLabel": "Description",
+      "roleTip": "A few words shown under the name.",
+      "rolePlaceholder": "For example: short, direct answers",
+      "instructionsLabel": "Instructions",
+      "instructionsTip": "How this profile thinks and talks. Sent with every message.",
+      "lengthLabel": "Reply length",
+      "lengthTip": "Default follows Reply length on the Assistant page.",
+      "lengths": {
+        "inherit": "Default",
+        "short": "Short",
+        "medium": "Medium",
+        "long": "Long"
+      },
+      "greetingLabel": "Greeting",
+      "greetingTip": "Optional. Shown when a new chat starts.",
+      "greetingPlaceholder": "Hi! What are we working on?",
+      "aiTitle": "Describe a new profile",
+      "aiBody": "Say or type what it should be like. The assistant writes its name and instructions.",
+      "aiCreate": "Create profile"
+    },
+    "panel": {
+      "where": "Where it opens",
+      "text": "Text size",
+      "opacity": "Opacity",
+      "screen": "Which screen"
+    }
+  },
+  "meetingsPage": {
+    "transcript": "Transcript",
+    "notes": "Notes",
+    "hero": {
+      "title": "Every call, <em>written down.</em>",
+      "subtitle": "Split by speaker, with notes when it ends."
+    },
+    "transcribedBy": "Transcribed by",
+    "notesBy": "Notes by",
+    "transcribedByTip": "Writes the transcript. It is your Speech to text model, the same one dictation uses.",
+    "notesByTip": "Writes the notes and the title, and answers questions about a meeting. It is your Assistant model."
+  },
+  "historyPage": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "storage": "Storage",
+    "showOriginal": "Show original",
+    "showSaid": "Show what you said",
+    "hideOriginal": "Hide original",
+    "playRecording": "Play recording",
+    "hideRecording": "Close player",
+    "audioMissing": "This recording's audio file is no longer available.",
+    "failed": "Transcription failed",
+    "retry": "Try again",
+    "dismissed": "This transcription was dismissed.",
+    "recover": "Recover",
+    "recoverTitle": "Transcribe it again and keep it",
+    "recoverError": "Couldn't recover this transcription. Try again.",
+    "more": "More actions",
+    "chat": {
+      "continueInCall": "Continue as a conversation",
+      "assistantOff": "Turn the assistant on to continue this chat."
+    }
+  },
+  "pickers": {
+    "browse": "Manage models",
+    "download": "Download more models",
+    "choose": "Choose a model",
+    "switchFailed": "Couldn't switch models. Try again.",
+    "borrowsAssistant": "Using the assistant's {{model}}",
+    "needsKey": "Needs an API key",
+    "groups": {
+      "device": "On this computer",
+      "cloud": "Cloud",
+      "setup": "Not set up yet"
+    },
+    "label": {
+      "assistant": "Assistant model",
+      "cleanup": "AI cleanup model",
+      "stt": "Speech-to-text model",
+      "voice": "Voice"
+    },
+    "needsSetup": "Needs setup",
+    "finishSetup": "Finish setup",
+    "setup": {
+      "title": "Set up {{provider}}",
+      "bodyKey": "Paste your API key, then pick a model.",
+      "bodyServer": "Enter your server's address, then pick a model.",
+      "bodyBoth": "Enter the endpoint and your API key, then pick a model.",
+      "endpoint": "Endpoint URL",
+      "apiKey": "API key",
+      "apiKeyOptional": "API key (optional)",
+      "keyPlaceholder": "Paste your key",
+      "getKey": "Get a key at {{site}}",
+      "model": "Model",
+      "modelPlaceholder": "Choose or type a model",
+      "loadModels": "Load models",
+      "noModels": "No models found. Type the model name instead.",
+      "typeInstead": "Type a name instead",
+      "pickFromList": "Pick from the list",
+      "use": "Save and use",
+      "done": "Now using {{provider}}"
+    },
+    "voiceSetup": {
+      "bodyKey": "Paste your API key, then pick a voice.",
+      "bodyEndpoint": "Enter the endpoint and your API key, then pick a voice.",
+      "voice": "Voice",
+      "voicePlaceholder": "Choose a voice",
+      "loadVoices": "Load voices",
+      "noVoices": "No voices found. Paste a voice ID instead.",
+      "model": "Model (optional)"
+    }
+  },
+  "catalog": {
+    "recommended": "Recommended",
+    "searchHuggingFace": "Search Hugging Face",
+    "useFor": {
+      "button": "Use for",
+      "label": "Use {{model}} for…",
+      "assistant": "Assistant",
+      "cleanup": "AI cleanup",
+      "cleanupOnly": "Made for cleanup only; it can't hold a conversation."
+    },
+    "inUse": {
+      "assistant": "Assistant",
+      "cleanup": "AI cleanup"
+    },
+    "use": "Use",
+    "useNamed": "Use {{model}} for {{job}}",
+    "useForJob": "Use for {{job}}",
+    "inUseShort": "In use",
+    "more": "More",
+    "moreFor": "More actions for {{model}}",
+    "showDetails": "Show file details",
+    "hideDetails": "Hide file details",
+    "removeFromList": "Remove from list",
+    "nowUsing": "Now using {{model}} for {{job}}.",
+    "yoursInfo": "Models you downloaded or added from your disk. Any of them can do either job; the ⋯ menu puts one to work for the other."
+  },
+  "models": {
+    "runsOn": "Runs on",
+    "options": "Options",
+    "downloadTitle": "Download models",
+    "cleanupOff": "AI cleanup is off. Meeting notes still use this model.",
+    "assistantOff": "The assistant is off. Generate with Flow and cleanup still use this model.",
+    "usedBy": "Used by: {{features}}."
+  },
+  "shortcutEditor": {
+    "change": "Change the {{name}} shortcut",
+    "useDefault": "Use default",
+    "turnOff": "Turn off",
+    "turnedOff": "{{name}} shortcut turned off",
+    "undo": "Undo",
+    "addAnother": "Add another",
+    "addAnotherHint": "Give this shortcut a second set of keys, such as a mouse button",
+    "addButtonOrKeys": "Add mouse button or keys",
+    "addButtonOrKeysHint": "Give this shortcut a mouse button, or a second set of keys, next to the keys it has",
+    "mouseAddedAsOther": "{{button}} now also works for {{name}}. {{keys}} still works too.",
+    "mouseNeedsOtherSlot": "{{name}} already has other keys ({{keys}}). Click them to put a mouse button there instead.",
+    "mouseNeedsOwnKeys": "Give {{name}} keys first. A mouse button is added next to them.",
+    "remove": "Remove",
+    "or": "or",
+    "changeOther": "Change the other keys for the {{name}} shortcut",
+    "pressKeysOrButton": "Press keys or a mouse button…",
+    "mouseNeedsKeysEngine": "Mouse buttons need the Zynveliq Keys keyboard implementation (Settings → Advanced → Experimental).",
+    "mouse": {
+      "middle": "Mouse Middle",
+      "back": "Mouse Back",
+      "forward": "Mouse Forward"
+    }
+  },
+  "memoryManager": {
+    "status": {
+      "on": "On: used in replies and learned from chats",
+      "off": "Off: nothing is used or learned"
+    },
+    "incognitoHint": "This chat is not used or learned from",
+    "editNote": "Edit note",
+    "source": {
+      "learned": "Learned",
+      "added": "Added by you"
+    },
+    "filterLabel": "Show notes",
+    "filters": {
+      "all": "All",
+      "learned": "Learned {{count}}",
+      "added": "Mine {{count}}"
+    },
+    "search": "Search notes",
+    "noMatches": "No notes match.",
+    "detailHints": {
+      "light": "Only the About-you summary goes into each reply. Fastest.",
+      "balanced": "The summary plus a few notes that fit the question.",
+      "detailed": "The summary plus more relevant notes. Richest, a little slower."
+    },
+    "learnNow": "Learn from this chat",
+    "tips": {
+      "enable": "Lets the assistant use and learn a memory of you. Off by default.",
+      "incognito": "This chat is neither used nor learned from.",
+      "aboutYou": "A short summary included in every reply while memory is on."
+    }
+  },
+  "providerGrid": {
+    "showAll": "Show all {{count}} providers",
+    "showFewer": "Show fewer"
+  },
+  "voiceEngines": {
+    "kokoro": "Best quality",
+    "kitten": "Lightest",
+    "pocket": "14 voices",
+    "supertonic": "Fast and clear",
+    "openai": "GPT voices",
+    "elevenlabs": "Most natural",
+    "openrouter": "Many voices",
+    "deepgram": "Fast, low cost",
+    "cartesia": "Lowest latency",
+    "google": "Chirp 3 HD voices",
+    "azure": "Neural voices",
+    "groq": "Orpheus voices",
+    "xai": "Grok voices",
+    "mistral": "Voxtral voices",
+    "inworld": "Expressive voices",
+    "custom": "Your own server",
+    "names": {
+      "kokoro": "Kokoro",
+      "kitten": "Kitten",
+      "pocket": "Pocket TTS",
+      "supertonic": "Supertonic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs",
+      "openrouter": "OpenRouter",
+      "deepgram": "Deepgram",
+      "cartesia": "Cartesia",
+      "google": "Google Cloud",
+      "azure": "Azure Speech",
+      "groq": "Groq",
+      "xai": "xAI",
+      "mistral": "Mistral",
+      "inworld": "Inworld",
+      "custom": "Custom"
+    }
+  },
+  "insights": {
+    "about": "How you use Zynveliq, counted on this computer.",
+    "nothingYet": "Your insights appear once you dictate, ask the assistant or record a meeting.",
+    "goHome": "See your shortcuts",
+    "figures": {
+      "dictations": "Times dictated",
+      "dictationsInfo": "Each dictation counts once, however long it is.",
+      "questions": "Questions asked",
+      "meetings": "Meetings recorded"
+    },
+    "activityTitle": "Activity",
+    "pages_one": "About {{count}} page",
+    "pages_other": "About {{count}} pages",
+    "longest_one": "Longest: {{count}} day",
+    "longest_other": "Longest: {{count}} days",
+    "streakHint": "A day counts when you dictate, ask the assistant, take a call or record a meeting.",
+    "gridSummary_one": "{{words}} words on {{count}} day in the last 6 months",
+    "gridSummary_other": "{{words}} words on {{count}} days in the last 6 months",
+    "gridSummaryAssistant_one": "{{questions}} on {{count}} day in the last 6 months",
+    "gridSummaryAssistant_other": "{{questions}} on {{count}} days in the last 6 months",
+    "gridSummaryMeetings_one": "{{time}} of meetings on {{count}} day in the last 6 months",
+    "gridSummaryMeetings_other": "{{time}} of meetings on {{count}} days in the last 6 months",
+    "gridSummaryAll_one": "Active on {{count}} day in the last 6 months",
+    "gridSummaryAll_other": "Active on {{count}} days in the last 6 months",
+    "dayWords_one": "{{formatted}} word",
+    "dayWords_other": "{{formatted}} words",
+    "dayQuestions_one": "{{formatted}} question",
+    "dayQuestions_other": "{{formatted}} questions",
+    "dayMeetings": "{{time}} of meetings",
+    "dayNoneFor": {
+      "all": "Nothing that day",
+      "dictation": "No dictation",
+      "assistant": "No questions",
+      "meetings": "No meetings"
+    },
+    "less": "Less",
+    "more": "More",
+    "busiest": "Busiest day",
+    "best": "Best day",
+    "typical": "Typical day",
+    "typicalFor": {
+      "dictation": "On days you dictate",
+      "assistant": "On days you ask",
+      "meetings": "On days with a meeting"
+    },
+    "activity": {
+      "label": "Activity to show",
+      "all": "All",
+      "dictation": "Dictation",
+      "assistant": "Assistant",
+      "meetings": "Meetings"
+    },
+    "assistantCard": {
+      "info": "Quick asks, and what you said on calls. These stay counted when you delete conversations.",
+      "noCalls": "No calls yet"
+    },
+    "meetingsCard": {
+      "info": "Meetings you recorded. These stay counted when you delete a meeting."
+    },
+    "share": {
+      "button": "Share",
+      "nothingYet": "There's something to share once you've used Zynveliq.",
+      "title": "Share your insights",
+      "private": "Made on this computer. Nothing is uploaded.",
+      "size": "Size",
+      "formats": {
+        "square": "Square",
+        "story": "Story",
+        "wide": "Wide"
+      },
+      "formatHints": {
+        "square": "1080 × 1080, for feeds",
+        "story": "1080 × 1920, for stories",
+        "wide": "1600 × 900, for posts and links"
+      },
+      "previous": "Previous card",
+      "next": "Next card",
+      "cardsLabel": "Cards",
+      "position": "Card {{index}} of {{count}}",
+      "copy": "Copy image",
+      "copied": "Copied",
+      "copyFailed": "Couldn't copy the image",
+      "save": "Save image",
+      "saved": "Image saved",
+      "saveFailed": "Couldn't save the image",
+      "showInFolder": "Show in folder",
+      "postOn": "Post on {{site}}",
+      "copiedForPost": "Card copied. In the new post, press {{keys}} to add it.",
+      "savedForPost": "Card saved to Downloads. {{site}} can't take a pasted picture, so add it with the photo button in the new post.",
+      "openSite": "Open {{site}}",
+      "openFailed": "Couldn't open {{site}}",
+      "more": "More apps",
+      "sheetTitle": "My Zynveliq insights",
+      "shareFailed": "Couldn't open Share",
+      "drawFailed": "The cards couldn't be drawn. Close this and try again.",
+      "tagline": "Free · Open source · Works offline",
+      "cards": {
+        "highlights": {
+          "title": "My Zynveliq highlights",
+          "words_one": "word spoken",
+          "words_other": "words spoken",
+          "streak_one": "day streak",
+          "streak_other": "day streak",
+          "wpm": "words per minute",
+          "questions_one": "question asked",
+          "questions_other": "questions asked",
+          "meetings_one": "meeting recorded",
+          "meetings_other": "meetings recorded",
+          "saved": "saved vs. typing"
+        },
+        "words": {
+          "title": "Spoken, not typed",
+          "label_one": "word spoken",
+          "label_other": "words spoken",
+          "pages_one": "About {{count}} page",
+          "pages_other": "About {{count}} pages",
+          "books_one": "As long as a whole novel",
+          "books_other": "As long as {{count}} novels"
+        },
+        "speed": {
+          "title": "How fast I speak",
+          "label": "words per minute",
+          "note": "{{times}}× faster than typing",
+          "you": "Speaking",
+          "typing": "Typical typing"
+        },
+        "saved": {
+          "title": "Time saved",
+          "label": "not spent typing",
+          "workdays_one": "A whole working day",
+          "workdays_other": "About {{count}} working days"
+        },
+        "streak": {
+          "title": "On a roll",
+          "unit_one": "day",
+          "unit_other": "days",
+          "longest_one": "Longest streak: {{count}} day",
+          "longest_other": "Longest streak: {{count}} days",
+          "best": "My longest streak yet"
+        },
+        "assistant": {
+          "title": "My assistant",
+          "label_one": "question asked",
+          "label_other": "questions asked",
+          "calls_one": "{{count}} call, {{time}} talking",
+          "calls_other": "{{count}} calls, {{time}} talking"
+        },
+        "meetings": {
+          "title": "My meetings",
+          "label_one": "meeting recorded",
+          "label_other": "meetings recorded",
+          "note": "{{time}} recorded, {{words}} words written up",
+          "time": "{{time}} recorded and written up"
+        },
+        "activity": {
+          "title": "Six months of talking",
+          "label_one": "day active",
+          "label_other": "days active"
+        }
+      },
+      "post": {
+        "dictation_one": "I've spoken {{formatted}} word to my computer instead of typing it, with Zynveliq.",
+        "dictation_other": "I've spoken {{formatted}} words to my computer instead of typing them, with Zynveliq.",
+        "asks_one": "I've asked Zynveliq's assistant {{formatted}} question without switching tabs.",
+        "asks_other": "I've asked Zynveliq's assistant {{formatted}} questions without switching tabs.",
+        "meetings_one": "Zynveliq has recorded {{formatted}} meeting and written the notes for me.",
+        "meetings_other": "Zynveliq has recorded {{formatted}} meetings and written the notes for me."
+      }
+    }
+  },
+  "settingsNotice": {
+    "restored": "Your settings were damaged and have been restored from a backup.",
+    "restoredDescription": "Recent changes may be missing.",
+    "unrecoverableTitle": "Your settings couldn't be recovered",
+    "unrecoverableDescription": "Zynveliq started with its default settings. The damaged file was kept as {{file}}.",
+    "notSavingTitle": "Settings changes won't be saved",
+    "notSavingDescription": "The settings file couldn't be read, so it was left alone. Restart Zynveliq to try again.",
+    "saveFailingTitle": "Settings aren't being saved",
+    "saveFailingDescription": "Your recent changes haven't been saved yet. Zynveliq will keep trying.",
+    "dismiss": "Dismiss"
+  }
+}

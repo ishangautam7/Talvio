@@ -1,0 +1,1670 @@
+name: "Build"
+
+# Reusable build workflow for Zynveliq. Ported from upstream Handy's build.yml
+# and adapted for Zynveliq's shape-(b) engine posture (see
+# the engine-migration plan, Session 6):
+#
+#   * transcribe-cpp (GGUF/ggml) is the only speech engine. Windows x86_64 + Linux ship
+#     it in the `dynamic-backends` + `vulkan` posture (loadable ggml backend
+#     DLLs/.so + a Vulkan GPU backend); macOS aarch64 links it statically
+#     (`metal`); macOS x86_64 and Windows-on-ARM link it statically CPU-only
+#     (no DLLs, no GPU backend). Legacy whisper.cpp `.bin` models load through
+#     it too; transcribe-rs (whisper-rs + the ONNX engines) is gone.
+#   * ONNX Runtime remains, statically embedded through `ort` (Silero VAD via
+#     vad-rs, and meeting diarization). We deliberately do NOT converge to
+#     Handy's dynamically-linked baseline ORT, so there are NO
+#     `ORT_LIB_LOCATION` / `ORT_PREFER_DYNAMIC_LINK` steps and no
+#     onnxruntime.dll staging/audit here.
+#
+#     ONE EXCEPTION: Intel macOS (x86_64-apple-darwin), where pykeio's `ort`
+#     dropped prebuilt binaries entirely, so there is no static ORT to embed.
+#     That target links against Homebrew's onnxruntime and ships the dylib inside
+#     the .app â€” see "Stage ONNX Runtime for Intel macOS" and
+#     "Audit Intel macOS bundle" below. Apple Silicon is untouched by this.
+#
+# What this covers (Session 7 requirements):
+#   * Vulkan SDK (Windows x64) + SPIRV-Headers (vcpkg) on CMAKE_PREFIX_PATH.
+#   * CARGO_TARGET_DIR path-shortening on Windows (transcribe-cpp-sys's cmake
+#     paths overflow MAX_PATH).
+#   * Windows-on-ARM static CPU-only build via Ninja + clang-cl and
+#     TRANSCRIBE_CMAKE_ARGS=-DGGML_NATIVE=OFF -DGGML_OPENMP=OFF.
+#   * App-local VC++ runtime staging (build.rs, via ZYNVELIQ_VC_REDIST_DIRS).
+#   * Signing: bundled DLLs are signed by tauri-bundler via the `signCommand`
+#     in tauri.conf.json (trusted-signing-cli), which runs on every .exe/.dll it
+#     bundles before packaging â€” so the staged transcribe-cpp/VC++ DLLs get
+#     signed. trusted-signing-cli is installed below when sign-binaries is on.
+#   * Package audit: every staged DLL must be present in BOTH the MSI and NSIS
+#     installers, and the installed zynveliq.exe --list-devices must exit 0.
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      build-args:
+        required: false
+        type: string
+        default: ""
+      release-id:
+        required: false
+        type: string
+      asset-prefix:
+        required: false
+        type: string
+        default: "zynveliq"
+      asset-name-pattern:
+        required: false
+        type: string
+        default: ""
+      upload-artifacts:
+        required: false
+        type: boolean
+        default: false
+      sign-binaries:
+        required: false
+        type: boolean
+        default: false
+      repository:
+        required: false
+        type: string
+      ref:
+        required: false
+        type: string
+        default: ${{ github.ref }}
+      is-debug-build:
+        required: false
+        type: boolean
+        default: false
+      no-cache:
+        required: false
+        type: boolean
+        default: false
+
+env:
+  TSC_VERSION: "0.9.0"
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ${{ inputs.platform }}
+    env:
+      # Whether this run can sign updater bundles. Kept separate from
+      # sign-binaries on purpose: the updater key is free and ours, while
+      # Apple/Azure code signing is paid and absent, and tying the two together
+      # is what left every release from 1.0 to 1.4 with no working update
+      # path. A fork's PR build has no secret and simply skips updater
+      # artifacts, exactly as before.
+      HAS_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+      # Whether an unsigned (not notarized) macOS build can still be signed
+      # with a stable identity. See "Import stable macOS signing identity".
+      HAS_MACOS_SIGNING_CERT: ${{ secrets.APPLE_CERTIFICATE != '' }}
+    steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+            -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+          git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Get version from tauri.conf.json
+        id: get-version
+        shell: bash
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d'"' -f4)
+          echo "Application version from tauri.conf.json: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Determine build profile
+        id: build-profile
+        shell: bash
+        run: |
+          if [[ "${{ inputs.is-debug-build }}" == "true" ]]; then
+            echo "profile=debug" >> "$GITHUB_OUTPUT"
+            echo "Build profile: debug"
+          else
+            echo "profile=release" >> "$GITHUB_OUTPUT"
+            echo "Build profile: release"
+          fi
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to
+          # slightly speed up windows and linux builds.
+          targets: ${{ contains(inputs.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        # Release builds skip the cache (no-cache: true) so the artifact is
+        # always compiled clean â€” no risk of a stale cached native lib being
+        # linked. PR/test builds keep caching for speed.
+        if: ${{ !inputs.no-cache }}
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+          # `-ggml-portable`: caches from before the portable-CPU flags must not
+          # be reused. Bump the suffix whenever native CMake flags change.
+          key: ${{ inputs.platform }}-${{ inputs.target }}-ggml-portable
+
+      - name: install dependencies (ubuntu 24.04 x64)
+        if: contains(inputs.platform, 'ubuntu-24.04') && !contains(inputs.platform, 'arm')
+        # autoconf/automake/libtool: the Linux shortcut engine's evdev-sys builds
+        # its bundled libevdev with autogen.sh when no libevdev-dev is installed.
+        # That is deliberate here: libevdev is then linked statically, so the
+        # .deb and AppImage gain no runtime dependency. The arm64 runner image
+        # is not guaranteed to carry autotools, so they are named explicitly.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libappindicator3-dev librsvg2-dev patchelf libasound2-dev libopenblas-dev libx11-dev libxtst-dev libxrandr-dev libgtk-layer-shell0 libgtk-layer-shell-dev libpipewire-0.3-dev libgbm-dev libegl-dev libgl-dev libdrm-dev libwayland-dev autoconf automake libtool \
+            libwebkit2gtk-4.1-0=2.44.0-2 \
+            libwebkit2gtk-4.1-dev=2.44.0-2 \
+            libjavascriptcoregtk-4.1-0=2.44.0-2 \
+            libjavascriptcoregtk-4.1-dev=2.44.0-2 \
+            gir1.2-javascriptcoregtk-4.1=2.44.0-2 \
+            gir1.2-webkit2-4.1=2.44.0-2
+
+      - name: install dependencies (ubuntu 24.04 arm64)
+        if: contains(inputs.platform, 'ubuntu-24.04-arm')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev libopenblas-dev libx11-dev libxtst-dev libxrandr-dev libgtk-layer-shell0 libgtk-layer-shell-dev libpipewire-0.3-dev libgbm-dev libegl-dev libgl-dev libdrm-dev libwayland-dev autoconf automake libtool xdg-utils
+
+      - name: install dependencies (ubuntu 22.04)
+        if: contains(inputs.platform, 'ubuntu-22.04') && !contains(inputs.platform, 'arm')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev libopenblas-dev libx11-dev libxtst-dev libxrandr-dev libgtk-layer-shell0 libgtk-layer-shell-dev libpipewire-0.3-dev libgbm-dev libegl-dev libgl-dev libdrm-dev libwayland-dev autoconf automake libtool
+
+      - name: Verify gtk-layer-shell runtime dependency (Ubuntu)
+        if: contains(inputs.platform, 'ubuntu')
+        run: |
+          dpkg-query -W -f='${Status}\n' libgtk-layer-shell0 | grep -q "install ok installed"
+          ldconfig -p | grep -q "libgtk-layer-shell.so.0"
+
+      # x86_64 only â€” Windows-on-ARM links transcribe-cpp statically CPU-only
+      # (no `vulkan` feature; see src-tauri/Cargo.toml), so ggml-vulkan is never
+      # built there and no Vulkan SDK, headers, or glslc are needed.
+      - name: Install Vulkan SDK (Windows x64)
+        if: contains(inputs.platform, 'windows') && !contains(inputs.target, 'aarch64')
+        uses: humbletim/install-vulkan-sdk@v1.2
+        with:
+          version: 1.4.309.0
+          cache: true
+
+      - name: Cache trusted-signing-cli
+        if: contains(inputs.platform, 'windows') && inputs.sign-binaries
+        id: cache-tsc
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/bin/trusted-signing-cli*
+          key: trusted-signing-cli-${{ env.TSC_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Install trusted-signing-cli
+        if: contains(inputs.platform, 'windows') && inputs.sign-binaries && steps.cache-tsc.outputs.cache-hit != 'true'
+        run: cargo install trusted-signing-cli@${{ env.TSC_VERSION }}
+
+      - name: Prepare Vulkan SDK for Ubuntu 24.04
+        if: contains(inputs.platform, 'ubuntu-24.04') && !contains(inputs.platform, 'arm')
+        run: |
+          wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.290-noble.list https://packages.lunarg.com/vulkan/1.3.290/lunarg-vulkan-1.3.290-noble.list
+          sudo apt update
+          sudo apt install vulkan-sdk -y
+          sudo apt-get install -y mesa-vulkan-drivers
+
+      - name: Prepare Vulkan SDK for Ubuntu ARM64
+        if: contains(inputs.platform, 'ubuntu') && contains(inputs.platform, 'arm')
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.335.0
+          cache: true
+
+      - name: Install Vulkan runtime libraries (Ubuntu ARM64)
+        if: contains(inputs.platform, 'ubuntu') && contains(inputs.platform, 'arm')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvulkan-dev mesa-vulkan-drivers
+
+      - name: Prepare Vulkan SDK for Ubuntu 22.04
+        if: contains(inputs.platform, 'ubuntu-22.04') && !contains(inputs.platform, 'arm')
+        run: |
+          wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.290-jammy.list https://packages.lunarg.com/vulkan/1.3.290/lunarg-vulkan-1.3.290-jammy.list
+          sudo apt update
+          sudo apt install vulkan-sdk -y
+          sudo apt-get install -y mesa-vulkan-drivers
+
+      - name: install frontend dependencies
+        if: ${{ !(contains(inputs.platform, 'windows') && contains(inputs.target, 'aarch64')) }}
+        run: bun install
+
+      - name: install frontend dependencies (Windows ARM64)
+        if: ${{ contains(inputs.platform, 'windows') && contains(inputs.target, 'aarch64') }}
+        run: bun install --cpu=arm64
+
+      - name: rustup install target
+        if: ${{ inputs.target != '' && !contains(inputs.target, 'x86_64-unknown-linux-gnu') && !contains(inputs.target, 'aarch64-unknown-linux-gnu') && !contains(inputs.target, 'x86_64-pc-windows-msvc') }}
+        run: rustup target add ${{ inputs.target }}
+
+      - name: import Apple Developer Certificate
+        if: contains(inputs.platform, 'macos') && inputs.sign-binaries
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          security find-identity -v -p codesigning build.keychain
+
+      - name: verify certificate
+        if: contains(inputs.platform, 'macos') && inputs.sign-binaries
+        run: |
+          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID Application")
+          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+          echo "Certificate imported."
+
+      - name: Patch asset name pattern
+        id: patch-release-name
+        shell: bash
+        if: ${{ inputs.release-id != '' && inputs.asset-name-pattern != '' }}
+        run: |
+          platform="${{ inputs.platform }}"
+          replacement="$(echo ${platform} | sed -E 's/-latest//')"
+          patched_platform=$(echo '${{ inputs.asset-name-pattern }}' | sed -E "s/\[platform\]/${replacement}/")
+          if [[ -n "${{ inputs.asset-prefix }}" ]]; then
+            patched_platform="${{ inputs.asset-prefix }}_${patched_platform}"
+          fi
+          echo "platform=${patched_platform}" >> $GITHUB_OUTPUT
+
+      # No portable-CPU step is needed any more. It existed for the statically
+      # linked whisper.cpp inside transcribe-rs (whisper-rs-sys forwarded GGML_*
+      # environment variables and otherwise built with -march=native). That
+      # engine is gone, and transcribe-cpp-sys reads no GGML_* environment
+      # variable; it pins the CPU floor itself: dynamic-backends builds (Windows
+      # x64, Linux) force GGML_NATIVE=OFF and pick CPU kernels at run time, and
+      # every macOS build sets GGML_NATIVE=OFF in its build script. Windows
+      # ARM64, the one static non-Apple build, gets its override through
+      # TRANSCRIBE_CMAKE_ARGS below.
+
+      # transcribe-cpp-sys cmake builds create paths that exceed Windows MAX_PATH
+      # (260 chars). Shorten the target dir to keep paths under the limit.
+      - name: Shorten build path (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $drive = Split-Path -Qualifier $env:GITHUB_WORKSPACE
+          $targetDir = "$drive\t"
+          New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+          echo "CARGO_TARGET_DIR=$targetDir" >> $env:GITHUB_ENV
+
+      # ggml refuses to build its ARM CPU backend under MSVC (upstream check in
+      # ggml/src/ggml-cpu/CMakeLists.txt: "MSVC is not supported for ARM, use
+      # clang"), so the Windows-ARM build must use clang-cl. transcribe-cpp-sys
+      # drives CMake via the cmake crate, which resolves the compiler through the
+      # cc crate â€” i.e. the CC/CXX env vars, NOT CMAKE_C_COMPILER (which is why an
+      # earlier CMAKE_C_COMPILER-only attempt still configured with MSVC cl.exe).
+      # Ninja (honored by the cmake crate) sidesteps the VS generator's toolset.
+      - name: Configure cmake for ARM64 (Windows)
+        if: contains(inputs.platform, 'windows') && contains(inputs.target, 'aarch64')
+        shell: pwsh
+        run: |
+          echo "CMAKE_GENERATOR=Ninja" >> $env:GITHUB_ENV
+          echo "CC=clang-cl" >> $env:GITHUB_ENV
+          echo "CXX=clang-cl" >> $env:GITHUB_ENV
+          echo "CMAKE_C_COMPILER=clang-cl" >> $env:GITHUB_ENV
+          echo "CMAKE_CXX_COMPILER=clang-cl" >> $env:GITHUB_ENV
+          echo "CMAKE_C_COMPILER_TARGET=aarch64-pc-windows-msvc" >> $env:GITHUB_ENV
+          echo "CMAKE_CXX_COMPILER_TARGET=aarch64-pc-windows-msvc" >> $env:GITHUB_ENV
+          echo "CL=/EHsc" >> $env:GITHUB_ENV
+          # Link uses lld-link + llvm-mt; use llvm-rc for resources too. Microsoft's
+          # rc.exe fails the manifest with "RC2136" under this clang-cl/lld toolchain
+          # (seen in ggml-vulkan's vulkan-shaders-gen host sub-build). CMake honors
+          # the RC env var, and the ExternalProject sub-build inherits it.
+          echo "RC=llvm-rc" >> $env:GITHUB_ENV
+          # Two ARM-static CMake overrides, forwarded by src-tauri/build.rs's
+          # transcribe-cpp-sys configure via TRANSCRIBE_CMAKE_ARGS (applied AFTER
+          # the crate's own -D's, so ours win):
+          #
+          #   GGML_NATIVE=OFF  â€” only the dynamic-backends path force-sets this; a
+          #     plain static build inherits ggml's default GGML_NATIVE=ON
+          #     (= -mcpu=native), tuning the binary to THIS runner's CPU â€” a
+          #     distribution hazard. Pin OFF for a portable ARM baseline.
+          #
+          #   GGML_OPENMP=OFF  â€” transcribe-cpp-sys force-sets GGML_OPENMP=ON on
+          #     Windows, assuming MSVC auto-links vcomp via the /openmp pragma. But
+          #     ARM builds with clang-cl, whose /openmp emits LLVM-OMP refs
+          #     (__kmpc_*/omp_*) with no auto-linked runtime, so the static final
+          #     link fails with LNK2019 unresolved externals. clang-cl is LLVM
+          #     codegen (ggml's non-OpenMP barrier only deadlocks under MSVC
+          #     codegen), so disabling OpenMP is safe here and avoids linking libomp.
+          echo "TRANSCRIBE_CMAKE_ARGS=-DGGML_NATIVE=OFF -DGGML_OPENMP=OFF" >> $env:GITHUB_ENV
+
+      # Bundle the VC++ runtime app-local so Zynveliq starts on machines without
+      # a current Microsoft redistributable. build.rs stages DLLs from these dirs
+      # into transcribe-libs/, using the same VS install that compiled the code.
+      # (Zynveliq keeps GGML_OPENMP off, so vcomp140 is not required â€” the CRT
+      # dir alone satisfies build.rs's msvcp140/vcruntime140 requirement.)
+      - name: Locate VC++ runtime redist for app-local bundling (Windows)
+        if: contains(inputs.platform, 'windows')
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsRoot = & $vswhere -latest -products * -property installationPath
+          if (-not $vsRoot) { throw "vswhere found no Visual Studio installation" }
+          $versionFile = Join-Path $vsRoot "VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $redistVersion = (Get-Content $versionFile).Trim()
+          $arch = if ("${{ inputs.target }}" -like "aarch64*") { "arm64" } else { "x64" }
+          $archDir = Join-Path $vsRoot "VC\Redist\MSVC\$redistVersion\$arch"
+          if (-not (Test-Path $archDir)) { throw "VC++ redist arch dir not found: $archDir" }
+          # Glob the VC generation folder; the runtime DLL names stay ABI-stable.
+          $crt = Get-ChildItem $archDir -Directory -Filter "Microsoft.VC*.CRT" |
+            Sort-Object Name | Select-Object -Last 1
+          if (-not $crt -or -not (Test-Path (Join-Path $crt.FullName "msvcp140.dll"))) {
+            throw "VC++ CRT redist dir not found or incomplete under: $archDir"
+          }
+          Write-Host "ZYNVELIQ_VC_REDIST_DIRS=$($crt.FullName)"
+          Add-Content -Path $env:GITHUB_ENV -Value "ZYNVELIQ_VC_REDIST_DIRS=$($crt.FullName)"
+
+      # MSI packaging verifies bundled .dll/.exe resources with signtool before
+      # custom signing. Tauri's SDK lookup has no ARM64 host mapping, so pass
+      # the tool explicitly once ARM64 starts bundling runtime DLLs.
+      - name: Point tauri-bundler at signtool.exe (Windows ARM64)
+        if: contains(inputs.platform, 'windows') && contains(inputs.target, 'aarch64')
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bin = "${env:ProgramFiles(x86)}\Windows Kits\10\bin"
+          $candidates = @(
+            Get-ChildItem "$bin\10.0.*\arm64\signtool.exe" -ErrorAction SilentlyContinue
+            Get-ChildItem "$bin\10.0.*\x64\signtool.exe" -ErrorAction SilentlyContinue
+          ) | Where-Object { $_ }
+          if (-not $candidates) {
+            throw "signtool.exe not found under $bin (is a Windows SDK installed on this runner?)"
+          }
+          # Prefer native arm64 (x64 works too, under emulation); within an
+          # arch, the newest SDK version wins.
+          $signtool = $candidates |
+            Sort-Object { $_.FullName -match '\\arm64\\' }, FullName |
+            Select-Object -Last 1
+          Write-Host "TAURI_WINDOWS_SIGNTOOL_PATH=$($signtool.FullName)"
+          Add-Content -Path $env:GITHUB_ENV -Value "TAURI_WINDOWS_SIGNTOOL_PATH=$($signtool.FullName)"
+
+      # ggml-vulkan (built by transcribe-cpp-sys when the Vulkan backend is on)
+      # does `find_package(SPIRV-Headers CONFIG REQUIRED)`. ggml's CMake appends
+      # $VULKAN_SDK to CMAKE_PREFIX_PATH first, but the CI Vulkan SDK install does
+      # not expose a findable SPIRV-HeadersConfig.cmake, so the configure fails.
+      # Provide the header-only package via vcpkg and put its prefix on
+      # CMAKE_PREFIX_PATH (the cmake crate forwards it as -DCMAKE_PREFIX_PATH).
+      # x86_64 only â€” the Windows ARM64 build is CPU-only, so ggml-vulkan is
+      # never built there.
+      - name: Install SPIRV-Headers for transcribe-cpp Vulkan build (Windows x64)
+        if: contains(inputs.platform, 'windows') && !contains(inputs.target, 'aarch64')
+        shell: pwsh
+        run: |
+          vcpkg install spirv-headers:x64-windows
+          if ($LASTEXITCODE -ne 0) { throw "vcpkg install spirv-headers failed" }
+          $prefix = "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -replace '\\','/'
+          $combined = if ($env:CMAKE_PREFIX_PATH) { "$prefix;$env:CMAKE_PREFIX_PATH" } else { $prefix }
+          Add-Content $env:GITHUB_ENV "CMAKE_PREFIX_PATH=$combined"
+          Write-Host "CMAKE_PREFIX_PATH=$combined"
+
+      # transcribe-cpp ships as a shared libtranscribe + loadable ggml backend
+      # modules on Linux (the `dynamic-backends` posture). They are produced by
+      # transcribe-cpp-sys's CMake install during the cargo build, but nothing
+      # ships them. Pre-build the app so that install dir exists, then expose it
+      # via LD_LIBRARY_PATH so the AppImage's linuxdeploy can resolve
+      # libtranscribe.so (a NEEDED of `zynveliq`) while bundling. tauri-action
+      # reuses this compile incrementally. TRANSCRIBE_LIBDIR is consumed by the
+      # AppImage post-processing step to co-locate the dlopen'd ggml modules.
+      - name: Pre-build and locate transcribe-cpp backend libs (Linux)
+        if: contains(inputs.platform, 'ubuntu')
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROFILE="${{ steps.build-profile.outputs.profile }}"
+          # Frontend must exist for the app crate to compile (generate_context!).
+          bun run build
+          (
+            cd src-tauri
+            if [ "$PROFILE" = "release" ]; then cargo build --release; else cargo build; fi
+          )
+          # The install manifest sits next to libtranscribe in /lib.
+          # Pick the newest match in case a stale build dir lingers in the cache.
+          LIBDIR="$(find "src-tauri/target/$PROFILE/build" \
+            -type f -name transcribe-link.json -path '*transcribe-cpp-sys*/out/lib/*' \
+            -printf '%T@ %h\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+          if [ -z "${LIBDIR:-}" ] || [ ! -d "$LIBDIR" ]; then
+            echo "ERROR: could not locate transcribe-cpp-sys install lib dir" >&2
+            find src-tauri/target \( -name 'libtranscribe*' -o -name 'libggml*' \) 2>/dev/null >&2 || true
+            exit 1
+          fi
+          LIBDIR="$(cd "$LIBDIR" && pwd)"
+          echo "Located transcribe-cpp libs in: $LIBDIR"
+          ls -la "$LIBDIR"
+          echo "TRANSCRIBE_LIBDIR=$LIBDIR" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$LIBDIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          # linuxdeploy resolves `zynveliq`'s NEEDED libs via `ldd` and
+          # HARD-FAILS on an unresolved one. libtranscribe.so lives only in the
+          # cargo build tree, so also publish it (and the ggml libs it pulls in)
+          # to the system linker cache â€” belt-and-suspenders with LD_LIBRARY_PATH.
+          sudo cp -vL "$LIBDIR"/libtranscribe.so* "$LIBDIR"/libggml*.so* /usr/local/lib/ 2>/dev/null || true
+          sudo ldconfig
+
+      # Unsigned builds used to reach users with no signing identity at all, so
+      # every release had a different code signature. macOS stores an
+      # Accessibility grant with the signature it was given to, so after each
+      # update System Settings still showed Zynveliq switched on while the new
+      # binary was refused, and onboarding waited forever (issue #34). Signing
+      # every release with the SAME certificate gives the app a stable designated
+      # requirement, so a grant survives updates. The certificate does not have
+      # to come from Apple: a free self-signed one works, because TCC only
+      # compares the requirement and codesign signs with an untrusted identity
+      # (trust matters to Gatekeeper, which rejects this build either way until
+      # it is notarized). BUILD.md has the one-time setup.
+      #
+      # Only runs when APPLE_CERTIFICATE is set. Without it nothing here runs and
+      # the build is exactly what it was. The identity is exported as a SHA-1
+      # hash rather than a name because `find-identity -v` hides an untrusted
+      # certificate, and codesign accepts the hash either way.
+      - name: Import stable macOS signing identity (unsigned build)
+        if: ${{ !inputs.sign-binaries && contains(inputs.platform, 'macos') && env.HAS_MACOS_SIGNING_CERT == 'true' }}
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/zynveliq-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          CERT="$RUNNER_TEMP/zynveliq-signing.p12"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > "$CERT"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -t 7200 -u "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$CERT" -k "$KEYCHAIN" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm -f "$CERT"
+          # Without the partition list, codesign would wait on a GUI prompt to
+          # use the key, which on a runner is a hang until the job times out.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+          # No -v: that filters out certificates the runner does not trust,
+          # which is every self-signed one.
+          IDENTITIES="$(security find-identity -p codesigning "$KEYCHAIN")"
+          echo "$IDENTITIES"
+          if [ -n "${APPLE_SIGNING_IDENTITY}" ]; then
+            IDENTITY="$(grep -F "\"${APPLE_SIGNING_IDENTITY}\"" <<<"$IDENTITIES" | head -n1 | awk '{print $2}' || true)"
+          else
+            IDENTITY="$(grep -E '^ *[0-9]+\) [0-9A-F]{40} ' <<<"$IDENTITIES" | head -n1 | awk '{print $2}' || true)"
+          fi
+          if ! [[ "$IDENTITY" =~ ^[0-9A-F]{40}$ ]]; then
+            echo "ERROR: APPLE_CERTIFICATE is set but holds no usable code-signing identity" >&2
+            echo "       (check the .p12, its password, and APPLE_SIGNING_IDENTITY if set)." >&2
+            exit 1
+          fi
+          echo "Signing macOS bundle with identity ${IDENTITY}"
+          echo "MACOS_STABLE_SIGNING_IDENTITY=${IDENTITY}" >> "$GITHUB_ENV"
+
+      # For UNSIGNED builds only (sign-binaries=false): the base
+      # tauri.conf.json hard-wires a Windows `signCommand` (Azure Trusted
+      # Signing), which needs a certificate this project does not have, so it
+      # is patched out here. Strictly gated on `!sign-binaries`, so production
+      # signed builds (which always pass sign-binaries=true) NEVER run this and
+      # are completely unaffected.
+      #
+      # `createUpdaterArtifacts` is NOT code signing and is kept whenever the
+      # updater key is available. It used to be switched off here along with
+      # the certificates, which is why no release ever carried an update: every
+      # install from 1.0 to 1.4 polled a latest.json that was never published.
+      # Without the key (a fork's PR) it is still turned off, because the
+      # bundler refuses to build updater artifacts it cannot sign.
+      - name: Neutralize signing for unsigned test build
+        if: ${{ !inputs.sign-binaries }}
+        shell: bash
+        run: |
+          node -e '
+            const fs = require("fs");
+            const p = "src-tauri/tauri.conf.json";
+            const c = JSON.parse(fs.readFileSync(p, "utf8"));
+            c.bundle = c.bundle || {};
+            c.bundle.createUpdaterArtifacts = process.env.HAS_UPDATER_KEY === "true";
+            c.bundle.windows = c.bundle.windows || {};
+            c.bundle.windows.signCommand = "cmd /c echo skip-signing %1";
+            // macOS: strip all signing so tauri produces an UNSIGNED .app/.dmg and
+            // never attempts a keychain certificate import (which fails when no
+            // Apple cert is provided for a test build).
+            c.bundle.macOS = c.bundle.macOS || {};
+            delete c.bundle.macOS.signingIdentity;
+            delete c.bundle.macOS.entitlements;
+            c.bundle.macOS.hardenedRuntime = false;
+            // Exception: with a stable identity imported above, sign with it so
+            // an Accessibility grant survives the next update. Runtime flags stay
+            // as they are for every other unsigned build; only the signature
+            // changes.
+            const stableIdentity = process.env.MACOS_STABLE_SIGNING_IDENTITY;
+            if (stableIdentity) {
+              c.bundle.macOS.signingIdentity = stableIdentity;
+              console.log("macOS: signing with stable identity " + stableIdentity);
+            }
+            fs.writeFileSync(p, JSON.stringify(c, null, 2));
+            console.log("Patched tauri.conf.json: code signing disabled; updater artifacts " + (c.bundle.createUpdaterArtifacts ? "ON (signed with the updater key)" : "OFF (no updater key)"));
+          '
+
+      # â”€â”€ Intel macOS (x86_64-apple-darwin) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      # Intel macOS is the ONE target where Zynveliq links ONNX Runtime
+      # dynamically. pykeio's `ort` dropped prebuilt x86_64-apple-darwin binaries
+      # ("Support for Intel macOS has been dropped following upstream changes to
+      # ONNX Runtime & Rust"), so `ort` has no static ORT
+      # to embed there â€” the shape-(b) posture that holds on every other target.
+      # Homebrew's onnxruntime fills the gap (this is what BUILD.md documents for
+      # local Intel builds).
+      #
+      # A *distributable* .dmg needs more than `brew --prefix`, though: a Homebrew
+      # dylib's install name is an absolute path into the build machine's Cellar,
+      # so linking straight against it produces an app that only starts on a Mac
+      # that happens to have the same formula installed. It has to travel inside
+      # the bundle instead.
+      #
+      # The rewrite happens BEFORE linking, which avoids all post-bundle surgery
+      # on the .app (and the stale-DMG problem that comes with it):
+      #   1. copy the dylib into src-tauri/onnx-libs/, dereferenced,
+      #   2. rewrite its install name to @rpath/libonnxruntime.dylib,
+      #   3. point ORT_LIB_LOCATION at that staged copy â€” so the linker records
+      #      @rpath/libonnxruntime.dylib in `zynveliq`, not /usr/local/...
+      # build.rs emits the matching @executable_path/../Frameworks rpath, the
+      # config patch below makes tauri-bundler copy the dylib into
+      # Contents/Frameworks, and the audit step after the build verifies all
+      # three halves actually met.
+      # Make the Intel build portable across the Intel Mac fleet, not tuned to
+      # whatever CPU this runner happens to have.
+      #
+      # ggml's CMake sets GGML_NATIVE_DEFAULT=ON for any native (non-cross)
+      # build, and GGML_NATIVE adds -march=native. macOS x86_64 builds
+      # transcribe-cpp statically here, so it would be
+      # compiled for the runner's exact instruction set. GitHub's Intel macOS
+      # runners are server-class parts; a 2017-2020 consumer Intel Mac is not.
+      # Comet Lake desktop chips (e.g. the i5-10500 our tester runs) have AVX2
+      # but no AVX-512, so a native build on a runner that has it produces an app
+      # that transcribes fine in CI and dies with SIGILL / "Illegal instruction"
+      # on a user's Mac. That is the same shape of bug as #19 â€” works on the
+      # build machine, broken everywhere else â€” and would have been the next
+      # thing our tester hit after the dylib fix.
+      #
+      # Both levers below are belts and braces now that whisper.cpp is gone:
+      #   * transcribe-cpp-sys already sets GGML_NATIVE=OFF (plus an SSE4.2 +
+      #     AVX + F16C floor) for every macOS x86_64 build, and also reads
+      #     TRANSCRIBE_CMAKE_ARGS (same mechanism the Windows ARM job uses), so
+      #     -DGGML_NATIVE=OFF is passed directly as well.
+      #   * ggml's own CMakeLists flips GGML_NATIVE_DEFAULT to OFF when
+      #     SOURCE_DATE_EPOCH is present in the environment. This was the only
+      #     lever for whisper-rs-sys, which never set GGML_NATIVE itself.
+      # Never do this for a local dev build: -march=native is the right default
+      # when the binary only has to run on the machine that compiled it.
+      - name: Build portable CPU code for Intel macOS
+        if: inputs.target == 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "TRANSCRIBE_CMAKE_ARGS=-DGGML_NATIVE=OFF" >> "$GITHUB_ENV"
+          # Value is arbitrary; ggml only checks whether it is DEFINED. Using the
+          # commit timestamp keeps it meaningful for any other reproducible-build
+          # tooling that reads it.
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> "$GITHUB_ENV"
+
+          echo "--- runner CPU (for comparison against tester hardware) ---"
+          sysctl -n machdep.cpu.brand_string || true
+          echo "AVX512 features: $(sysctl -n machdep.cpu.leaf7_features 2>/dev/null | tr ' ' '\n' | grep -i avx512 | tr '\n' ' ' || true)"
+
+      - name: Stage ONNX Runtime for Intel macOS
+        if: inputs.target == 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install onnxruntime
+          BREW_LIB="$(brew --prefix onnxruntime)/lib"
+          echo "Homebrew onnxruntime lib dir: $BREW_LIB"
+          ls -la "$BREW_LIB"
+
+          STAGE="$GITHUB_WORKSPACE/src-tauri/onnx-libs"
+          rm -rf "$STAGE"
+          mkdir -p "$STAGE"
+
+          # -L dereferences Homebrew's libonnxruntime.dylib symlink into the real
+          # versioned object, so ONE self-contained file lands in the bundle under
+          # the plain name the linker resolves for -lonnxruntime.
+          cp -L "$BREW_LIB/libonnxruntime.dylib" "$STAGE/libonnxruntime.dylib"
+          chmod u+w "$STAGE/libonnxruntime.dylib"
+
+          # Homebrew's libonnxruntime is NOT self-contained. It carries ~84
+          # absolute @@HOMEBREW_PREFIX@@/opt references of its OWN (onnx,
+          # onnx_proto, protobuf-lite, utf8_range, utf8_validity, re2 and dozens
+          # of versioned abseil libs), because Homebrew builds onnxruntime
+          # against shared formulae rather than vendoring them the way
+          # Microsoft's own release binaries do. Copying just this one file is
+          # what shipped issue #19: the .dmg installed, passed CI, and then died
+          # in dyld before main() on the first real Intel Mac, on
+          # /usr/local/opt/onnx/lib/libonnx.dylib.
+          #
+          # dylibbundler walks that whole graph in one command: it copies every
+          # non-system dependency into $STAGE, rewrites each reference (and each
+          # copied library's own id) to the -p prefix, and fixes the
+          # library-to-library references too (-b). @rpath is the right prefix
+          # here because build.rs emits @executable_path/../Frameworks on the
+          # executable, and dyld applies the main executable's rpaths when
+          # resolving @rpath from nested dylibs as well.
+          brew install dylibbundler
+          dylibbundler \
+            -x "$STAGE/libonnxruntime.dylib" \
+            -d "$STAGE" \
+            -p '@rpath/' \
+            -b -of -cd \
+            -i /usr/lib -i /System/Library
+
+          # dylibbundler rewrote the id to @rpath/<real versioned name>; force it
+          # back to the plain name the linker resolves for -lonnxruntime, then
+          # re-sign (any install_name_tool edit invalidates the signature
+          # dylibbundler just applied). The other staged libs keep theirs.
+          install_name_tool -id "@rpath/libonnxruntime.dylib" "$STAGE/libonnxruntime.dylib"
+          codesign --force --sign - "$STAGE/libonnxruntime.dylib"
+
+          staged_count="$(find "$STAGE" -name '*.dylib' | wc -l | tr -d ' ')"
+          echo "Staged ${staged_count} dylib(s) for the bundle:"
+          ls -la "$STAGE"
+          if [ "$staged_count" -lt 2 ]; then
+            echo "ERROR: only ${staged_count} dylib staged â€” dylibbundler did not gather the dependency closure" >&2
+            echo "Homebrew's libonnxruntime has dozens of non-system dependencies; one file is never right." >&2
+            exit 1
+          fi
+
+          echo "Staged dylib install name:"
+          otool -D "$STAGE/libonnxruntime.dylib"
+
+          echo "ORT_LIB_LOCATION=$STAGE" >> "$GITHUB_ENV"
+          echo "ORT_PREFER_DYNAMIC_LINK=1" >> "$GITHUB_ENV"
+
+      # Make tauri-bundler copy the staged dylibs into
+      # Zynveliq.app/Contents/Frameworks. `bundle.macOS.frameworks` accepts a
+      # path to a .dylib and copies it there verbatim â€” it deliberately does not
+      # touch install names or rpaths, which the two steps above/around it handle.
+      # Patched here rather than committed to tauri.conf.json so the path only
+      # exists for the Intel job; every other target would fail on a missing file.
+      #
+      # EVERY dylib dylibbundler staged is listed, not just libonnxruntime: the
+      # whole point of the staging step is that the closure travels together.
+      #
+      # minimumSystemVersion is corrected here too. The committed value (10.15)
+      # is the Apple Silicon truth; on Intel the floor is whatever Homebrew's
+      # onnxruntime bottle demands, which is currently macOS 14 (bottles are
+      # published per-OS and the Intel one is Sonoma-only). Leaving 10.15 in
+      # place ships a .dmg that installs on a Ventura Intel Mac and then refuses
+      # to start â€” the audit step below asserts these agree.
+      - name: Bundle ONNX Runtime into the app (Intel macOS)
+        if: inputs.target == 'x86_64-apple-darwin'
+        shell: bash
+        env:
+          # Homebrew publishes the Intel onnxruntime bottle for Sonoma only, and
+          # that dylib reports minos 14.0. Bump this when that changes â€” the
+          # audit step fails the build if it disagrees with the binaries.
+          INTEL_MIN_MACOS: "14.0"
+        run: |
+          node -e '
+            const fs = require("fs");
+            const p = "src-tauri/tauri.conf.json";
+            const c = JSON.parse(fs.readFileSync(p, "utf8"));
+            c.bundle = c.bundle || {};
+            c.bundle.macOS = c.bundle.macOS || {};
+            const fw = new Set(c.bundle.macOS.frameworks || []);
+            // Relative to tauri.conf.json (src-tauri/), same as bundle.resources.
+            const staged = fs.readdirSync("src-tauri/onnx-libs").filter((f) => f.endsWith(".dylib"));
+            if (staged.length === 0) {
+              console.error("ERROR: src-tauri/onnx-libs contains no dylibs");
+              process.exit(1);
+            }
+            for (const f of staged) fw.add("onnx-libs/" + f);
+            c.bundle.macOS.frameworks = [...fw];
+            c.bundle.macOS.minimumSystemVersion = process.env.INTEL_MIN_MACOS;
+            fs.writeFileSync(p, JSON.stringify(c, null, 2));
+            console.log("Patched tauri.conf.json:", fw.size, "framework entries, minimumSystemVersion =", c.bundle.macOS.minimumSystemVersion);
+          '
+
+      # The tag of the release being built into, taken FROM that release rather
+      # than rebuilt from the version. A release's tag is not always
+      # `v${version}`: a prerelease is tagged `v1.5.0-beta.1` on a 1.5.0 build,
+      # and reconstructing the tag made the Linux republish step look up
+      # `v1.5.0`, get "release not found", and fail after it had already spent 32
+      # minutes building. It failed *after* tauri-action had attached the
+      # pre-repack packages, so the release was left holding exactly the
+      # defective .deb and AppImage the repack exists to replace, which is the
+      # worst possible outcome for a step whose whole job is to prevent that.
+      #
+      # Falls back to `v${version}` when there is no release id, which is the
+      # test-build path where nothing is uploaded to a release at all.
+      - name: Resolve the release tag
+        id: release-tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ inputs.release-id }}
+          VERSION: ${{ steps.get-version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${RELEASE_ID}" ]; then
+            TAG="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" --jq .tag_name)"
+            NAME="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" --jq '.name // .tag_name')"
+            if [ -z "${TAG}" ] || [ "${TAG}" = "null" ]; then
+              echo "ERROR: release ${RELEASE_ID} has no tag_name" >&2
+              exit 1
+            fi
+            echo "Release ${RELEASE_ID} is tagged ${TAG} (${NAME})"
+          else
+            TAG="v${VERSION}"
+            NAME="v${VERSION}"
+            echo "No release id; using ${TAG}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+
+      # Split signed (production) vs unsigned (test). The UNSIGNED path passes NO
+      # Apple/Azure/updater env at all: a present-but-EMPTY APPLE_CERTIFICATE makes
+      # tauri attempt a keychain `security import` that fails ("SecKeychainItemImport:
+      # parameters not valid"). It must be absent, not empty, for unsigned builds.
+      - name: Build with Tauri (signed)
+        if: ${{ inputs.sign-binaries }}
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ inputs.release-id && steps.release-tag.outputs.tag || '' }}
+          releaseName: ${{ inputs.release-id && steps.release-tag.outputs.name || '' }}
+          releaseId: ${{ inputs.release-id }}
+          assetNamePattern: ${{ steps.patch-release-name.outputs.platform }}
+          # latest.json is written once, after every platform has finished and
+          # the Linux packages have been repacked and re-signed, by
+          # updater-manifest.yml. tauri-action's own copy would race across the
+          # matrix and carry pre-repack Linux signatures.
+          includeUpdaterJson: false
+          args: ${{ inputs.build-args }}
+
+      # The updater key is passed even though this build has no code-signing
+      # certificates: it is what makes the update bundles installable by an
+      # already-installed app. When the secret is absent it expands to an empty
+      # string, and the conf patch above has already turned updater artifacts
+      # off, so the bundler never reads it.
+      - name: Build with Tauri (unsigned test build)
+        if: ${{ !inputs.sign-binaries }}
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ inputs.release-id && steps.release-tag.outputs.tag || '' }}
+          releaseName: ${{ inputs.release-id && steps.release-tag.outputs.name || '' }}
+          releaseId: ${{ inputs.release-id }}
+          assetNamePattern: ${{ steps.patch-release-name.outputs.platform }}
+          includeUpdaterJson: false
+          args: ${{ inputs.build-args }}
+
+      # A stable identity that silently did not take would ship another
+      # ever-changing signature and look like it worked, so check it. The
+      # designated requirement is what TCC stores; it must name a certificate,
+      # not a cdhash, for a grant to outlive the next build.
+      - name: Verify stable macOS signature
+        if: ${{ !inputs.sign-binaries && contains(inputs.platform, 'macos') && env.MACOS_STABLE_SIGNING_IDENTITY != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$(ls -d src-tauri/target/${{ inputs.target }}/${{ steps.build-profile.outputs.profile }}/bundle/macos/*.app | head -n1)"
+          codesign -dv --verbose=2 "$APP" 2>&1 | grep -E '^(Identifier|Authority|Signature|TeamIdentifier)=' || true
+          REQ="$(codesign -d -r- "$APP" 2>&1)"
+          echo "$REQ"
+          if ! grep -q 'certificate' <<<"$REQ"; then
+            echo "ERROR: ${APP} was not signed with the stable identity; its designated requirement names no certificate" >&2
+            exit 1
+          fi
+
+      # The hard gate for Intel macOS, mirroring the Windows/Linux package audits:
+      # a .dmg that installs and then cannot start is the failure mode worth
+      # catching in CI rather than in a user's issue tracker â€” which is exactly
+      # what happened in #19, because the first version of this step only ever
+      # inspected the app executable's own load commands. Five failing checks now,
+      # each covering a different way the ORT bundling can silently half-work,
+      # plus one provenance report:
+      #   1. the binary is really x86_64 (not an accidental arm64 build),
+      #   2. it references @rpath/libonnxruntime.dylib and NOT a Homebrew path
+      #      (a Homebrew path means step 2 of the staging never took effect),
+      #   3. the dylib is actually inside Contents/Frameworks (i.e. tauri-bundler
+      #      honored the `frameworks` entry) and carries the rpath to find it,
+      #   4. the FULL dependency graph stays inside the bundle, at every depth,
+      #      and the declared minimumSystemVersion matches what the binaries
+      #      really demand (scripts/ci/audit-macos-bundle.sh),
+      #   5. the bundled binary launches with Homebrew's prefixes moved aside, so
+      #      the build machine cannot supply a library the .dmg forgot to carry.
+      #      This runs on an Intel runner, so it is a genuine native check.
+      #
+      # ONNX Runtime is NOT optional here, which is why all of this exists: `ort`
+      # is pulled in by vad-rs (Silero VAD, core to every recording) and by
+      # meeting diarization.
+      - name: Audit Intel macOS bundle
+        if: inputs.target == 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROFILE="${{ steps.build-profile.outputs.profile }}"
+          BUNDLE_DIR="src-tauri/target/x86_64-apple-darwin/${PROFILE}/bundle"
+
+          APP="$(find "${BUNDLE_DIR}/macos" -maxdepth 1 -name '*.app' | head -1)"
+          if [ -z "${APP:-}" ]; then
+            echo "ERROR: no .app produced under ${BUNDLE_DIR}/macos" >&2
+            find "src-tauri/target/x86_64-apple-darwin/${PROFILE}" -maxdepth 3 -name '*.app' -o -maxdepth 3 -name '*.dmg' >&2 || true
+            exit 1
+          fi
+          echo "Auditing ${APP}"
+
+          BIN="$(find "${APP}/Contents/MacOS" -maxdepth 1 -type f -perm -u+x | head -1)"
+          if [ -z "${BIN:-}" ]; then
+            echo "ERROR: no executable in ${APP}/Contents/MacOS" >&2
+            ls -la "${APP}/Contents/MacOS" >&2 || true
+            exit 1
+          fi
+
+          # 1. Architecture.
+          echo "--- file ---"
+          file "$BIN"
+          if ! file "$BIN" | grep -q 'x86_64'; then
+            echo "ERROR: ${BIN} is not x86_64" >&2
+            exit 1
+          fi
+
+          # 2. Load paths: @rpath in, Homebrew out.
+          echo "--- otool -L ---"
+          otool -L "$BIN"
+          if ! otool -L "$BIN" | grep -q '@rpath/libonnxruntime.dylib'; then
+            echo "ERROR: ${BIN} does not reference @rpath/libonnxruntime.dylib" >&2
+            echo "The ONNX Runtime staging step did not take effect before linking." >&2
+            exit 1
+          fi
+          if otool -L "$BIN" | grep -Ei 'onnxruntime' | grep -Eq '/(usr/local|opt/homebrew)/|Cellar'; then
+            echo "ERROR: ${BIN} still links ONNX Runtime from a Homebrew path" >&2
+            echo "The .dmg would only run on Macs with that exact formula installed." >&2
+            exit 1
+          fi
+
+          # 3. The dylib travelled, and the rpath to reach it is embedded.
+          if [ ! -f "${APP}/Contents/Frameworks/libonnxruntime.dylib" ]; then
+            echo "ERROR: libonnxruntime.dylib is missing from ${APP}/Contents/Frameworks" >&2
+            echo "tauri-bundler did not honor the bundle.macOS.frameworks entry." >&2
+            ls -la "${APP}/Contents/Frameworks" 2>/dev/null >&2 || echo "(no Frameworks dir at all)" >&2
+            exit 1
+          fi
+          echo "--- LC_RPATH ---"
+          otool -l "$BIN" | grep -A2 LC_RPATH || true
+          if ! otool -l "$BIN" | grep -q '@executable_path/../Frameworks'; then
+            echo "ERROR: ${BIN} has no @executable_path/../Frameworks rpath" >&2
+            echo "build.rs did not emit the rpath for this target." >&2
+            exit 1
+          fi
+
+          # 4. The RECURSIVE audit, and the honest minimum-macOS assert. Checks
+          #    1-3 above all pass on a bundle that cannot start, because they only
+          #    ever look at $BIN's own load commands â€” that is precisely how #19
+          #    shipped. This walks every dylib in Contents/Frameworks too, at
+          #    every depth, and fails on any path that points outside the bundle.
+          DECLARED_MIN_OS="$(node -e 'console.log(JSON.parse(require("fs").readFileSync("src-tauri/tauri.conf.json","utf8")).bundle.macOS.minimumSystemVersion)')"
+          bash scripts/ci/audit-macos-bundle.sh "$APP" "$DECLARED_MIN_OS"
+
+          # 5. It actually starts, ON A MACHINE THAT LOOKS LIKE A USER'S. dyld
+          #    resolves every linked dylib before main() runs, so `--list-devices`
+          #    (which exits before Tauri and any window setup) is a real
+          #    end-to-end proof â€” but ONLY if the build machine is not quietly
+          #    supplying the libraries. The previous version of this step ran the
+          #    binary with Homebrew fully installed, so all ~84 of libonnxruntime's
+          #    dependencies resolved from /usr/local/opt and the test passed on an
+          #    artifact that could not start anywhere else.
+          #
+          #    So move the Homebrew opt prefixes aside first. `brew unlink` is the
+          #    obvious tool but its exact effect on /usr/local/opt/<formula> is a
+          #    Homebrew implementation detail; moving the directories is
+          #    unambiguous. Then ASSERT they are gone â€” a silently-failed move
+          #    would restore the old false green, which is the whole bug we are
+          #    fixing.
+          echo "--- clean-room launch test ---"
+          CLEANROOM_BACKUP="${RUNNER_TEMP}/brew-opt-backup"
+          mkdir -p "$CLEANROOM_BACKUP"
+          MOVED=""
+          for formula in onnxruntime onnx protobuf re2 abseil; do
+            if [ -e "/usr/local/opt/${formula}" ]; then
+              sudo mv "/usr/local/opt/${formula}" "${CLEANROOM_BACKUP}/${formula}"
+              MOVED="${MOVED} ${formula}"
+            fi
+          done
+          echo "Moved aside:${MOVED:- (nothing)}"
+
+          if [ -e /usr/local/opt/onnx ]; then
+            echo "ERROR: /usr/local/opt/onnx is still present; a clean-room test here would prove nothing" >&2
+            exit 1
+          fi
+
+          set +e
+          "$BIN" --list-devices
+          SMOKE_RC=$?
+          set -e
+
+          # Restore before acting on the result, so later steps (and the runner's
+          # own cleanup) see the machine they expect either way.
+          for formula in $MOVED; do
+            sudo mv "${CLEANROOM_BACKUP}/${formula}" "/usr/local/opt/${formula}"
+          done
+          echo "Restored:${MOVED:- (nothing)}"
+
+          if [ "$SMOKE_RC" -ne 0 ]; then
+            echo "ERROR: the bundled binary failed to launch without Homebrew (exit ${SMOKE_RC})" >&2
+            echo "This is what a user's Intel Mac would do. A dyld 'Library not loaded'" >&2
+            echo "message above names the dependency that was not bundled." >&2
+            exit 1
+          fi
+          echo "Intel macOS bundle audit passed"
+
+          # 6. Provenance, for the record. The minimum-macOS numbers are printed
+          #    AND asserted by audit-macos-bundle.sh above, so all that is left
+          #    worth logging is where the dylib came from â€” Homebrew publishes
+          #    bottles per-OS version, and the Intel tag it offers is what moves
+          #    this artifact's floor between releases.
+          echo "--- Homebrew bottle provenance ---"
+          brew info --json=v2 onnxruntime 2>/dev/null | node -e '
+            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+              try {
+                const f=JSON.parse(s).formulae[0];
+                console.log("onnxruntime", f.versions.stable, "| bottle tags:",
+                  Object.keys(f.bottle?.stable?.files || {}).join(", ") || "(none)");
+              } catch { console.log("(could not parse brew info)"); }
+            });' || true
+
+          echo "--- bundled Frameworks ---"
+          ls -la "${APP}/Contents/Frameworks" 2>/dev/null || true
+
+          echo "--- produced artifacts ---"
+          ls -la "${BUNDLE_DIR}/macos" "${BUNDLE_DIR}/dmg" 2>/dev/null || true
+
+      - name: Upload artifacts (macOS)
+        if: inputs.upload-artifacts && contains(inputs.platform, 'macos')
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.asset-prefix }}-${{ inputs.target }}
+          path: |
+            src-tauri/target/${{ inputs.target }}/${{ steps.build-profile.outputs.profile }}/bundle/dmg/*.dmg
+            src-tauri/target/${{ inputs.target }}/${{ steps.build-profile.outputs.profile }}/bundle/macos/*.app
+          retention-days: 30
+
+      - name: Install FUSE for AppImage processing
+        if: contains(inputs.platform, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fuse libfuse2
+
+      - name: Remove libwayland-client.so and stage transcribe backends in AppImage
+        if: contains(inputs.platform, 'ubuntu')
+        run: |
+          # Find the AppImage file
+          APPIMAGE_PATH=$(find src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/appimage -name "*.AppImage" | head -1)
+
+          if [ -n "$APPIMAGE_PATH" ]; then
+            echo "Processing AppImage: $APPIMAGE_PATH"
+
+            # Make AppImage executable
+            chmod +x "$APPIMAGE_PATH"
+
+            # Extract AppImage
+            cd "$(dirname "$APPIMAGE_PATH")"
+            APPIMAGE_NAME=$(basename "$APPIMAGE_PATH")
+
+            # Extract using the AppImage itself
+            "./$APPIMAGE_NAME" --appimage-extract
+
+            # Remove libwayland-client.so files
+            echo "Removing libwayland-client.so files..."
+            find squashfs-root -name "libwayland-client.so*" -type f -delete
+
+            # Co-locate transcribe-cpp's dynamic backends in the AppImage.
+            # linuxdeploy bundles the NEEDED libtranscribe.so (resolved at build
+            # time via LD_LIBRARY_PATH) but NOT the dlopen'd ggml backend modules
+            # that init_backends_default() loads at runtime from libtranscribe's
+            # own directory â€” stage those (and backfill the core libs) into
+            # usr/lib, next to libtranscribe. Fails loudly if libs are missing.
+            if [ -n "${TRANSCRIBE_LIBDIR:-}" ]; then
+              bash "$GITHUB_WORKSPACE/scripts/ci/stage-transcribe-libs.sh" \
+                "$TRANSCRIBE_LIBDIR" "squashfs-root/usr/lib"
+            else
+              echo "ERROR: TRANSCRIBE_LIBDIR not set; transcribe-cpp backends would be missing from the AppImage" >&2
+              exit 1
+            fi
+
+            # Detect architecture and get appropriate appimagetool
+            if [[ "$(uname -m)" == "aarch64" ]]; then
+              APPIMAGETOOL_ARCH="aarch64"
+              APPIMAGETOOL_SHA256="f0837e7448a0c1e4e650a93bb3e85802546e60654ef287576f46c71c126a9158"
+              RUNTIME_SHA256="00cbdfcf917cc6c0ff6d3347d59e0ca1f7f45a6df1a428a0d6d8a78664d87444"
+            else
+              APPIMAGETOOL_ARCH="x86_64"
+              APPIMAGETOOL_SHA256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+              RUNTIME_SHA256="2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d"
+            fi
+
+            # The current appimagetool (AppImage/appimagetool) with the static
+            # type2 runtime, both pinned and checksummed. The AppImageKit
+            # "continuous" build this used to fetch is deprecated upstream and
+            # embeds the old runtime, which links libfuse.so.2: on Ubuntu 22.04+,
+            # Fedora and others, where libfuse2 is not installed by default, the
+            # repacked AppImage printed "AppImages require FUSE to run" and never
+            # started. The type2 runtime needs no libfuse at all.
+            APPIMAGETOOL="appimagetool-${APPIMAGETOOL_ARCH}.AppImage"
+            RUNTIME="runtime-${APPIMAGETOOL_ARCH}"
+            wget -q -O "$APPIMAGETOOL" "https://github.com/AppImage/appimagetool/releases/download/1.9.1/${APPIMAGETOOL}"
+            wget -q -O "$RUNTIME" "https://github.com/AppImage/type2-runtime/releases/download/20251108/${RUNTIME}"
+            echo "${APPIMAGETOOL_SHA256}  ${APPIMAGETOOL}" | sha256sum -c -
+            echo "${RUNTIME_SHA256}  ${RUNTIME}" | sha256sum -c -
+            chmod +x "$APPIMAGETOOL"
+
+            # Repackage AppImage with no-appstream to avoid warnings
+            ARCH="${APPIMAGETOOL_ARCH}" "./${APPIMAGETOOL}" --no-appstream \
+              --runtime-file "$RUNTIME" squashfs-root "$APPIMAGE_NAME"
+
+            # The repacked file must start with the pinned static type2 runtime,
+            # or it would still need libfuse2 on the user's machine. The old
+            # runtime dlopens libfuse.so.2 by name (not a NEEDED entry, so
+            # readelf cannot see it); the static one never mentions it. Only the
+            # runtime's own bytes are searched, so the squashfs payload cannot
+            # trip this.
+            #
+            # appimagetool writes into four reserved sections of the runtime
+            # (.digest_md5 always, plus .upd_info/.sha256_sig/.sig_key when
+            # update info or signing is used), so a plain byte compare always
+            # fails. Compare everything else and zero those ranges in both.
+            RUNTIME_SIZE="$(stat -c%s "$RUNTIME")"
+            RESERVED="$(readelf -S -W "$RUNTIME" | awk '{for (i = 1; i <= NF; i++) if ($i ~ /^\.(digest_md5|upd_info|sha256_sig|sig_key)$/) print $(i+3), $(i+4)}')"
+            if [ "$(printf '%s\n' "$RESERVED" | grep -c .)" != "4" ]; then
+              echo "ERROR: pinned runtime is missing its digest/update/signature sections" >&2
+              exit 1
+            fi
+            if ! RESERVED="$RESERVED" python3 - "$RUNTIME" "$APPIMAGE_NAME" <<'PY'
+          import os, sys
+          runtime = bytearray(open(sys.argv[1], "rb").read())
+          with open(sys.argv[2], "rb") as f:
+              embedded = bytearray(f.read(len(runtime)))
+          for line in os.environ["RESERVED"].split("\n"):
+              off, size = (int(x, 16) for x in line.split())
+              runtime[off:off + size] = bytes(size)
+              embedded[off:off + size] = bytes(size)
+          sys.exit(0 if runtime == embedded else 1)
+          PY
+            then
+              echo "ERROR: repacked AppImage does not start with the pinned type2 runtime" >&2
+              exit 1
+            fi
+            FUSE2_REFS="$(head -c "$RUNTIME_SIZE" "$APPIMAGE_NAME" | grep -c -a 'libfuse.so.2' || true)"
+            if [ "$FUSE2_REFS" != "0" ]; then
+              echo "ERROR: repacked AppImage runtime still loads libfuse.so.2" >&2
+              exit 1
+            fi
+
+            # Clean up
+            rm -rf squashfs-root "$APPIMAGETOOL" "$RUNTIME"
+
+            echo "AppImage post-processing complete"
+          else
+            echo "No AppImage found to process"
+          fi
+
+      # Tauri's deb bundler packages the binary + resources only, so the dynamic
+      # engine libs are missing: libtranscribe.so (a NEEDED of `zynveliq`) and
+      # the ggml backend modules that libtranscribe dlopen's from its own
+      # directory at runtime. A .deb built without them installs fine and then
+      # cannot transcribe, which is exactly what the audit below catches.
+      #
+      # The AppImage solves this in its own post-processing step above; do the
+      # same for .deb by unpacking, injecting into /usr/lib, and repacking.
+      # /usr/lib is both on the default loader search path (resolving the NEEDED)
+      # and the directory libtranscribe dlopen's its backends from, so one
+      # location satisfies both.
+      #
+      # NOTE: .rpm has no equivalent step. Injecting into an existing .rpm means
+      # rebuilding it from a spec rather than a simple unpack/repack, so .rpm is
+      # not built until that is wired up properly.
+      - name: Stage transcribe backends into .deb
+        if: contains(inputs.platform, 'ubuntu')
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROFILE="${{ steps.build-profile.outputs.profile }}"
+          DEB_DIR="src-tauri/target/${PROFILE}/bundle/deb"
+
+          if ! compgen -G "${DEB_DIR}/*.deb" > /dev/null; then
+            echo "No .deb produced; nothing to stage."
+            exit 0
+          fi
+
+          if [ -z "${TRANSCRIBE_LIBDIR:-}" ]; then
+            echo "ERROR: TRANSCRIBE_LIBDIR not set; the .deb would ship without the transcribe engine" >&2
+            exit 1
+          fi
+
+          for deb in "${DEB_DIR}"/*.deb; do
+            echo "Injecting engine libs into ${deb}"
+            work="$(mktemp -d)"
+            # -R keeps the control archive, so the package can be rebuilt as-is.
+            dpkg-deb -R "$deb" "$work"
+            mkdir -p "$work/usr/lib"
+            # Collect via nullglob so an unmatched pattern is an explicit error
+            # rather than cp choking on a literal glob under `set -e`.
+            shopt -s nullglob
+            libs=( "$TRANSCRIBE_LIBDIR"/libtranscribe.so* "$TRANSCRIBE_LIBDIR"/libggml*.so* )
+            shopt -u nullglob
+            if [ ${#libs[@]} -eq 0 ]; then
+              echo "ERROR: no engine libs found in ${TRANSCRIBE_LIBDIR}" >&2
+              ls -la "$TRANSCRIBE_LIBDIR" >&2 || true
+              exit 1
+            fi
+            # -L dereferences the versioned symlinks cargo leaves behind.
+            cp -vL "${libs[@]}" "$work/usr/lib/"
+            # Refresh Installed-Size so dpkg reports the real footprint.
+            size_kb="$(du -ks "$work" | cut -f1)"
+            if grep -q '^Installed-Size:' "$work/DEBIAN/control"; then
+              sed -i "s/^Installed-Size:.*/Installed-Size: ${size_kb}/" "$work/DEBIAN/control"
+            fi
+            dpkg-deb -b "$work" "$deb"
+            rm -rf "$work"
+            echo "Repacked ${deb}"
+          done
+
+      # Both Linux packages were rewritten above, so the .sig files the bundler
+      # wrote now describe bytes that no longer exist. An installed app checks
+      # the signature against the file it downloads and refuses on mismatch, so
+      # shipping the bundler's .sig would make every Linux update fail at
+      # install time. Sign the repacked files; updater-manifest.yml later
+      # verifies these signatures against the published downloads.
+      - name: Re-sign repacked Linux packages for the updater
+        if: contains(inputs.platform, 'ubuntu') && env.HAS_UPDATER_KEY == 'true'
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          BUNDLE_DIR="src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle"
+          shopt -s nullglob
+          packages=( "${BUNDLE_DIR}"/deb/*.deb "${BUNDLE_DIR}"/appimage/*.AppImage )
+          shopt -u nullglob
+          if [ ${#packages[@]} -eq 0 ]; then
+            echo "ERROR: no Linux packages to sign under ${BUNDLE_DIR}" >&2
+            exit 1
+          fi
+          for pkg in "${packages[@]}"; do
+            rm -f "${pkg}.sig"
+            bun run tauri signer sign "$pkg" >/dev/null
+            if [ ! -s "${pkg}.sig" ]; then
+              echo "ERROR: signing ${pkg} produced no signature" >&2
+              exit 1
+            fi
+            echo "Signed $(basename "$pkg")"
+          done
+
+      - name: Audit Linux package runtime contents
+        if: contains(inputs.platform, 'ubuntu')
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # The runtime smoke test launches the packaged zynveliq binary, which
+          # links GTK (via tao) even for the headless --list-devices path and
+          # therefore needs a display to start. CI runners are headless, so
+          # provide a virtual X server via xvfb-run.
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+          PROFILE="${{ steps.build-profile.outputs.profile }}"
+          BUNDLE_DIR="src-tauri/target/${PROFILE}/bundle"
+
+          require_pattern() {
+            local listing="$1"
+            local pattern="$2"
+            local label="$3"
+            if ! grep -Eq "$pattern" "$listing"; then
+              echo "ERROR: missing ${label} (${pattern}) in ${listing}" >&2
+              cat "$listing" >&2
+              exit 1
+            fi
+          }
+
+          require_path() {
+            local path="$1"
+            local label="$2"
+            if [ ! -e "$path" ]; then
+              echo "ERROR: missing ${label}: ${path}" >&2
+              find "$(dirname "$path")" -maxdepth 2 -type f 2>/dev/null >&2 || true
+              exit 1
+            fi
+          }
+
+          smoke_binary() {
+            local root="$1"
+            local label="$2"
+            local rc=0
+            local bin="${root}/usr/bin/zynveliq"
+
+            # Check 1: every shared library resolves. THIS is the check that would
+            # have caught v1.1.0, whose .deb shipped without libtranscribe.so and
+            # died at load with
+            #   error while loading shared libraries: libtranscribe.so.0:
+            #   cannot open shared object file
+            # Always a hard failure.
+            echo "--- ldd: unresolved libraries ---"
+            local missing
+            missing="$(LD_LIBRARY_PATH="${root}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+              ldd "$bin" 2>/dev/null | grep 'not found' || true)"
+            if [ -n "$missing" ]; then
+              echo "::error::${label} package has unresolved shared libraries"
+              echo "$missing"
+              return 1
+            fi
+            echo "all shared libraries resolve"
+
+            # Check 2: the process actually starts. clap handles --help before any
+            # engine work, but the dynamic loader still maps every library first,
+            # so exit 0 proves the packaging is sound: right libs, right rpath.
+            set +e
+            ZYNVELIQ_NO_GTK_LAYER_SHELL=1 \
+            LD_LIBRARY_PATH="${root}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+              xvfb-run -a "$bin" --help >/dev/null 2>/tmp/zynveliq-help.err
+            rc=$?
+            set -e
+            if [ "$rc" -ne 0 ]; then
+              echo "::error::${label} zynveliq --help failed (exit ${rc}); the package cannot start"
+              cat /tmp/zynveliq-help.err || true
+              return 1
+            fi
+            echo "${label} package starts (--help exit 0)"
+
+            # Check 3: device enumeration. NON-fatal on SIGILL only.
+            #
+            # --list-devices enumerates transcribe.cpp compute devices IN this
+            # process. On some x86_64 CPUs (reproduced on GitHub's AMD EPYC 7763,
+            # Zen 3) that SIGILLs inside libtranscribe's fill_backend_device.
+            # Confirmed NOT the AVX-512 CPU variants: deleting the seven
+            # AVX-512-only libggml-cpu modules changes nothing.
+            #
+            # The app already survives this by design. On Linux
+            # PROBE_DEVICES_OUT_OF_PROCESS is true, so device probing runs in a
+            # throwaway child and a crash costs a device listing rather than the
+            # app (see managers/transcription.rs). This CLI flag is deliberately
+            # the in-process path, so it is the only place the crash is fatal.
+            #
+            # Failing the build on it would block every release that lands on an
+            # AMD runner, while the regression it was meant to guard against
+            # (missing engine libs) is already covered by checks 1 and 2. So a
+            # SIGILL warns loudly and anything else still fails hard.
+            # Tracked separately; revisit when transcribe-cpp is fixed upstream.
+            set +e
+            ZYNVELIQ_NO_GTK_LAYER_SHELL=1 \
+            LD_LIBRARY_PATH="${root}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+              xvfb-run -a "$bin" --list-devices >/tmp/zynveliq-package-smoke.log 2>&1
+            rc=$?
+            set -e
+            if [ "$rc" -eq 0 ]; then
+              cat /tmp/zynveliq-package-smoke.log || true
+              echo "${label} --list-devices smoke passed"
+              return 0
+            fi
+            if [ "$rc" -eq 132 ]; then
+              echo "::warning::${label} --list-devices hit the known SIGILL in transcribe.cpp device enumeration on this CPU; not fatal, the app probes devices out of process on Linux"
+              lscpu 2>/dev/null | grep -i 'model name' || true
+              cat /tmp/zynveliq-package-smoke.log || true
+              return 0
+            fi
+
+            echo "::error::${label} --list-devices failed with exit code ${rc}"
+            cat /tmp/zynveliq-package-smoke.log || true
+            echo "--- engine libs present in the package ---"
+            ls -la "${root}/usr/lib/" | grep -E 'libtranscribe|libggml' || echo "(none!)"
+            echo "--- NEEDED libs of the binary ---"
+            readelf -d "$bin" 2>/dev/null | grep NEEDED || true
+            return 1
+          }
+
+          if compgen -G "${BUNDLE_DIR}/deb/*.deb" > /dev/null; then
+            for deb in "${BUNDLE_DIR}"/deb/*.deb; do
+              echo "Auditing deb package: ${deb}"
+              listing="$(mktemp)"
+              dpkg-deb -c "$deb" > "$listing"
+              require_pattern "$listing" 'usr/bin/zynveliq$' "zynveliq binary"
+              require_pattern "$listing" 'usr/lib/libtranscribe\.so' "transcribe runtime library"
+              require_pattern "$listing" 'usr/lib/libggml-cpu.*\.so' "ggml CPU backend module"
+              root="$(mktemp -d)"
+              dpkg-deb -x "$deb" "$root"
+              smoke_binary "$root" "deb"
+              rm -rf "$root" "$listing"
+            done
+          fi
+
+          if compgen -G "${BUNDLE_DIR}/rpm/*.rpm" > /dev/null; then
+            if ! command -v rpm >/dev/null 2>&1; then
+              sudo apt-get update
+              sudo apt-get install -y rpm
+            fi
+            for rpm_pkg in "${BUNDLE_DIR}"/rpm/*.rpm; do
+              echo "Auditing rpm package: ${rpm_pkg}"
+              listing="$(mktemp)"
+              rpm -qpl "$rpm_pkg" > "$listing"
+              require_pattern "$listing" '/usr/bin/zynveliq$' "zynveliq binary"
+              require_pattern "$listing" '/usr/lib/libtranscribe\.so' "transcribe runtime library"
+              require_pattern "$listing" '/usr/lib/libggml-cpu.*\.so' "ggml CPU backend module"
+              rm -f "$listing"
+            done
+          fi
+
+          if compgen -G "${BUNDLE_DIR}/appimage/*.AppImage" > /dev/null; then
+            for appimage in "${BUNDLE_DIR}"/appimage/*.AppImage; do
+              echo "Auditing AppImage package: ${appimage}"
+              workdir="$(mktemp -d)"
+              cp "$appimage" "${workdir}/Zynveliq.AppImage"
+              chmod +x "${workdir}/Zynveliq.AppImage"
+              (
+                cd "$workdir"
+                ./Zynveliq.AppImage --appimage-extract >/dev/null
+                require_path "squashfs-root/usr/bin/zynveliq" "AppImage zynveliq binary"
+                require_path "squashfs-root/usr/lib/libtranscribe.so" "AppImage transcribe runtime library"
+                if ! find "squashfs-root/usr/lib" -name 'libggml-cpu*.so*' | grep -q .; then
+                  echo "ERROR: missing AppImage ggml CPU backend module" >&2
+                  find "squashfs-root/usr/lib" -maxdepth 1 -type f >&2
+                  exit 1
+                fi
+                smoke_binary "$(pwd)/squashfs-root" "AppImage"
+              )
+              rm -rf "$workdir"
+            done
+          fi
+
+      # â”€â”€ THE FIX for v1.1.0's unlaunchable .deb â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      # `tauri-action` is given `releaseId`, so it uploads the bundles to the
+      # GitHub Release from INSIDE the "Build with Tauri" step. Both Linux
+      # post-processing steps above â€” the AppImage repack and the .deb
+      # inject/repack that add libtranscribe.so and the ggml backend modules â€”
+      # run AFTER that upload. So the release got the pre-injection files while
+      # the fixes landed on local copies nobody downloads, and the audit then
+      # inspected those same local (correct) copies and passed.
+      #
+      # Result in v1.1.0: a fully green release run that shipped a .deb with zero
+      # engine libs, which dies at load with
+      #   zynveliq: error while loading shared libraries: libtranscribe.so.0:
+      #   cannot open shared object file
+      # Reported in the wild; reproduced by unpacking the released asset.
+      #
+      # Overwrite those assets with the repacked ones. Runs only for release
+      # builds (release-id set); test builds are unaffected because their
+      # "Upload artifacts (Linux)" step already runs after the audit â€” which is
+      # exactly why test builds always looked fine.
+      - name: Republish repacked Linux packages to the release
+        if: ${{ contains(inputs.platform, 'ubuntu') && inputs.release-id != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ inputs.release-id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Resolved from the release id, never rebuilt from the version: on a
+          # prerelease the tag is v1.5.0-beta.1 while the version is 1.5.0, and
+          # guessing produced "release not found" here after a 32-minute build.
+          TAG="${{ steps.release-tag.outputs.tag }}"
+          BUNDLE_DIR="src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle"
+
+          shopt -s nullglob
+          assets=( "${BUNDLE_DIR}"/deb/*.deb "${BUNDLE_DIR}"/appimage/*.AppImage )
+          # The signatures made for the repacked files replace the stale ones
+          # tauri-action attached, which described the pre-repack bytes.
+          signatures=( "${BUNDLE_DIR}"/deb/*.deb.sig "${BUNDLE_DIR}"/appimage/*.AppImage.sig )
+          shopt -u nullglob
+          if [ ${#assets[@]} -eq 0 ]; then
+            echo "ERROR: no Linux packages found to republish under ${BUNDLE_DIR}" >&2
+            exit 1
+          fi
+
+          for a in "${assets[@]}" "${signatures[@]}"; do
+            echo "Republishing $(basename "$a") ($(du -h "$a" | cut -f1)) to ${TAG}"
+          done
+          # --clobber replaces the stale asset tauri-action attached earlier.
+          gh release upload "$TAG" "${assets[@]}" "${signatures[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+
+          # Close the loop: pull the asset back DOWN from the release and confirm
+          # the engine libs are in the file a user would actually get. Auditing a
+          # local build artifact is what hid this bug for a whole release, so the
+          # check that matters is the one against the published file.
+          #
+          # NOTE: do NOT use `gh release download`, which resolves by tag. The
+          # GitHub API's /releases/tags/{tag} endpoint does not return DRAFT
+          # releases, so during a release that 404s and leaves an empty file,
+          # which then reads as "the engine libs are missing" and is badly
+          # misleading. That is exactly what happened on the v1.1.1 run: the
+          # packages were correct and published, and this check failed anyway.
+          # Look the asset up by release ID and fetch it through the asset API.
+          verify_dir="$(mktemp -d)"
+          for a in "${assets[@]}"; do
+            name="$(basename "$a")"
+            case "$name" in
+              *.deb) ;;
+              *) continue ;;  # .deb is the one with an inspectable index
+            esac
+            echo "Verifying published asset: ${name}"
+            asset_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+              --jq ".assets[] | select(.name==\"${name}\") | .id")"
+            if [ -z "${asset_id}" ]; then
+              echo "ERROR: ${name} is not attached to release ${RELEASE_ID}" >&2
+              exit 1
+            fi
+            gh api "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}" \
+              -H "Accept: application/octet-stream" > "${verify_dir}/${name}"
+
+            # Distinguish "the download broke" from "the libs are missing", so a
+            # tooling failure can never masquerade as a packaging regression.
+            if ! dpkg-deb -c "${verify_dir}/${name}" > "${verify_dir}/listing.txt" 2>"${verify_dir}/err.txt"; then
+              echo "ERROR: could not read the downloaded ${name}. This is a download/tooling failure, NOT proof that the libs are missing." >&2
+              ls -la "${verify_dir}" >&2
+              cat "${verify_dir}/err.txt" >&2 || true
+              exit 1
+            fi
+            if ! grep -Eq 'usr/lib/libtranscribe\.so' "${verify_dir}/listing.txt"; then
+              echo "ERROR: published ${name} is missing libtranscribe.so" >&2
+              grep 'usr/lib' "${verify_dir}/listing.txt" >&2 || true
+              exit 1
+            fi
+            if ! grep -Eq 'usr/lib/libggml-cpu.*\.so' "${verify_dir}/listing.txt"; then
+              echo "ERROR: published ${name} is missing the ggml CPU backend" >&2
+              exit 1
+            fi
+            echo "Published ${name} contains the engine libs ($(grep -cE 'libtranscribe|libggml' "${verify_dir}/listing.txt") entries)."
+            rm -f "${verify_dir}/${name}" "${verify_dir}/listing.txt"
+          done
+          rm -rf "$verify_dir"
+
+          # Updater signatures for these packages were regenerated after the
+          # repack ("Re-sign repacked Linux packages for the updater") and
+          # uploaded above. updater-manifest.yml verifies each one against the
+          # published file before it writes latest.json.
+
+      - name: Upload artifacts (Linux)
+        if: inputs.upload-artifacts && contains(inputs.platform, 'ubuntu')
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.asset-prefix }}-${{ inputs.platform }}-${{ inputs.target }}
+          path: |
+            src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/deb/*.deb
+            src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/appimage/*.AppImage
+            src-tauri/target/${{ steps.build-profile.outputs.profile }}/bundle/rpm/*.rpm
+          retention-days: 30
+
+      - name: Resolve Windows bundle path
+        if: contains(inputs.platform, 'windows')
+        id: win-bundle-path
+        shell: pwsh
+        run: |
+          $base = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { "src-tauri/target" }
+          echo "base=$base" >> $env:GITHUB_OUTPUT
+
+      # The hard gate: every staged DLL must be present in BOTH installers, and
+      # the installed zynveliq.exe --list-devices must exit 0 (proving the
+      # bundled ggml backends load with no dev toolchain / no Vulkan SDK).
+      - name: Audit Windows package runtime contents
+        if: contains(inputs.platform, 'windows')
+        shell: pwsh
+        run: |
+          $profile = "${{ steps.build-profile.outputs.profile }}"
+          $target = "${{ inputs.target }}"
+          $base = "${{ steps.win-bundle-path.outputs.base }}"
+          if ($target -and $target -ne "x86_64-pc-windows-msvc") {
+            $bundleBase = Join-Path $base (Join-Path $target (Join-Path $profile "bundle"))
+          } else {
+            $bundleBase = Join-Path $base (Join-Path $profile "bundle")
+          }
+
+          # App-local VC++ runtime staging is mandatory for every Windows build.
+          $stagedDlls = Get-ChildItem "src-tauri/transcribe-libs" -Filter "*.dll" -ErrorAction SilentlyContinue
+          if (-not $stagedDlls) {
+            throw "src-tauri/transcribe-libs contains no DLLs; every Windows build must stage the app-local VC++ runtime"
+          }
+
+          # x64 ships the dynamic transcribe/ggml DLLs; ARM64 is static CPU-only
+          # (only the VC++ runtime is staged). Zynveliq keeps ONNX Runtime
+          # statically linked through `ort`, so, unlike upstream Handy,
+          # onnxruntime.dll is NOT staged or required. (pyke's static ORT links
+          # DirectML.dll, which Windows itself provides; it is not bundled.)
+          # GGML_OPENMP is off,
+          # so vcomp140.dll is not required either.
+          $requiredStaged = @("msvcp140.dll", "vcruntime140.dll")
+          if ("${{ inputs.target }}" -notlike "aarch64*") {
+            if (-not ($stagedDlls | Where-Object { $_.Name -like "*transcribe*" })) {
+              throw "Staging is missing transcribe runtime DLLs"
+            }
+            if (-not ($stagedDlls | Where-Object { $_.Name -like "*ggml*" })) {
+              throw "Staging is missing ggml runtime DLLs"
+            }
+          }
+          foreach ($name in $requiredStaged) {
+            if (-not ($stagedDlls | Where-Object { $_.Name -ieq $name })) {
+              throw "Staging is missing $name"
+            }
+          }
+
+          # Both installer types must contain every staged DLL and launch.
+          function Assert-PackageContents {
+            param([string]$Root, [string]$Label)
+
+            $exe = Get-ChildItem $Root -Filter "zynveliq.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $exe) {
+              throw "$Label package is missing zynveliq.exe"
+            }
+            foreach ($dll in $stagedDlls) {
+              if (-not (Get-ChildItem $Root -Filter $dll.Name -Recurse -ErrorAction SilentlyContinue)) {
+                throw "$Label package is missing staged runtime DLL $($dll.Name)"
+              }
+            }
+
+            $deviceOutput = (& $exe.FullName --list-devices | Out-String)
+            $deviceOutput | Write-Host
+            if ($LASTEXITCODE -ne 0) {
+              throw "$Label zynveliq.exe --list-devices failed"
+            }
+            # The ARM64 build is CPU-only by design (Handy #1731 keeps even the
+            # emulated x64 build off the GPU there), so a GPU here is a broken
+            # build, and so is a missing CPU device.
+            if ("${{ inputs.target }}" -like "aarch64*" -and $deviceOutput -match "type=(Gpu|Igpu)") {
+              throw "$Label Windows ARM64 package unexpectedly exposed a GPU compute device"
+            }
+            if ("${{ inputs.target }}" -like "aarch64*" -and $deviceOutput -notmatch "type=Cpu") {
+              throw "$Label Windows ARM64 package did not expose its CPU compute device"
+            }
+          }
+
+          $nsisPackages = Get-ChildItem (Join-Path $bundleBase "nsis") -Filter "*.exe" -ErrorAction SilentlyContinue
+          if (-not $nsisPackages) {
+            throw "No NSIS packages found under $bundleBase for runtime DLL audit"
+          }
+
+          foreach ($pkg in $nsisPackages) {
+            Write-Host "Auditing NSIS package: $($pkg.FullName)"
+            $installDir = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
+            New-Item -ItemType Directory -Path $installDir | Out-Null
+            $proc = Start-Process -FilePath $pkg.FullName -ArgumentList @("/S", "/PORTABLE", "/D=$installDir") -Wait -PassThru
+            if ($proc.ExitCode -ne 0) {
+              throw "Silent portable install failed for $($pkg.FullName) with exit code $($proc.ExitCode)"
+            }
+            Assert-PackageContents -Root $installDir -Label "Installed NSIS"
+            Remove-Item -Recurse -Force $installDir
+          }
+
+          # Administrative install extracts the MSI payload without elevation.
+          $msiPackages = Get-ChildItem (Join-Path $bundleBase "msi") -Filter "*.msi" -ErrorAction SilentlyContinue
+          if (-not $msiPackages) {
+            throw "No MSI packages found under $bundleBase for runtime DLL audit"
+          }
+
+          foreach ($pkg in $msiPackages) {
+            Write-Host "Auditing MSI package: $($pkg.FullName)"
+            $installDir = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
+            New-Item -ItemType Directory -Path $installDir | Out-Null
+            $logFile = Join-Path $installDir "msi-admin-install.log"
+            # Keep quoting explicit and place public properties last.
+            $msiArgs = "/a `"$($pkg.FullName)`" /qn /L*v `"$logFile`" TARGETDIR=`"$installDir`""
+            $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru
+            if ($proc.ExitCode -ne 0) {
+              if (Test-Path $logFile) { Get-Content $logFile | Out-Host }
+              throw "Administrative install failed for $($pkg.FullName) with exit code $($proc.ExitCode)"
+            }
+            Assert-PackageContents -Root $installDir -Label "Installed MSI"
+            Remove-Item -Recurse -Force $installDir
+          }
+
+      - name: Upload artifacts (Windows)
+        if: inputs.upload-artifacts && contains(inputs.platform, 'windows')
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.asset-prefix }}-${{ inputs.target }}
+          path: |
+            ${{ steps.win-bundle-path.outputs.base }}/${{ inputs.target != '' && inputs.target != 'x86_64-pc-windows-msvc' && format('{0}/{1}', inputs.target, steps.build-profile.outputs.profile) || steps.build-profile.outputs.profile }}/bundle/msi/*.msi
+            ${{ steps.win-bundle-path.outputs.base }}/${{ inputs.target != '' && inputs.target != 'x86_64-pc-windows-msvc' && format('{0}/{1}', inputs.target, steps.build-profile.outputs.profile) || steps.build-profile.outputs.profile }}/bundle/nsis/*.exe
+          retention-days: 30

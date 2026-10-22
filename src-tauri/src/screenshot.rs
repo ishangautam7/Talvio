@@ -1,0 +1,368 @@
+//! Screen capture for assistant vision: grabs the monitor under the cursor
+//! (fallback: primary) and returns a downscaled JPEG as a data URL ready to
+//! embed in an OpenAI-compatible `image_url` content part.
+
+use base64::Engine;
+use image::imageops::FilterType;
+use image::DynamicImage;
+use log::debug;
+use std::io::Cursor;
+use xcap::Monitor;
+
+/// Hard ceiling for the **base64 data URL** when talking to a finicky gateway
+/// (Azure has rejected bodies at inconsistent sizes, ~140 KB–416 KB), so the
+/// conservative path stays far below the smallest observed failure.
+const CONSERVATIVE_TARGET_BYTES: usize = 48 * 1024;
+
+/// Balanced cap for the local llama.cpp vision model: readable, but small
+/// enough that the image's vision-token count stays modest on small models.
+const LOCAL_TARGET_BYTES: usize = 200 * 1024;
+
+/// Generous ceiling for everyone else (OpenAI, Gemini, Anthropic, and the
+/// local llama.cpp engine all accept far larger images). Higher resolution +
+/// quality keeps on-screen text, code, and error messages legible, which is
+/// the whole point of vision. Still small enough to stay snappy.
+const GENEROUS_TARGET_BYTES: usize = 384 * 1024;
+
+/// (longest edge, jpeg quality) attempts, best first. The first encoding whose
+/// base64 fits the active target wins; later rungs are smaller fallbacks.
+const CONSERVATIVE_LADDER: [(u32, u8); 6] = [
+    (1280, 52),
+    (1152, 48),
+    (1024, 44),
+    (896, 40),
+    (768, 36),
+    (640, 32),
+];
+
+/// Local vision: ~1280px reads most on-screen text while keeping the image to
+/// roughly ~1k–1.2k vision tokens on Qwen-VL (a few hundred on Gemma 3).
+const LOCAL_LADDER: [(u32, u8); 4] = [(1280, 78), (1152, 70), (1024, 62), (896, 54)];
+
+/// Sharper ladder for cloud providers — most readable for fine text.
+const GENEROUS_LADDER: [(u32, u8); 5] =
+    [(1568, 80), (1440, 74), (1280, 68), (1152, 60), (1024, 52)];
+
+/// Which size/quality budget to use, chosen from the active provider.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CaptureProfile {
+    /// Strict gateways (Azure): tiny body.
+    Conservative,
+    /// Local llama.cpp vision model: balanced legibility vs token count.
+    Local,
+    /// Cloud vision models: sharpest.
+    Generous,
+}
+
+impl CaptureProfile {
+    /// Pick the profile from a provider's base URL: tiny for Azure, balanced
+    /// for loopback (the built-in/local engine), sharp for everything else.
+    pub fn for_base_url(base_url: &str) -> Self {
+        let url = base_url.to_ascii_lowercase();
+        if url.contains("azure") {
+            CaptureProfile::Conservative
+        } else if url.contains("127.0.0.1") || url.contains("localhost") {
+            CaptureProfile::Local
+        } else {
+            CaptureProfile::Generous
+        }
+    }
+}
+
+fn scaled(img: &DynamicImage, max_dim: u32) -> DynamicImage {
+    let (w, h) = (img.width(), img.height());
+    if w.max(h) <= max_dim {
+        return img.clone();
+    }
+    let scale = max_dim as f32 / w.max(h) as f32;
+    img.resize(
+        (w as f32 * scale) as u32,
+        (h as f32 * scale) as u32,
+        FilterType::Triangle,
+    )
+}
+
+fn encode_jpeg(img: &DynamicImage, quality: u8) -> Result<Vec<u8>, String> {
+    let rgb = DynamicImage::ImageRgb8(img.to_rgb8());
+    let mut buf = Vec::new();
+    rgb.write_with_encoder(image::codecs::jpeg::JpegEncoder::new_with_quality(
+        Cursor::new(&mut buf),
+        quality,
+    ))
+    .map_err(|e| format!("Failed to encode screenshot: {}", e))?;
+    Ok(buf)
+}
+
+fn profile_encoding(profile: CaptureProfile) -> (&'static [(u32, u8)], usize) {
+    match profile {
+        CaptureProfile::Conservative => (&CONSERVATIVE_LADDER, CONSERVATIVE_TARGET_BYTES),
+        CaptureProfile::Local => (&LOCAL_LADDER, LOCAL_TARGET_BYTES),
+        CaptureProfile::Generous => (&GENEROUS_LADDER, GENEROUS_TARGET_BYTES),
+    }
+}
+
+fn encode_provider_data_url(
+    img: &DynamicImage,
+    profile: CaptureProfile,
+    label: &str,
+) -> Result<String, String> {
+    let (ladder, target) = profile_encoding(profile);
+    let mut chosen: Option<(Vec<u8>, u32, u8)> = None;
+    // Each rung downscales from the PREVIOUS rung's image, not from the
+    // full-resolution frame. A conservative (Azure) capture that ends up on the
+    // 4th rung otherwise pays four full 4K resizes for one screenshot — the
+    // measured cost was seconds, spent inside the user's wait. Stepping down
+    // instead costs one large resize plus a few tiny ones, and the output
+    // dimensions are identical (successive Triangle steps also alias slightly
+    // less than one big jump).
+    let mut stepped: Option<DynamicImage> = None;
+    for &(max_dim, quality) in ladder {
+        let step = match &stepped {
+            Some(previous) => scaled(previous, max_dim),
+            None => scaled(img, max_dim),
+        };
+        let buf = encode_jpeg(&step, quality)?;
+        // Budget the encoded base64 payload (the fixed data-URL prefix is tiny
+        // and is intentionally excluded from the provider image budget).
+        let encoded_size = buf.len().div_ceil(3) * 4;
+        chosen = Some((buf, max_dim, quality));
+        if encoded_size <= target {
+            break;
+        }
+        stepped = Some(step);
+    }
+    let (buf, max_dim, quality) =
+        chosen.ok_or_else(|| format!("{} encoding produced no output", label))?;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&buf);
+    debug!(
+        "Encoded {} -> {} KB jpeg ({}px q{}, {} KB base64)",
+        label,
+        buf.len() / 1024,
+        max_dim,
+        quality,
+        encoded.len() / 1024,
+    );
+    Ok(format!("data:image/jpeg;base64,{}", encoded))
+}
+
+/// Replaceable capture seam used by production with the real desktop capture
+/// closure and by tests with a deterministic generated image.
+pub(crate) fn capture_screen_data_url_at_with<F>(
+    point: Option<(i32, i32)>,
+    profile: CaptureProfile,
+    capture: F,
+) -> Result<String, String>
+where
+    F: FnOnce(Option<(i32, i32)>) -> Result<DynamicImage, String>,
+{
+    let image = capture(point)?;
+    // Split the two costs: a slow desktop grab and a slow encode need different
+    // fixes, and the old single total couldn't tell them apart.
+    let grabbed = std::time::Instant::now();
+    let result = encode_provider_data_url(&image, profile, "screen");
+    debug!("Screen encode pass took {:?}", grabbed.elapsed());
+    result
+}
+
+/// Capture a full monitor and return a `data:image/jpeg;base64,...` URL,
+/// adaptively compressed to the budget for the chosen [`CaptureProfile`].
+///
+/// `None` captures the monitor under the mouse cursor (the screen the user is
+/// working on — the right default for multi-monitor setups), falling back to
+/// the primary. `Some((x, y))` (physical pixels) targets the monitor containing
+/// that point, falling back to the cursor's monitor, then the primary.
+pub fn capture_screen_data_url_at(
+    point: Option<(i32, i32)>,
+    profile: CaptureProfile,
+) -> Result<String, String> {
+    let start = std::time::Instant::now();
+    let result = capture_screen_data_url_at_with(point, profile, |target| {
+        let monitor = match target {
+            Some((x, y)) => Monitor::from_point(x, y).or_else(|_| pick_monitor())?,
+            None => pick_monitor()?,
+        };
+        let rgba = monitor
+            .capture_image()
+            .map_err(|e| format!("Screen capture failed: {}", e))?;
+        Ok(DynamicImage::ImageRgba8(rgba))
+    });
+    debug!("Screen capture completed in {:?}", start.elapsed());
+    result
+}
+
+/// Load an image file from disk, downscale it to a provider-friendly size, and
+/// return it as a `data:image/jpeg;base64,...` URL (used for image attachments
+/// picked or dropped into the assistant panel).
+pub fn image_file_to_data_url(path: &str) -> Result<String, String> {
+    let meta = std::fs::metadata(path).map_err(|e| format!("Can't read file: {}", e))?;
+    if meta.len() > 25 * 1024 * 1024 {
+        return Err("Image is too large (over 25 MB)".to_string());
+    }
+    let img = image::open(path).map_err(|e| format!("Can't open image: {}", e))?;
+    let buf = encode_jpeg(&scaled(&img, 1568), 80)?;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&buf);
+    Ok(format!("data:image/jpeg;base64,{}", encoded))
+}
+
+/// Load an image file from disk and return a SMALL square-ish data URL suitable
+/// for a character avatar. Avatars are stored inline in the settings file, so
+/// they're capped tightly (256px longest edge) to keep settings compact.
+pub fn image_file_to_avatar_data_url(path: &str) -> Result<String, String> {
+    let meta = std::fs::metadata(path).map_err(|e| format!("Can't read file: {}", e))?;
+    if meta.len() > 25 * 1024 * 1024 {
+        return Err("Image is too large (over 25 MB)".to_string());
+    }
+    let img = image::open(path).map_err(|e| format!("Can't open image: {}", e))?;
+    let buf = encode_jpeg(&scaled(&img, 256), 82)?;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&buf);
+    Ok(format!("data:image/jpeg;base64,{}", encoded))
+}
+
+/// Longest edge (px) and JPEG quality for the small, persisted **display
+/// thumbnails** stored on a message so the panel can show what was sent and
+/// enlarge it on hover. Kept small so a chat with many vision turns doesn't
+/// bloat the history file — big enough to recognise the screen at a glance,
+/// not the full-resolution frame sent to the model.
+const THUMBNAIL_MAX_DIM: u32 = 640;
+const THUMBNAIL_QUALITY: u8 = 60;
+
+/// Downscale an existing `data:image/...;base64,...` URL into a small JPEG
+/// thumbnail data URL for on-message display + persistence. Used for both the
+/// screen capture and user-attached images: the full-resolution copy still goes
+/// to the model for that one turn, while only this compact thumbnail is stored
+/// in the conversation history.
+pub fn data_url_to_thumbnail(data_url: &str) -> Result<String, String> {
+    let b64 = data_url
+        .split_once(',')
+        .map(|(_, rest)| rest)
+        .ok_or_else(|| "Not a data URL".to_string())?;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(b64)
+        .map_err(|e| format!("Bad image data: {}", e))?;
+    let img = image::load_from_memory(&bytes).map_err(|e| format!("Can't decode image: {}", e))?;
+    let buf = encode_jpeg(&scaled(&img, THUMBNAIL_MAX_DIM), THUMBNAIL_QUALITY)?;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&buf);
+    Ok(format!("data:image/jpeg;base64,{}", encoded))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{ImageBuffer, Rgb};
+
+    fn fixture_image() -> DynamicImage {
+        DynamicImage::ImageRgb8(ImageBuffer::from_fn(1920, 1080, |x, y| {
+            Rgb([(x % 251) as u8, (y % 241) as u8, ((x + y) % 239) as u8])
+        }))
+    }
+
+    #[test]
+    fn provider_profiles_are_deterministic() {
+        assert_eq!(
+            CaptureProfile::for_base_url("https://example.openai.azure.com/openai/v1"),
+            CaptureProfile::Conservative
+        );
+        assert_eq!(
+            CaptureProfile::for_base_url("http://localhost:8080/v1"),
+            CaptureProfile::Local
+        );
+        assert_eq!(
+            CaptureProfile::for_base_url("https://api.openai.com/v1"),
+            CaptureProfile::Generous
+        );
+    }
+
+    #[test]
+    fn injected_capture_receives_target_and_never_touches_desktop() {
+        let expected = Some((321, -45));
+        let mut received = None;
+        let url =
+            capture_screen_data_url_at_with(expected, CaptureProfile::Conservative, |point| {
+                received = Some(point);
+                Ok(fixture_image())
+            })
+            .expect("generated capture encodes");
+
+        assert_eq!(received, Some(expected));
+        assert!(url.starts_with("data:image/jpeg;base64,"));
+        assert!(url.len() <= 52 * 1024, "data URL was {} bytes", url.len());
+        assert!(data_url_to_thumbnail(&url)
+            .expect("thumbnail")
+            .starts_with("data:image/jpeg;base64,"));
+    }
+
+    #[test]
+    fn injected_capture_propagates_typed_error_without_encoding() {
+        let error = capture_screen_data_url_at_with(None, CaptureProfile::Generous, |_| {
+            Err("fixture capture unavailable".to_string())
+        })
+        .expect_err("capture error must propagate");
+        assert_eq!(error, "fixture capture unavailable");
+    }
+
+    #[test]
+    #[ignore = "interactive desktop smoke test; not a CI gate"]
+    fn capture_works_on_this_machine() {
+        let url = capture_screen_data_url_at(None, CaptureProfile::Conservative)
+            .expect("interactive screen capture");
+        assert!(url.starts_with("data:image/jpeg;base64,"));
+        assert!(
+            url.len() <= 52 * 1024,
+            "data url too large: {} KB",
+            url.len() / 1024
+        );
+    }
+}
+
+#[cfg(target_os = "windows")]
+pub(crate) fn cursor_position() -> Option<(i32, i32)> {
+    use windows::Win32::Foundation::POINT;
+    use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+
+    let mut point = POINT::default();
+    unsafe { GetCursorPos(&mut point).ok()? };
+    Some((point.x, point.y))
+}
+
+#[cfg(target_os = "macos")]
+static CURSOR_SOURCE: std::sync::OnceLock<tauri::AppHandle> = std::sync::OnceLock::new();
+
+/// Give the capture code a way to ask where the pointer is on macOS, where that
+/// goes through the app's managed input state. Called once at setup; a no-op
+/// elsewhere.
+pub(crate) fn set_cursor_source(_app: &tauri::AppHandle) {
+    #[cfg(target_os = "macos")]
+    let _ = CURSOR_SOURCE.set(_app.clone());
+}
+
+/// The pointer in global display points, the space `Monitor::from_point` takes
+/// on macOS (enigo flips `NSEvent::mouseLocation` into it). Without this every
+/// macOS capture took the first display, not the one being worked on. `None`
+/// before input is initialised (no Accessibility permission yet), which falls
+/// back to that first display.
+#[cfg(target_os = "macos")]
+pub(crate) fn cursor_position() -> Option<(i32, i32)> {
+    crate::input::get_cursor_position(CURSOR_SOURCE.get()?)
+}
+
+/// Not attempted on Linux: xcap's X11 `from_point` multiplies by the Xft scale
+/// while the pointer is reported in physical pixels, so a scaled desktop would
+/// pick the wrong monitor, and under XWayland the pointer goes stale over native
+/// Wayland windows. The first monitor is at least predictable.
+#[cfg(not(any(target_os = "windows", target_os = "macos")))]
+pub(crate) fn cursor_position() -> Option<(i32, i32)> {
+    None
+}
+
+fn pick_monitor() -> Result<Monitor, String> {
+    if let Some((x, y)) = cursor_position() {
+        if let Ok(monitor) = Monitor::from_point(x, y) {
+            return Ok(monitor);
+        }
+    }
+    let monitors = Monitor::all().map_err(|e| format!("Failed to enumerate monitors: {}", e))?;
+    monitors
+        .into_iter()
+        .next()
+        .ok_or_else(|| "No monitors found".to_string())
+}

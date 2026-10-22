@@ -1,0 +1,61 @@
+---
+title: "Getting started"
+description: "First-run setup in Zynveliq: pick a speech model, walk through the tour, and dictate your first sentence."
+icon: "rocket"
+---
+
+[Install Zynveliq](/start/install), then open it. A short setup runs on first launch.
+
+## Onboarding
+
+<Steps>
+  <Step title="Permissions" icon="lock">
+    On macOS the app asks for **Microphone** and **Accessibility** permission. This screen skips itself if you have already granted them, and it does not appear on Windows or Linux.
+
+    See [Troubleshooting](/reference/troubleshooting) if a permission gets stuck after an update.
+
+  </Step>
+
+  <Step title="Pick a speech model" icon="microphone">
+    Five models are offered. Each card shows the model name, the languages it hears, one sentence about what it is for, and its download size (or that it is already installed).
+
+    | Model               | Languages  | What it is for                                         |
+    | ------------------- | ---------- | ------------------------------------------------------ |
+    | Parakeet 0.6B       | English    | Fast and accurate, for English.                        |
+    | Nemotron 3.5        | 28         | Works out which language you are speaking.              |
+    | Canary 180M Flash   | 4          | Tiny and quick. Good for older computers.              |
+    | Cohere Transcribe   | 14         | The most accurate, but a larger download and slower.   |
+    | Whisper Medium      | 99         | Covers the most languages, but runs slower.            |
+
+    Parakeet and Nemotron carry a "Recommended" badge. The model for your language is preselected. "Set up later" skips the download and lets you choose on the **Models** page instead.
+
+    The download runs in the background, so you do not wait. The full catalog (69 models) is on the [Models](/models/transcription-models) page.
+
+  </Step>
+
+  <Step title="Tour" icon="map">
+    Three scenes show what Zynveliq does, each with the real surface you will see beside the steps:
+
+    1. **Dictation.** Hold the keys, talk, let go. Your words are typed at the cursor.
+    2. **Assistant.** Select text, hold the keys, and ask. Translate, reply, explain.
+    3. **Conversation.** Press the keys and talk. The assistant answers out loud.
+
+    The tour only shows. It downloads nothing and switches nothing on.
+
+  </Step>
+</Steps>
+
+The tour's last button opens the app. If the speech model is still downloading, the sidebar shows progress, and a dictation pressed before it finishes shows a "downloading" pill in the overlay instead of recording.
+
+## Dictate your first sentence
+
+Open any text field, hold your Dictate shortcut, and talk. Let go, and your words type themselves.
+
+| Action            | Windows                  | macOS         | Linux                    |
+| ----------------- | ------------------------ | ------------- | ------------------------ |
+| Dictate           | `Left Ctrl` + `Left Win` | `Fn` (🌐)     | `Ctrl` + `Space`         |
+| Ask the assistant | `Left Ctrl` + `Left Alt` | `Fn` + `Ctrl` | `Ctrl` + `Alt` + `Space` |
+
+Every shortcut is changeable. See [Keyboard shortcuts](/start/keyboard-shortcuts) for the full table.
+
+Next: [keyboard shortcuts](/start/keyboard-shortcuts).

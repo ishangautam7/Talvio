@@ -1,0 +1,381 @@
+import { type ReactNode, useEffect, useState, useRef } from "react";
+import { toast, Toaster } from "sonner";
+import { useTranslation } from "react-i18next";
+import { listen } from "@tauri-apps/api/event";
+import { platform } from "@tauri-apps/plugin-os";
+import {
+  checkAccessibilityPermission,
+  checkMicrophonePermission,
+} from "tauri-plugin-macos-permissions-api";
+import { ModelStateEvent, RecordingErrorEvent } from "./lib/types/events";
+import "./App.css";
+import {
+  AccessibilityOnboarding,
+  SetupStep,
+  WelcomeStep,
+  TourStep,
+  VoicePrefetch,
+  hasCompletedOnboarding,
+  markOnboardingComplete,
+} from "./components/onboarding";
+import TitleBar from "./components/TitleBar";
+import { MainShell } from "./components/shell/MainShell";
+import {
+  INITIAL_NAVIGATION,
+  type NavigationState,
+} from "./components/shell/navigation";
+import { useSettings } from "./hooks/useSettings";
+import { useSettingsNotices } from "./hooks/useSettingsNotices";
+import { useSettingsStore } from "./stores/settingsStore";
+import { commands } from "@/bindings";
+import { insertDictation } from "@/lib/insertDictation";
+import { getLanguageDirection, initializeRTL } from "@/lib/utils/rtl";
+import {
+  applyThemePreference,
+  watchSystemTheme,
+  type ThemePreference,
+} from "@/lib/theme";
+
+type OnboardingStep = "welcome" | "accessibility" | "setup" | "tour" | "done";
+
+// Force the full onboarding flow on every launch so it can be tested
+// repeatedly. This is intentionally gated to dev builds only
+// (`import.meta.env.DEV`): during `tauri dev` the wizard shows every launch
+// for easy iteration, while compiled/release builds fall back to
+// `checkOnboardingStatus`, which shows onboarding once per install: until the
+// completion flag (`completion.ts`) is set, whatever is already installed.
+const FORCE_ONBOARDING = import.meta.env.DEV;
+
+function App() {
+  const { t, i18n } = useTranslation();
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep | null>(
+    null,
+  );
+  // Track if this is a returning user who just needs to grant permissions
+  // (vs a new user who needs full onboarding including model selection)
+  const [isReturningUser, setIsReturningUser] = useState(false);
+  // Setup was left with "Set up models later": the app opens on Models.
+  const [skippedModels, setSkippedModels] = useState(false);
+  const [shellNavigation, setShellNavigation] =
+    useState<NavigationState>(INITIAL_NAVIGATION);
+  const { settings, updateSetting, refreshSettings } = useSettings();
+  // A damaged or unreadable settings file, or saves that keep failing.
+  useSettingsNotices();
+  const direction = getLanguageDirection(i18n.language);
+  const refreshAudioDevices = useSettingsStore(
+    (state) => state.refreshAudioDevices,
+  );
+  const refreshOutputDevices = useSettingsStore(
+    (state) => state.refreshOutputDevices,
+  );
+  const hasCompletedPostOnboardingInit = useRef(false);
+
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  // Initialize RTL direction when language changes
+  useEffect(() => {
+    initializeRTL(i18n.language);
+  }, [i18n.language]);
+
+  // Apply the appearance preference (light / dark / system) to <html>. The
+  // CSS reacts to the resolved data-theme attribute. While the preference is
+  // "system", watchSystemTheme keeps every main-window surface — including
+  // onboarding and its loading states — aligned with live OS theme changes.
+  const themePreference = (settings?.theme ?? "light") as ThemePreference;
+  useEffect(() => {
+    applyThemePreference(themePreference);
+  }, [themePreference]);
+  useEffect(() => watchSystemTheme(() => themePreference), [themePreference]);
+
+  // Initialize Enigo, shortcuts, and refresh audio devices when main app loads
+  useEffect(() => {
+    if (onboardingStep === "done" && !hasCompletedPostOnboardingInit.current) {
+      hasCompletedPostOnboardingInit.current = true;
+      Promise.all([commands.initializeEnigo(), commands.initializeShortcuts()])
+        .catch((e) => {
+          console.warn("Failed to initialize:", e);
+        })
+        // Starting the shortcuts is also when the backend brings the stored
+        // settings up to date (`load_or_create_app_settings`): a shortcut an
+        // update added, a migrated default. They were read before that, so
+        // read them again, or the new shortcut has no keys on screen (the
+        // hands-free key's row was empty) until the next launch.
+        .finally(() => void refreshSettings());
+      refreshAudioDevices();
+      refreshOutputDevices();
+    }
+  }, [
+    onboardingStep,
+    refreshAudioDevices,
+    refreshOutputDevices,
+    refreshSettings,
+  ]);
+
+  // Handle keyboard shortcuts for debug mode toggle
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Ctrl+Shift+D (Windows/Linux) or Cmd+Shift+D (macOS)
+      const isDebugShortcut =
+        event.shiftKey &&
+        event.key.toLowerCase() === "d" &&
+        (event.ctrlKey || event.metaKey);
+
+      if (isDebugShortcut) {
+        event.preventDefault();
+        const currentDebugMode = settings?.debug_mode ?? false;
+        updateSetting("debug_mode", !currentDebugMode);
+      }
+    };
+
+    // Add event listener when component mounts
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup event listener when component unmounts
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [settings?.debug_mode, updateSetting]);
+
+  // Listen for recording errors from the backend and show a toast
+  useEffect(() => {
+    const unlisten = listen<RecordingErrorEvent>("recording-error", (event) => {
+      const { error_type, detail } = event.payload;
+
+      if (error_type === "microphone_permission_denied") {
+        const currentPlatform = platform();
+        const platformKey = `errors.micPermissionDenied.${currentPlatform}`;
+        const description = t(platformKey, {
+          defaultValue: t("errors.micPermissionDenied.generic"),
+        });
+        toast.error(t("errors.micPermissionDeniedTitle"), { description });
+      } else if (error_type === "no_input_device") {
+        toast.error(t("errors.noInputDeviceTitle"), {
+          description: t("errors.noInputDevice"),
+        });
+      } else {
+        toast.error(
+          t("errors.recordingFailed", { error: detail ?? "Unknown error" }),
+        );
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [t]);
+
+  // A dictation made while this window is in front comes here instead of as a
+  // paste (see `insertDictation`), and lands at the caret.
+  useEffect(() => {
+    const unlisten = listen<string>("dictation-into-focus", (event) => {
+      if (!insertDictation(event.payload ?? "")) {
+        console.info("Dictation finished with no text field focused");
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  // Listen for paste failures and show a toast.
+  // The technical error detail is logged to zynveliq.log on the Rust side
+  // (see actions.rs `error!("Failed to paste transcription: ...")`),
+  // so we show a localized, user-friendly message here instead of the raw error.
+  useEffect(() => {
+    const unlisten = listen("paste-error", () => {
+      toast.error(t("errors.pasteFailedTitle"), {
+        description: t("errors.pasteFailed"),
+      });
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [t]);
+
+  // Listen for model loading failures and show a toast
+  useEffect(() => {
+    const unlisten = listen<ModelStateEvent>("model-state-changed", (event) => {
+      if (event.payload.event_type === "loading_failed") {
+        toast.error(
+          t("errors.modelLoadFailed", {
+            model:
+              event.payload.model_name || t("errors.modelLoadFailedUnknown"),
+          }),
+          {
+            description: event.payload.error,
+          },
+        );
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [t]);
+
+  const revealMainWindowForPermissions = async () => {
+    try {
+      await commands.showMainWindowCommand();
+    } catch (e) {
+      console.warn("Failed to show main window for permission onboarding:", e);
+    }
+  };
+
+  const checkOnboardingStatus = async () => {
+    try {
+      if (FORCE_ONBOARDING) {
+        setIsReturningUser(false);
+        setOnboardingStep("welcome");
+        return;
+      }
+      // Everyone goes through onboarding once, including people who already
+      // have a model or dictate in the cloud: setup shows an installed model
+      // as installed (Continue keeps it) and "Set up later" leaves the choice
+      // alone, so there is nothing to detect. Choosing a local model there
+      // never switches a cloud user's dictation to on-device. The completion
+      // flag alone decides; bumping its version shows the flow to everyone
+      // again.
+      const currentPlatform = platform();
+
+      if (hasCompletedOnboarding()) {
+        // Returning user - check if they need to grant permissions first
+        setIsReturningUser(true);
+
+        if (currentPlatform === "macos") {
+          try {
+            const [hasAccessibility, hasMicrophone] = await Promise.all([
+              checkAccessibilityPermission(),
+              checkMicrophonePermission(),
+            ]);
+            if (!hasAccessibility || !hasMicrophone) {
+              await revealMainWindowForPermissions();
+              setOnboardingStep("accessibility");
+              return;
+            }
+          } catch (e) {
+            console.warn("Failed to check macOS permissions:", e);
+            // If we can't check, proceed to main app and let them fix it there
+          }
+        }
+
+        if (currentPlatform === "windows") {
+          try {
+            const microphoneStatus =
+              await commands.getWindowsMicrophonePermissionStatus();
+            if (
+              microphoneStatus.supported &&
+              microphoneStatus.overall_access === "denied"
+            ) {
+              await revealMainWindowForPermissions();
+              setOnboardingStep("accessibility");
+              return;
+            }
+          } catch (e) {
+            console.warn("Failed to check Windows microphone permissions:", e);
+            // If we can't check, proceed to main app and let them fix it there
+          }
+        }
+
+        setOnboardingStep("done");
+      } else {
+        // Not onboarded yet: the full flow, once. Show the window even when
+        // the app was launched hidden, because shortcuts are only registered
+        // once onboarding is done; a hidden onboarding would leave an updated
+        // user's hotkeys dead with nothing on screen to explain why.
+        setIsReturningUser(false);
+        await revealMainWindowForPermissions();
+        setOnboardingStep("welcome");
+      }
+    } catch (error) {
+      console.error("Failed to check onboarding status:", error);
+      setOnboardingStep("accessibility");
+    }
+  };
+
+  const handleAccessibilityComplete = () => {
+    // Returning users already have models, skip to main app
+    // New users go through setup
+    setOnboardingStep(isReturningUser ? "done" : "setup");
+  };
+
+  const handleSetupComplete = ({
+    skippedModels: skipped,
+  }: {
+    skippedModels: boolean;
+  }) => {
+    setSkippedModels(skipped);
+    setOnboardingStep("tour");
+  };
+
+  const handleFinish = () => {
+    markOnboardingComplete();
+    setShellNavigation(
+      skippedModels
+        ? { ...INITIAL_NAVIGATION, page: "models", modelSlot: "stt" }
+        : INITIAL_NAVIGATION,
+    );
+    setOnboardingStep("done");
+  };
+
+  // The window has no native chrome (see lib.rs), so the TitleBar renders on
+  // every screen and the body swaps underneath it. This keeps the window
+  // draggable/closable during onboarding too.
+  let body: ReactNode = null;
+  if (onboardingStep === "welcome") {
+    body = (
+      <div className="flex-1 min-h-0">
+        <WelcomeStep onContinue={() => setOnboardingStep("accessibility")} />
+      </div>
+    );
+  } else if (onboardingStep === "accessibility") {
+    body = (
+      <div className="flex-1 min-h-0">
+        <AccessibilityOnboarding onComplete={handleAccessibilityComplete} />
+      </div>
+    );
+  } else if (onboardingStep === "setup") {
+    body = (
+      <div className="flex-1 min-h-0">
+        <SetupStep onContinue={handleSetupComplete} />
+      </div>
+    );
+  } else if (onboardingStep === "tour") {
+    // The tour is the last screen: it opens the app directly. The speech model
+    // chosen in setup keeps downloading behind it (`setupQueue` outlives the
+    // screens, and the sidebar shows its progress); a dictation pressed before
+    // it lands is refused with a "downloading" pill (`speech_readiness.rs`).
+    body = (
+      <div className="flex-1 min-h-0">
+        <TourStep onDone={handleFinish} />
+      </div>
+    );
+  } else if (onboardingStep === "done") {
+    body = <MainShell initialNavigation={shellNavigation} />;
+  }
+
+  return (
+    <div
+      dir={direction}
+      className="h-screen flex flex-col select-none cursor-default overflow-hidden"
+    >
+      <Toaster
+        theme="system"
+        toastOptions={{
+          unstyled: true,
+          classNames: {
+            toast:
+              "bg-surface border border-hairline rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
+            title: "font-medium",
+            description: "text-muted",
+          },
+        }}
+      />
+      <TitleBar />
+      {body}
+      {/* Outlives the setup screens: the voice keeps loading after them. */}
+      <VoicePrefetch />
+    </div>
+  );
+}
+
+export default App;

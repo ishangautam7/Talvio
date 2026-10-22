@@ -1,0 +1,3539 @@
+{
+  "appearance": {
+    "title": "外觀",
+    "description": "為應用程式與助理面板選擇淺色、深色或跟隨系統的主題。",
+    "system": "系統",
+    "light": "淺色",
+    "dark": "深色",
+    "textSize": "文字大小",
+    "textSizeDescription": "調整整個應用程式中文字與控制項的大小。",
+    "textSizeSmall": "小",
+    "textSizeDefault": "預設",
+    "textSizeLarge": "大",
+    "textSizeExtraLarge": "特大"
+  },
+  "tray": {
+    "home": "首頁",
+    "openAssistant": "開啟助理",
+    "checkUpdates": "檢查更新…",
+    "sendFeedback": "傳送意見回饋…",
+    "copyLastTranscript": "複製最新轉錄文字",
+    "unloadModel": "卸載模型",
+    "model": "模型",
+    "quit": "結束",
+    "cancel": "取消"
+  },
+  "updates": {
+    "check": "檢查更新",
+    "checking": "檢查中…",
+    "upToDate": "您使用的是最新版本",
+    "checkFailed": "無法檢查更新。請確認網路連線後再試一次。",
+    "noBuild": "新版本尚未提供給這個系統。",
+    "available": "已推出 {{version}} 版",
+    "availableShort": "有可用的更新",
+    "installNow": "立即更新",
+    "downloading": "下載中… {{progress}}%",
+    "downloadingUnknown": "下載中…",
+    "installing": "安裝中…",
+    "reopening": "Zynveliq 將關閉以安裝更新，幾秒後會重新開啟。",
+    "updatedTo": "已更新至版本 {{version}}",
+    "restart": "立即重新啟動",
+    "readyToRestart": "更新已安裝。重新啟動 Zynveliq 即可開始使用。",
+    "installFailed": "更新未能安裝。您可以再試一次，或下載安裝程式自行執行。",
+    "downloadFailed": "下載未完成。請確認網路連線後再試一次。",
+    "downloadInstaller": "下載安裝程式",
+    "downloadInstead": "改為下載安裝程式",
+    "downloadNewVersion": "下載新版本",
+    "installerSaved": "安裝程式已存放在您的「下載」資料夾",
+    "openInstaller": "執行安裝程式",
+    "showInFolder": "在資料夾中顯示",
+    "viewRelease": "在 GitHub 上查看",
+    "hint": {
+      "windows": "Zynveliq 會關閉、安裝更新，然後重新開啟。您不需要再點任何按鈕。",
+      "macos": "Zynveliq 會以新版本重新啟動。之後 macOS 可能會再次要求您允許麥克風與輔助使用權限。",
+      "linux": "Zynveliq 會以新版本重新啟動。若是以 .deb 安裝，會先要求輸入您的密碼。"
+    },
+    "modes": {
+      "portable": "這是免安裝版，無法自行更新。請下載新版本，再將您的 Data 資料夾複製過去。",
+      "packageManager": "Zynveliq 是由您的套件管理工具安裝的，請透過它更新，例如執行 yay -Syu zynveliq-bin。",
+      "download": "這個版本無法直接自行更新。請下載安裝程式並執行，以取得新版本。"
+    },
+    "pill": {
+      "available": "有可用的更新",
+      "version": "{{version}} 版",
+      "progress": "更新中… {{progress}}%",
+      "working": "更新中…",
+      "restart": "重新啟動以更新",
+      "installerReady": "安裝程式已下載"
+    }
+  },
+  "feedback": {
+    "button": "傳送意見回饋",
+    "title": "傳送意見回饋",
+    "description": "每則訊息我都會親自閱讀，想到什麼就說什麼吧。感謝您協助讓 Zynveliq 變得更好。",
+    "kind": {
+      "label": "回饋類型",
+      "bug": "錯誤",
+      "idea": "建議",
+      "question": "問題"
+    },
+    "placeholder": {
+      "bug": "發生了什麼事？您原本預期會怎樣？",
+      "idea": "怎樣能讓 Zynveliq 更符合您的需要？",
+      "question": "您想了解什麼？"
+    },
+    "messageLabel": "訊息",
+    "emailLabel": "回覆用的電子郵件",
+    "emailPlaceholder": "電子郵件（如果希望收到回覆）",
+    "emailInvalid": "這個電子郵件地址看起來不太對。",
+    "includeSystem": "附上應用程式版本與作業系統",
+    "systemDetails": "將原樣傳送：{{system}}",
+    "remaining": "還剩 {{count}} 字",
+    "screenshots": {
+      "add": "加入螢幕截圖",
+      "pasteHint": "或按 {{shortcut}} 貼上",
+      "remove": "移除螢幕截圖 {{index}}",
+      "preview": "螢幕截圖 {{index}}，{{width}} × {{height}}，{{size}}",
+      "working": "正在縮小螢幕截圖…",
+      "limit": "最多可附加 {{count}} 張螢幕截圖。",
+      "notImage": "這個檔案不是圖片。",
+      "tooLarge": "這張圖片太大，無法附加。",
+      "unreadable": "無法讀取這張圖片。"
+    },
+    "send": "傳送",
+    "sending": "傳送中…",
+    "sentTitle": "謝謝，已經送出了",
+    "sentBody": "我已經收到了，很快就會閱讀。",
+    "sentWithEmail": "如果有需要進一步了解的地方，會回覆到 {{email}}。",
+    "screenshotsDropped_other": "有 {{count}} 張螢幕截圖無法儲存，但您的訊息已送達。",
+    "sendAnother": "再傳送一則",
+    "errors": {
+      "generic": "無法傳送您的意見回饋。訊息已保留在這裡，請稍後再試一次。"
+    },
+    "aboutRow": {
+      "title": "意見回饋",
+      "description": "回報錯誤、提出建議，或詢問問題。",
+      "button": "傳送意見回饋"
+    }
+  },
+  "sidebar": {
+    "general": "一般",
+    "dictation": "語音輸入",
+    "assistant": "助理",
+    "meetings": "會議",
+    "history": "歷史紀錄",
+    "about": "關於",
+    "debug": "偵錯",
+    "characters": "角色",
+    "memory": "記憶",
+    "collapse": "收合側邊欄",
+    "expand": "展開側邊欄"
+  },
+  "window": {
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "還原",
+    "close": "關閉"
+  },
+  "sectionSubtitles": {
+    "general": "快捷鍵、麥克風，以及應用程式的外觀。",
+    "dictation": "將您的語音轉成文字的模型，以及文字的整理方式。",
+    "assistant": "設定助理，再調整語音、螢幕視覺與網路搜尋。",
+    "meetings": "錄下通話、依發言者分段檢視，並整理成筆記。",
+    "history": "您最近的語音輸入、Flow 生成與助理對話，都儲存在這台裝置上。",
+    "about": "版本、應用程式語言、資料位置與致謝。",
+    "debug": "診斷資訊與開發者工具。"
+  },
+  "onboarding": {
+    "flow": {
+      "progress": "第 {{current}} 步，共 {{total}} 步",
+      "steps": {
+        "setup": "設定",
+        "tour": "導覽"
+      }
+    },
+    "setup": {
+      "installed": "已安裝",
+      "loadFailed": "無法載入模型清單。",
+      "retry": "再試一次"
+    },
+    "tour": {
+      "features": "Zynveliq 能做什麼",
+      "count": "{{current}} / {{total}}",
+      "next": "下一步",
+      "finish": "開啟 Zynveliq",
+      "tabs": {
+        "dictate": "語音輸入",
+        "ask": "助理",
+        "call": "對話"
+      },
+      "keys": {
+        "hold": "按住說話",
+        "tap": "點按開始，再點按停止",
+        "call": "按一下開始，再按一下結束"
+      },
+      "steps": {
+        "label": "使用方式",
+        "speak": "說出您想輸入的內容",
+        "typed": "文字會出現在游標處",
+        "select": "選取文字（選用）",
+        "use": "插入回答，或直接閱讀",
+        "talk": "直接說話",
+        "answer": "它會出聲回答"
+      },
+      "mail": {
+        "window": "新郵件",
+        "to": "收件者",
+        "toValue": "莎拉",
+        "subject": "主旨",
+        "subjectValue": "星期五"
+      },
+      "dictate": {
+        "title": "開口說，\n它就打字。",
+        "cleanup": "需要時再用 AI 整理",
+        "said": "莎拉你好，我們的電話會議可以改到星期五嗎？我會在那之前把預算寄給你。"
+      },
+      "ask": {
+        "title": "有問題，\n儘管問。",
+        "chips": {
+          "translate": "翻譯",
+          "decline": "撰寫回覆",
+          "explain": "解釋",
+          "anything": "…什麼都行"
+        },
+        "examples": {
+          "translate": {
+            "window": "訊息",
+            "doc": "我們的電話會議可以改到星期五嗎？",
+            "question": "把這句翻成英文",
+            "answer": "Can we move our call to Friday?"
+          },
+          "decline": {
+            "window": "郵件",
+            "doc": "嗨，星期四下午三點的規劃檢討會議，你有空參加嗎？",
+            "question": "幫我寫一則客氣的回覆，說我星期四沒辦法參加",
+            "answer": "謝謝邀請！星期四下午三點我沒辦法參加，不過星期五上午我有空，如果方便的話可以改在那時候。"
+          },
+          "explain": {
+            "window": "瀏覽器",
+            "doc": "API 回傳 429 Too Many Requests。",
+            "question": "這是什麼意思？",
+            "answer": "您傳送請求的速度超過服務允許的上限。請稍等一下，再放慢速度重試。"
+          }
+        }
+      },
+      "call": {
+        "title": "或者，\n直接聊聊就好。",
+        "you": "您",
+        "assistant": "助理",
+        "said": "幫我規劃一段星期五團隊會議上的簡短分享。",
+        "reply": "沒問題。先從你最自豪的一項成果開始，說明兩個成功的原因，最後以接下來的計畫收尾。"
+      }
+    },
+    "subtitle": "首先，請選擇一種模型",
+    "steps": {
+      "progress": "第 {{current}} 步，共 {{total}} 步",
+      "counter": "第 {{current}} 步，共 {{total}} 步 · {{label}}",
+      "speechToText": "聽見您",
+      "aiModel": "裝上大腦",
+      "ready": "準備完成"
+    },
+    "speechToText": {
+      "title": "Zynveliq 該怎麼聽您說話？",
+      "subtitle": "這會直接在您的裝置上把語音變成文字。先選一個，隨時可以更換。",
+      "cards": {
+        "fast": {
+          "description": "速度極快，說話時即時串流輸出。僅支援英語。"
+        },
+        "multilingual": {
+          "description": "28 種語言即時轉錄。"
+        }
+      },
+      "downloadAndContinue": "下載並繼續",
+      "seeAllModels": "查看所有模型",
+      "hideAllModels": "顯示較少模型",
+      "installedHint": "已完成設定。之後可以隨時在「設定」中取得其他模型。",
+      "useInstalled": "使用已安裝的模型",
+      "continue": "繼續",
+      "downloadingHint": "模型會在背景下載。其他模型也只要在「設定」中點一下就能取得。",
+      "downloadStarted": "正在背景下載您的模型。"
+    },
+    "aiModel": {
+      "title": "新增本機 AI（選用）",
+      "subtitle": "一個可以對話的助理，以及我們自家用來整理語音輸入的模型。可擇一，也可兩者都裝。",
+      "tiers": {
+        "small": {
+          "description": "任何電腦都能執行。很適合用來整理您寫的文字。"
+        },
+        "mid": {
+          "description": "速度快的全能選擇，也能回答問題。"
+        },
+        "capable": {
+          "description": "回答最精準，還能看見您的螢幕。"
+        }
+      },
+      "seesScreen": "視覺模型",
+      "textOnly": "僅支援文字",
+      "recommendedForAssistant": "推薦用於助理",
+      "download": "下載模型",
+      "useDownloaded": "使用已下載的模型",
+      "skip": "暫時略過",
+      "skipHint": "這兩者都可以稍後在「設定」中新增。",
+      "continue": "繼續",
+      "downloadingHint": "模型會在背景下載，您可以立即開始使用應用程式。",
+      "downloadStarted": "正在背景下載您的模型。"
+    },
+    "cleanup": {
+      "cardTitle": "SpeakoFlow Mini",
+      "cardDescription": "會套用口說指令，例如「new paragraph」與「scratch that」。僅支援英文。",
+      "pill": "整理您的語音輸入",
+      "recommendedForDictation": "推薦用於語音輸入",
+      "download": "下載並開啟",
+      "useDownloaded": "開啟"
+    },
+    "ready": {
+      "title": "準備完成。",
+      "subtitle": "您只需要兩個快捷鍵。按下、說話、完成。",
+      "dictateLabel": "隨處語音輸入",
+      "dictateCaption": "按住、說話、放開。您說的話會自動輸入。",
+      "assistantKeysLabel": "詢問助理",
+      "assistantKeysCaption": "按住並提問。它甚至能看見您的螢幕。",
+      "changeAnytime": "這些都可以隨時在「設定」中變更。",
+      "hotkeyLabel": "您的語音輸入按鍵",
+      "downloadingAssistant": "您的助理正在入住，已完成 {{percentage}}%。",
+      "downloadingVoice": "您的語音模型即將就緒，已完成 {{percentage}}%。",
+      "downloadingGeneric": "仍在下載，已完成 {{percentage}}%。",
+      "signOff": "就是這樣。去說點什麼吧。",
+      "openApp": "開啟 Zynveliq"
+    },
+    "errors": {
+      "selectModel": "無法選擇該模型，請重試。",
+      "loadModels": "無法載入可用的模型。",
+      "downloadModel": "無法下載模型：{{error}}"
+    },
+    "downloadProgress": {
+      "sizeOf": "{{downloaded}} / {{total}} · {{percentage}}%"
+    },
+    "recommended": "推薦",
+    "download": "下載",
+    "downloading": "下載中…",
+    "customModelDescription": "官方不支援",
+    "downloadFailed": "下載失敗，請重試",
+    "modelCard": {
+      "accuracy": "準確度",
+      "speed": "速度"
+    },
+    "models": {
+      "parakeet-unified-en-0.6b-gguf": {
+        "description": "速度極快，非常適合日常語音輸入。僅支援英語。"
+      },
+      "nemotron-3.5-asr-streaming-0.6b-gguf": {
+        "description": "28 種語言即時轉錄。"
+      },
+      "canary-180m-flash-gguf": {
+        "description": "體積小、反應即時——任何電腦都能順暢執行。"
+      },
+      "cohere-transcribe-03-2026-gguf": {
+        "description": "速度較慢，但準確度最高。支援 14 種語言。"
+      },
+      "whisper-medium-gguf": {
+        "description": "多語言支援最佳——將近 100 種語言。"
+      },
+      "gemma-3-1b": {
+        "description": "非常小巧快速，但不擅長開放式對話。僅支援文字。"
+      },
+      "qwen3.5-2b": {
+        "description": "小巧快速，還能看圖片。在多數筆記型電腦上表現良好。"
+      },
+      "qwen3.5-4b": {
+        "description": "較舊的視覺模型，其選用的推理功能可能延遲對話回覆。"
+      },
+      "qwen3.5-9b": {
+        "description": "能力更強，但即時對話較慢，啟用推理時尤其明顯。"
+      },
+      "qwen3.5-27b": {
+        "description": "大型視覺模型，適合需要仔細思考的任務，而非低延遲的助理。"
+      },
+      "gemma-4-e2b": {
+        "description": "目前最快的 Gemma，適合日常對話。處理複雜請求的能力較弱。"
+      },
+      "gemma-4-e4b": {
+        "description": "品質與速度更均衡，且預設不啟用思考。"
+      },
+      "gemma-4-12b": {
+        "description": "更擅長處理細膩的問題，但明顯較慢，建議搭配效能強的 GPU。"
+      },
+      "gemma-3-4b": {
+        "description": "回答快速俐落，並支援螢幕視覺，但能力不如目前的 Gemma 4 模型。"
+      },
+      "kokoro-82m": {
+        "description": "助理的內建本機語音。無需下載。"
+      },
+      "small": {
+        "name": "Whisper Small",
+        "description": "快速且相當準確"
+      },
+      "medium": {
+        "name": "Whisper Medium",
+        "description": "準確度良好，速度中等。"
+      },
+      "turbo": {
+        "name": "Whisper Turbo",
+        "description": "兼顧準確度與速度。"
+      },
+      "large": {
+        "name": "Whisper Large",
+        "description": "非常準確，但速度較慢。"
+      },
+      "parakeet-tdt-0.6b-v2": {
+        "name": "Parakeet V2",
+        "description": "僅支援英語，非常適合說英語的使用者。"
+      },
+      "parakeet-tdt-0.6b-v3": {
+        "name": "Parakeet V3",
+        "description": "快速且準確。支援 25 種歐洲語言。"
+      },
+      "moonshine-base": {
+        "name": "Moonshine Base",
+        "description": "速度極快，僅支援英語，擅長處理各種口音"
+      },
+      "moonshine-tiny-streaming-en": {
+        "name": "Moonshine V2 Tiny",
+        "description": "超快速。僅支援英語。"
+      },
+      "moonshine-small-streaming-en": {
+        "name": "Moonshine V2 Small",
+        "description": "快速，僅支援英語。速度與準確度兼顧。"
+      },
+      "moonshine-medium-streaming-en": {
+        "name": "Moonshine V2 Medium",
+        "description": "僅支援英語。品質更高，速度稍慢。"
+      },
+      "breeze-asr": {
+        "name": "Breeze ASR",
+        "description": "針對臺灣華語調校，支援中英夾雜。"
+      },
+      "sense-voice-int8": {
+        "name": "SenseVoice",
+        "description": "速度極快。支援中文、英語、日語、韓語與粵語。"
+      },
+      "gigaam-v3-e2e-ctc": {
+        "name": "GigaAM v3",
+        "description": "僅支援俄語。快速且準確。"
+      },
+      "canary-180m-flash": {
+        "name": "Canary 180M Flash",
+        "description": "速度極快。支援英語、德語、西班牙語與法語，並可翻譯。"
+      },
+      "canary-1b-v2": {
+        "name": "Canary 1B v2",
+        "description": "支援 25 種歐洲語言，準確度高，並可翻譯。"
+      },
+      "cohere-int8": {
+        "name": "Cohere",
+        "description": "模型較大、速度較慢，但非常準確。支援多種語言。"
+      }
+    },
+    "permissions": {
+      "title": "需要權限",
+      "description": "Zynveliq 需要一些權限才能正常運作",
+      "microphone": {
+        "title": "麥克風存取權",
+        "description": "需要聽取您的語音進行轉錄"
+      },
+      "accessibility": {
+        "title": "輔助使用存取權",
+        "description": "需要將轉錄文字輸入到您的應用程式中",
+        "stuckHint": "已在「系統設定」中開啟？更新後，macOS 可能會保留一個與此版本不再相符的權限。",
+        "reset": "重設權限",
+        "resetDone": "現在請在「系統設定」中重新開啟 Zynveliq。"
+      },
+      "grant": "授予權限",
+      "granted": "已授予",
+      "waiting": "等待中…",
+      "allGranted": "全部完成！",
+      "errors": {
+        "checkFailed": "無法檢查權限，請再試一次。",
+        "requestFailed": "無法請求權限，請再試一次。",
+        "resetFailed": "無法重設權限。請從「輔助使用」列表中移除 Zynveliq，再重新加入。"
+      }
+    },
+    "frame": {
+      "setup": "設定",
+      "tour": "導覽"
+    },
+    "welcome": {
+      "line": "開口說，它就打字。提出問題，它就回答。",
+      "start": "開始使用",
+      "note": "大約只需要一分鐘。"
+    },
+    "speech": {
+      "title": "選擇您的語音模型",
+      "body": "在這台電腦上執行，離線也能用。",
+      "english": "英語",
+      "languages_other": "{{count}} 種語言",
+      "about": {
+        "english": "快速又準確，適用於英文。",
+        "languages": "自動判斷您說的是哪種語言。",
+        "small": "小巧快速，適合較舊的電腦。",
+        "accurate": "最準確，但下載檔案較大、速度較慢。",
+        "widest": "支援的語言最多，但執行較慢。"
+      },
+      "anytime": "您隨時都能再加入更多模型。",
+      "download": "下載並繼續",
+      "continue": "繼續",
+      "later": "稍後再設定",
+      "loading": "正在尋找您的語音模型"
+    }
+  },
+  "modelSelector": {
+    "custom": "自訂",
+    "active": "使用中",
+    "switching": "切換中…",
+    "noModelsAvailable": "沒有可用的模型",
+    "verifying": "正在驗證 {{modelName}}…",
+    "verifyingGeneric": "正在驗證…",
+    "extracting": "正在解壓 {{modelName}}…",
+    "extractingMultiple": "正在解壓 {{count}} 個模型…",
+    "extractingGeneric": "解壓中…",
+    "downloading": "下載中 {{percentage}}%",
+    "downloadingMultiple": "正在下載 {{count}} 個模型…",
+    "downloadDetails": "下載詳細資訊",
+    "downloadSize": "{{downloaded}} / {{total}}",
+    "modelReady": "模型已就緒",
+    "loading": "正在載入 {{modelName}}…",
+    "loadingGeneric": "載入中…",
+    "modelError": "模型錯誤",
+    "modelUnloaded": "模型已卸載",
+    "noModelDownloadRequired": "沒有模型——需要下載",
+    "llmSelectModel": "選擇助理模型",
+    "llmModelTitle": "助理模型：{{model}}",
+    "deleteModel": "刪除 {{modelName}}",
+    "downloadSpeed": "{{speed}} MB/s",
+    "cancel": "取消",
+    "cancelDownload": "取消下載",
+    "download": "下載",
+    "useModel": "使用模型",
+    "capabilities": {
+      "languageSelection": "支援多種輸入語言",
+      "singleLanguage": "僅支援此語言",
+      "multiLanguage": "多語言",
+      "languageOnly": "僅支援{{language}}",
+      "languageList": "{{model}} 能辨識的語言",
+      "translation": "可翻譯為英語",
+      "translate": "翻譯為英語",
+      "streaming": "串流",
+      "quantization": "量化",
+      "legacy": "較舊",
+      "retired": "已停用"
+    }
+  },
+  "settings": {
+    "personalMemory": {
+      "enable": {
+        "label": "記住我",
+        "description": "讓助理保存並使用個人記憶。預設為關閉。"
+      },
+      "incognito": {
+        "label": "無痕對話",
+        "description": "這次對話不使用記憶，也不學習任何新內容。"
+      },
+      "detail": {
+        "label": "記憶詳細程度",
+        "description": "每次回覆要加入多少記憶。越詳細內容越豐富，但速度會稍慢。",
+        "options": {
+          "light": "精簡",
+          "balanced": "平衡",
+          "detailed": "詳細"
+        }
+      },
+      "aboutYou": {
+        "label": "關於您",
+        "caption": "助理會一直記在心上的簡短摘要。",
+        "fieldLabel": "摘要",
+        "placeholder": "例如：偏好簡短直接的回答。使用 Rust 與 TypeScript 開發。正在打造桌面語音助理。",
+        "hint": "記憶開啟時一律會納入。請保持在幾句話以內——這是助理對您的快速印象。",
+        "edit": "編輯",
+        "done": "完成",
+        "empty": "尚未儲存任何內容——助理會在學習過程中補上，您也可以點選「編輯」自行撰寫。",
+        "collapsedEmpty": "尚未儲存任何內容"
+      },
+      "notes": {
+        "label": "筆記",
+        "caption": "值得記住的具體事項——由助理學習或您自行新增。",
+        "empty": "還沒有任何筆記。請在下方新增，或讓助理從您的對話中學習。",
+        "add": "新增",
+        "addPlaceholder": "新增要記住的內容…",
+        "delete": "刪除筆記",
+        "learned": "已學習",
+        "added": "由您新增"
+      },
+      "confidence": {
+        "high": "高信心",
+        "medium": "中信心",
+        "low": "低信心"
+      },
+      "actions": {
+        "label": "管理"
+      },
+      "distill": {
+        "label": "立即從這次對話學習",
+        "description": "立即從目前的對話中擷取值得長期保存的事實，存入記憶。",
+        "button": "更新記憶"
+      },
+      "export": "匯出",
+      "import": "匯入",
+      "wipe": {
+        "button": "清除記憶",
+        "confirm": "要刪除助理記住的所有內容嗎？",
+        "yes": "全部刪除",
+        "cancel": "取消"
+      }
+    },
+    "modelSettings": {
+      "title": "{{model}} 設定",
+      "noSettingsNeeded": "此模型會自動運作，無需任何設定。"
+    },
+    "general": {
+      "title": "一般",
+      "recording": {
+        "title": "錄製"
+      },
+      "groups": {
+        "sounds": "聲音",
+        "startup": "啟動與系統匣",
+        "overlay": "懸浮窗",
+        "updates": "更新",
+        "system": "系統"
+      },
+      "shortcut": {
+        "title": "快捷鍵",
+        "description": "用來開始與停止錄音的鍵盤快捷鍵。",
+        "loading": "載入快捷鍵中…",
+        "none": "未設定快捷鍵",
+        "notFound": "未找到快捷鍵",
+        "pressKeys": "請按下按鍵…",
+        "bindings": {
+          "transcribe": {
+            "name": "語音輸入",
+            "description": "按一下開始錄音，再按一下停止並輸入文字。"
+          },
+          "transcribe_toggle": {
+            "name": "免持語音輸入",
+            "description": "按一下開始，再按一下停止——不需一直按住。"
+          },
+          "cancel": {
+            "name": "取消",
+            "description": "停止目前的錄音或正在串流的回覆。"
+          },
+          "transcribe_with_post_process": {
+            "name": "語音輸入並整理",
+            "description": "先語音輸入，再用 AI 整理，然後才輸入文字。"
+          },
+          "assistant": {
+            "name": "詢問助理",
+            "description": "用語音詢問助理；回答會即時串流到浮動面板中。"
+          },
+          "assistant_vision": {
+            "name": "連同螢幕提問",
+            "description": "用語音提問並附上您的螢幕畫面，讓它看見您正在看的內容。"
+          },
+          "assistant_call": {
+            "name": "開始對話",
+            "description": "免動手與助理對話並聆聽它的回覆。再按一次即可結束。"
+          },
+          "hands_free": {
+            "name": "免持",
+            "description": "按住聽寫鍵時按下它，放開後會繼續錄音。再次按下聽寫鍵即可結束。"
+          }
+        },
+        "errors": {
+          "restore": "無法還原原本的快捷鍵。",
+          "set": "無法設定快捷鍵：{{error}}",
+          "inUse": "「{{name}}」已在使用 {{keys}}。請選擇其他按鍵，或先修改那個快捷鍵。",
+          "sameAsOther": "{{keys}} 已經是這個快捷鍵的按鍵。",
+          "reset": "無法重設該快捷鍵。"
+        },
+        "clickToChange": "點一下以變更",
+        "notSet": "未設定"
+      },
+      "language": {
+        "title": "語言",
+        "description": "語音識別使用的語言。選擇特定語言可以提高準確度。",
+        "descriptionUnsupported": "此模型會自動偵測語言。",
+        "searchPlaceholder": "搜尋語言…",
+        "noResults": "未找到語言",
+        "auto": "自動"
+      },
+      "chineseScript": {
+        "title": "中文字形",
+        "description": "將中文轉寫結果寫成簡體或繁體。其他語言保持不變。",
+        "options": {
+          "auto": "保持原樣",
+          "simplified": "簡體",
+          "traditional": "繁體"
+        }
+      },
+      "pushToTalk": {
+        "dictation": "開：按住按鍵期間持續錄音。關：按一下開始，再按一下停止，因此每次聽寫都是免持的。",
+        "assistant": "開：按住按鍵期間持續聆聽。關：按一下開始，再按一下送出。",
+        "dictationLabel": "按住說話",
+        "assistantLabel": "按住提問"
+      },
+      "handsFree": {
+        "unavailableKeys": "僅在聽寫快捷鍵只由輔助鍵組成時可用，例如 Ctrl + Win。使用 {{keys}} 時，請改為關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
+        "unavailableEngine": "需要 Zynveliq Keys 鍵盤引擎（{{where}}）。或關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
+        "taken": "{{name}} 已在使用 {{keys}}，在其中之一變更前，這個鍵不會有作用。",
+        "needsKey": "請選擇一個鍵，例如空白鍵或 Enter。單獨的輔助鍵不能當作免持鍵。",
+        "pressKey": "請按下一個鍵…",
+        "descriptionOff": "已關閉。點選它並按一個鍵（例如空白鍵）即可重新開啟。",
+        "linux": "在 Linux 上，請改為關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
+        "whileDictating": "聽寫時按"
+      },
+      "silenceStop": {
+        "label": "靜音後停止",
+        "description": "免持語音輸入若這麼久都沒有聽到說話，會自動停止並貼上，就像再按一次快捷鍵一樣。停止前，膠囊上的細線會逐漸縮短；再次說話即可繼續錄音。"
+      }
+    },
+    "models": {
+      "title": "轉錄模型",
+      "description": "模型在準確度與速度之間取捨——挑一個適合您電腦的。",
+      "yourModels": "已下載的模型",
+      "availableModels": "可供下載",
+      "view": {
+        "label": "顯示哪些模型",
+        "all": "全部模型"
+      },
+      "recommendedFor": "推薦：{{language}}",
+      "recommendedAllDownloaded": "推薦的模型您都已下載。",
+      "browseAll": "瀏覽全部模型",
+      "downloaded": "已下載",
+      "available": "可供下載",
+      "deleteConfirm": "確定要刪除 {{modelName}} 嗎？之後要使用必須重新下載。",
+      "deleteActiveConfirm": "{{modelName}} 是您目前使用的模型。刪除後，在您選擇新模型之前將無法轉錄。確定要刪除嗎？",
+      "deleteTitle": "刪除模型",
+      "categories": {
+        "stt": "轉錄",
+        "llm": "助理",
+        "tts": "語音"
+      },
+      "categoryDescriptions": {
+        "stt": "各模型在準確度與速度之間取捨——請挑選適合您電腦的一個。",
+        "llm": "供內建助理與 AI 整理使用的本機模型。",
+        "tts": "助理朗讀回覆時使用的語音。Kokoro 在您的電腦上執行。"
+      },
+      "llmHint": "下載完成後，請在「助理」區段的內建（本機）供應商下選擇此模型。",
+      "ttsHint": "語音模型在您的電腦上執行，無需下載。",
+      "filters": {
+        "all": "全部",
+        "multiLanguage": "多語言",
+        "translation": "翻譯",
+        "allLanguages": "所有語言",
+        "streamingHint": "只顯示邊說邊轉寫的模型",
+        "translate": "翻譯",
+        "translateHint": "只顯示能把語音翻譯成英文的模型",
+        "noMatch": "沒有符合這些篩選條件的模型",
+        "clear": "清除篩選"
+      },
+      "searchPlaceholder": "依名稱搜尋模型…",
+      "clearSearch": "清除搜尋",
+      "noSearchResults": "找不到名稱為「{{query}}」的模型。",
+      "olderHint": "舊格式。{{model}}（{{size}}）是這個模型的新版本。",
+      "retiredHint": "使用的是 Zynveliq 已不再內含的舊引擎。請改為下載 {{model}}（{{size}}）。",
+      "retired": {
+        "notice": "這些模型使用的是 Zynveliq 已不再內含的舊引擎。",
+        "newVersion": "新版本：{{model}} · {{size}}",
+        "getNewVersion": "取得新版本",
+        "useNewVersion": "使用新版本",
+        "deleteOld": "刪除舊檔案（{{size}}）",
+        "deleteTitle": "刪除舊檔案",
+        "deleteConfirm": "要刪除這些模型的舊檔案（{{size}}）嗎？已下載的新版本會保留。"
+      },
+      "customModel": {
+        "addButton": "搜尋 Hugging Face",
+        "searchTitle": "需要其他模型嗎？",
+        "searchDescription": "在 Hugging Face 上搜尋 GGUF 模型。這是進階選項，硬體需求與相容性可能各不相同。",
+        "searchButton": "搜尋 Hugging Face",
+        "title": "在 Hugging Face 上尋找模型",
+        "subtitle": "搜尋 GGUF 模型，選擇版本，直接下載到這台裝置。",
+        "searchPlaceholder": "依模型或作者搜尋…",
+        "popularTitle": "熱門 GGUF 模型",
+        "resultsTitle": "搜尋結果",
+        "resultCount_other": "{{count}} 個模型",
+        "searching": "正在搜尋 Hugging Face…",
+        "searchError": "搜尋失敗。請檢查網路連線後重試。",
+        "tryAgain": "重試",
+        "noResults": "找不到模型。請嘗試其他搜尋條件。",
+        "downloads": "{{value}} 次下載",
+        "visionBadge": "視覺",
+        "back": "返回搜尋結果",
+        "loadingFiles": "正在載入可用檔案…",
+        "repoFilesError": "無法載入此模型的檔案。",
+        "noGgufFiles": "此存放庫沒有可下載的 .gguf 檔案。",
+        "selectQuant": "選擇下載版本",
+        "selectQuantHint": "不確定嗎？Q4_K_M 通常在品質、速度與記憶體用量之間取得最佳平衡。",
+        "enableVision": "包含螢幕視覺",
+        "enableVisionHint": "額外下載一個檔案，讓模型能理解圖片。",
+        "add": "下載",
+        "adding": "正在開始…",
+        "addError": "無法新增此模型，請重試。"
+      },
+      "localModel": {
+        "addButton": "使用本機模型",
+        "title": "使用你手邊已有的模型",
+        "subtitle": "從這台裝置的任何位置加入 .gguf 或 Whisper .bin 檔案，也可以連結你存放模型的資料夾。不會複製，也不會下載。",
+        "pickFiles": "選擇模型檔案",
+        "pickFilesHint": "選擇一個或多個 .gguf 或 .bin 檔案。適合加入剛建置完成的單一模型。",
+        "linkFolder": "連結資料夾",
+        "linkFolderHint": "會自動掃描，包含子資料夾。可以連結任意數量的資料夾。",
+        "fileFilter": "模型檔案",
+        "filesAdded_other": "已加入 {{count}} 個模型。",
+        "folderAdded_other": "已連結資料夾，找到 {{count}} 個模型。",
+        "folderRemoved": "已取消連結該資料夾。你的檔案未受影響。",
+        "foldersTitle": "已連結的資料夾",
+        "foldersEmpty": "尚未連結任何資料夾。連結之後，其中的所有模型都會出現在清單中。",
+        "removeFolder": "取消連結 {{folder}}",
+        "rescan": "重新掃描",
+        "rescanning": "正在重新掃描…",
+        "rescanDone_other": "找到 {{count}} 個本機模型。",
+        "footnote": "Zynveliq 啟動時會重新掃描已連結的資料夾，因此你之後放進去的模型會自動出現。取消連結資料夾或移除模型，只會從這份清單中移除——你的檔案會留在原處。",
+        "removeTitle": "要從清單中移除嗎？",
+        "removeConfirm": "要從模型清單中移除「{{modelName}}」嗎？\n\n檔案本身會留在原處：\n{{path}}",
+        "missingBadge": "檔案遺失",
+        "fileMissing": "找不到此模型的檔案：\n{{path}}\n\n它可能已被移動或重新命名，也可能位於尚未連接的磁碟機上。",
+        "foldersEmptyShort": "尚未連結任何資料夾。"
+      }
+    },
+    "sound": {
+      "title": "聲音",
+      "microphone": {
+        "title": "麥克風",
+        "description": "選擇您偏好的麥克風裝置",
+        "placeholder": "選擇麥克風…",
+        "loading": "載入中…"
+      },
+      "audioFeedback": {
+        "label": "聲音回饋",
+        "description": "開始與停止錄音時播放音效"
+      },
+      "soundTheme": {
+        "label": "回饋音效",
+        "description": "選擇語音輸入時播放的開始／停止提示音",
+        "default": "預設",
+        "preview": "試聽音效（先播放開始，再播放停止）",
+        "themes": {
+          "marimba": "馬林巴琴",
+          "pop": "啵",
+          "click": "喀嚓",
+          "custom": "自訂"
+        }
+      },
+      "outputDevice": {
+        "title": "輸出裝置",
+        "description": "選擇用於聲音回饋的音訊輸出裝置",
+        "placeholder": "選擇輸出裝置…",
+        "loading": "載入中…"
+      },
+      "volume": {
+        "title": "音量",
+        "description": "調整聲音回饋的音量"
+      },
+      "ducking": {
+        "label": "錄音時",
+        "ariaLabel": "錄音時的其他音訊",
+        "description": "錄音時降低其他音訊的音量或將其靜音，避免分散注意力或被麥克風收音。錄音結束後立即恢復。也稱為「閃避」（ducking）。",
+        "options": {
+          "off": "不變",
+          "lower": "降低",
+          "mute": "靜音"
+        },
+        "amount": {
+          "label": "降低幅度",
+          "description": "其他音訊降低多少。在播放內容時拖曳滑桿即可試聽。如果你在錄音期間自行調整了音量，將維持你設定的音量。"
+        }
+      }
+    },
+    "advanced": {
+      "title": "進階",
+      "groups": {
+        "app": "應用程式",
+        "output": "輸出",
+        "transcription": "轉錄",
+        "textReplacements": "文字替換",
+        "history": "歷史",
+        "aiCorrection": "AI 整理",
+        "experimental": "實驗性"
+      },
+      "aiCorrection": {
+        "label": "AI 整理（開發中）",
+        "description": "實驗性功能：用 AI 整理您的語音輸入。仍粗糙未完善——預設為關閉。",
+        "info": "以語言模型處理您的語音輸入，修正標點、移除語助詞，並可選擇調整語氣。僅套用於語音輸入（不含助理對話），並使用專屬的快捷鍵。由於模型在轉錄之後執行，會增加一些延遲；若失敗或逾時，則會改為貼上未經處理的原始文字。預設使用您的助理模型。此功能仍在開發中——目前還無法從專屬清單中選擇內建的本機模型，成為正式功能前也還需要更多調整。"
+      },
+      "postProcessTimeout": {
+        "title": "AI 整理逾時",
+        "description": "在放棄並改為貼上未處理的轉錄文字之前，要等待模型多久。使用內建本機模型時，請預留足夠時間供其首次載入。",
+        "seconds": "{{seconds}} 秒"
+      },
+      "experimentalToggle": {
+        "label": "實驗性功能",
+        "description": "顯示仍在開發中的功能。預設為關閉。"
+      },
+      "lazyStreamClose": {
+        "label": "在兩次轉錄之間保持麥克風開啟",
+        "description": "連續語音輸入更快。可能影響藍牙音訊品質。"
+      },
+      "mouseButtonShortcuts": {
+        "label": "將滑鼠按鈕當作快捷鍵",
+        "description": "將滑鼠中鍵、上一頁鍵或下一頁鍵當作快捷鍵：點按快捷鍵的按鍵，然後按下該滑鼠按鈕。作為快捷鍵期間，該按鈕不會執行其他動作。",
+        "linux": "在 Linux 上只有滑鼠中鍵可用。",
+        "needsEngine": "需要使用 Zynveliq Keys 鍵盤實作方式。"
+      },
+      "longFormChunking": {
+        "title": "分割長錄音",
+        "description": "較長的聽寫會在自然停頓處分段轉寫，讓不擅長處理長音訊的模型保持準確。"
+      },
+      "acceleration": {
+        "title": "語音處理",
+        "description": "「自動」會使用顯示卡；如果有兩張，會使用獨立顯示卡。如果聽寫當機或顯示卡驅動程式有問題，請選擇「處理器」。速度較慢，但在任何電腦上都能執行。",
+        "auto": "自動",
+        "cpu": "處理器 (CPU)"
+      },
+      "startHidden": {
+        "label": "隱藏啟動",
+        "description": "啟動後停留在系統匣，不開啟視窗。"
+      },
+      "autostart": {
+        "label": "開機時啟動",
+        "description": "登入時自動開啟 Zynveliq。"
+      },
+      "showTrayIcon": {
+        "label": "顯示系統匣圖示",
+        "description": "將 Zynveliq 保留在系統匣中。"
+      },
+      "trayIconColor": {
+        "label": "彩色系統匣圖示",
+        "description": "顯示彩色標誌，而非白色圖示。如果面板是淺色、白色圖示看不清楚，請開啟此選項。"
+      },
+      "closeBehavior": {
+        "label": "關閉視窗時結束程式",
+        "description": "關閉此選項時，關閉視窗後 Zynveliq 會繼續在系統匣中執行，快捷鍵仍可使用。開啟時，關閉視窗會完全結束應用程式。"
+      },
+      "overlayStyle": {
+        "title": "懸浮窗",
+        "description": "語音輸入時錄製懸浮窗的外觀。「無」會隱藏它，「精簡」是小巧的膠囊，「即時」則顯示易讀的卡片，隨著您說話呈現文字（僅支援的模型可用）。",
+        "options": {
+          "none": "無",
+          "minimal": "精簡",
+          "live": "即時"
+        }
+      },
+      "overlayLinger": {
+        "title": "讓完成的文字留在畫面上",
+        "description": "語音輸入結束後，「即時」卡片要停留多久，方便您閱讀或複製輸入的內容。將滑鼠停在卡片上即可讓它保持開啟。",
+        "options": {
+          "quick": "短暫（1 秒）",
+          "standard": "標準（3 秒）",
+          "long": "較久（6 秒）",
+          "extended": "更久（10 秒）"
+        }
+      },
+      "overlay": {
+        "title": "懸浮窗位置",
+        "description": "錄音懸浮窗在螢幕上的位置。",
+        "options": {
+          "none": "無",
+          "bottom": "底部",
+          "top": "頂部",
+          "topleft": "左上角",
+          "topright": "右上角",
+          "bottomleft": "左下角",
+          "bottomright": "右下角"
+        }
+      },
+      "pasteMethod": {
+        "title": "貼上方式",
+        "description": "轉錄文字插入目前應用程式的方式。",
+        "options": {
+          "clipboard": "剪貼簿 ({{modifier}}+V)",
+          "clipboardCtrlShiftV": "剪貼簿 (Ctrl+Shift+V)",
+          "clipboardShiftInsert": "剪貼簿 (Shift+Insert)",
+          "direct": "直接",
+          "none": "無",
+          "externalScript": "外部指令碼"
+        },
+        "externalScriptPlaceholder": "/path/to/your/script.sh"
+      },
+      "typingTool": {
+        "title": "輸入工具",
+        "description": "「直接」貼上方式所使用的 Linux 工具。",
+        "options": {
+          "auto": "自動（建議）"
+        }
+      },
+      "clipboardHandling": {
+        "title": "剪貼簿處理",
+        "description": "貼上後是否將轉錄內容留在剪貼簿中。",
+        "options": {
+          "dontModify": "不修改剪貼簿",
+          "copyToClipboard": "複製到剪貼簿"
+        }
+      },
+      "autoSubmit": {
+        "title": "自動送出",
+        "description": "文字插入後自動發送一組按鍵組合。",
+        "options": {
+          "off": "關閉",
+          "enter": "Enter",
+          "cmdEnter": "Cmd+Enter",
+          "superEnter": "Super+Enter",
+          "ctrlEnter": "Ctrl+Enter"
+        }
+      },
+      "translateToEnglish": {
+        "label": "翻譯為英語",
+        "description": "將其他語言的語音翻譯為英語。",
+        "descriptionUnsupported": "{{model}} 模型不支援翻譯功能"
+      },
+      "modelUnload": {
+        "title": "卸載模型",
+        "description": "模型閒置這段時間後釋放記憶體。",
+        "options": {
+          "never": "從不",
+          "immediately": "立即",
+          "min2": "2 分鐘後",
+          "min5": "5 分鐘後",
+          "min10": "10 分鐘後",
+          "min15": "15 分鐘後",
+          "hour1": "1 小時後",
+          "sec15": "15 秒後（偵錯）"
+        }
+      },
+      "customWords": {
+        "title": "自訂詞彙",
+        "description": "希望 Zynveliq 依照您的寫法拼寫的名稱、產品與詞句。",
+        "info": "範例：如果 Zynveliq 寫成「Coco row」，請新增「Kokoro」。",
+        "placeholder": "新增名稱、術語或短句",
+        "add": "新增",
+        "empty": "還沒有自訂詞彙。",
+        "remove": "刪除 {{word}}",
+        "duplicate": "「{{word}}」已存在"
+      },
+      "autoLearn": {
+        "label": "學習我修正的字詞",
+        "description": "當您修正 Zynveliq 聽錯的字詞時，記住您的寫法。",
+        "info": "它只會讀取剛輸入文字的那個欄位，時間約一分鐘。不會上傳任何內容，學到的每個字詞都會列在這裡。",
+        "unsupported": "目前只有 Windows 支援從修正中學習。您仍可在上方手動新增字詞。",
+        "learnedTitle": "從您的修正中學到的字詞",
+        "learnedEmpty": "還沒有學到任何字詞。在您語音輸入的應用程式中修正聽錯的字詞，它就會出現在這裡。",
+        "keep": "將 {{word}} 保留在我的自訂詞彙中",
+        "remove": "忘記 {{word}}",
+        "clearAll": "全部忘記",
+        "reviewHint": "這些只是推測。勾選即可移入您的自訂詞彙，或將其移除。超過 {{max}} 個時，會捨棄最舊的項目。"
+      },
+      "textReplacements": {
+        "title": "文字替換",
+        "description": "將轉錄結果中的某段語句替換成您常用的文字。範例：「我的信箱」會變成「alex@example.com」。",
+        "rulesTitle": "替換規則",
+        "rulesHint": "設定 Zynveliq 聽到什麼，以及應該插入什麼。",
+        "empty": "為您常說的語句建立一條規則。",
+        "addFirst": "建立第一條規則",
+        "addRule": "新增替換",
+        "manageRules": "替換規則（{{count}}）",
+        "searchLabel": "說出的語句",
+        "searchPlaceholder": "我的信箱",
+        "replaceLabel": "插入這段文字",
+        "replacePlaceholder": "alex@example.com",
+        "advanced": "進階選項",
+        "regex": "正規表示式",
+        "trimBefore": "去除前方空白",
+        "trimAfter": "去除後方空白",
+        "enabledLabel": "已啟用",
+        "remove": "移除規則",
+        "import": "匯入",
+        "export": "匯出",
+        "importSuccess": "已匯入 {{count}} 條替換規則",
+        "importError": "無法匯入：此檔案不是有效的替換規則清單",
+        "exportSuccess": "已匯出替換規則",
+        "exportError": "無法匯出替換規則",
+        "magicHint": "可在插入的文字中使用 [date]、[time]、[uppercase]、[lowercase]、[capitalize] 或 [nospace]。",
+        "capitalization": {
+          "label": "大小寫",
+          "none": "無",
+          "uppercase": "全部大寫",
+          "lowercase": "全部小寫",
+          "capitalize": "首字大寫"
+        }
+      }
+    },
+    "postProcessing": {
+      "title": "AI 整理",
+      "readiness": {
+        "checking": "正在檢查 AI 整理的設定…",
+        "checkFailed": "無法檢查 AI 整理的設定。",
+        "ready": "已就緒——{{provider}}。",
+        "assistantFallback": "已就緒——使用您的助理模型（{{provider}}）。",
+        "selectPrompt": "請選擇整理提示詞。",
+        "selectModel": "請為此供應商選擇模型。",
+        "addApiKey": "請為此供應商新增 API 金鑰。",
+        "providerMissing": "所選的供應商已不再可用。"
+      },
+      "errors": {
+        "saveFailed": "無法儲存 AI 整理設定。",
+        "modelsLoadFailed": "無法載入此供應商的模型。",
+        "promptCreateFailed": "無法建立提示詞。",
+        "promptSelectFailed": "已建立提示詞，但無法選取它。",
+        "promptUpdateFailed": "無法更新提示詞。",
+        "promptDeleteFailed": "無法刪除提示詞。",
+        "promptRestoreFailed": "無法還原提示詞。",
+        "toneSelectFailed": "無法選取文字風格。",
+        "toneCreateFailed": "無法建立文字風格。",
+        "toneSelectAfterCreateFailed": "已建立文字風格，但無法選取它。",
+        "toneUpdateFailed": "無法更新文字風格。",
+        "toneDeleteFailed": "無法刪除文字風格。"
+      },
+      "enable": {
+        "title": "AI 整理"
+      },
+      "hotkey": {
+        "title": "快捷鍵"
+      },
+      "tone": {
+        "title": "2 · 寫作風格",
+        "description": "疊加在系統提示詞之上：改變整理後文字的語感，而非修正的內容。選「無」則保留您原本的說話風格。",
+        "options": {
+          "none": "無（僅整理）",
+          "formal": "正式",
+          "casual": "輕鬆",
+          "professional": "專業",
+          "friendly": "友善",
+          "concise": "精簡"
+        },
+        "edit": "編輯",
+        "closeEditor": "關閉",
+        "createNew": "建立風格",
+        "nameLabel": "風格名稱",
+        "namePlaceholder": "例如：冷靜俐落",
+        "instructionsLabel": "風格指令",
+        "instructionsPlaceholder": "明確描述用字應如何改變。範例：移除粗話，改用冷靜中立的措辭。",
+        "instructionsHint": "這些規則會決定整理後的用字，並與您的整理提示詞分開保存。",
+        "createTone": "建立風格",
+        "updateTone": "儲存變更",
+        "deleteTone": "刪除風格",
+        "cancel": "取消"
+      },
+      "api": {
+        "title": "API（相容 OpenAI）",
+        "location": {
+          "title": "執行位置",
+          "description": "使用已下載的模型在本機私密執行整理，或改用雲端供應商。"
+        },
+        "provider": {
+          "title": "供應商",
+          "description": "選擇一個相容 OpenAI 的供應商"
+        },
+        "appleIntelligence": {
+          "title": "Apple Intelligence",
+          "description": "完全在裝置上運行，無需 API 金鑰或網路存取",
+          "requirements": "需要執行 macOS Tahoe（26.0）或更高版本的 Apple Silicon Mac。必須在系統設定中啟用 Apple Intelligence",
+          "unavailable": "Apple Intelligence 在此裝置上不可用。需要執行 macOS Tahoe（26.0）或更高版本的 Apple Silicon Mac，並在系統設定中啟用 Apple Intelligence"
+        },
+        "baseUrl": {
+          "title": "基礎網址",
+          "description": "所選供應商的 API 基礎網址。Custom、Local 與 Azure OpenAI 可以編輯（請填入您自己的資源，例如 https://your-resource.openai.azure.com/openai/v1）。",
+          "placeholder": "https://api.openai.com/v1",
+          "managed": "基礎網址由所選的供應商管理。"
+        },
+        "apiKey": {
+          "title": "API 金鑰",
+          "description": "所選供應商的 API 金鑰",
+          "placeholder": "sk-..."
+        },
+        "builtin": {
+          "modelDescription": "選擇您已下載的模型。它會在您的電腦上執行，不需要 API 金鑰或任何設定。",
+          "modelPlaceholder": "選擇已下載的模型",
+          "noModels": "還沒有本機模型。請從模型目錄下載一個。",
+          "ready": "完全在您的電腦上執行。不需要 API 金鑰，也不需要設定。"
+        },
+        "model": {
+          "title": "模型",
+          "descriptionApple": "可輸入數字作為長度上限，或保留裝置上的預設值。",
+          "descriptionCustom": "輸入您的自訂供應商所需的模型識別碼。",
+          "descriptionDefault": "從所選供應商的可用模型中選擇",
+          "placeholderApple": "Apple Intelligence",
+          "placeholderWithOptions": "搜尋或選擇模型",
+          "placeholderNoOptions": "輸入模型名稱",
+          "refreshModels": "重新整理模型"
+        },
+        "testConnection": {
+          "title": "測試連線",
+          "description": "傳送一個簡短請求，確認 AI 整理確實能連上這個模型。裝置端模型需要先載入，因此第一次測試可能要稍等一下。",
+          "button": "測試連線",
+          "testing": "測試中…"
+        }
+      },
+      "prompts": {
+        "title": "提示詞",
+        "selectedPrompt": {
+          "title": "提示詞",
+          "description": "基本指令：模型要修正什麼、哪些必須保持原樣。您的轉錄文字會另外傳送，所以只要寫指令即可。"
+        },
+        "noPrompts": "沒有可用的提示詞",
+        "nonePrompt": "無（不使用提示詞）",
+        "selectPrompt": "選擇提示詞",
+        "createNew": "建立新提示詞",
+        "edit": "編輯",
+        "closeEditor": "關閉",
+        "promptLabel": "提示詞名稱",
+        "promptLabelPlaceholder": "輸入提示詞名稱",
+        "promptInstructions": "提示詞指令",
+        "promptInstructionsPlaceholder": "撰寫整理轉錄文字的指令。範例：修正文法與標點，再改寫成精緻、專業的訊息。",
+        "promptTip": "提示：轉錄文字會自動傳送給模型——您只需寫下指令。（使用 <code>${output}</code> 的舊提示詞仍然有效。）",
+        "updatePrompt": "更新提示詞",
+        "deletePrompt": "刪除提示詞",
+        "restorePrompt": "還原推薦版本",
+        "createPrompt": "建立提示詞",
+        "cancel": "取消",
+        "selectToEdit": "選擇上方的提示詞以檢視和編輯其詳細資訊",
+        "createFirst": "點選上方的「建立新提示詞」，建立您的第一個整理提示詞。"
+      }
+    },
+    "dictation": {
+      "hero": {
+        "eyebrow": "目前聆聽使用",
+        "loading": "正在載入您的模型…",
+        "noModelTitle": "尚未選擇模型",
+        "noModelCaption": "請選擇模型，讓您的語音變成文字。",
+        "chooseModel": "選擇模型",
+        "changeModel": "更換模型",
+        "streams": "即時串流",
+        "accuracy": "準確度",
+        "speed": "速度"
+      },
+      "catalog": {
+        "title": "選擇您的模型",
+        "description": "所有模型都在您的電腦上執行——在準確度與速度之間權衡，挑選合適的一個。"
+      },
+      "cloud": {
+        "groupTitle": "轉錄的執行位置",
+        "engine": {
+          "title": "語音轉文字引擎",
+          "description": "在這台電腦上執行，或使用您自備金鑰的雲端供應商。",
+          "info": "「在我的裝置上」會使用您下載的模型：私密、免費且可離線使用。「雲端」會將您的錄音傳送到您選擇的供應商，並由其依音訊分鐘數計費；好處是能使用最先進的模型，不必下載，也不需要 GPU。"
+        },
+        "bypassNotice": "已開啟雲端轉錄，因此不會使用上方的模型，也不會載入它。",
+        "provider": {
+          "title": "供應商"
+        },
+        "key": {
+          "title": "API 金鑰",
+          "stored": "已有一組金鑰儲存在您的系統鑰匙圈中。",
+          "missing": "尚未為此供應商儲存金鑰。",
+          "placeholder": "貼上您的 API 金鑰",
+          "replacePlaceholder": "貼上新金鑰以取代已儲存的金鑰",
+          "save": "儲存",
+          "saved": "API 金鑰已儲存",
+          "clear": "移除",
+          "getOne": "取得金鑰"
+        },
+        "endpoint": {
+          "title": "端點",
+          "description": "相容 OpenAI 的轉錄伺服器基礎網址。",
+          "azureDescription": "您 Azure 資源的端點，可在 Azure 入口網站的「金鑰和端點」中找到。MAI-Transcribe 需要位於印度中部、東南亞、美國東部、美國西部、美國西部 2 或北歐的資源。",
+          "azurePlaceholder": "https://your-resource.cognitiveservices.azure.com"
+        },
+        "amazon": {
+          "credentials": {
+            "title": "AWS 存取金鑰",
+            "missing": "尚未儲存金鑰。請使用有權呼叫 transcribe:StartStreamTranscriptionWebSocket 的 IAM 使用者或角色的存取金鑰。",
+            "keyId": "存取金鑰 ID",
+            "secret": "私密存取金鑰",
+            "sessionToken": "工作階段權杖（僅限臨時憑證）",
+            "invalid": "這看起來不像 AWS 金鑰。存取金鑰 ID 只包含字母和數字，任何欄位都不能包含空格或冒號。",
+            "permission": "所需權限"
+          },
+          "region": {
+            "title": "區域",
+            "description": "Amazon Transcribe 執行的位置。離您最近的區域回應最快。"
+          },
+          "streaming": "一律開啟：Amazon Transcribe 只支援即時轉錄。如果錄音途中連線中斷，錄音會以說話速度重新傳送，因此完成所需的時間與錄音長度相同。",
+          "language": "需要告訴 Amazon Transcribe 使用哪種語言。「自動」只會在英語、應用程式語言和其他幾種常用語言之間選擇，如果您說的是其他語言，請選擇您的語言。",
+          "unsupportedLanguage": "Amazon Transcribe 無法在 {{region}} 即時轉錄這種語言。請選擇其他語言或區域。在此之前，聽寫不會使用 Amazon Transcribe。"
+        },
+        "model": {
+          "title": "模型",
+          "info": "輸入供應商提供的任何模型，或載入清單。若使用 ElevenLabs，選擇 scribe_v2_realtime 可邊說邊轉錄，選擇 scribe_v2 則會在您停止說話後才轉錄。",
+          "load": "載入模型"
+        },
+        "streaming": {
+          "label": "邊說邊轉錄",
+          "description": "您還在說話時文字就會陸續出現，因此放開按鍵時只需補上最後幾個字。",
+          "needsRealtimeModel": "請在上方選擇即時模型才能使用此功能——目前的模型只會在您停止說話後才轉錄。"
+        },
+        "keyterms": {
+          "label": "傳送我的自訂詞彙",
+          "description": "將您的自訂詞彙傳給供應商，讓它優先採用這些寫法。",
+          "unsupported": "{{provider}} 無法接收詞彙清單，因此您的自訂詞彙會改為在這台電腦上校正。"
+        },
+        "noVerbatim": {
+          "label": "移除語助詞",
+          "description": "去除「嗯」、「呃」、說錯重來與重複的字詞。關閉此選項即可逐字取得您說的原話。"
+        },
+        "language": {
+          "description": "您說的語言。這裡的每個供應商都會以相同的語言回傳結果——事先告知可提高準確度，選擇「自動」則由它自行偵測語言。"
+        },
+        "translate": {
+          "supported": "{{provider}} 可以改為回傳英文，而不是您所說的語言。僅限英文——沒有任何轉錄 API 能翻譯成其他語言。"
+        },
+        "test": {
+          "title": "測試連線",
+          "description": "傳送一秒鐘的音訊，以檢查金鑰、端點與模型。",
+          "action": "執行測試",
+          "running": "測試中…"
+        }
+      },
+      "aiCleanup": {
+        "groupTitle": "AI 整理",
+        "modelGroupTitle": "整理模型",
+        "unloadTimeout": {
+          "title": "讓整理模型保持載入",
+          "description": "停止使用後，裝置上的整理模型會在記憶體中保留多久。時間越長，下次語音輸入前就不必重新載入；閒置的模型會佔用記憶體，但不佔用 CPU。與助理的同類設定各自獨立。"
+        },
+        "model": {
+          "emptyTitle": "還沒有整理模型",
+          "emptyDescription": "SpeakoFlow Mini 是專為此打造的小型下載。",
+          "choose": "選擇模型",
+          "tunedBadge": "專為整理調校"
+        },
+        "catalog": {
+          "title": "選擇您的整理模型",
+          "description": "每次語音輸入後都會執行整理，因此速度比大小更重要。全部離線執行。",
+          "recommendedTitle": "推薦用於整理",
+          "recommendedDescription": "SpeakoFlow Mini 專為這一件事訓練，在這方面勝過大得多的模型。"
+        },
+        "promptGroupTitle": "整理指令",
+        "tunedModelNotice": "此模型針對英文語音輸入整理做過微調，因此搭配推薦的提示詞、不設文字風格時效果最好。",
+        "tunedModelNoticeDismiss": "隱藏此提示",
+        "tunedModelNoticeRestore": "顯示模型提示",
+        "title": "用 AI 修飾我的語音輸入",
+        "caption": "實驗性功能——在您語音輸入後整理標點與語助詞。",
+        "info": "AI 整理會在輸入文字前，先用 AI 模型改寫您說的話。可能需要一點時間；若處理太慢，則會改用您的原始文字。"
+      },
+      "spokenEmoji": {
+        "title": "語音表情符號",
+        "description": "說出「happy emoji」或「thumbs up emoji」即可插入 😊 或 👍。常見別名和輕微的語音轉文字錯誤會在裝置上處理；無法辨識的名稱會保留為文字。"
+      },
+      "flow": {
+        "groupTitle": "使用 Flow 生成",
+        "enableLabel": "使用 Flow 生成",
+        "enableDescription": "以啟動語句開始語音輸入，讓 AI 幫您寫出結果——說「Hey Flow，寫一封客氣的信詢問改期」，就會貼上寫好的信件。",
+        "phraseLabel": "啟動語句",
+        "phraseDescription": "只有在語音輸入以這句話開頭時，Flow 才會啟動。出現在其他位置時，同樣的字會當成一般語音輸入貼上。使用您的助理模型；留空即可重設為「Hey Flow」。",
+        "phrasePlaceholder": "Hey Flow",
+        "screenLabel": "允許存取螢幕",
+        "screenDescription": "當指令明確提到您的螢幕時，例如「看一下這封信並草擬回覆」，讓 Flow 擷取一張畫面。是否需要由模型判斷。此設定與助理的螢幕存取分開。"
+      },
+      "output": {
+        "title": "輸出選項"
+      }
+    },
+    "history": {
+      "title": "歷史紀錄",
+      "storage": {
+        "title": "錄音儲存",
+        "description": "這些設定會影響語音輸入與 Flow 的錄音。已儲存的錄音一律保留。助理對話另外儲存。"
+      },
+      "filters": {
+        "label": "歷史紀錄類型",
+        "all": "全部",
+        "recordings": "語音輸入",
+        "flow": "Flow",
+        "asks": "助理",
+        "calls": "對話"
+      },
+      "openFolder": "開啟錄音資料夾",
+      "loading": "載入歷史紀錄中…",
+      "empty": "這裡還沒有內容。您的語音輸入、Flow 生成與助理對話會顯示在這裡。",
+      "emptyRecordings": "還沒有語音輸入。",
+      "emptyFlow": "還沒有 Flow 生成紀錄。",
+      "emptyAsks": "還沒有提問紀錄。",
+      "emptyCalls": "還沒有對話。",
+      "flowLabel": "Flow",
+      "kinds": {
+        "ask": "助理",
+        "call": "對話"
+      },
+      "flowTranscriptLabel": "您說的話",
+      "originalTranscriptionLabel": "原始轉錄",
+      "flowOutputLabel": "Flow 輸出",
+      "finalTextLabel": "最終文字",
+      "flowNoOutput": "沒有產生 Flow 輸出。",
+      "copyToClipboard": "複製轉錄到剪貼簿",
+      "copyFlowOutput": "複製 Flow 輸出",
+      "copyFinalText": "複製最終文字",
+      "save": "儲存轉錄",
+      "unsave": "從已儲存中移除",
+      "delete": "刪除條目",
+      "deleteError": "無法刪除此項目，請再試一次。",
+      "retranscribe": "重新轉錄",
+      "retranscribeError": "無法重新轉錄，請再試一次。",
+      "transcribing": "轉錄中…",
+      "transcriptionFailed": "轉錄失敗——請使用重試圖示再試一次。",
+      "copyConversation": "複製對話",
+      "copyAnswer": "複製回答",
+      "noAnswer": "這個問題沒有儲存回答。",
+      "resumeConversation": "在助理中繼續這段對話",
+      "branchConversation": "從這裡接續成新的對話。原本的對話會保持不變。",
+      "showConversation": "顯示對話",
+      "hideConversation": "隱藏對話",
+      "roleUser": "您",
+      "roleAssistant": "助理",
+      "screenshotAttached": "視覺",
+      "messageCount_other": "{{count}} 則訊息",
+      "deleteAssistantError": "無法刪除這段對話，請重試。",
+      "openFolderError": "無法開啟錄音資料夾。"
+    },
+    "debug": {
+      "title": "偵錯",
+      "logDirectory": {
+        "title": "日誌目錄",
+        "description": ""
+      },
+      "logLevel": {
+        "title": "日誌等級",
+        "description": "",
+        "levels": {
+          "error": "錯誤",
+          "warn": "警告",
+          "info": "資訊",
+          "debug": "偵錯",
+          "trace": "追蹤"
+        }
+      },
+      "updateChecks": {
+        "label": "自動檢查更新",
+        "description": "在 Zynveliq 啟動時及每 12 小時檢查一次新版本。您隨時都可以手動檢查。"
+      },
+      "soundTheme": {
+        "label": "音效主題",
+        "description": ""
+      },
+      "wordCorrectionThreshold": {
+        "title": "詞彙修正閾值",
+        "description": "自訂詞彙修正的靈敏度"
+      },
+      "historyLimit": {
+        "title": "錄音數量上限",
+        "description": "未加星號的語音輸入與 Flow 錄音最多保留幾筆。加星號的錄音一律保留，助理對話不計入。最小值為 1。",
+        "entries": "筆錄音"
+      },
+      "recordingRetention": {
+        "title": "自動刪除錄音",
+        "description": "選擇未加星號的錄音如何清理。變更會立即生效，且永遠不會影響助理對話。",
+        "never": "從不",
+        "preserveLimit": "保留指定數量",
+        "days3": "3 天後",
+        "weeks2": "2 週後",
+        "months3": "3 個月後",
+        "customDays": "經過指定天數後",
+        "customDaysTitle": "刪除時間",
+        "customDaysDescription": "未加星號的錄音超過這個天數後就會刪除。加上星號的錄音一律保留。",
+        "days": "天",
+        "placeholder": "選擇保留期限…",
+        "savedToast": "已儲存保留設定。",
+        "appliedToast": "已套用錄音保留設定",
+        "saveFailed": "無法儲存保留設定。",
+        "confirmTitle_other": "這會刪除 {{count}} 筆錄音",
+        "confirmTitleUnknown": "這可能會刪除錄音",
+        "confirmBody": "音訊與轉錄文字會從這台裝置移除，且無法復原。加上星號的錄音會保留。",
+        "confirmAction_other": "刪除 {{count}} 筆錄音",
+        "confirmActionUnknown": "仍要套用"
+      },
+      "alwaysOnMicrophone": {
+        "label": "麥克風常開",
+        "description": "讓麥克風保持預熱，開口的第一個字不會被切掉。會多耗一點電。"
+      },
+      "clamshellMicrophone": {
+        "title": "闔蓋模式麥克風",
+        "description": "筆記型電腦闔蓋時使用的麥克風"
+      },
+      "postProcessingToggle": {
+        "label": "AI 整理",
+        "description": "轉錄後用 AI 整理您的語音輸入"
+      },
+      "appendTrailingSpace": {
+        "label": "結尾加上空格",
+        "description": "每次聽寫後加上一個空格。開啟智慧空格時，只在無法讀取輸入框時生效。"
+      },
+      "smartSpacing": {
+        "label": "智慧空格",
+        "description": "讓每次聽寫與輸入框中已有的文字銜接，停下再繼續時，單字不會黏在一起。",
+        "info": "貼上前，Zynveliq 會查看游標附近的幾個字元，只在需要的地方加空格。如果應用程式隱藏了文字，則改用自己上一次的聽寫來判斷。不會儲存或傳送任何內容。在 macOS 上使用 Zynveliq 已取得的輔助使用權限。在 Linux 上，Chrome、Electron 和 Qt 應用程式只有在開啟桌面輔助功能設定時才會提供文字。中文和日文之間不會加空格。"
+      },
+      "smartSpacingFixCase": {
+        "label": "調整大小寫",
+        "description": "接續上一句繼續聽寫時，首字母改為小寫。人名、縮寫和「I」保持大寫。"
+      },
+      "smartSpacingJoin": {
+        "label": "連接中途停下的句子",
+        "description": "在句子中途停下時，刪除 Zynveliq 加上的句點，例如「I went to the.」"
+      },
+      "keyboardImplementation": {
+        "title": "鍵盤實作方式",
+        "description": "選擇鍵盤快捷鍵的後端",
+        "bindingsReset": "鍵盤快捷鍵不相容，已重設為預設值"
+      },
+      "paths": {
+        "appData": "應用程式資料:",
+        "models": "模型:",
+        "settings": "設定:"
+      },
+      "pasteDelay": {
+        "title": "貼上延遲",
+        "description": "貼上前等待的毫秒數。若貼上的文字不正確，請調高此值。"
+      },
+      "recordingBuffer": {
+        "title": "額外錄音緩衝",
+        "description": "放開按鍵後繼續錄音的毫秒數。"
+      }
+    },
+    "about": {
+      "title": "關於",
+      "version": {
+        "title": "版本",
+        "description": ""
+      },
+      "updates": {
+        "title": "更新",
+        "button": "檢查更新",
+        "disabledHint": "自動檢查更新已關閉。可在「一般」中開啟。"
+      },
+      "folders": {
+        "title": "資料夾"
+      },
+      "appDataDirectory": {
+        "title": "應用程式資料資料夾",
+        "description": "Zynveliq 存放模型、歷史紀錄與設定的位置。"
+      },
+      "sourceCode": {
+        "title": "原始碼",
+        "description": "",
+        "button": "在 GitHub 上檢視"
+      },
+      "license": {
+        "title": "授權",
+        "description": "Zynveliq 以 MIT 授權開放原始碼，並以 CJ Pais 的 Handy（同為 MIT 授權）為基礎。",
+        "button": "檢視授權"
+      },
+      "supportDevelopment": {
+        "title": "支持開發",
+        "description": "幫助我們持續打造 Zynveliq",
+        "button": "捐贈"
+      }
+    },
+    "assistant": {
+      "enable": {
+        "title": "助理",
+        "label": "啟用助理",
+        "description": "關閉後，Zynveliq 只做語音輸入。浮動面板會關閉且不再載入，它的快捷鍵會釋放，佔用的記憶體也會歸還。使用 Flow 生成 與 AI 整理仍可正常使用。"
+      },
+      "shortcuts": {
+        "title": "快捷鍵"
+      },
+      "brain": {
+        "title": "助理大腦",
+        "whereLabel": "執行位置",
+        "testLabel": "測試連線",
+        "testDescription": "傳送一個簡短問題，確認助理確實能連上這個模型。裝置端模型需要先載入，因此第一次測試可能要稍等一下。",
+        "testButton": "測試連線",
+        "testing": "測試中…",
+        "onDevice": "在這台電腦上",
+        "cloud": "雲端",
+        "downloadModel": "瀏覽並下載模型",
+        "downloadModelDescription": "挑選推薦的模型，或搜尋 Hugging Face。",
+        "downloadModelAction": "瀏覽模型",
+        "catalogTitle": "選擇一個裝置端模型",
+        "catalogDescription": "下載私密的本機模型。它只留在這台電腦上，不需要 API 金鑰。",
+        "currentModelTitle": "目前的模型",
+        "currentModelDescription": "已為這台裝置上的內建助理選用。",
+        "recommendedTitle": "推薦模型",
+        "recommendedDescription": "三個以對話為優先的選擇：最快、推薦，以及能力更強但較慢。",
+        "acceleratorDetected": "{{name}} · 回報的顯示記憶體 {{memory}} GB",
+        "acceleratorDetectedDedicated": "{{name}} · 專用 VRAM {{memory}} GB",
+        "acceleratorDetectedIntegrated": "{{name}} · 共用顯示記憶體 {{memory}} GB",
+        "acceleratorDetectedNoMemory": "已偵測到 {{name}} · 未回報顯示記憶體",
+        "acceleratorUnknownWithMemory": "無法取得顯示記憶體 · 改用 CPU 時可用系統記憶體 {{memory}} GB",
+        "acceleratorUnknown": "無法取得顯示記憶體 · 無法預估回應速度",
+        "details": "詳細資訊",
+        "detailFile": "檔案",
+        "detailLocation": "位置",
+        "detailFormat": "格式",
+        "detailId": "模型 ID",
+        "switchBeforeDelete": "此模型正在使用中。請先切換到其他模型，再刪除它。",
+        "deleteModelConfirm": "要刪除 {{modelName}} 嗎？其下載的檔案與已儲存的項目都會一併移除。",
+        "deleteModelFailed": "無法刪除模型。",
+        "finderSectionTitle": "更多裝置端模型",
+        "finderTitle": "瀏覽 Hugging Face",
+        "finderDescription": "搜尋數千個 GGUF 模型，直接下載到 Zynveliq。",
+        "finderAction": "尋找模型",
+        "huggingFaceTitle": "我的模型",
+        "catalogEmpty": "目前沒有可用的推薦本機模型。"
+      },
+      "subpages": {
+        "profilesCaption": "切換助理的名稱、身分與個性。",
+        "memoryCaption": "助理在不同對話之間記住的關於您的內容。"
+      },
+      "provider": {
+        "title": "助理供應商",
+        "saveFailed": "無法切換助理供應商。",
+        "providerLabel": "供應商",
+        "providerDescription": "負責回答助理問題的供應商。",
+        "baseUrlLabel": "基礎網址",
+        "baseUrlDescription": "相容 OpenAI 的基礎網址。Azure 網址會自動正規化。",
+        "apiKeyLabel": "API 金鑰",
+        "apiKeyDescription": "與 AI 整理共用。",
+        "apiKeyPlaceholder": "輸入 API 金鑰…",
+        "modelLabel": "模型",
+        "modelDescription": "用於助理回答的模型或部署名稱。",
+        "modelPlaceholder": "例如 gpt-4o-mini",
+        "modelSearchPlaceholder": "搜尋或輸入模型…",
+        "modelUse": "使用「{{model}}」",
+        "loadModels": "載入模型",
+        "loadingModels": "載入中…",
+        "noModelsFound": "沒有取得任何模型。請改為直接輸入模型名稱。",
+        "builtinModelDescription": "選擇已下載的本機模型。它會在您的電腦上執行，不需要 API 金鑰。",
+        "builtinModelPlaceholder": "選擇已下載的模型",
+        "builtinNoModels": "您的電腦上還沒有模型——請從下方下載一個。",
+        "builtinReady": "完全在您的電腦上執行。不需要 API 金鑰，也不需要設定。",
+        "builtinEngineMissing": "首次使用時會自動下載一個小型本機引擎（僅此一次），之後即可完全離線執行。無需任何設定。",
+        "builtinEngineDownloading": "正在下載本機引擎… {{percent}}%",
+        "builtinEnginePreparing": "正在下載本機引擎…",
+        "builtinEngineExtracting": "正在安裝本機引擎…",
+        "builtinEngineReady": "本機引擎已就緒。",
+        "contextSizeLabel": "上下文視窗",
+        "contextSizeDescription": "模型一次能讀取多少對話內容。設得越大能記住越多，但會佔用更多記憶體，載入也較慢。",
+        "unloadTimeoutLabel": "多久後從記憶體卸載",
+        "unloadTimeoutDescription": "本機模型閒置達此時間後將其卸載以釋放記憶體。下次使用時會自動重新載入。"
+      },
+      "systemPrompt": {
+        "title": "系統提示詞",
+        "label": "助理系統提示詞",
+        "description": "設定助理的行為。"
+      },
+      "characters": {
+        "title": "角色",
+        "description": "各有名稱、指令與回覆長度的角色。可隨時從面板切換。",
+        "galleryLabel": "您的角色",
+        "editSection": "編輯角色",
+        "avatarLabel": "頭像",
+        "active": "使用中",
+        "meowsOnly": "只會喵喵叫",
+        "builtin": "內建",
+        "custom": "自訂",
+        "new": "新增",
+        "newName": "新角色",
+        "copyName": "{{name}} 複本",
+        "createAi": "用 AI 建立",
+        "import": "匯入",
+        "aiTitle": "描述您的角色",
+        "aiClose": "關閉",
+        "aiPlaceholder": "例如：擅長寫精簡發行說明的人，或會逐步解說的耐心家教",
+        "aiDictate": "用語音輸入描述",
+        "aiDictateStop": "停止語音輸入",
+        "generate": "生成",
+        "avatarUpload": "上傳圖片",
+        "avatarRemove": "移除",
+        "nameLabel": "名稱",
+        "roleLabel": "身分",
+        "rolePlaceholder": "顯示在卡片上的簡短說明（選填）",
+        "promptLabel": "指令（系統提示詞）",
+        "responseLength": {
+          "label": "回覆長度",
+          "hint": "這個角色的回覆長度。「沿用」會依照您的助理全域設定。",
+          "options": {
+            "inherit": "沿用全域設定",
+            "short": "短",
+            "medium": "中",
+            "long": "長"
+          }
+        },
+        "greetingLabel": "問候語（選填）",
+        "greetingPlaceholder": "選填：對話為空時顯示的開場句",
+        "catNote": "這隻貓完全不理 AI——只會喵喵叫。這裡沒有需要設定的項目。",
+        "duplicate": "複製",
+        "export": "匯出",
+        "restoreDefault": "還原預設",
+        "restoreBuiltins": "還原內建角色",
+        "moreActions": "更多動作",
+        "expand": "展開",
+        "collapse": "收合",
+        "delete": "刪除",
+        "deleteConfirm": "要刪除這個角色嗎？此動作無法復原。",
+        "emptyState": "還沒有任何角色。建立第一個角色，賦予助理個性。"
+      },
+      "behavior": {
+        "title": "行為"
+      },
+      "memory": {
+        "label": "對話記憶",
+        "description": "每次對話要送出多少則近期訊息作為上下文。設為 0 表示停用記憶。"
+      },
+      "autoSummarize": {
+        "label": "摘要長對話",
+        "description": "濃縮較長的對話，讓助理不會忘記開頭。"
+      },
+      "responseLength": {
+        "label": "回覆長度",
+        "description": "偏好的回覆長度。「不影響」會完全不改動您的提示詞。",
+        "options": {
+          "default": "不影響",
+          "short": "短",
+          "medium": "中",
+          "long": "長"
+        }
+      },
+      "vision": {
+        "timing": {
+          "label": "擷取時機"
+        },
+        "screenRecording": {
+          "description": "螢幕視覺需要 macOS 的「螢幕錄製」權限。請在「系統設定」中授予權限，然後重新啟動 Zynveliq 才會生效。",
+          "grant": "開啟系統設定"
+        }
+      },
+      "webSearch": {
+        "title": "網路搜尋",
+        "enableLabel": "允許網路搜尋",
+        "enableDescription": "當問題需要最新資訊時，讓助理搜尋網路。",
+        "openRouterNativeLabel": "使用 OpenRouter 內建的搜尋",
+        "openRouterNativeDescription": "開啟時，OpenRouter 會自行執行搜尋（其 :online 模式），並消耗您的 OpenRouter 額度。關閉時，應用程式會使用下方您設定的搜尋供應商。",
+        "providerLabel": "搜尋供應商",
+        "providerDescription": "Serper 是不錯的預設選擇。每家供應商都有免費額度，TinyFish 免費且免綁卡。",
+        "providers": {
+          "serper": "Serper（Google，速度快）",
+          "brave": "Brave Search",
+          "tavily": "Tavily（AI 搜尋）",
+          "exa": "Exa（神經網路）",
+          "serpapi": "SerpAPI（Google）",
+          "tinyfish": "TinyFish（免費，免綁卡）"
+        },
+        "apiKeyLabel": "API 金鑰",
+        "apiKeyDescription": "所選搜尋供應商的金鑰。",
+        "apiKeyPlaceholder": "輸入 API 金鑰…",
+        "fetchContentLabel": "讀取完整網頁（品質最佳）",
+        "fetchContentDescription": "讀取每筆結果的全文，而不只是摘要片段。答案更好，但速度較慢。",
+        "maxResultsLabel": "使用的來源數",
+        "maxResultsDescription": "要讀取幾筆結果（1–10）。",
+        "depthLabel": "搜尋深度",
+        "depthDescription": "「快速」適合簡單事實，「標準」適合多數問題，「深入」適合困難的問題。",
+        "depthOptions": {
+          "low": "快速",
+          "medium": "標準",
+          "high": "深入"
+        },
+        "localSmartLabel": "智慧判斷是否搜尋（本機模型）",
+        "localSmartDescription": "讓本機模型決定何時搜尋。關閉時會改用快速的關鍵字判斷。",
+        "creditBudgetLabel": "每日 Firecrawl 額度上限",
+        "creditBudgetDescription": "每日可用的 Firecrawl 額度上限，達到後搜尋會暫停。0 = 無限制。",
+        "testLabel": "測試搜尋",
+        "testDescription": "使用目前的供應商與金鑰執行一次範例搜尋。",
+        "testButton": "測試搜尋",
+        "testing": "搜尋中…",
+        "testResult": "取得 {{count}} 筆結果。"
+      },
+      "tts": {
+        "title": "語音輸出",
+        "enableLabel": "在對話中朗讀回覆",
+        "enableDescription": "在即時對話中將回覆朗讀出來。快速的文字回答一律不朗讀。",
+        "stopOnDictationLabel": "開始語音輸入時停止朗讀",
+        "stopOnDictationDescription": "當您開始語音輸入時，停止仍在播放的回覆。",
+        "engineLabel": "引擎",
+        "engineDescription": "這台電腦上的語音免費、隱私，且無需網路即可使用。雲端語音使用該供應商的 API 金鑰。「自訂」會連線到您自行架設的語音伺服器。",
+        "sectionLocal": "在這台電腦上",
+        "sectionLocalHint": "免費且私密。在這台電腦上執行，離線也能用。",
+        "sectionCloud": "雲端",
+        "sectionCloudHint": "需要供應商提供的 API 金鑰。「自訂」會連線到您自行架設的語音伺服器。",
+        "readyLabel": "可以使用",
+        "kokoroSetupLabel": "Kokoro 語音模型",
+        "kokoroSetupDescription": "下載一次之後，朗讀回覆就會在這台裝置上私密執行。",
+        "kokoroDownload": "下載 Kokoro",
+        "kokoroDownloading": "正在下載 Kokoro",
+        "kokoroReady": "已在這台裝置上就緒",
+        "kokoroRetry": "重新嘗試下載",
+        "runsOnLabel": "執行於",
+        "runsOn": {
+          "auto": "自動",
+          "gpu": "顯示卡",
+          "cpu": "處理器"
+        },
+        "runsOnStatus": {
+          "checking": "顯示卡可用時使用顯示卡，不可用時改用處理器。",
+          "gpu": "正在以顯示卡朗讀。",
+          "processor": "正在以處理器朗讀。",
+          "gpuUnusable": "正在以處理器朗讀，因為這台電腦的顯示卡無法執行此語音。",
+          "needsPack": "這台電腦的顯示卡無法執行此語音。請在下方下載處理器語音，以獲得快速回覆。",
+          "cpuNeedsPack": "請在下方下載處理器語音。在此之前，Kokoro 會在應用程式內執行，速度較慢。",
+          "loadFailed": "處理器語音無法在這台電腦上啟動，因此 Kokoro 暫時在應用程式內執行。",
+          "noNativeSlow": "這台電腦的顯示卡無法執行此語音，因此 Kokoro 會在應用程式內緩慢執行。改用雲端語音會比較快。",
+          "gpuForcedUnusable": "這台電腦的顯示卡無法正常執行此語音。請將「執行於」設為「自動」或「處理器」。"
+        },
+        "kokoroNativeLabel": "處理器語音",
+        "kokoroNativeDescription": "當顯示卡無法執行時，讓 Kokoro 在處理器上快速朗讀。需下載 {{size}}。",
+        "kittenSizeLabel": "Kitten 大小",
+        "kittenSizeDescription": "三種大小都有相同的八種語音。越大的聽起來越自然，但開始朗讀前需要較久時間，在效能較低的處理器上尤其明顯。",
+        "kittenSizes": {
+          "nano": "Nano · 最快（{{size}}）",
+          "micro": "Micro · 均衡（{{size}}）",
+          "mini": "Mini · 最自然（{{size}}）"
+        },
+        "packLabel": {
+          "kitten": "Kitten 語音",
+          "pocket": "Pocket TTS 語音",
+          "supertonic": "Supertonic 語音"
+        },
+        "packDescription": {
+          "kitten": "在處理器上執行的小型語音。需下載 {{size}}。",
+          "pocket": "Kyutai 專為處理器打造、聽起來自然的語音，共有 14 位說話者。需下載 {{size}}。",
+          "supertonic": "Supertone 快速清晰的語音，共有十位說話者。需下載 {{size}}。"
+        },
+        "voiceNamedFemale": "{{name}}（女聲）",
+        "voiceNamedMale": "{{name}}（男聲）",
+        "voiceNumberedFemale": "女聲 {{n}}",
+        "voiceNumberedMale": "男聲 {{n}}",
+        "packSize": "{{size}} MB",
+        "packDownload": "下載（{{size}}）",
+        "packDownloading": "下載中",
+        "packInstalling": "設定中",
+        "packCancel": "取消下載",
+        "packRemove": "移除",
+        "packUnsupported": "此系統無法使用",
+        "kittenSuggestLabel": "試試 Kitten",
+        "kittenSuggestDescription": "這台電腦的處理器效能較低。Kitten 是較輕量的語音，在這裡回覆得更快。",
+        "kittenSuggestButton": "使用 Kitten",
+        "engines": {
+          "kokoro": "Kokoro（本機，免費）",
+          "kitten": "Kitten（本機，輕量）",
+          "pocket": "Pocket TTS（本機）",
+          "supertonic": "Supertonic（本機）",
+          "openai": "OpenAI",
+          "elevenlabs": "ElevenLabs",
+          "openrouter": "OpenRouter",
+          "deepgram": "Deepgram Aura",
+          "cartesia": "Cartesia Sonic",
+          "google": "Google Cloud TTS",
+          "azure": "Azure AI Speech",
+          "groq": "Groq Orpheus",
+          "xai": "xAI Grok Voice",
+          "mistral": "Mistral Voxtral",
+          "inworld": "Inworld TTS",
+          "custom": "自訂伺服器（相容 OpenAI）"
+        },
+        "voiceLabel": "語音",
+        "voiceDescription": "朗讀回覆時使用的 Kokoro 語音。",
+        "dtypeLabel": "Kokoro 精度",
+        "dtypeDescription": "僅適用於在應用程式內執行的 Kokoro。fp32 品質最高；q8 檔案較小。變更後會重新載入模型。若語音聽起來失真，請將「執行於」設為「處理器」。",
+        "speedLabel": "播放速度",
+        "speedDescription": "1× 為正常速度。",
+        "speedRange": "{{engine}} 支援 {{min}}× 到 {{max}}×；超出範圍的速度會使用最接近的上限或下限。",
+        "speedUnsupported": "{{engine}} 一律以其自然語速朗讀。",
+        "speedValue": "{{value}}×",
+        "speedCustomLabel": "自訂播放速度",
+        "volumeLabel": "語音音量",
+        "volumeDescription": "朗讀回覆的音量大小。與提示音分開設定。",
+        "expressivenessLabel": "表現力",
+        "expressivenessDescription": "聲音演繹的起伏程度，從平穩均勻到生動且富有情感。",
+        "expressivenessInfo": "這是 ElevenLabs 的「穩定性」設定，方向相反。在你調整之前，每個聲音都會使用其本身儲存的設定。調到最富表現力的一端時，有時聽起來可能不夠穩定。",
+        "expressivenessSteady": "平穩",
+        "expressivenessExpressive": "富有表現力",
+        "expressivenessDefault": "聲音預設值",
+        "expressivenessReset": "使用聲音的預設設定",
+        "expressivenessLevels": {
+          "verySteady": "非常平穩",
+          "steady": "平穩",
+          "balanced": "均衡",
+          "lively": "生動",
+          "veryExpressive": "非常富有表現力"
+        },
+        "audioTagsLabel": "音訊標籤",
+        "audioTagsDescription": "讓語音用 [laughs]、[whispers] 等提示以及 [applause] 等音效來演繹回覆。",
+        "audioTagsNeedsModel": "需要 Eleven v3 或 v4 模型，例如 eleven_v4。請在「模型」中選擇一個以開啟此功能。",
+        "audioTagsInfo": "助理會在語音回覆中用方括號寫入簡短提示，ElevenLabs 語音會把它們演繹出來或當作聲音播放，而不是唸出來。請它營造一個場景，例如一群人為你歡呼，它就會用音效搭建出來。聊天中會照原樣顯示這些提示。只有 ElevenLabs v3 和 v4 語音能演繹它們；使用其他語音時，會在朗讀前將其移除。",
+        "audioTagIntensityLabel": "表現力道",
+        "audioTagIntensityDescription": "語音做出反應和加入音效的頻率，從輕微點綴到完整表演。",
+        "audioTagIntensityLevels": {
+          "subtle": "含蓄",
+          "balanced": "均衡",
+          "theatrical": "戲劇化"
+        },
+        "testLabel": "測試語音",
+        "testDescription": "以目前的設定播放一段簡短範例。",
+        "testButton": "測試語音",
+        "testing": "測試中…",
+        "testOk": "已播放 ✓",
+        "testFailed": "Kokoro 無法產生試聽音訊。請再試一次，或將「執行於」設為「處理器」。",
+        "testGpuMoved": "您的顯示卡讓試聽音訊出現雜音，因此已將其靜音。Kokoro 現在改用處理器，請再測試一次來試聽。",
+        "testGpuForced": "您的顯示卡讓試聽音訊出現雜音，因此已將其靜音。請將「執行於」設為「自動」或「處理器」。",
+        "testGpuSuspect": "試聽音訊出現雜音，因此已將其靜音。請再測試一次，以檢查您的顯示卡。",
+        "testPhrase": "您好！這是 Zynveliq 語音輸出的測試。",
+        "downloadStart": "正在下載 Kokoro 語音…",
+        "downloadProgress": "正在下載 Kokoro 語音… {{progress}}%",
+        "downloadReady": "Kokoro 語音已就緒 ✓",
+        "downloadError": "無法下載 Kokoro 語音模型",
+        "baseUrlLabel": "基礎網址",
+        "baseUrlDescription": "您的語音伺服器的 OpenAI 相容位址，例如 http://localhost:8880/v1。適用於 Kokoro-FastAPI、Speaches、Chatterbox、Orpheus-FastAPI、LocalAI 及其他提供 /v1/audio/speech 的伺服器。也可以填入完整的 /audio/speech 網址。",
+        "azureBaseUrlLabel": "語音服務網址",
+        "azureBaseUrlDescription": "您在入口網站取得的 Azure Speech 網址，例如 https://eastus2.tts.speech.microsoft.com。",
+        "apiKeyLabel": "API 金鑰",
+        "apiKeyDescription": "您的 {{provider}} API 金鑰。每個語音引擎各自保存自己的金鑰。",
+        "apiKeyOptionalDescription": "僅在您的伺服器要求時才需要。",
+        "modelLabel": "模型",
+        "modelDescription": "用於朗讀的模型。留空即使用引擎的預設模型（以灰色顯示）。",
+        "remoteVoiceLabel": "語音名稱",
+        "remoteVoiceDescription": "相容 OpenAI 的 TTS 所用語音，例如 alloy、echo、nova、shimmer。",
+        "azureVoiceLabel": "語音名稱",
+        "azureVoiceDescription": "Azure 語音名稱，例如 en-US-JennyNeural。點選「載入語音」即可瀏覽。",
+        "voiceLoadDescription": "按下「載入語音」查看此引擎的語音，或直接輸入語音 ID。",
+        "deepgramVoiceDescription": "Deepgram 的語音同時也是其模型，例如 aura-2-thalia-en。按下「載入語音」即可瀏覽。",
+        "loadVoices": "載入語音",
+        "voicesLoading": "載入中…",
+        "voicesPick": "從 {{count}} 種語音中挑選…",
+        "loadModels": "載入模型",
+        "modelsLoading": "載入中…",
+        "modelsPick": "從 {{count}} 個模型中挑選…",
+        "modelsUse": "使用「{{model}}」",
+        "voicesUse": "使用「{{voice}}」",
+        "elevenVoiceLabel": "語音 ID",
+        "elevenVoiceDescription": "ElevenLabs 的語音 ID（可在其控制台的 Voices 分頁中取得）。",
+        "promptLabel": "摘要提示詞",
+        "promptDescription": "用於為每個回答生成簡短口語摘要的指令。",
+        "kokoroVoices": {
+          "usFemale": "{{name}}（美式女聲）",
+          "usFemaleSoft": "{{name}}（美式女聲，柔和）",
+          "usMale": "{{name}}（美式男聲）",
+          "ukFemale": "{{name}}（英式女聲）",
+          "ukMale": "{{name}}（英式男聲）"
+        },
+        "dtypes": {
+          "fp32": "fp32（最佳品質，WebGPU）",
+          "fp16": "fp16（半精度）",
+          "q8": "q8（8 位元，在 CPU 上較快）",
+          "q4": "q4（4 位元，最快）",
+          "q4f16": "q4f16（4 位元混合）"
+        }
+      },
+      "appearance": {
+        "title": "面板外觀",
+        "previewLabel": "預覽",
+        "previewDescription": "依您的文字大小與不透明度即時預覽面板。",
+        "previewUser": "嗨，你能做什麼？",
+        "previewAssistant": "很多喔！什麼都可以問我——我甚至能看您的螢幕。",
+        "fontSizeLabel": "文字大小",
+        "fontSizeDescription": "助理面板中對話文字的大小。",
+        "fontSizes": {
+          "small": "小",
+          "medium": "中",
+          "large": "大",
+          "extraLarge": "特大"
+        },
+        "askDisplayLabel": "顯示在哪個螢幕",
+        "askDisplayDescription": "助理開啟時所在的螢幕。預設為滑鼠所在的螢幕。",
+        "askDisplays": {
+          "cursor": "滑鼠所在的螢幕",
+          "numbered": "螢幕 {{number}}（{{width}}×{{height}}）{{suffix}}",
+          "mainSuffix": " · 主螢幕"
+        },
+        "askAnchorLabel": "開啟位置",
+        "askAnchorDescription": "助理每次開啟時所在的位置。",
+        "askAnchors": {
+          "center": "螢幕中央",
+          "top": "上方",
+          "bottom": "下方",
+          "left": "左側",
+          "right": "右側"
+        },
+        "opacityLabel": "面板不透明度",
+        "opacityDescription": "浮動面板的不透明程度。100% 為完全不透明；數值越低，越能透出模糊的桌面。"
+      }
+    },
+    "thinking": {
+      "title": "思考",
+      "description": {
+        "cleanup": "推理模型在整理你的聽寫內容前思考的時間。關閉最快，像 gpt-oss 這類一定會思考的模型會使用其最低等級。只有在整理出錯時才調高，因為它會讓每次聽寫都變慢。",
+        "assistant": "推理模型在回答前思考的時間。關閉最快，像 gpt-oss 這類一定會思考的模型會使用其最低等級。等級越高，越能處理困難的問題，但開始回答所需的時間也越長。"
+      },
+      "unsupported": {
+        "builtin": "這台電腦上的模型一律不經思考直接回答，因此速度很快。",
+        "anthropic": "Anthropic 不允許應用程式設定此項，因此由 Claude 自行決定。如需設定，請透過 OpenRouter 使用 Claude。",
+        "apple": "Apple Intelligence 沒有思考設定。"
+      },
+      "options": {
+        "off": "關閉",
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      }
+    }
+  },
+  "footer": {
+    "downloadingModel": "正在下載 {{model}}…",
+    "checkingUpdates": "檢查更新中…",
+    "updateAvailable": "有可用更新: {{version}}",
+    "updateAvailableShort": "有可用更新",
+    "upToDate": "已是最新版本",
+    "downloadUpdate": "下載更新",
+    "restart": "重新啟動",
+    "updateCheckingDisabled": "已停用更新檢查",
+    "downloading": "下載中… {{progress}}%",
+    "installing": "安裝中…",
+    "preparing": "準備中…",
+    "checkForUpdates": "檢查更新",
+    "checkFailed": "檢查更新失敗",
+    "updateFailed": "更新失敗",
+    "clickToRetry": "點選以重試",
+    "portableUpdateTitle": "需要手動更新",
+    "portableUpdateMessage": "可攜式安裝無法自動更新。更新方式：從 GitHub Releases 下載最新的 NSIS 安裝程式，安裝到同一個資料夾，然後把舊版的 Data/ 資料夾（設定、模型、錄音）複製到新版。",
+    "portableUpdateButton": "開啟 GitHub Releases"
+  },
+  "meetings": {
+    "newTitle": "{{when}} 的會議",
+    "speakers": {
+      "me": "您",
+      "others": "其他人",
+      "numbered": "說話者 {{number}}"
+    },
+    "recorder": {
+      "idleTitle": "錄製會議",
+      "idleCaption": "將您的麥克風與其他與會者的聲音錄成兩條獨立的音軌。",
+      "recording": "錄製中",
+      "paused": "已暫停",
+      "liveCaption": "與會者說話時同步轉錄。",
+      "start": "開始錄製",
+      "starting": "正在開始…",
+      "stop": "停止",
+      "stopping": "正在停止…",
+      "stoppingHint": "正在完成逐字稿。會議較長時，可能需要一點時間。",
+      "pause": "暫停",
+      "resume": "繼續",
+      "transcriptEmpty": "還沒有轉錄內容。與會者說話時就會顯示在這裡。"
+    },
+    "offer": {
+      "detected": "您似乎正在通話中。要錄下來嗎？",
+      "detectedApp": "{{app}} 似乎正在通話中。要錄下來嗎？",
+      "idle": "未錄製",
+      "record": "錄製這通通話",
+      "dismiss": "這次不用"
+    },
+    "autoDetect": {
+      "title": "主動詢問是否錄製通話",
+      "description": "偵測到其他應用程式開始使用您的麥克風時，會詢問是否要錄製。它絕不會自行開始錄製。如果判斷錯誤，直接關閉卡片即可。",
+      "unsupported": "目前只有 Windows 支援通話偵測。在這個系統上，請自行開始會議錄製。"
+    },
+    "indicator": {
+      "title": "浮動指示器",
+      "description": "一個小膠囊，顯示錄製正在進行中。點一下即可查看即時逐字稿。關閉它可保持畫面清爽；錄製仍會在這裡進行，您可以從這個頁面停止錄製。",
+      "hide": "隱藏浮動指示器",
+      "show": "顯示浮動指示器"
+    },
+    "notesPrefs": {
+      "autoTitle": "通話結束時撰寫筆記",
+      "autoDescription": "如果只需要逐字稿，請關閉此項。關閉後，仍可從單一會議的逐字稿為它撰寫筆記。",
+      "languageTitle": "筆記語言",
+      "languageDescription": "預設情況下，筆記使用會議所用的語言。選擇一種語言，筆記就會一律使用該語言。",
+      "auto": "與會議相同",
+      "autoHint": "會議大部分時間使用的語言"
+    },
+    "pill": {
+      "expand": "開啟即時逐字稿",
+      "collapse": "返回小膠囊",
+      "copy": "複製逐字稿",
+      "copied": "已複製逐字稿",
+      "stop": "停止錄製",
+      "listening": "聆聽中。與會者說的話會顯示在這裡。",
+      "micOnly": "目前只錄製您的麥克風——其他與會者說的話都不會出現在這份逐字稿中。"
+    },
+    "ask": {
+      "placeholder": "詢問任何關於這場會議的問題…",
+      "send": "詢問",
+      "stop": "停止",
+      "thinking": "正在閱讀逐字稿…",
+      "title": "詢問這場會議",
+      "empty": "可以詢問做了哪些決定、誰負責哪些事項，或任何會中提到的內容。",
+      "clear": "清除這些問題",
+      "youAsked": "您的提問"
+    },
+    "systemAudio": {
+      "liveTitle": "目前只錄製您的聲音",
+      "liveBody": "無法擷取系統音訊，因此這場會議只會包含您這一方的對話，不會有其他與會者說的內容。",
+      "unavailableTitle": "這台電腦無法錄製其他與會者的聲音",
+      "unavailableBody": "無法使用系統音訊擷取，因此現在錄製的會議只會包含您自己的聲音。",
+      "help": "設定說明"
+    },
+    "list": {
+      "title": "已錄製的會議",
+      "emptyTitle": "還沒有會議",
+      "emptyHint": "在通話前開始錄製，Zynveliq 就會保留依說話者分段的逐字稿。",
+      "loadMore": "載入更多",
+      "speakers_other": "{{count}} 位說話者",
+      "hasNotes": "已產生筆記"
+    },
+    "status": {
+      "recording": "錄製中",
+      "processing": "處理中",
+      "complete": "已完成",
+      "interrupted": "已中斷"
+    },
+    "delete": {
+      "action": "刪除會議",
+      "whileRecording": "請先停止錄製，再刪除這場會議。",
+      "confirmTitle": "刪除這個會議？",
+      "confirmBody": "它的逐字稿、筆記和音訊將從這台電腦刪除。此操作無法復原。"
+    },
+    "detail": {
+      "title": "會議",
+      "rename": "重新命名會議",
+      "gone": "這場會議已被刪除。",
+      "tabsLabel": "會議檢視"
+    },
+    "tabs": {
+      "myNotes": "我的想法",
+      "transcript": "逐字稿",
+      "summary": "摘要",
+      "ask": "詢問"
+    },
+    "discuss": {
+      "button": "討論這場會議",
+      "hint": "和助理一起討論這場會議。它知道會中說了什麼，也能在逐字稿中查找內容。",
+      "whileRecording": "錄音停止後即可使用。",
+      "nothingYet": "尚未轉錄任何內容。",
+      "failed": "無法開始對話：{{error}}",
+      "earlier": "先前的討論",
+      "continue": "繼續這段討論",
+      "untitled": "未命名的討論",
+      "messages_other": "{{count}} 則訊息",
+      "more": "更多內容請見「過去的對話」。"
+    },
+    "myNotes": {
+      "description": "寫下對您重要的事。產生筆記時會與逐字稿合併。",
+      "placeholder": "您想從這場會議記住的事…",
+      "saving": "儲存中…",
+      "saved": "已儲存"
+    },
+    "transcript": {
+      "empty": "這場會議沒有逐字稿。",
+      "loadingMore": "正在載入更多逐字稿…",
+      "renameSpeaker": "重新命名這位說話者",
+      "copyTitle": "複製完整逐字稿，包含發言者名稱",
+      "lowConfidence": "不確定",
+      "lowConfidenceHelp": "這個說話者標籤是推測的。文字依照說出的內容轉錄，只是不確定是誰說的。"
+    },
+    "diarize": {
+      "title": "區分說話者",
+      "ready": "將其他與會者分成說話者 1、說話者 2，依此類推。",
+      "needsModel": "需要一次性下載 {{size}} MB。之後會在您的電腦上執行，往後的每場會議都會自動標記。",
+      "install": "下載並辨識",
+      "downloading": "下載中…",
+      "identify": "辨識說話者",
+      "running": "聆聽中…",
+      "progress": "正在比對聲音，已完成 {{done}} / {{total}} 個段落。",
+      "oneSpeaker": "這通通話中只有另一位說話者，因此不需要區分。",
+      "skipped": {
+        "modelNotInstalled": "尚未安裝說話者模型。",
+        "noSystemAudio": "這場會議沒有其他與會者的錄音。",
+        "audioUnreadable": "無法讀取其他與會者的錄音。會議途中關閉應用程式時就會發生這種情況。",
+        "tooFewSegments": "其他與會者的說話內容不足，無法比對。",
+        "alreadyDone": "這場會議的說話者已經辨識過了。",
+        "modelUnusable": "無法載入說話者模型，因此已將其移除。請重新下載。"
+      }
+    },
+    "summary": {
+      "template": "範本",
+      "languageAuto": "會議語言",
+      "templates": {
+        "general": "一般",
+        "standup": "站立會議",
+        "one_on_one": "一對一",
+        "interview": "面試",
+        "action_items": "待辦事項"
+      },
+      "templateHints": {
+        "general": "摘要、重點、主題、決議與後續步驟。預設範本。",
+        "standup": "依人員分組：已完成的事項、接下來要做的事，以及遇到的阻礙。",
+        "one_on_one": "主題、回饋，以及每個人承諾要做的事。",
+        "interview": "關於應徵者的具體事證，不做任何評斷。",
+        "action_items": "只列出任務，並分成您的與其他人的。"
+      },
+      "generate": "產生筆記",
+      "regenerate": "重新產生",
+      "rewrite": "改用其他範本重寫",
+      "generating": "正在撰寫筆記…",
+      "writing": "正在撰寫這場會議的筆記。通話較長時需要一點時間。",
+      "autoCaption": "於通話結束時撰寫",
+      "retryCaption": "這場會議的筆記尚未撰寫。",
+      "whileRecording": "錄音停止後會自動撰寫筆記。",
+      "copy": "複製",
+      "copied": "已複製",
+      "toggleTask": "將這個後續步驟標示為已完成或未完成",
+      "failed": "無法撰寫筆記：{{error}}",
+      "tryAgain": "再試一次",
+      "empty": "這場會議還沒有筆記。",
+      "needsTranscript": "沒有可摘要的逐字稿。",
+      "skipped_other": "逐字稿中有 {{count}} 個部分無法摘要，因此這份筆記有所遺漏。"
+    },
+    "errors": {
+      "startFailed": "無法開始會議：{{error}}",
+      "stopFailed": "無法停止會議：{{error}}",
+      "pauseFailed": "無法變更錄製狀態：{{error}}",
+      "loadFailed": "無法載入會議：{{error}}",
+      "transcriptFailed": "無法載入逐字稿：{{error}}",
+      "deleteFailed": "無法刪除會議：{{error}}",
+      "renameFailed": "無法重新命名會議：{{error}}",
+      "renameSpeakerFailed": "無法重新命名說話者：{{error}}",
+      "notesSaveFailed": "無法儲存您的筆記：{{error}}",
+      "copyFailed": "無法複製筆記：{{error}}",
+      "generateFailed": "無法產生筆記：{{error}}"
+    }
+  },
+  "common": {
+    "loading": "載入中…",
+    "save": "儲存",
+    "cancel": "取消",
+    "reset": "重設",
+    "add": "新增",
+    "remove": "移除",
+    "delete": "刪除",
+    "edit": "編輯",
+    "create": "建立",
+    "update": "更新",
+    "close": "關閉",
+    "open": "開啟",
+    "default": "預設",
+    "enabled": "已啟用",
+    "disabled": "已停用",
+    "on": "開",
+    "off": "關",
+    "yes": "是",
+    "no": "否",
+    "noOptionsFound": "未找到選項",
+    "back": "返回",
+    "showAdvanced": "更多選項",
+    "showLess": "收合",
+    "beta": "Beta",
+    "select": "選擇…",
+    "search": "搜尋",
+    "moreInfo": "更多資訊",
+    "change": "變更",
+    "saveFailed": "無法儲存這項變更。請再試一次。",
+    "more": "更多",
+    "hideTips": "隱藏提示",
+    "showTips": "顯示提示",
+    "play": "播放",
+    "pause": "暫停",
+    "unknownSize": "大小不明"
+  },
+  "accessibility": {
+    "permissionsRequired": "需要輔助使用權限",
+    "permissionsDescription": "Zynveliq 需要輔助使用權限才能輸入轉錄的文字",
+    "openSettings": "開啟系統設定",
+    "dismiss": "關閉"
+  },
+  "errors": {
+    "loadDirectory": "無法載入目錄：{{error}}",
+    "micPermissionDeniedTitle": "麥克風存取遭拒",
+    "micPermissionDenied": {
+      "generic": "作業系統拒絕了麥克風存取。請在系統設定中授予麥克風權限。",
+      "windows": "在設定 → 隱私與安全性 → 麥克風（包括桌面應用程式存取）中啟用麥克風存取。",
+      "macos": "在系統設定 → 隱私與安全性 → 麥克風中授予麥克風存取權限。",
+      "linux": "在系統的聲音或隱私設定中授予麥克風存取權限。"
+    },
+    "noInputDeviceTitle": "找不到麥克風",
+    "noInputDevice": "未偵測到音訊輸入裝置。請連接麥克風或耳機後重試。",
+    "recordingFailed": "無法開始錄音：{{error}}",
+    "modelLoadFailed": "無法載入模型：{{model}}",
+    "modelLoadFailedUnknown": "未知模型",
+    "loadModelsFailed": "無法載入模型：{{error}}",
+    "switchModelFailed": "無法切換模型：{{error}}",
+    "cancelDownloadFailed": "無法取消下載：{{error}}",
+    "deleteModelFailed": "無法刪除模型：{{error}}",
+    "extractModelFailed": "無法解壓縮模型：{{error}}",
+    "downloadFailedTitle": "下載失敗",
+    "pasteFailedTitle": "無法貼上文字",
+    "pasteFailed": "無法將文字貼到目前使用中的應用程式。"
+  },
+  "appLanguage": {
+    "title": "應用程式語言",
+    "description": "變更 Zynveliq 介面的語言"
+  },
+  "overlay": {
+    "preparing": "正在準備麥克風…",
+    "recording": "錄製中",
+    "transcribing": "正在轉錄…",
+    "loading": "正在載入模型…",
+    "processing": "整理中…",
+    "generating": "Flow 正在撰寫…",
+    "vision": "正在查看您的螢幕…",
+    "notices": {
+      "flowNotConfigured": "Flow 需要助理模型——已改以一般語音輸入貼上",
+      "flowFailed": "Flow 無法生成——未貼上任何內容",
+      "cloudSttFailed": "雲端轉錄失敗——請在「設定」中檢查您的金鑰與額度",
+      "flowEmpty": "請在啟動語句後說出指令",
+      "cleanupFallback": "AI 整理未執行——已貼上原始文字",
+      "cleanupModelRejected": "您的整理供應商拒絕了該模型——請在「設定」中檢查模型",
+      "cloudSttFellBack": "雲端轉寫失敗——已改用本機模型",
+      "noSpeechModel": "尚未選擇語音模型。請在「模型」頁面選擇一個"
+    },
+    "listening": "正在聆聽…",
+    "locked": "免持錄製中——再按一次快捷鍵即可停止",
+    "cancel": "取消",
+    "copy": "複製逐字稿",
+    "transcript": "逐字稿",
+    "copied": "已複製",
+    "copyFailed": "無法複製——請再試一次",
+    "done": "完成",
+    "finish": "完成",
+    "askAssistant": "改用助理提問，而不是把這段話輸入出來",
+    "recovery": {
+      "dismissed": "已取消",
+      "failed": "轉寫失敗",
+      "undo": "復原",
+      "retry": "重試"
+    },
+    "downloading": {
+      "title": "正在下載語音模型…",
+      "percent": "正在下載語音模型 · {{percent}}%",
+      "hint": "下載完成後即可開始語音輸入"
+    },
+    "update": {
+      "title": "{{model}} 需要更新",
+      "hint": "新版本在「模型」頁面"
+    },
+    "handsFreeHint": "按 {{key}} 進入免持",
+    "lockedKeys": "免持錄製中。按 {{keys}} 結束",
+    "finishKeys": "完成（{{keys}}）"
+  },
+  "reminders": {
+    "title": "提醒",
+    "due": {
+      "now": "剛剛",
+      "minutesAgo": "{{count}} 分鐘前",
+      "hoursAgo": "{{count}} 小時前"
+    },
+    "done": "完成",
+    "snooze": "稍後提醒",
+    "snoozeFor_other": "{{count}} 分鐘",
+    "snoozedTimes_other": "已延後 {{count}} 次",
+    "later": "暫時隱藏——提醒仍會保留",
+    "settings": {
+      "label": "提醒",
+      "description": "請助理提醒您某件事；在到期之前都會列在這裡。",
+      "empty": "沒有已排定的提醒。請助理提醒您某件事吧。",
+      "waiting": "等待您處理",
+      "cancel": "取消這則提醒",
+      "dueAt": "{{when}} 到期"
+    }
+  },
+  "assistant": {
+    "conversation": {
+      "title": "對話",
+      "newChat": "新對話",
+      "type": "輸入訊息",
+      "backToVoice": "返回語音",
+      "mute": "將麥克風靜音",
+      "unmute": "取消麥克風靜音",
+      "speakerOn": "朗讀回覆",
+      "speakerOff": "停止朗讀回覆",
+      "expand": "開啟對話",
+      "collapse": "收合",
+      "historyOpen": "過去的對話",
+      "historyClose": "返回這段對話",
+      "end": "結束對話",
+      "send": "傳送",
+      "stop": "停止回覆",
+      "placeholder": "傳訊息給 {{name}}",
+      "dismiss": "關閉",
+      "retry": "再試一次",
+      "details": "詳細資訊",
+      "startHint": "開始說話，或輸入訊息。",
+      "mutedHint": "麥克風已關閉。您仍可輸入文字。",
+      "heldHint": "語音輸入期間已暫停。",
+      "preparingVoice": "正在準備語音… {{progress}}%",
+      "history": {
+        "title": "過去的對話",
+        "hint": "選擇一段對話，從上次中斷的地方繼續。目前的對話會保持開啟。",
+        "empty": "還沒有已儲存的對話。",
+        "noMatches": "沒有符合搜尋條件的結果。",
+        "noMeetings": "還沒有關於會議的對話。開啟一場會議，然後選擇「討論這場會議」。",
+        "loading": "載入中…",
+        "failed": "無法載入您的對話。",
+        "more": "顯示更多",
+        "untitled": "未命名的對話",
+        "current": "目前開啟",
+        "search": "搜尋對話",
+        "clearSearch": "清除搜尋",
+        "scopeLabel": "對話範圍",
+        "scopes": {
+          "all": "全部",
+          "meetings": "會議"
+        },
+        "groups": {
+          "today": "今天",
+          "yesterday": "昨天",
+          "week": "過去 7 天",
+          "earlier": "更早"
+        },
+        "matchCount_other": "{{count}} 段對話",
+        "messages_other": "{{count}} 則訊息"
+      },
+      "meeting": {
+        "about": "關於 {{title}}",
+        "chipHint": "助理握有這場會議的筆記，也能搜尋它的逐字稿。",
+        "untitled": "未命名的會議",
+        "startTitle": "來聊聊 {{title}}",
+        "startHint": "可以問任何相關問題，或下一步該做什麼。直接開口說，或選一個：",
+        "prompts": {
+          "recap": "幫我快速回顧一下",
+          "next": "我接下來該做什麼？",
+          "followUp": "草擬一則後續追蹤訊息",
+          "missed": "有什麼我可能漏掉的嗎？"
+        }
+      },
+      "options": "對話選項",
+      "pace": "說完話的等待時間",
+      "paceHint": "您停頓後，要等多久才開始回覆。",
+      "paces": {
+        "quick": "快速",
+        "natural": "自然",
+        "patient": "耐心"
+      },
+      "sensitivity": "麥克風靈敏度",
+      "sensitivityHint": "聲音多容易被當成您在說話。如果背景噪音或助理自己的聲音一直插話，請調低。",
+      "sensitivities": {
+        "low": "低——吵雜的環境或使用喇叭",
+        "normal": "一般",
+        "high": "高——安靜的環境或使用耳機"
+      },
+      "phase": {
+        "off": "對話已結束",
+        "starting": "連線中…",
+        "listening": "聆聽中",
+        "hearing": "聆聽中…",
+        "transcribing": "轉錄中…",
+        "responding": "思考中…",
+        "speaking": "說話中",
+        "muted": "麥克風已關閉",
+        "held": "因語音輸入已暫停",
+        "error": "對話中斷"
+      },
+      "errors": {
+        "microphone": "無法開啟您的麥克風。請允許麥克風存取，並確認沒有其他應用程式正在使用它。",
+        "device": "您的麥克風已中斷連線。請重新連接後再試一次。",
+        "setup": "無法開始對話。請在「設定」中檢查您的麥克風、喇叭與助理模型。",
+        "turn": "這則回覆無法完成。請查看詳細資訊後再試一次。",
+        "playback": "無法播放語音回覆。請檢查您的語音供應商與輸出裝置。",
+        "tooLong": "這段錄音已達一分鐘上限。請縮短發言後再試一次。",
+        "history": "無法開啟該對話。請再試一次。"
+      },
+      "chooseProfile": "變更角色，目前為 {{name}}",
+      "profiles": "角色",
+      "profileHint": "變更會套用到下一則回覆。",
+      "chatOnlyProfile": "這個角色只能在文字對話中使用。",
+      "profileError": "無法切換角色。請再試一次。"
+    },
+    "title": "助理",
+    "character": {
+      "switch": "切換角色"
+    },
+    "empty": "用助理快捷鍵以語音提問，\n或在下方輸入文字。",
+    "inputPlaceholder": "訊息…",
+    "bar": {
+      "placeholder": "想問什麼都可以…"
+    },
+    "send": "送出",
+    "stop": "停止",
+    "cancel": "取消",
+    "copy": "複製",
+    "copyCode": "複製程式碼",
+    "insert": "插入到您剛才輸入的位置",
+    "insertShort": "插入",
+    "insertReplace": "以此取代您選取的文字",
+    "insertReplaceShort": "取代",
+    "selectionAttached_other": "已選取 {{count}} 個字元",
+    "regenerate": "重新生成回答（舊的會保留在歷史紀錄中）",
+    "summarizing": "正在摘要先前的訊息…",
+    "screenAttached": "螢幕",
+    "attach": {
+      "file": "附加圖片或檔案",
+      "imageCount_other": "{{count}} 張圖片",
+      "dropHint": "放開即可附加"
+    },
+    "webSearch": {
+      "enable": "啟用網路搜尋",
+      "disable": "停用網路搜尋"
+    },
+    "tts": {
+      "enable": "啟用語音摘要",
+      "disable": "停用語音摘要",
+      "loading": "正在載入 Kokoro 語音模型..."
+    },
+    "status": {
+      "listening": "正在聆聽…",
+      "locked": "聆聽中",
+      "transcribing": "正在轉錄…",
+      "searching": "正在搜尋網路…",
+      "thinking": "思考中…",
+      "speaking": "朗讀中…"
+    },
+    "tool": {
+      "search": "正在搜尋網路",
+      "screen": "正在查看您的螢幕…",
+      "meetingSearch": "正在搜尋會議",
+      "meetingRead": "正在閱讀會議",
+      "working": "正在處理",
+      "elapsed": "{{seconds}}秒"
+    },
+    "errors": {
+      "generic": "發生錯誤，請重試。",
+      "genericShort": "發生錯誤",
+      "no_provider": "尚未設定任何助理模型。請在「設定」→「助理」中選擇供應商。",
+      "no_providerShort": "尚未設定模型",
+      "no_model": "您的供應商尚未選擇模型。請在「設定」→「助理」中選擇一個。",
+      "no_modelShort": "未選擇模型",
+      "engine_start": "內建模型無法啟動。請重試，或在「設定」→「助理」中改選其他模型。",
+      "engine_startShort": "模型無法啟動",
+      "provider": "模型無法回答。請檢查您的 API 金鑰與網路連線後重試。",
+      "providerShort": "無法取得回答",
+      "empty_reply": "模型結束了卻沒有寫出回答。請再問一次，或在「設定」→「助理」中改選其他模型。",
+      "empty_replyShort": "回答為空",
+      "vision_unsupported": "此模型無法讀取您的螢幕。請在「設定」→「助理」中選擇支援視覺的模型，或在不使用螢幕視覺的情況下再提問。",
+      "vision_unsupportedShort": "模型無法看圖片",
+      "screenshot_too_large": "螢幕擷取的畫面對此供應商來說太大。請重試——系統會以更高的壓縮率處理。",
+      "screenshot_too_largeShort": "螢幕擷取畫面過大",
+      "screen_capture": "無法擷取螢幕。請重試，或在不使用螢幕視覺的情況下提問。",
+      "screen_captureShort": "螢幕擷取失敗",
+      "transcription": "無法轉錄您的語音，請再說一次。",
+      "transcriptionShort": "轉錄失敗",
+      "tts": "朗讀回覆失敗。請檢查您的 TTS 設定，或直接在面板中閱讀回答。",
+      "ttsShort": "語音回覆失敗",
+      "tts_local": "本機語音無法載入。請檢查網路連線，或在「設定」中更換 TTS 引擎。",
+      "tts_localShort": "語音無法載入",
+      "tts_blocked": "您的系統阻止語音自動播放。請點選面板任一處以聽取回覆。",
+      "tts_blockedShort": "輕點面板即可聽取",
+      "tts_playback": "無法在您的輸出裝置上播放語音。請檢查喇叭／輸出設定後重試。",
+      "tts_playbackShort": "語音播放失敗",
+      "tts_gpu": "您的顯示卡讓語音出現雜音，因此已將其靜音。下一則回覆會改用處理器語音。",
+      "tts_gpuShort": "語音已靜音：顯示卡產生雜音",
+      "tts_gpu_slow": "您的顯示卡讓語音出現雜音，因此已將其靜音。回覆現在改由處理器執行，在您於「模型」→「語音」下載處理器語音之前，速度會較慢。",
+      "tts_gpu_slowShort": "語音已靜音：顯示卡產生雜音",
+      "tts_gpu_forced": "您的顯示卡讓語音出現雜音，因此已將其靜音。請在「模型」→「語音」中將「執行於」設為「自動」或「處理器」。",
+      "tts_gpu_forcedShort": "語音已靜音：顯示卡產生雜音",
+      "mic_denied": "麥克風存取已被封鎖。請在系統隱私權設定中允許。",
+      "mic_deniedShort": "麥克風存取被封鎖",
+      "mic_unavailable": "找不到麥克風。請連接後重試。",
+      "mic_unavailableShort": "找不到麥克風",
+      "mic_error": "麥克風無法啟動，可能正被其他應用程式使用。",
+      "mic_errorShort": "麥克風無法啟動",
+      "file_read": "無法附加該檔案。",
+      "file_readShort": "無法附加檔案"
+    },
+    "notices": {
+      "web_search_failed": "網路搜尋沒有取得結果——將不使用搜尋結果作答。",
+      "web_search_failedShort": "沒有網路搜尋結果",
+      "queued": "已排入佇列——這則回覆完成後就會傳送。",
+      "queuedShort": "已排入佇列"
+    },
+    "engineSetup": {
+      "downloading": "正在設定本機引擎（首次執行）… {{percent}}%",
+      "preparing": "正在設定本機引擎（首次執行）…",
+      "extracting": "正在安裝本機引擎…",
+      "short": "正在設定引擎…"
+    },
+    "quick": {
+      "selection": "選取內容",
+      "copied": "已複製"
+    }
+  },
+  "nav": {
+    "label": "主選單",
+    "home": "首頁",
+    "history": "歷史紀錄",
+    "assistant": "助理",
+    "meetings": "會議",
+    "cleanup": "AI 整理",
+    "dictionary": "字典",
+    "models": "模型",
+    "settings": "設定",
+    "status": {
+      "label": "語音模型：{{model}}，{{status}}。開啟語音轉文字設定。",
+      "setup": "需要設定",
+      "needsUpdate": "需要更新",
+      "cloud": "雲端 · {{provider}}",
+      "loading": "載入中…",
+      "error": "無法載入",
+      "ready": "已就緒",
+      "idle": "語音輸入時才載入",
+      "noModel": "沒有語音模型"
+    },
+    "insights": "使用分析"
+  },
+  "settingsDialog": {
+    "title": "設定",
+    "tabs": {
+      "general": "一般",
+      "shortcuts": "快捷鍵",
+      "audio": "音訊",
+      "dictation": "語音輸入",
+      "privacy": "隱私權與資料",
+      "advanced": "進階",
+      "about": "關於",
+      "debug": "偵錯"
+    },
+    "general": {
+      "appearance": "外觀"
+    },
+    "shortcuts": {
+      "intro": "每個快捷鍵在任何應用程式中都能使用。點選快捷鍵即可錄製新的組合。",
+      "dictation": "語音輸入",
+      "assistant": "助理",
+      "mouse": "滑鼠",
+      "cleanupOff": "開啟 AI 整理即可使用這個快捷鍵。",
+      "assistantOff": "助理已關閉，因此它的快捷鍵不會有任何作用。"
+    },
+    "audio": {
+      "microphone": "麥克風",
+      "otherAudio": "其他音訊",
+      "otherAudioHint": "你在語音輸入或詢問助理時，電腦上正在播放的音樂、影片和通話。",
+      "overlayHint": "錄音時顯示的小型膠囊。"
+    },
+    "dictation": {
+      "intro": "您說的話如何輸入到您正在打字的應用程式中。",
+      "output": "輸入與貼上",
+      "extras": "其他功能"
+    },
+    "privacy": {
+      "intro": "錄音與歷史紀錄只會儲存在這台電腦上。您可以選擇錄音要保留多久。",
+      "recordingsFolder": "錄音資料夾"
+    },
+    "advanced": {
+      "performance": "效能"
+    },
+    "about": {
+      "appName": "Zynveliq",
+      "version": "版本 {{version}}",
+      "project": "專案",
+      "docs": "說明文件",
+      "openDocs": "開啟說明文件"
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "早安",
+      "afternoon": "午安",
+      "evening": "晚安",
+      "night": "還在忙呀"
+    },
+    "subtitleHold": "在任何應用程式中按住快捷鍵、說話，然後放開。您說的話會出現在游標所在位置。",
+    "subtitleTap": "在任何應用程式中按一下快捷鍵、說話，再按一下。您說的話會出現在游標所在位置。",
+    "needsModel": {
+      "title": "選擇語音模型，開始語音輸入。",
+      "description": "Zynveliq 需要一個語音轉文字模型，才能輸入您說的話。",
+      "action": "選擇模型"
+    },
+    "stats": {
+      "label": "您的使用情形",
+      "none": "–",
+      "spoken": "說話時間",
+      "words": "字",
+      "wpm": "字/分鐘",
+      "wpmHint": "所有錄音的平均每分鐘字數，包含停頓。",
+      "saved": "節省時間",
+      "savedHint": "與以每分鐘 {{wpm}} 字的速度打出相同內容相比。",
+      "empty": "完成第一次語音輸入後，就會顯示您的數據。",
+      "streak_other": "連續 {{count}} 天",
+      "noStreak": "今天語音輸入一次，開始累積連續天數",
+      "today": "今天 {{words}} 字",
+      "duration": {
+        "seconds": "{{seconds}} 秒",
+        "minutes": "{{minutes}} 分鐘",
+        "hours": "{{hours}} 小時",
+        "hoursMinutes": "{{hours}} 小時 {{minutes}} 分鐘"
+      },
+      "wordsLabel": "語音輸入字數",
+      "wpmLabel": "每分鐘字數",
+      "savedLabel": "節省的時間",
+      "streakLabel_other": "連續天數",
+      "streakUnit_other": "天不間斷",
+      "seeInsights": "查看使用分析"
+    },
+    "shortcuts": {
+      "title": "快捷鍵",
+      "edit": "編輯快捷鍵",
+      "turnOn": "開啟",
+      "off": "已關閉",
+      "setKey": "設定快捷鍵",
+      "dictate": {
+        "title": "語音輸入",
+        "hold": "按住、說話、放開。您說的話會輸入到游標所在位置。",
+        "tap": "按一下開始、說話，再按一下停止。您說的話會輸入到游標所在位置。",
+        "whatHold": "按住、說話、放開。文字會出現在游標所在位置。",
+        "whatTap": "按一下、說話，再按一下。文字會出現在游標所在位置。"
+      },
+      "handsFree": {
+        "what": "按住 {{keys}}，按下 {{key}} 後放開：會持續聆聽，直到你再次按下 {{keys}}。",
+        "linux": "若要在 Linux 上免持聽寫，請關閉「按住說話」。之後按一下開始，再按一下停止。"
+      },
+      "cleanup": {
+        "title": "語音輸入並整理",
+        "description": "與語音輸入相同，接著由 AI 修正標點、語助詞與文字風格。",
+        "what": "語音輸入後，由 AI 修正標點、語助詞與風格。"
+      },
+      "ask": {
+        "title": "詢問助理",
+        "description": "大聲說出問題，答案會顯示在浮動面板中。",
+        "whatHold": "按住、提問、放開。答案會出現在浮動面板中。",
+        "whatTap": "按一下、提問，再按一下。答案會出現在浮動面板中。"
+      },
+      "call": {
+        "title": "開始對話",
+        "description": "免動手的對話，助理會以語音回覆。",
+        "what": "免動手來回對話。再按一次即可結束。"
+      },
+      "info": "在任何應用程式中都能按這些快捷鍵。點選按鍵即可變更。",
+      "offHint": "已關閉",
+      "cancel": {
+        "title": "取消",
+        "what": "停止錄音，或停止正在朗讀的回覆。"
+      },
+      "globe": {
+        "hint": "macOS 也會回應 🌐 鍵。將「按下 🌐 鍵來」設為「不執行任何動作」，它就只用於聽寫。",
+        "open": "鍵盤設定"
+      },
+      "linux": {
+        "wayland": "在 Wayland 下，只有 Zynveliq 的視窗在最前面時，桌面才會把這些按鍵交給 Zynveliq。若要在任何應用程式中使用，請在系統設定中將它們新增為快捷鍵。",
+        "noAccess": "Zynveliq Keys 無法在這台電腦上讀取鍵盤，因此這些快捷鍵暫時沒有作用。",
+        "setUp": "設定",
+        "where": {
+          "gnome": "開啟「設定 → 鍵盤 → 檢視及自訂快捷鍵 → 自訂快捷鍵」，為下方每個指令各新增一個，然後按下想用的按鍵。",
+          "kde": "開啟「系統設定 → 鍵盤 → 快捷鍵」，為下方每個指令選擇「新增 → 指令或腳本」，然後按下想用的按鍵。",
+          "other": "請為下方每個指令，在桌面的鍵盤設定中新增自訂快捷鍵，或在合成器設定中加入一行 bind。"
+        },
+        "tapOnly": "以這種方式新增的快捷鍵和「按一下切換」一樣：按一次開始，再按一次停止。",
+        "access": "或者允許 Zynveliq Keys 讀取鍵盤。在終端機中執行以下指令，然後登出再重新登入：",
+        "copy": "複製",
+        "copied": "已複製"
+      }
+    },
+    "setup": {
+      "title": "您的模型",
+      "manage": "管理"
+    },
+    "recent": {
+      "title": "最近",
+      "viewAll": "查看全部",
+      "copy": "複製文字",
+      "cleaned": "已整理",
+      "tryPrefix": "試試看：點一下方塊，然後按下",
+      "trySuffixHold": "並在說話時按住不放。",
+      "trySuffixTap": "開始說話，說完再按一次。",
+      "tryPlaceholder": "您說的話會出現在這裡…"
+    },
+    "activity": {
+      "title": "過去 30 天",
+      "summary_other": "{{count}} 天共 {{words}} 字",
+      "chartLabel": "過去 {{days}} 天每天的語音輸入字數：總共 {{words}} 字。",
+      "words_other": "{{formatted}} 字",
+      "today": "今天"
+    }
+  },
+  "speechUpdate": {
+    "title": "{{model}} 使用的是 Zynveliq 已不再內含的舊引擎。",
+    "newVersion": "它的新版本是 {{model}}。",
+    "ready": "{{model}} 已下載，可以使用。",
+    "noVersion": "請選擇其他模型以繼續聽寫。",
+    "failed": "無法下載 {{model}}。",
+    "download": "下載新版本（{{size}}）",
+    "retry": "再試一次",
+    "chooseAnother": "選擇其他模型",
+    "progressLabel": "正在下載新版本",
+    "dialogTitle": "Zynveliq 換上了新的語音引擎",
+    "dialogBody": "它更快、更穩定，遇到的問題會更少。{{model}} 執行於舊引擎，需要下載新版本才能繼續使用。",
+    "later": "稍後"
+  },
+  "modelsHub": {
+    "description": "Zynveliq 的每項工作都由您選擇的模型完成。在這台電腦上執行可保護隱私，在雲端執行則速度更快。",
+    "addLocal": "新增模型檔案",
+    "privacyNote": "在這台電腦上執行的模型，絕不會將您的語音或文字傳送到任何地方。雲端模型則會使用您的 API 金鑰，將內容傳送給您選擇的供應商。",
+    "inUse": "使用中",
+    "needsSetup": "需要設定",
+    "needsUpdate": "需要更新",
+    "performance": "效能",
+    "where": {
+      "device": "在這台電腦上",
+      "cloud": "雲端",
+      "cloudWith": "雲端 · {{provider}}",
+      "deviceShort": "這台電腦"
+    },
+    "status": {
+      "voiceOff": "語音回覆已關閉",
+      "assistantOff": "助理已關閉",
+      "noModel": "尚未選擇模型",
+      "notDownloaded": "模型尚未下載",
+      "needsUpdate": "{{model}} 需要更新",
+      "noKey": "新增 API 金鑰",
+      "noEndpoint": "新增端點"
+    },
+    "voice": {
+      "kokoroModel": "Kokoro 語音"
+    },
+    "usedBy": {
+      "label": "用於",
+      "dictation": "語音輸入",
+      "assistant": "助理",
+      "meetings": "會議",
+      "cleanup": "AI 整理",
+      "meetingNotes": "會議筆記",
+      "calls": "對話",
+      "flow": "使用 Flow 生成",
+      "spokenReplies": "語音回覆"
+    },
+    "slots": {
+      "stt": {
+        "name": "語音轉文字",
+        "description": "將您的語音轉成文字。",
+        "whereHint": "在這台電腦上執行既私密又免費。雲端則會使用供應商的 API 與您的金鑰。",
+        "catalogTitle": "語音模型",
+        "catalogDescription": "這裡的每個模型都在這台電腦上執行。速度較快的模型適合語音輸入；較大的模型則更準確。"
+      },
+      "cleanup": {
+        "name": "AI 整理",
+        "description": "依照您口述的修改指示調整內容並套用文字風格，也會撰寫會議筆記。",
+        "turnOn": "開啟 AI 整理",
+        "offNotice": "AI 整理已關閉。會議筆記仍會使用這個模型。",
+        "borrowsNotice": "尚未設定整理模型，因此整理會使用您助理的模型（{{model}}）。",
+        "catalogTitle": "整理模型"
+      },
+      "assistant": {
+        "name": "助理",
+        "description": "回答您的問題、查看您的螢幕，也能與您對話。",
+        "openAssistant": "開啟助理",
+        "offNotice": "助理已關閉。使用 Flow 生成與整理的備用模型仍會使用這個模型。",
+        "catalogTitle": "助理模型",
+        "fallbackNote": "AI 整理與會議筆記若沒有自己的模型，也會使用這個模型。"
+      },
+      "voice": {
+        "name": "語音",
+        "description": "朗讀助理的回覆。"
+      }
+    }
+  },
+  "cleanup": {
+    "description": "每次語音輸入都已會移除語助詞。AI 整理則更進一步：依照您口述的修改指示調整內容，並套用文字風格。",
+    "toggle": "AI 整理",
+    "how": {
+      "plain": "完全照您說的內容輸入。",
+      "cleaned": "輸入您說的內容，並經過 AI 整理。",
+      "off": "開啟 AI 整理即可使用這個快捷鍵。",
+      "change": "變更"
+    },
+    "model": {
+      "title": "整理模型",
+      "borrows": "沿用您助理的模型",
+      "own": "每次使用整理快捷鍵時執行",
+      "change": "變更",
+      "info": "每次使用整理快捷鍵時執行。若沒有自己的模型，整理會使用您助理的模型。"
+    },
+    "needsModel": {
+      "description": "AI 整理需要模型才能執行。在那之前，文字會照您說的內容輸入。",
+      "action": "選擇模型",
+      "short": "選擇模型即可開始整理。"
+    },
+    "instructions": {
+      "title": "整理指示",
+      "description": "告訴模型要修正哪些地方的基本提示詞。大多數人從不需要更改。",
+      "current": "使用中"
+    },
+    "styles": {
+      "title": "文字風格",
+      "description": "整理後的文字讀起來該是什麼感覺。會在修正之後套用，因此修正內容不變。",
+      "createTitle": "新增風格",
+      "createHint": "描述您希望文字呈現的語感。",
+      "editTitle": "編輯風格",
+      "editorIntro": "為風格取個名稱，並描述文字該如何改變。風格會在整理之後套用，因此修正內容不變。",
+      "inUse": "使用中",
+      "editNamed": "編輯 {{name}}",
+      "builtin": {
+        "none": "只修正錯誤，不更動您的用字。",
+        "professional": "精練清楚，適合工作訊息與電子郵件。",
+        "friendly": "溫暖輕鬆，就像寫給朋友的便條。",
+        "concise": "刪去多餘字詞，直接切入重點。",
+        "formal": "句子完整，語氣正式。",
+        "casual": "隨興、口語化。"
+      },
+      "groups": {
+        "builtin": "內建",
+        "custom": "您的風格"
+      },
+      "manage": "管理",
+      "manageTitle": "您的文字風格",
+      "noneYet": "還沒有您自己的風格。",
+      "newStyle": "新增風格",
+      "customHint": "您自訂的風格之一，會在修正之後套用。",
+      "preview": {
+        "youSay": "您說",
+        "itTypes": "輸入結果",
+        "yourInstruction": "您的指示"
+      },
+      "samples": {
+        "raw": "我們明天十點開會吧，啊不對，十一點，然後討論一下那個預算",
+        "none": "我們明天十一點開會，討論一下預算。",
+        "professional": "建議明天 11:00 開會檢視預算。",
+        "friendly": "我們明天十一點碰個面，一起看看預算好嗎？",
+        "concise": "明天 11 點開會檢視預算。",
+        "formal": "謹提議於明日上午十一時召開會議，審閱預算。",
+        "casual": "明天十一點碰個面聊聊預算吧"
+      },
+      "form": {
+        "name": "名稱",
+        "instruction": "指示",
+        "instructionTip": "用字應如何改變。會在整理之後套用，因此修正內容不變。",
+        "instructionPlaceholder": "例如：保持輕鬆口語，並把口述的表情符號名稱轉成表情符號。"
+      },
+      "specialist": {
+        "ignored": "{{model}} 只做基本整理，因此會忽略寫作風格。若要套用風格，請使用通用模型。",
+        "changeModel": "更換模型"
+      }
+    },
+    "shortcut": {
+      "title": "快捷鍵",
+      "info": "為整理設定專屬快捷鍵，或讓語音輸入快捷鍵整理每次語音輸入，只需記住一組按鍵。",
+      "separate": "專屬快捷鍵",
+      "dictation": "與語音輸入相同"
+    },
+    "skipShort": {
+      "title": "簡短語音輸入不整理",
+      "info": "搜尋關鍵字或快速回覆這類簡短的語音輸入，會照您說的內容直接輸入，不必等待模型。較長的仍會整理。",
+      "limit": "少於",
+      "limitInfo": "以詞數計算。中文、日文或泰文這類不以空格分詞的語言，會依字數估算詞數。",
+      "words_other": "個詞"
+    },
+    "shortcutRow": "快捷鍵"
+  },
+  "dictionary": {
+    "description": "教 Zynveliq 認識您常用的名稱與術語，並設定可展開成較長文字的縮寫。",
+    "words": {
+      "title": "您的詞彙",
+      "description": "Zynveliq 應該永遠寫對的名稱、專業術語與拼寫。",
+      "placeholder": "新增名稱、術語或拼寫…",
+      "empty": "這裡還沒有內容。請新增 Zynveliq 老是寫錯的詞彙。"
+    },
+    "replacements": {
+      "title": "文字替換",
+      "description": "說出一個短語就得到不同的文字，例如說「我的電子郵件」就會變成您的信箱地址。"
+    },
+    "addWord": "新增詞彙"
+  },
+  "assistantPage": {
+    "description": "在任何應用程式中，用語音問任何問題。助理可以查看您的螢幕、搜尋網路，還能記住對您重要的事。",
+    "offNotice": "助理已關閉。在您重新開啟之前，它的快捷鍵不會有任何作用，也不會佔用記憶體。",
+    "hero": {
+      "askHold": "按住、提出問題、放開。答案會出現在浮動面板中。",
+      "askTap": "按一下、提出問題，再按一下。答案會出現在浮動面板中。",
+      "call": "免動手來回對話。再按一次即可結束。",
+      "title": "隨處開口，<em>有問必答。</em>",
+      "ask": "提問",
+      "callLabel": "對話",
+      "askHoldShort": "按住、提問、放開",
+      "askTapShort": "按一下、提問，再按一下",
+      "callShort": "再按一次即可結束",
+      "subtitle": "大聲提出問題，或開始對話好好聊一聊。"
+    },
+    "models": {
+      "title": "使用的模型",
+      "assistant": "思考模型",
+      "voice": "朗讀回覆"
+    },
+    "features": {
+      "title": "它能做什麼",
+      "vision": {
+        "title": "螢幕視覺",
+        "description": "當您詢問螢幕上的內容時，讓助理查看您的螢幕。"
+      },
+      "webSearch": {
+        "title": "網路搜尋",
+        "description": "上網查詢，提供最新且符合事實的答案。"
+      },
+      "reminders": {
+        "title": "提醒",
+        "description": "說「20 分鐘後提醒我」，它就會提醒您。",
+        "status": "用語音要求"
+      },
+      "profiles": {
+        "title": "角色",
+        "description": "助理可以切換的角色，每個都有自己的指示。",
+        "status": "預設"
+      },
+      "memory": {
+        "title": "記憶",
+        "description": "助理記住的關於您的事，儲存在這台電腦上。"
+      },
+      "behavior": {
+        "title": "回覆",
+        "description": "回答的長度，以及它會記住多少對話內容。"
+      },
+      "appearance": {
+        "title": "面板",
+        "description": "浮動面板的大小、文字、位置與不透明度。",
+        "status": "自訂"
+      }
+    },
+    "cards": {
+      "keySaved": "金鑰已儲存",
+      "vision": {
+        "description": "讓它查看您的螢幕，回答有關您所見內容的問題。",
+        "timing": {
+          "immediate": "開始提問時",
+          "onSend": "送出時"
+        }
+      },
+      "webSearch": {
+        "description": "上網查詢，提供最新且符合事實的答案。",
+        "offHint": "關閉：答案僅來自模型本身，內容可能已過時。",
+        "keyFor": "{{provider}} API 金鑰",
+        "getKey": "前往 {{site}} 取得免費金鑰。",
+        "hints": {
+          "tinyfish": "免費，免綁卡",
+          "serper": "Google 搜尋結果",
+          "brave": "獨立索引",
+          "tavily": "專為 AI 打造",
+          "exa": "神經網路搜尋",
+          "serpapi": "Google 搜尋結果"
+        }
+      },
+      "reminders": {
+        "description": "請它提醒您，時間一到就會跳出通知。",
+        "trySaying": "試著說",
+        "examples": {
+          "one": "「20 分鐘後提醒我打電話給小明」",
+          "two": "「晚上 6 點提醒我寄出發票」",
+          "three": "「看一下這個，明天提醒我」"
+        },
+        "upcoming": "即將到來",
+        "none": "目前沒有排定的提醒。",
+        "more_other": "還有 {{count}} 個"
+      },
+      "memory": {
+        "title": "記憶",
+        "description": "記住對您重要的事，只儲存在這台電腦上。",
+        "open": "開啟記憶",
+        "manage_other": "查看與編輯記憶 · {{count}} 則筆記",
+        "pausedHint": "已暫停：已儲存的記憶會保留，但不會使用。"
+      },
+      "profiles": {
+        "title": "角色",
+        "description": "擁有自己名稱、指示與回覆風格的角色。",
+        "edit": "編輯角色",
+        "more": "+{{count}}"
+      },
+      "replies": {
+        "title": "回覆",
+        "description": "回答的長度，以及它會記住多少對話內容。",
+        "lengths": {
+          "default": "預設",
+          "short": "簡短",
+          "medium": "適中",
+          "long": "詳盡"
+        },
+        "lengthHints": {
+          "default": "依問題需要決定長度。",
+          "short": "一兩句話。",
+          "medium": "一小段文字。",
+          "long": "完整且詳細。"
+        },
+        "history": "記住的訊息數"
+      },
+      "panel": {
+        "title": "浮動面板",
+        "description": "面板的外觀與開啟位置。變更時預覽會隨之更新。",
+        "positionHint": "點選螢幕上的一個位置。形狀就是面板開啟時的樣子：沿著側邊的直長欄，或沿著頂端或底部的寬橫條。將面板拖到某個位置附近，它就會自動貼齊。"
+      }
+    },
+    "groups": {
+      "personal": "個人",
+      "replies": "回覆"
+    },
+    "rows": {
+      "replyLength": "回覆長度",
+      "reminders": {
+        "none": "尚未設定",
+        "count_other": "已設定 {{count}} 個"
+      },
+      "memory": {
+        "edit": "查看記憶",
+        "manage": "管理"
+      },
+      "profiles": {
+        "manage": "管理"
+      },
+      "screen": {
+        "ask": "提問時使用螢幕視覺",
+        "call": "對話時使用螢幕視覺"
+      }
+    },
+    "tips": {
+      "thinksWith": "負責回答您的模型。AI 整理與會議筆記若沒有自己的模型，也會使用它。",
+      "speaks": "在對話中朗讀回覆。",
+      "screenAsk": "當問題與您的螢幕有關，或您要求時，讓助理查看螢幕。有關所選文字的問題會直接根據該文字回答。螢幕截圖只會傳送給您的 AI 供應商。",
+      "screenCall": "對話中當您要求，或您正在談論螢幕上的內容時，讓助理查看螢幕。",
+      "captureTiming": "擷取您開始提問時的螢幕畫面，或送出時的畫面。",
+      "webSearch": "當問題需要最新資訊時上網查詢。",
+      "depth": "簡單的事實用「快速」，困難的問題用「深入」。",
+      "openRouterSearch": "使用 OpenRouter 自己的搜尋功能，並扣除您的 OpenRouter 點數。",
+      "localSmart": "讓裝置上的模型自行決定何時搜尋。",
+      "reminders": "直接說：「20 分鐘後提醒我打電話給小明。」時間一到就會跳出通知。",
+      "memory": "記住對您重要的事，只儲存在這台電腦上。",
+      "profiles": "擁有自己名稱、指示與回覆風格的角色。",
+      "replyLength": "回答通常的長度。",
+      "history": "它會記住多少則最近的訊息。",
+      "summarize": "濃縮較長的對話，讓它不會忘記開頭的內容。",
+      "opacity": "數值越低，越能透出後方的桌面。",
+      "position": "點選螢幕上的一個位置。",
+      "display": "面板開啟時所在的螢幕。"
+    },
+    "memory": {
+      "aboutTip": "每次回覆都會記在心上的簡短摘要。它會隨著對話更新，您也可以隨時編輯。",
+      "aboutEmpty": "尚無內容。它會在對話過程中自動填寫，您也可以自己撰寫。",
+      "write": "自行撰寫",
+      "notesTitle": "它記住的事",
+      "notesTip": "從您的對話中學到的事實，以及您自行新增的內容。每次回覆會使用相關的部分。",
+      "notesEmpty": "尚無內容。它會從您的對話中學習，您也可以在上方新增。",
+      "showAll": "顯示全部 {{count}} 則",
+      "showFewer": "顯示較少",
+      "detailTip": "「精簡」只使用摘要。「詳細」會加入更多筆記，速度稍慢。",
+      "more": "更多記憶選項",
+      "learnNow": "立即從這次對話學習",
+      "export": "匯出記憶…",
+      "import": "匯入記憶…",
+      "erase": "清除記憶…",
+      "eraseTitle": "要清除記憶嗎？",
+      "eraseBody_other": "這會刪除摘要與全部 {{count}} 則筆記，且無法復原。",
+      "eraseConfirm": "清除",
+      "learnedToast": "已從這次對話更新記憶",
+      "exportedToast": "記憶已匯出",
+      "importedToast": "記憶已匯入",
+      "dialogDescription": "助理對您的了解。這些內容只留在這台電腦上，您可以隨時修改或清除任何一項。"
+    },
+    "profiles": {
+      "new": "新增角色",
+      "newBlank": "從頭開始",
+      "newWithAi": "描述想法，讓 AI 撰寫",
+      "listMore": "更多角色選項",
+      "import": "從檔案匯入…",
+      "restoreBuiltins": "恢復內建角色",
+      "restored_other": "已恢復 {{count}} 個角色",
+      "restoredNone": "所有內建角色都已存在",
+      "inUse": "使用中",
+      "use": "使用此角色",
+      "more": "此角色的更多選項",
+      "duplicate": "複製",
+      "export": "匯出…",
+      "exported": "角色已匯出",
+      "restoreDefault": "還原為原始設定",
+      "delete": "刪除角色…",
+      "deleteTitle": "要刪除 {{name}} 嗎？",
+      "deleteBody": "此動作無法復原。",
+      "addPicture": "新增圖片",
+      "changePicture": "更換圖片",
+      "removePicture": "移除圖片",
+      "roleLabel": "說明",
+      "roleTip": "顯示在名稱下方的簡短文字。",
+      "rolePlaceholder": "例如：簡短直接的回答",
+      "instructionsLabel": "指示",
+      "instructionsTip": "這個角色的思考與說話方式。每則訊息都會一併傳送。",
+      "lengthLabel": "回覆長度",
+      "lengthTip": "「預設」會依照助理頁面上的「回覆長度」。",
+      "lengths": {
+        "inherit": "預設",
+        "short": "簡短",
+        "medium": "適中",
+        "long": "詳盡"
+      },
+      "greetingLabel": "問候語",
+      "greetingTip": "選填。開始新對話時顯示。",
+      "greetingPlaceholder": "嗨！我們今天要做什麼？",
+      "aiTitle": "描述新角色",
+      "aiBody": "說出或輸入它該是什麼樣子，助理會替它寫好名稱與指示。",
+      "aiCreate": "建立角色"
+    },
+    "panel": {
+      "where": "開啟位置",
+      "text": "文字大小",
+      "opacity": "不透明度",
+      "screen": "顯示螢幕"
+    }
+  },
+  "meetingsPage": {
+    "transcript": "逐字稿",
+    "notes": "筆記",
+    "hero": {
+      "title": "每場通話，<em>都有紀錄。</em>",
+      "subtitle": "依說話者區分，結束時附上筆記。"
+    },
+    "transcribedBy": "轉錄模型",
+    "notesBy": "筆記模型",
+    "transcribedByTip": "負責撰寫逐字稿。這是您的語音轉文字模型，與語音輸入使用的是同一個。",
+    "notesByTip": "負責撰寫筆記與標題，並回答有關會議的問題。這是您的助理模型。"
+  },
+  "historyPage": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "storage": "儲存空間",
+    "showOriginal": "顯示原文",
+    "showSaid": "顯示您說的內容",
+    "hideOriginal": "隱藏原文",
+    "playRecording": "播放錄音",
+    "hideRecording": "關閉播放器",
+    "audioMissing": "這段錄音的音訊檔案已無法取得。",
+    "failed": "轉錄失敗",
+    "retry": "再試一次",
+    "dismissed": "這段轉錄已被捨棄。",
+    "recover": "復原",
+    "recoverTitle": "重新轉錄並保留",
+    "recoverError": "無法復原這段轉錄，請再試一次。",
+    "more": "更多動作",
+    "chat": {
+      "continueInCall": "以對話方式繼續",
+      "assistantOff": "開啟助理即可繼續這段對話。"
+    }
+  },
+  "pickers": {
+    "browse": "管理模型",
+    "download": "下載更多模型",
+    "choose": "選擇模型",
+    "switchFailed": "無法切換模型，請再試一次。",
+    "borrowsAssistant": "使用助理的 {{model}}",
+    "needsKey": "需要 API 金鑰",
+    "groups": {
+      "device": "在這台電腦上",
+      "cloud": "雲端",
+      "setup": "尚未設定"
+    },
+    "label": {
+      "assistant": "助理模型",
+      "cleanup": "AI 整理模型",
+      "stt": "語音轉文字模型",
+      "voice": "語音"
+    },
+    "needsSetup": "需要設定",
+    "finishSetup": "完成設定",
+    "setup": {
+      "title": "設定 {{provider}}",
+      "bodyKey": "貼上您的 API 金鑰，再選擇模型。",
+      "bodyServer": "輸入您的伺服器位址，再選擇模型。",
+      "bodyBoth": "輸入端點與您的 API 金鑰，再選擇模型。",
+      "endpoint": "端點網址",
+      "apiKey": "API 金鑰",
+      "apiKeyOptional": "API 金鑰（選填）",
+      "keyPlaceholder": "貼上您的金鑰",
+      "getKey": "前往 {{site}} 取得金鑰",
+      "model": "模型",
+      "modelPlaceholder": "選擇或輸入模型",
+      "loadModels": "載入模型",
+      "noModels": "找不到模型。請改為輸入模型名稱。",
+      "typeInstead": "改為輸入名稱",
+      "pickFromList": "從清單中選擇",
+      "use": "儲存並使用",
+      "done": "現在使用 {{provider}}"
+    },
+    "voiceSetup": {
+      "bodyKey": "貼上您的 API 金鑰，再選擇語音。",
+      "bodyEndpoint": "輸入端點與您的 API 金鑰，再選擇語音。",
+      "voice": "語音",
+      "voicePlaceholder": "選擇語音",
+      "loadVoices": "載入語音",
+      "noVoices": "找不到語音。請改為貼上語音 ID。",
+      "model": "模型（選填）"
+    }
+  },
+  "catalog": {
+    "recommended": "推薦",
+    "searchHuggingFace": "搜尋 Hugging Face",
+    "useFor": {
+      "button": "用於",
+      "label": "將 {{model}} 用於…",
+      "assistant": "助理",
+      "cleanup": "AI 整理",
+      "cleanupOnly": "專為整理打造，無法進行對話。"
+    },
+    "inUse": {
+      "assistant": "助理",
+      "cleanup": "AI 整理"
+    },
+    "use": "使用",
+    "useNamed": "將 {{model}} 用於{{job}}",
+    "useForJob": "用於{{job}}",
+    "inUseShort": "使用中",
+    "more": "更多",
+    "moreFor": "{{model}} 的更多動作",
+    "showDetails": "顯示檔案詳細資訊",
+    "hideDetails": "隱藏檔案詳細資訊",
+    "removeFromList": "從清單中移除",
+    "nowUsing": "現在將 {{model}} 用於{{job}}。",
+    "yoursInfo": "您下載或從磁碟新增的模型。每個模型都能勝任任一項工作；透過 ⋯ 選單即可讓它改做另一項工作。"
+  },
+  "models": {
+    "runsOn": "執行裝置",
+    "options": "選項",
+    "downloadTitle": "下載模型",
+    "cleanupOff": "AI 整理已關閉。會議筆記仍會使用這個模型。",
+    "assistantOff": "助理已關閉。使用 Flow 生成與整理仍會使用這個模型。",
+    "usedBy": "用於：{{features}}。"
+  },
+  "shortcutEditor": {
+    "change": "變更「{{name}}」快捷鍵",
+    "useDefault": "使用預設值",
+    "turnOff": "關閉",
+    "turnedOff": "已關閉{{name}}快速鍵",
+    "undo": "復原",
+    "addAnother": "新增另一組",
+    "addAnotherHint": "為這個快捷鍵再設一組按鍵，例如滑鼠按鈕",
+    "addButtonOrKeys": "新增滑鼠按鈕或按鍵",
+    "addButtonOrKeysHint": "在現有按鍵之外，為這個快捷鍵再設一個滑鼠按鈕或一組按鍵",
+    "mouseAddedAsOther": "{{button}} 現在也可用於{{name}}。{{keys}} 仍然有效。",
+    "mouseNeedsOtherSlot": "{{name}}已有另一組按鍵（{{keys}}）。點擊它們即可改成滑鼠按鈕。",
+    "mouseNeedsOwnKeys": "請先為{{name}}設定按鍵。滑鼠按鈕會新增在它們旁邊。",
+    "remove": "移除",
+    "or": "或",
+    "changeOther": "變更「{{name}}」快捷鍵的另一組按鍵",
+    "pressKeysOrButton": "請按下按鍵或滑鼠按鈕…",
+    "mouseNeedsKeysEngine": "滑鼠按鈕需要使用 Zynveliq Keys 鍵盤實作方式（設定 → 進階 → 實驗性）。",
+    "mouse": {
+      "middle": "滑鼠中鍵",
+      "back": "滑鼠上一頁鍵",
+      "forward": "滑鼠下一頁鍵"
+    }
+  },
+  "memoryManager": {
+    "status": {
+      "on": "開啟：用於回覆，並從對話中學習",
+      "off": "關閉：不使用也不學習任何內容"
+    },
+    "incognitoHint": "這次對話不會被使用，也不會從中學習",
+    "editNote": "編輯筆記",
+    "source": {
+      "learned": "已學習",
+      "added": "由您新增"
+    },
+    "filterLabel": "顯示筆記",
+    "filters": {
+      "all": "全部",
+      "learned": "已學習 {{count}}",
+      "added": "我的 {{count}}"
+    },
+    "search": "搜尋筆記",
+    "noMatches": "沒有符合的筆記。",
+    "detailHints": {
+      "light": "每次回覆只納入「關於您」摘要。速度最快。",
+      "balanced": "摘要，再加上幾則與問題相關的筆記。",
+      "detailed": "摘要，再加上更多相關筆記。內容最豐富，速度稍慢。"
+    },
+    "learnNow": "從這次對話學習",
+    "tips": {
+      "enable": "讓助理使用並學習關於您的記憶。預設為關閉。",
+      "incognito": "這次對話不會被使用，也不會從中學習。",
+      "aboutYou": "記憶開啟時，每次回覆都會納入的簡短摘要。"
+    }
+  },
+  "providerGrid": {
+    "showAll": "顯示全部 {{count}} 個供應商",
+    "showFewer": "顯示較少"
+  },
+  "voiceEngines": {
+    "kokoro": "品質最佳",
+    "kitten": "最輕巧",
+    "pocket": "14 種語音",
+    "supertonic": "快速清晰",
+    "openai": "GPT 語音",
+    "elevenlabs": "最自然",
+    "openrouter": "多種語音",
+    "deepgram": "快速、低成本",
+    "cartesia": "延遲最低",
+    "google": "Chirp 3 HD 語音",
+    "azure": "神經語音",
+    "groq": "Orpheus 語音",
+    "xai": "Grok 語音",
+    "mistral": "Voxtral 語音",
+    "inworld": "富有表現力的語音",
+    "custom": "您自己的伺服器",
+    "names": {
+      "kokoro": "Kokoro",
+      "kitten": "Kitten",
+      "pocket": "Pocket TTS",
+      "supertonic": "Supertonic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs",
+      "openrouter": "OpenRouter",
+      "deepgram": "Deepgram",
+      "cartesia": "Cartesia",
+      "google": "Google Cloud",
+      "azure": "Azure Speech",
+      "groq": "Groq",
+      "xai": "xAI",
+      "mistral": "Mistral",
+      "inworld": "Inworld",
+      "custom": "自訂"
+    }
+  },
+  "insights": {
+    "about": "您使用 Zynveliq 的情形，在這台電腦上統計。",
+    "nothingYet": "只要使用語音輸入、詢問助理或錄製會議，就會顯示您的使用分析。",
+    "goHome": "查看快捷鍵",
+    "figures": {
+      "dictations": "語音輸入次數",
+      "dictationsInfo": "每次語音輸入計一次，無論長短。",
+      "questions": "提問次數",
+      "meetings": "錄音的會議"
+    },
+    "activityTitle": "活動",
+    "pages_other": "約 {{count}} 頁",
+    "longest_other": "最長：{{count}} 天",
+    "streakHint": "當天只要使用語音輸入、詢問助理、進行對話或錄製會議，就算一天。",
+    "gridSummary_other": "過去 6 個月內，{{count}} 天共 {{words}} 字",
+    "gridSummaryAssistant_other": "過去 6 個月內，{{count}} 天共 {{questions}}",
+    "gridSummaryMeetings_other": "過去 6 個月內，{{count}} 天共開會 {{time}}",
+    "gridSummaryAll_other": "過去 6 個月內，活躍 {{count}} 天",
+    "dayWords_other": "{{formatted}} 字",
+    "dayQuestions_other": "{{formatted}} 個問題",
+    "dayMeetings": "開會 {{time}}",
+    "dayNoneFor": {
+      "all": "沒有活動",
+      "dictation": "沒有語音輸入",
+      "assistant": "沒有提問",
+      "meetings": "沒有會議"
+    },
+    "less": "較少",
+    "more": "較多",
+    "busiest": "最忙碌的一天",
+    "best": "最佳的一天",
+    "typical": "平常的一天",
+    "typicalFor": {
+      "dictation": "在您有語音輸入的日子",
+      "assistant": "在您有提問的日子",
+      "meetings": "在有會議的日子"
+    },
+    "activity": {
+      "label": "要顯示的活動",
+      "all": "全部",
+      "dictation": "語音輸入",
+      "assistant": "助理",
+      "meetings": "會議"
+    },
+    "assistantCard": {
+      "info": "快速提問，以及您在對話中說的話。刪除對話後，這些仍會計入。",
+      "noCalls": "還沒有對話"
+    },
+    "meetingsCard": {
+      "info": "您錄製的會議。刪除會議後，這些仍會計入。"
+    },
+    "share": {
+      "button": "分享",
+      "nothingYet": "開始使用 Zynveliq 後，就有東西可以分享了。",
+      "title": "分享您的使用分析",
+      "private": "在這台電腦上製作，不會上傳任何內容。",
+      "size": "尺寸",
+      "formats": {
+        "square": "方形",
+        "story": "直式",
+        "wide": "橫式"
+      },
+      "formatHints": {
+        "square": "1080 × 1080，適合動態消息",
+        "story": "1080 × 1920，適合限時動態",
+        "wide": "1600 × 900，適合貼文和連結"
+      },
+      "previous": "上一張卡片",
+      "next": "下一張卡片",
+      "cardsLabel": "卡片",
+      "position": "第 {{index}} 張，共 {{count}} 張",
+      "copy": "複製圖片",
+      "copied": "已複製",
+      "copyFailed": "無法複製圖片",
+      "save": "儲存圖片",
+      "saved": "圖片已儲存",
+      "saveFailed": "無法儲存圖片",
+      "showInFolder": "在資料夾中顯示",
+      "postOn": "發佈到 {{site}}",
+      "copiedForPost": "卡片已複製。在新貼文中按 {{keys}} 即可加入。",
+      "savedForPost": "卡片已儲存到「下載」資料夾。{{site}} 不支援貼上圖片，請在新貼文中用相片按鈕加入。",
+      "openSite": "開啟 {{site}}",
+      "openFailed": "無法開啟 {{site}}",
+      "more": "更多應用程式",
+      "sheetTitle": "我的 Zynveliq 使用分析",
+      "shareFailed": "無法開啟分享",
+      "drawFailed": "無法繪製卡片。請關閉後再試一次。",
+      "tagline": "免費 · 開放原始碼 · 離線也能用",
+      "cards": {
+        "highlights": {
+          "title": "我的 Zynveliq 精彩紀錄",
+          "words_other": "說出的字",
+          "streak_other": "連續天數",
+          "wpm": "字/分鐘",
+          "questions_other": "次提問",
+          "meetings_other": "場會議錄音",
+          "saved": "比打字省下"
+        },
+        "words": {
+          "title": "動口，不動手",
+          "label_other": "說出的字",
+          "pages_other": "約 {{count}} 頁",
+          "books_other": "相當於 {{count}} 本小說"
+        },
+        "speed": {
+          "title": "我說話有多快",
+          "label": "字/分鐘",
+          "note": "比打字快 {{times}}×",
+          "you": "說話",
+          "typing": "一般打字"
+        },
+        "saved": {
+          "title": "省下的時間",
+          "label": "不必花在打字上",
+          "workdays_other": "約 {{count}} 個工作天"
+        },
+        "streak": {
+          "title": "欲罷不能",
+          "unit_other": "天",
+          "longest_other": "最長連續：{{count}} 天",
+          "best": "這是我的最長紀錄"
+        },
+        "assistant": {
+          "title": "我的助理",
+          "label_other": "次提問",
+          "calls_other": "{{count}} 次對話，聊了 {{time}}"
+        },
+        "meetings": {
+          "title": "我的會議",
+          "label_other": "場會議錄音",
+          "note": "錄了 {{time}}，整理出 {{words}} 字",
+          "time": "錄製並整理了 {{time}}"
+        },
+        "activity": {
+          "title": "六個月，說個不停",
+          "label_other": "活躍天數"
+        }
+      },
+      "post": {
+        "dictation_other": "我用 Zynveliq 對著電腦說了 {{formatted}} 個字，一個字都不用打。",
+        "asks_other": "我問了 Zynveliq 的助理 {{formatted}} 個問題，完全不用切換分頁。",
+        "meetings_other": "Zynveliq 已經幫我錄了 {{formatted}} 場會議，還幫我寫好筆記。"
+      }
+    }
+  },
+  "settingsNotice": {
+    "restored": "你的設定已損毀，已從備份還原。",
+    "restoredDescription": "最近的變更可能遺失。",
+    "unrecoverableTitle": "無法還原你的設定",
+    "unrecoverableDescription": "Zynveliq 已使用預設設定啟動。損毀的檔案已保留為 {{file}}。",
+    "notSavingTitle": "設定變更將不會儲存",
+    "notSavingDescription": "無法讀取設定檔，因此未做任何變動。請重新啟動 Zynveliq 再試一次。",
+    "saveFailingTitle": "設定未能儲存",
+    "saveFailingDescription": "最近的變更尚未儲存。Zynveliq 會繼續嘗試。",
+    "dismiss": "關閉"
+  }
+}

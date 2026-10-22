@@ -1,0 +1,104 @@
+---
+title: "Dictation basics"
+description: "Hold a shortcut, talk, and release. Zynveliq types your words into any app, anywhere you can put a cursor."
+icon: "microphone"
+---
+
+Hold the shortcut, talk, let go. Your words appear wherever the cursor is: an email, an editor, a chat window, a search bar.
+
+## The dictation loop
+
+<Steps>
+  <Step title="Put your cursor where you want the text">
+    Any text field in any application.
+  </Step>
+
+  <Step title="Hold the Dictate shortcut and speak">
+
+    | Platform | Default shortcut |
+    | -------- | --------------------------------------------- |
+    | Windows | <kbd>Left Ctrl</kbd> + <kbd>Left Win</kbd> |
+    | macOS | <kbd>Fn</kbd> (🌐) |
+    | Linux | <kbd>Ctrl</kbd> + <kbd>Space</kbd> |
+
+  </Step>
+
+  <Step title="Release the keys">
+    Zynveliq transcribes and inserts the text into the active app.
+  </Step>
+</Steps>
+
+Voice-activity detection filters silence and background noise, so pausing to think does not leave gaps.
+
+<Tip>
+  Most people speak around 150 words a minute and type around 45. Dictation is
+  roughly three times faster.
+</Tip>
+
+## Hold or tap
+
+The default is **Hold**: the keys record while held, and releasing stops. Switch to **Tap** and one press starts recording, the next press stops it. See [Hold or tap](/dictation/hands-free) for details.
+
+The toggle is on the **Home** page (in the shortcuts card) and in _Settings → Shortcuts_. It applies to every recording shortcut: dictation, dictation with cleanup, ask, and conversation.
+
+## Dictating into Zynveliq's own window
+
+When Zynveliq's main window is focused and the recording did not start in another app, the text is inserted directly into the field at the caret instead of pasting through the clipboard. This avoids the timing problem where a clipboard paste into the app's own webview would arrive after the clipboard was already restored.
+
+## First press before the model is ready
+
+On a new install the speech model downloads while the onboarding tour plays. If you press the dictation shortcut before it finishes:
+
+- **Model still downloading.** The overlay shows a pill with the download progress ("Speech model downloading" with a percentage). Dictation starts working when the download completes.
+- **No speech model installed.** The overlay shows "No speech model yet. Pick one on the Models page."
+
+If you are using a cloud transcription provider, no local model is needed and the shortcut works immediately. See [Cloud transcription](/dictation/cloud-transcription).
+
+## Good to know
+
+<AccordionGroup>
+  <Accordion title="Why the overlay says 'Getting mic ready'">
+    The overlay shows "Getting mic ready..." until the microphone starts delivering audio, then switches to a live waveform. That cue comes from real audio frames, not a fixed delay. Once the wave moves, your words are being captured.
+  </Accordion>
+
+<Accordion title="A recording caps at 30 minutes">
+  A single recording stops itself at 30 minutes and transcribes automatically.
+  Audio is only written to disk after a recording stops, so the cap means a
+  forgotten session still produces a transcript instead of losing everything.
+</Accordion>
+
+  <Accordion title="Start and stop sounds">
+    Turn on audio feedback in _Settings → Audio → Sounds_, then pick a theme: Default, Marimba, Pop, or Click. A Custom option appears if you have supplied your own sound files. Sounds are off by default.
+
+  </Accordion>
+
+  <Accordion title="Lowering music and videos while you dictate">
+    _Settings → Audio → Other audio_ decides what happens to everything else playing on your computer while you record: **Unchanged** (the default), **Lower**, or **Mute**. Lower fades it down when the recording starts and back up when it ends, by the amount set under **Lower by** (70% by default). Drag that slider while something is playing to hear the level.
+
+    If you change the volume yourself during a recording, it stays where you put it. Audio that was already muted stays muted. On Linux this needs `pactl` (PulseAudio, or PipeWire with its Pulse layer), `wpctl` (PipeWire) or `amixer` (ALSA), which nearly every desktop already has.
+
+  </Accordion>
+
+  <Accordion title="Choosing a microphone">
+    Pick your input in _Settings → Audio_. Two related options:
+
+    **Always-on microphone** (_Settings → Audio_, off by default) keeps the mic warm so the first words are never clipped, at the cost of a little battery.
+
+    **Clamshell microphone** (_Settings → Debug_) picks a different input for when a laptop lid is closed.
+
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={3}>
+  <Card title="Hold or tap" icon="hand" href="/dictation/hands-free">
+    Record without holding the keys.
+  </Card>
+
+<Card title="Output and pasting" icon="clipboard" href="/dictation/output">
+  Control how text is inserted.
+</Card>
+
+  <Card title="Custom words" icon="book" href="/dictation/custom-words">
+    Spell names and terms your way.
+  </Card>
+</CardGroup>

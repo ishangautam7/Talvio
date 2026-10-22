@@ -1,0 +1,45 @@
+.audio-waveform {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.audio-waveform.sm {
+  height: 24px;
+}
+.audio-waveform.md {
+  height: 38px;
+}
+.audio-waveform .wave-base {
+  stop-color: #c3a374;
+}
+.audio-waveform .wave-tip {
+  stop-color: #f4e7ce;
+}
+:root[data-theme="light"] .audio-waveform .wave-base {
+  stop-color: #7d6242;
+}
+:root[data-theme="light"] .audio-waveform .wave-tip {
+  stop-color: #af9066;
+}
+.audio-waveform .wave-bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 320ms ease-out;
+}
+/* Working: the same bars, a little quieter, so the slow ripple reads as the app
+   thinking rather than the microphone still listening. */
+.audio-waveform.working .wave-bar {
+  opacity: 0.78;
+}
+/* The fill sets each bar's opacity every frame. A transition there restarts on
+   every frame and drags the brightness a third of a second behind the bars,
+   which is part of what made the fill look stepped rather than smooth. */
+.audio-waveform.progress .wave-bar {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .audio-waveform .wave-bar {
+    transition: none;
+  }
+}

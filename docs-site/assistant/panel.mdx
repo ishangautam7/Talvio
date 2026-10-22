@@ -1,0 +1,77 @@
+---
+title: "The quick ask"
+sidebarTitle: "Quick ask"
+description: "Hold the ask shortcut and talk, or type a question. The answer streams into a card over the app you're in, and you can copy it, insert it, or replace your selection."
+icon: "comments"
+---
+
+Hold the ask shortcut and talk. What you said becomes the question, and the answer streams into a card over whatever app you are in. Select some text first and the answer is about it. One question, one answer, then Copy, Insert, or Replace.
+
+## Shortcuts
+
+| Action            | Windows                  | macOS         | Linux                    |
+| ----------------- | ------------------------ | ------------- | ------------------------ |
+| Ask the assistant | `Left Ctrl` + `Left Alt` | `Fn` + `Ctrl` | `Ctrl` + `Alt` + `Space` |
+
+The shortcut follows the **Hold to talk** / **Tap to toggle** switch on the Home page (and in _Settings → Shortcuts_). Hold to talk is the default: hold the keys while you talk, let go, and the answer appears.
+
+You can change the keys by clicking them on the **Assistant** page or in _Settings → Shortcuts_.
+
+## Ask by voice
+
+1. Hold the ask keys and talk.
+2. A small pill appears, showing that it is listening.
+3. Let go. The pill becomes a card and the answer streams in.
+
+If you selected text before pressing the keys, Zynveliq reads that selection and the answer is about it. A chip on the card confirms what was attached (selection, screen, or both).
+
+## Ask by typing
+
+Open the panel from the tray icon or start an ask without speaking. The pill becomes a text field. Type your question and press Enter. The rest works the same way.
+
+On Windows the panel does not take keyboard focus when it appears, so a voice ask never pulls focus from the app you are talking about. Clicking the text field or starting to type is what gives it the keyboard.
+
+## The answer card
+
+When the first token arrives the pill unfolds into a card. The answer streams in as markdown: headings, lists, code blocks with their own copy button.
+
+Three actions sit at the bottom of the card:
+
+| Action      | What it does                                                                                                |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
+| **Copy**    | Copies the answer to the clipboard.                                                                         |
+| **Insert**  | Pastes the answer at your cursor in the app behind the card.                                                |
+| **Replace** | Appears instead of Insert when you selected text before asking. Puts the answer in place of that selection. |
+
+If the ask set a reminder, the card confirms it and offers **Undo** instead of Insert.
+
+A **Retry** button re-asks the question for a fresh answer. **Stop** (while the answer is still streaming) cuts it off and keeps what was written so far.
+
+## Where it appears
+
+The card opens at a fixed spot on screen, chosen on the **Assistant** page under **Floating panel**. Five positions are available: Middle of the screen, Top, Bottom, Left side, and Right side. The default is Top.
+
+On a multi-monitor setup, the **Which screen** setting controls which display the card opens on. The default, **Where the cursor is**, places it on the monitor your mouse is on when you press the keys.
+
+**Text size** has four levels: Small, Medium, Large, and Extra large. Medium is the default.
+
+**Opacity** runs from 50% to 100% (default 100%). Lower values let the desktop show through the card.
+
+## How each ask works
+
+Every ask starts from an empty conversation. There is no follow-up field: one question, one answer. Hiding the panel clears it.
+
+To continue a conversation from an earlier ask, find it in [History](/personalize/history) and choose **Continue**. That opens a [conversation](/assistant/conversation), not another quick ask.
+
+## Esc
+
+Press Esc while the answer is streaming to stop it. The partial answer stays on the card.
+
+<CardGroup cols={2}>
+  <Card title="Conversations" icon="phone" href="/assistant/conversation">
+    A hands-free spoken conversation, for when one question is not enough.
+  </Card>
+  <Card title="Models and providers" icon="brain" href="/assistant/providers">
+    What powers the assistant and how to set it up.
+  </Card>
+</CardGroup>

@@ -1,0 +1,50 @@
+---
+title: "Debug & advanced"
+description: "How to reveal Zynveliq's hidden Debug tab, every setting in it, the --debug flag, where log files are, and what release builds keep out of the log."
+icon: "bug"
+---
+
+The Debug tab is hidden by default. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> (<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> on macOS) with the Settings window focused. A **Debug** tab appears. Press the same keys again to hide it.
+
+The shortcut only works while the Settings window has focus. It does not work from the sidebar or any other window.
+
+## What is in the Debug tab
+
+| Setting                   | Range                                          | Default        | What it does                                                                                                                                                                                   |
+| ------------------------- | ---------------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Log level                 | `Error` to `Trace`                             | `Debug`        | How much detail goes into the log file.                                                                                                                                                        |
+| Sound theme test          | The same themes as _Settings → Audio → Sounds_ | `Default`      | The sound picker repeated here so you can test themes without leaving Debug.                                                                                                                   |
+| Word correction threshold | 0.0 to 1.0                                     | 0.18           | How aggressively near-misses are snapped to your [custom words](/dictation/custom-words). Higher means more willing to match, which risks rewriting words you said.                            |
+| Paste delay               | 10 to 200 ms                                   | 60 ms          | How long to wait before pasting the transcript. Raise it if the wrong text occasionally pastes (the target app has not finished reading the clipboard).                                        |
+| Extra recording buffer    | 0 to 1500 ms                                   | 0 ms           | Keeps recording for this many milliseconds after you release the shortcut. Raise it if you consistently lose the last word. Zero by default because voice-activity detection handles the tail. |
+| Clamshell microphone      | Your input devices                             | System default | macOS laptops only. Which microphone to use when the lid is closed (Zynveliq switches automatically). The row only appears on machines with an internal battery.                               |
+
+<Note>
+  Debug mode itself does not change how Zynveliq behaves. It does add an extra
+  "After 15 seconds" choice to the model-unload dropdowns in _Settings →
+  Advanced_, so reload timing is quick to test.
+</Note>
+
+## The --debug flag
+
+Launch Zynveliq with `--debug` to raise logging to Trace for that run. It is never written to your saved settings, so the next launch returns to whatever log level is configured.
+
+`--debug` does not reveal the Debug tab. Only the keyboard shortcut above does that.
+
+From a terminal, you can also set `RUST_LOG=trace` to filter console output independently of the log level in Settings. See [Command-line flags](/settings/cli).
+
+## Where the log file is
+
+The log file is named `zynveliq` and lives in your platform's standard log directory, or in `Data/logs` in portable mode.
+
+Rather than listing paths that vary by OS and install method, Zynveliq shows you the actual folder. Go to _Settings → Privacy & data → Folders_ and click the button beside the log directory to open it in your file manager.
+
+Logs rotate at 500 KB and one previous file is kept, so they stay small. A long session can push out earlier detail, so capture the log soon after reproducing a problem.
+
+## What release builds keep out of the log
+
+The log level defaults to Debug and the file stays on disk, so the content matters. Release builds log only the length of transcripts, model replies, and search queries, never their text. In a development build, the full content is logged for debugging.
+
+This means a log file you attach to a bug report does not contain what you said. Settings contents (which include custom words, prompts, profiles, and memory notes) are also suppressed in release builds.
+
+API keys are never logged. The `SecretMap` type behind every key field redacts its contents in all builds.

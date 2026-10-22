@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Zynveliq
+Comment=Local voice dictation and AI assistant
+Exec=speak
+Icon=zynveliq
+Terminal=false
+Categories=AudioVideo;Audio;
+StartupNotify=true
+StartupWMClass=Zynveliq

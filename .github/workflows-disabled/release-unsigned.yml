@@ -1,0 +1,299 @@
+name: "Release (unsigned)"
+
+# Manually-triggered UNSIGNED release. Creates a DRAFT GitHub Release and builds
+# the mainstream desktop targets via the reusable build.yml with
+# sign-binaries: false — so it needs NO Apple/Azure certificates (build.yml
+# neutralizes the signCommand for unsigned builds). It DOES use the Tauri
+# updater key (TAURI_SIGNING_PRIVATE_KEY / _PASSWORD secrets), which is free,
+# ours, and unrelated to code signing: it signs the update bundles so
+# installed apps can update themselves. The installers attach to the draft
+# release, updater-manifest.yml writes latest.json last, and a maintainer
+# reviews and clicks "Publish".
+#
+# Trade-offs of an unsigned release (intentional, for an early build):
+#   * Windows SmartScreen warns ("unknown publisher") on a browser download.
+#     An in-app update downloads the installer itself, so it carries no
+#     Mark-of-the-Web and is not stopped by SmartScreen.
+#   * macOS Gatekeeper reports "Zynveliq is damaged and can't be opened" — the
+#     app is fine; an unsigned bundle carrying the download quarantine flag has
+#     no Apple-recognized signature, and macOS 15/26 offers no GUI override for
+#     that case. Users clear it once per installed version with
+#     `xattr -dr com.apple.quarantine /Applications/Zynveliq.app`.
+#     See the macOS section of README.md — keep the two in sync. An in-app
+#     update is downloaded by the app, not a browser, so it is not quarantined.
+#   * Installed apps from 2.0.0 onward update in place. 1.0-1.4 trusted
+#     upstream Handy's updater key and can only be reached by a manual
+#     reinstall.
+# Use the signed release.yml once signing secrets are configured
+# (Apple Developer ID + notarization, Azure Trusted Signing, updater key).
+#
+# Targets: exactly what test-build.yml has proven. Nothing is added here that
+# has not had a green Test Build run first — Test Build #8 exposed three targets
+# that release.yml had listed for months without ever building once.
+#
+# The `platforms` input trims that set to Windows + Linux, and `prerelease` marks
+# the release as a beta. Together they are what a beta needs: GitHub keeps
+# "Latest release" on the last stable version, so a prerelease is never handed to
+# someone following a download link, and no CI time is spent on macOS bundles
+# nobody can verify. Both default to the full stable behaviour, so an ordinary
+# release is unchanged.
+#
+# Deliberately absent, with reasons (see test-build.yml for the detail):
+#   * ubuntu-22.04 — cannot compile; xcap's pipewire/libspa needs newer libspa
+#     headers than 22.04 ships. The .deb is built on 24.04 instead, so it wants
+#     24.04-era glibc; older distros should use the AppImage.
+#   * .rpm — Tauri's rpm bundler omits the engine libs and an .rpm cannot be
+#     unpacked/repacked the way a .deb can.
+#   * windows-11-arm — never set up in CI. Its old blocker (whisper-rs-sys
+#     required VULKAN_SDK, and build.yml's Vulkan setup is gated to
+#     non-aarch64 Windows) went with transcribe-rs, but the static CPU-only
+#     transcribe-cpp build has not been run there yet.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-id:
+        description: >-
+          Existing draft release ID to upload into. Leave empty to have the
+          workflow create the draft itself.
+        required: false
+        type: string
+      platforms:
+        description: >-
+          Which targets to build. "windows-linux" skips both macOS runners, which
+          is the right choice for a beta nobody can test on a Mac. "windows" and
+          "linux" build one OS only, for re-running a single failed side without
+          repeating a build that already succeeded.
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - windows-linux
+          - windows
+          - linux
+      prerelease:
+        description: >-
+          Mark the release as a prerelease (beta). GitHub then keeps "Latest
+          release" pointing at the last stable version, so a beta is never handed
+          to someone who followed a download link.
+        required: false
+        default: false
+        type: boolean
+
+# WHY the release-id input exists: a GitHub Release is authored by whoever
+# created it, and that CANNOT be changed afterwards. When this workflow creates
+# the draft with the default GITHUB_TOKEN, the release is authored by
+# `github-actions[bot]` — which is what happened to v1.1.0, so the maintainer's
+# name is nowhere on it. To get proper attribution, create the draft yourself
+# first and pass its ID in:
+#
+#   gh release create v1.1.1 --draft --title v1.1.1 --notes-file NOTES.md
+#   gh release view v1.1.1 --json id --jq .id
+#   gh workflow run release-unsigned.yml -f release-id=<that id>
+#
+# Everything else is unchanged; the builds just attach to your release instead
+# of a bot's.
+
+jobs:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.resolve-release.outputs.id }}
+      version: ${{ steps.get-version.outputs.version }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Get version from tauri.conf.json
+        id: get-version
+        shell: bash
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d'"' -f4)
+          echo "Application version from tauri.conf.json: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create Draft Release
+        id: create-release
+        if: ${{ inputs.release-id == '' }}
+        uses: actions/github-script@v9
+        with:
+          script: |
+            // target_commitish: the tag is created on Publish from this
+            // field, which otherwise defaults to the default branch.
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${{ steps.get-version.outputs.version }}`,
+              name: `v${{ steps.get-version.outputs.version }}`,
+              target_commitish: context.sha,
+              draft: true,
+              prerelease: ${{ inputs.prerelease }},
+              generate_release_notes: true
+            })
+            return data.id
+
+      # Resolve which release the build jobs upload into, and refuse to touch a
+      # release whose tag does not match the version being built — uploading a
+      # 1.1.1 build into the v1.1.0 release would silently corrupt a published
+      # download.
+      - name: Resolve release id
+        id: resolve-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPPLIED_ID: ${{ inputs.release-id }}
+          CREATED_ID: ${{ steps.create-release.outputs.result }}
+          VERSION: ${{ steps.get-version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${SUPPLIED_ID}" ]; then
+            TAG="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${SUPPLIED_ID}" --jq .tag_name)"
+            AUTHOR="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${SUPPLIED_ID}" --jq .author.login)"
+            DRAFT="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${SUPPLIED_ID}" --jq .draft)"
+            echo "Supplied release ${SUPPLIED_ID}: tag=${TAG} author=${AUTHOR} draft=${DRAFT}"
+            # The tag must name the version being built, either exactly
+            # (v1.4.0) or as a prerelease of it (v1.4.0-beta.1). The trailing
+            # hyphen is required rather than a bare prefix match, so v1.4.01 and
+            # v1.4.0.1 are still refused; the point of this guard is that a 1.4.0
+            # build can never be uploaded into the v1.3.1 release.
+            if [ "${TAG}" != "v${VERSION}" ] && [ "${TAG#v${VERSION}-}" = "${TAG}" ]; then
+              echo "ERROR: release ${SUPPLIED_ID} is tagged ${TAG} but this build is v${VERSION}" >&2
+              echo "       Acceptable tags: v${VERSION} or v${VERSION}-<prerelease>" >&2
+              exit 1
+            fi
+            if [ "${DRAFT}" != "true" ]; then
+              echo "ERROR: release ${SUPPLIED_ID} is already published; refusing to overwrite its assets" >&2
+              exit 1
+            fi
+            # A draft's tag does not exist until Publish, and GitHub then
+            # creates it from target_commitish, which `gh release create`
+            # sets to the default branch unless given --target. Left alone,
+            # a release built from another branch is tagged on main, and its
+            # "Source code" downloads stop matching its installers. Pin it to
+            # the commit being built. A draft already pinned to a different
+            # commit means its other installers came from that commit, so
+            # this run would mix the two; refuse rather than guess.
+            TARGET="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${SUPPLIED_ID}" --jq .target_commitish)"
+            if TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/refs/tags/${TAG}" --jq .sha 2>/dev/null)"; then
+              if [ "${TAG_SHA}" != "${GITHUB_SHA}" ]; then
+                echo "ERROR: tag ${TAG} already exists at ${TAG_SHA}, but this run builds ${GITHUB_SHA}" >&2
+                exit 1
+              fi
+            elif [[ "${TARGET}" =~ ^[0-9a-f]{40}$ ]]; then
+              if [ "${TARGET}" != "${GITHUB_SHA}" ]; then
+                echo "ERROR: release ${SUPPLIED_ID} is pinned to ${TARGET}, but this run builds ${GITHUB_SHA}" >&2
+                echo "       Its installers would come from two different commits. Create a new draft for this commit." >&2
+                exit 1
+              fi
+            else
+              echo "Pinning release ${SUPPLIED_ID} to ${GITHUB_SHA} (it targeted '${TARGET}')"
+              gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/${SUPPLIED_ID}" \
+                -f target_commitish="${GITHUB_SHA}" > /dev/null
+            fi
+            echo "id=${SUPPLIED_ID}" >> "$GITHUB_OUTPUT"
+          else
+            echo "No release-id supplied; using the draft this workflow just created (${CREATED_ID})."
+            echo "NOTE: it will be authored by github-actions[bot], not you."
+            echo "id=${CREATED_ID}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Which targets to build, resolved here because a matrix has to be fully
+      # decided before the job that uses it starts; GitHub offers no way to skip
+      # one combination with `if`.
+      #
+      # macOS Intel is in the full set only because test-build.yml went green
+      # twice AND its Intel audit proved the bundle starts on a real Intel runner
+      # with Homebrew's onnxruntime, onnx, protobuf, re2 and abseil moved out of
+      # /usr/local/opt. That clean-room launch is what #19 needed and never had:
+      # checks on the main binary's own load commands pass on a bundle that
+      # cannot actually start.
+      #
+      # "windows-linux" drops both macOS runners. For a beta that is the honest
+      # choice when no one can test on a Mac, and it also removes the two
+      # slowest, least-verifiable jobs from a build that is already from-scratch.
+      - name: Resolve build matrix
+        id: matrix
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ALL='[
+            {"platform":"macos-26","args":"--target aarch64-apple-darwin","target":"aarch64-apple-darwin"},
+            {"platform":"macos-15-intel","args":"--target x86_64-apple-darwin","target":"x86_64-apple-darwin"},
+            {"platform":"ubuntu-24.04","args":"--bundles appimage,deb","target":"x86_64-unknown-linux-gnu"},
+            {"platform":"ubuntu-24.04-arm","args":"--bundles appimage,deb","target":"aarch64-unknown-linux-gnu"},
+            {"platform":"windows-latest","args":"","target":"x86_64-pc-windows-msvc"}
+          ]'
+          case "${PLATFORMS:-all}" in
+            windows-linux)
+              INCLUDE="$(jq -c '[.[] | select(.platform | startswith("macos") | not)]' <<<"$ALL")"
+              ;;
+            windows)
+              INCLUDE="$(jq -c '[.[] | select(.platform | startswith("windows"))]' <<<"$ALL")"
+              ;;
+            linux)
+              INCLUDE="$(jq -c '[.[] | select(.platform | startswith("ubuntu"))]' <<<"$ALL")"
+              ;;
+            all|"")
+              INCLUDE="$(jq -c '.' <<<"$ALL")"
+              ;;
+            *)
+              echo "ERROR: unknown platforms input '${PLATFORMS}'" >&2
+              exit 1
+              ;;
+          esac
+          if [ "$(jq -r 'length' <<<"$INCLUDE")" -eq 0 ]; then
+            echo "ERROR: '${PLATFORMS}' selected no targets" >&2
+            exit 1
+          fi
+          echo "Building: $(jq -r '[.[].platform] | join(", ")' <<<"$INCLUDE")"
+          echo "matrix={\"include\":${INCLUDE}}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    permissions:
+      contents: write
+    needs: create-release
+    strategy:
+      fail-fast: false
+      # Resolved in create-release, because GitHub cannot skip an individual
+      # matrix combination with `if` — the whole matrix has to be decided before
+      # the job starts. See the "Resolve build matrix" step for what each target
+      # is and why.
+      matrix: ${{ fromJSON(needs.create-release.outputs.matrix) }}
+
+    uses: ./.github/workflows/build.yml
+    with:
+      platform: ${{ matrix.platform }}
+      target: ${{ matrix.target }}
+      build-args: ${{ matrix.args }}
+      sign-binaries: false
+      asset-prefix: "zynveliq"
+      upload-artifacts: false
+      release-id: ${{ needs.create-release.outputs.release-id }}
+      # The dispatched commit, not the branch: build.yml otherwise checks out
+      # the branch head when each job starts, so a push mid-release would give
+      # each platform different code.
+      ref: ${{ github.sha }}
+      # Releases always build from scratch — never restore a possibly-stale cache.
+      no-cache: true
+    secrets: inherit
+
+  # latest.json is what makes this release reach people who already have the
+  # app. It runs even when one platform failed, so the others still update;
+  # a platform missing from the manifest simply sees no update. Re-running the
+  # failed platform re-runs this job too, which rebuilds the manifest from
+  # everything the release now holds.
+  updater-manifest:
+    permissions:
+      contents: write
+    needs: [create-release, publish]
+    if: ${{ !cancelled() && needs.create-release.result == 'success' }}
+    uses: ./.github/workflows/updater-manifest.yml
+    with:
+      release-id: ${{ needs.create-release.outputs.release-id }}
+    secrets: inherit

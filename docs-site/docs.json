@@ -1,0 +1,224 @@
+{
+  "theme": "maple",
+  "name": "Zynveliq",
+  "description": "Documentation for Zynveliq, free and open-source voice dictation and an AI assistant for Windows, macOS, and Linux: dictation, AI cleanup, the quick ask, spoken conversations, meetings, screen vision, reminders, memory, models, settings, and shortcuts.",
+  "colors": {
+    "primary": "#0A7A70",
+    "light": "#2DD4BF",
+    "dark": "#0D9488"
+  },
+  "fonts": {
+    "family": "Inter",
+    "heading": {
+      "family": "Manrope",
+      "weight": 700
+    }
+  },
+  "logo": {
+    "light": "/logo/lockup.svg",
+    "dark": "/logo/lockup-dark.svg",
+    "href": "https://zynveliq.invalid"
+  },
+  "favicon": "/favicon.png",
+  "appearance": {
+    "default": "system"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Download",
+        "href": "https://zynveliq.invalid"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/ishangautam7/zynveliq"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/ishangautam7/zynveliq",
+      "website": "https://zynveliq.invalid"
+    },
+    "links": [
+      {
+        "header": "Zynveliq",
+        "items": [
+          { "label": "Download", "href": "https://zynveliq.invalid" },
+          {
+            "label": "Releases",
+            "href": "https://github.com/ishangautam7/zynveliq/releases"
+          },
+          {
+            "label": "Repository",
+            "href": "https://github.com/ishangautam7/zynveliq"
+          }
+        ]
+      },
+      {
+        "header": "Help",
+        "items": [
+          {
+            "label": "Troubleshooting",
+            "href": "/docs/reference/troubleshooting"
+          },
+          { "label": "Privacy", "href": "/docs/reference/privacy" },
+          {
+            "label": "Report an issue",
+            "href": "https://github.com/ishangautam7/zynveliq/issues"
+          }
+        ]
+      }
+    ]
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "cursor", "mcp"]
+  },
+  "metadata": {
+    "timestamp": true
+  },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "canonical": "https://zynveliq.invalid/docs",
+      "og:site_name": "Zynveliq Documentation",
+      "og:type": "website",
+      "og:url": "https://zynveliq.invalid/docs",
+      "twitter:card": "summary_large_image"
+    },
+    "organization": {
+      "name": "Zynveliq",
+      "url": "https://zynveliq.invalid",
+      "logo": "https://zynveliq.invalid/assets/img/logo/lockup.svg",
+      "sameAs": ["https://github.com/ishangautam7/zynveliq"]
+    }
+  },
+  "search": {
+    "prompt": "Search the docs..."
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "redirects": [
+    { "source": "/dictation/translate", "destination": "/models/languages" },
+    {
+      "source": "/dictation/spoken-emoji",
+      "destination": "/dictation/text-replacements"
+    },
+    { "source": "/assistant/brain", "destination": "/assistant/providers" },
+    { "source": "/assistant/appearance", "destination": "/assistant/panel" },
+    { "source": "/models/memory", "destination": "/models/acceleration" }
+  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Start here",
+            "pages": [
+              "index",
+              "start/install",
+              "start/getting-started",
+              "start/keyboard-shortcuts",
+              "start/tour",
+              "start/how-it-works"
+            ]
+          },
+          {
+            "group": "Dictation",
+            "pages": [
+              "dictation/basics",
+              "dictation/hands-free",
+              "dictation/undo",
+              "dictation/live-transcription",
+              "dictation/output",
+              "dictation/overlay",
+              "dictation/cloud-transcription"
+            ]
+          },
+          {
+            "group": "Writing with AI",
+            "pages": [
+              "writing/ai-cleanup",
+              "writing/writing-styles",
+              "writing/generate-with-flow"
+            ]
+          },
+          {
+            "group": "Meetings",
+            "pages": ["meetings/recording", "meetings/notes"]
+          }
+        ]
+      },
+      {
+        "tab": "Assistant",
+        "icon": "messages-square",
+        "groups": [
+          {
+            "group": "The basics",
+            "pages": [
+              "assistant/panel",
+              "assistant/conversation",
+              "assistant/providers",
+              "assistant/behavior"
+            ]
+          },
+          {
+            "group": "What it can do",
+            "pages": [
+              "assistant/screen-vision",
+              "assistant/web-search",
+              "assistant/reminders",
+              "assistant/voice-output"
+            ]
+          },
+          {
+            "group": "Make it yours",
+            "pages": [
+              "personalize/profiles",
+              "personalize/memory",
+              "personalize/history",
+              "personalize/insights"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "icon": "sliders-horizontal",
+        "groups": [
+          {
+            "group": "Accuracy",
+            "pages": [
+              "dictation/custom-words",
+              "dictation/text-replacements",
+              "models/languages"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "models/transcription-models",
+              "models/acceleration",
+              "models/custom-models"
+            ]
+          },
+          {
+            "group": "Settings",
+            "pages": ["settings/general", "settings/debug", "settings/cli"]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              "reference/troubleshooting",
+              "reference/privacy",
+              "reference/about"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

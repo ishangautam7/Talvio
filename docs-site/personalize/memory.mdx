@@ -1,0 +1,76 @@
+---
+title: "Personal memory"
+description: "The assistant can remember how you work between chats, on your device, off by default. Everything it learns is visible, editable, and erasable."
+icon: "note-sticky"
+---
+
+Personal memory is **off by default**. Nothing is stored and nothing is learned until you turn it on.
+
+Turn it on from the **Assistant** page under the personal section. When it is on, everything it knows lives on your device and is yours to read, edit, or delete. Nothing is hidden from you.
+
+## Controls
+
+| Control           | Default    | What it does                                                                    |
+| ----------------- | ---------- | ------------------------------------------------------------------------------- |
+| **Remember me**   | Off        | Lets the assistant keep and use a personal memory.                              |
+| **Incognito**     | Off        | For the current conversation only, skip memory and learn nothing.               |
+| **Memory detail** | `Balanced` | How much memory is allowed into each reply. `Light`, `Balanced`, or `Detailed`. |
+
+## What it stores
+
+Two tiers:
+
+- **About you.** A short, always-on summary, like "Prefers short, direct answers. Works in Rust and TypeScript." Kept to a few sentences, included in every reply while memory is on.
+- **Notes.** Specific things worth remembering, either learned from your chats or added by you. Each note shows whether you added it or the assistant learned it.
+
+Every note is a plain text field you can edit or delete, and the summary has its own editor.
+
+## Learning
+
+Learning never runs while you are waiting for a reply. One offline pass reads the finished conversation and picks out what is worth keeping. It runs when you hide the assistant panel, when you clear the conversation, or when you click **Update memory now**. The pass reuses your active assistant provider and model, which can be the fully offline built-in engine.
+
+A conversation needs at least two of your turns before it is worth a pass, and a pass only runs if the conversation grew since the last one. Opening and closing the panel repeatedly never burns a model call on unchanged content.
+
+The extractor is told to save only facts that are durable, actionable, and explicitly stated: stable preferences, tools and languages you use, ongoing projects, your role, recurring constraints. One-off details, the assistant's own words, and anything it had to guess at are left out.
+
+## Erasing and moving it
+
+These actions are in the memory editor's menu:
+
+- **Wipe memory.** Deletes everything the assistant remembers.
+- **Export.** Saves memory as a readable JSON file. Back it up or move it to another machine.
+- **Import.** Replaces what is there. Filtered on the way in, so a hand-edited file cannot smuggle anything past the safety rules.
+
+## Memory detail
+
+This is a budget dial, not a quality dial. Each turn, memory is packed into a fixed character budget: roughly 150 tokens on `Light`, 400 on `Balanced`, and 800 on `Detailed`. The cost of having memory on stays flat no matter how much you have accumulated.
+
+The summary is reserved first, and whatever remains goes to notes. `Light` has room for little beyond the summary, `Balanced` fits a few relevant notes, and `Detailed` fits more.
+
+<Note>
+  **Safety by design.** The same filter runs at capture, at consolidation, and
+  on import. Text mentioning passwords, keys, tokens, card or ID numbers, and
+  similar secrets is refused, as is instruction-shaped text like "ignore
+  previous instructions" or "always reply...". Memory is injected into the
+  system prompt as an advisory block, labeled as such. The model is told to use
+  it only when relevant, never to let it override your current message, and not
+  to repeat it back unless you ask.
+</Note>
+
+<AccordionGroup>
+  <Accordion title="Why the assistant does not see all your notes at once">
+    For each message, Zynveliq scores every note by keyword overlap with what you said, then packs the best-matching ones into the remaining budget. Any leftover space is filled with your most recent high-confidence notes.
+
+    That keeps the assistant feeling personal on everyday questions without paying for the whole store on every turn.
+
+  </Accordion>
+
+  <Accordion title="Dedupe, decay, and the 80-note cap">
+    Memory prunes itself so it stays useful rather than just large.
+
+    - **Dedupe and merge.** A new fact that overlaps an existing note updates it instead of piling up beside it, taking the newer phrasing and the higher confidence.
+    - **Decay.** Auto-learned, low-confidence notes that have not been re-confirmed in about 45 days are forgotten. Notes you added yourself, and anything at medium or high confidence, never decay.
+    - **Hard cap.** The store tops out at 80 notes, dropping the weakest first, meaning lowest confidence and then oldest.
+
+  </Accordion>
+</AccordionGroup>

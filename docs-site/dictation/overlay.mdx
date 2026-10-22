@@ -1,0 +1,81 @@
+---
+title: "The recording overlay"
+description: "The on-screen indicator that shows Zynveliq is listening. Covers the None, Minimal, and Live styles, position, the working indicator, and platform behavior."
+icon: "window-maximize"
+---
+
+A small on-screen indicator that shows Zynveliq is recording, so you never have to guess whether it heard you. It appears on the monitor your mouse cursor is on.
+
+All overlay settings live in _Settings → Dictation → Dictation overlay_.
+
+## Overlay style
+
+| Style          | What you see                                                                        |
+| -------------- | ----------------------------------------------------------------------------------- |
+| Auto (default) | Follows the model: Live when it can stream, Minimal when it cannot.                 |
+| Live           | A readable card showing the running transcript. Interactive: scroll, select, copy.  |
+| Minimal        | A compact pill: a waveform while you speak, a working indicator while it processes. |
+| None           | No overlay.                                                                         |
+
+The style only changes what you see. A streaming model streams whichever style you pick, so its text is ready the moment you stop.
+
+A fresh install is on Auto, which is why you get the live card without configuring anything. Auto resolves to a concrete option based on the selected model. Picking any option writes that choice and overrides Auto.
+
+If Live is selected but the model cannot stream, the overlay falls back to Minimal. A non-streaming model never shows an empty live card.
+
+## Position
+
+Six positions: Top, Top left, Top right, Bottom (default), Bottom left, Bottom right. A screen-map picker in the settings shows where each sits. Setting the position to None hides the overlay.
+
+## Keep finished text on screen
+
+When using the Live card, you can choose how long it stays after a dictation finishes, so you can read or copy what was typed. Options: Briefly (1 second, the default), Standard (3 seconds), Longer (6 seconds), Much longer (10 seconds). Hovering over the card holds it open regardless of this setting. This row only appears while the Live card is the active style.
+
+## The compact pill
+
+The minimal style shows a small pill. While recording, it displays a waveform. After you stop, a working indicator fills forward while the model transcribes. If AI cleanup runs, the fill continues for the cleanup pass. The fill is calibrated from this machine's own history, not a fixed animation, so it tracks how long the work actually takes.
+
+There is no completion tick. A full, still row is the ending, because the pasted text is the real confirmation. The waveform freezes on that row while the pill fades.
+
+The pill holds briefly after the fill finishes so the run-out is visible, then fades.
+
+## The live card
+
+The live card shows committed and tentative text in two shades as you speak. After the recording stops, it shows the final text for as long as the linger setting allows. You can scroll back through the text, select a phrase, and copy it.
+
+See [Live transcription](/dictation/live-transcription) for which models stream and how cloud streaming works.
+
+## Stays on top, never takes focus
+
+The overlay stays above other windows for the entire recording. It never takes keyboard focus from the app you are dictating into. On Windows this is `WS_EX_NOACTIVATE`; on macOS a non-key panel; on Wayland compositors with layer-shell support, a surface with no keyboard mode.
+
+When a conversation is active, the recording overlay rises above the conversation bar so it does not cover the controls.
+
+## Overlay states
+
+| State                       | Meaning                                          |
+| --------------------------- | ------------------------------------------------ |
+| "Getting mic ready..."      | Recording started but no audio has arrived yet.  |
+| Waveform                    | Recording.                                       |
+| "Loading model..."          | Recording stopped, the speech model is loading.  |
+| "Transcribing..."           | Recording stopped, the model is running.         |
+| "Cleaning up..."            | AI cleanup is running.                           |
+| "Writing with Flow..."      | A Generate with Flow command is being generated. |
+| "Looking at your screen..." | A screen capture is being taken for Flow.        |
+
+A short notice appears when something did not work, for example "Flow needs an assistant model, pasted as dictation." It auto-hides after a moment. If your speech model ran on the engine Zynveliq no longer includes, a voice shortcut shows "_model_ needs an update" instead of recording, and the Models page opens on its new version. See [Models from an earlier version](/models/transcription-models#models-from-an-earlier-version).
+
+<AccordionGroup>
+  <Accordion title="Cancelling from the overlay">
+    The overlay has no cancel button. To abandon a recording, press Esc (the default Cancel shortcut on Windows and macOS). See [Hold or tap](/dictation/hands-free) for more on cancelling.
+  </Accordion>
+
+  <Accordion title="Linux: keeping the overlay on top">
+    On a native GNOME/Wayland session the overlay cannot stay above other windows. Mutter does not implement `wlr-layer-shell`, and Wayland gives apps no way to raise themselves.
+
+    Zynveliq detects GNOME on Wayland and runs under XWayland, where "keep above" works. That is automatic and needs no setup. X11 and KDE/wlroots Wayland sessions already work.
+
+    To force native Wayland anyway, launch with `ZYNVELIQ_ALLOW_WAYLAND=1`. To disable GTK layer shell under a layer-shell compositor, use `ZYNVELIQ_NO_GTK_LAYER_SHELL=1`. More in [Troubleshooting](/reference/troubleshooting).
+
+  </Accordion>
+</AccordionGroup>

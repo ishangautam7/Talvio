@@ -1,0 +1,96 @@
+---
+title: "Models and providers"
+description: "Choose what powers the assistant: an offline model on your computer, your own Ollama or LM Studio server, or a cloud provider with your API key."
+icon: "brain"
+---
+
+The assistant runs on whatever model you pick. Set it on the **Assistant** page under the model picker.
+
+| Route                     | What it means                                                                                                | Key needed |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- |
+| **On my device**          | A model downloaded through the **Models** page, running through the bundled llama.cpp engine. Fully offline. | No         |
+| **Your own local server** | Ollama or LM Studio on your machine, through their OpenAI-compatible endpoint.                               | No         |
+| **Cloud provider**        | Any supported provider, using your own API key.                                                              | Yes        |
+
+The **Assistant** page shows a toggle between **On my device** and **Cloud provider**. Switching to cloud restores whichever cloud provider you last used, so you do not lose your choice.
+
+## Built-in engine (offline)
+
+The built-in engine is llama.cpp, bundled with the app. It downloads on first use. Models are downloaded from the **Models** page.
+
+Two settings appear only for this engine:
+
+| Setting                  | Default     | Range                |
+| ------------------------ | ----------- | -------------------- |
+| Context window           | `8192`      | 512 to 32,768        |
+| Unload from memory after | `5 minutes` | Immediately to Never |
+
+A bigger context window holds more conversation history and makes screen vision and web search more reliable, at the cost of more memory. The model unloads after idle time to free RAM and VRAM, then reloads on next use.
+
+## Ollama and LM Studio
+
+Pick the **Local** provider and point it at your server's address. Ollama defaults to `http://localhost:11434/v1`, LM Studio to `http://localhost:1234/v1`. No API key is needed.
+
+## Cloud providers
+
+Every cloud provider is preconfigured. Pick it from the list and enter your key. The full list:
+
+| Provider                   | Notes                                                                                              |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| OpenAI                     |                                                                                                    |
+| Anthropic                  | Authenticated with the native `x-api-key` header.                                                  |
+| Google Gemini              |                                                                                                    |
+| Azure OpenAI               | The "model" field is your deployment name. The base URL is editable and normalized to the v1 path. |
+| AWS Bedrock (Mantle)       |                                                                                                    |
+| OpenRouter                 | The only provider with built-in [web search](/assistant/web-search) (the `:online` models).        |
+| Groq                       |                                                                                                    |
+| Cerebras                   |                                                                                                    |
+| xAI (Grok)                 |                                                                                                    |
+| DeepSeek                   |                                                                                                    |
+| Mistral                    |                                                                                                    |
+| Moonshot (Kimi)            |                                                                                                    |
+| Z.AI                       |                                                                                                    |
+| Together AI                |                                                                                                    |
+| Fireworks AI               |                                                                                                    |
+| Perplexity                 | No model-list endpoint, so Load models does nothing. Type the model name.                          |
+| Custom (OpenAI-compatible) | Editable base URL for any endpoint that speaks the OpenAI chat API.                                |
+
+Click **Load models** to fetch the provider's model list, or type any model name directly. The picker accepts values that are not in the list.
+
+## API keys
+
+Keys are stored in your operating system's keychain, not a settings file. Each provider keeps its own key, and switching providers does not lose one you already entered. See [Privacy](/reference/privacy).
+
+## Shared provider
+
+The assistant, [AI cleanup](/writing/ai-cleanup), and [Generate with Flow](/writing/generate-with-flow) share the same provider and model. Picking a provider on the **Assistant** page changes it for all three, unless AI cleanup has its own model set.
+
+<Note>
+  Apple Intelligence appears in the provider list for [AI
+  cleanup](/writing/ai-cleanup) on Apple silicon Macs, but not for the
+  assistant.
+</Note>
+
+## Assistant master switch
+
+The **Assistant** page has an on/off switch in its header. Turning it off:
+
+- Removes the assistant panel window entirely (it is destroyed, not hidden).
+- Disables both assistant shortcuts (the quick ask and the conversation). They do nothing.
+- Stops the built-in llama.cpp engine instead of leaving it idle.
+- Hides Profiles and Memory from the **Assistant** page.
+
+AI cleanup and Generate with Flow keep working, since they share the provider picker. The model picker stays visible on the **Assistant** page so you can still choose what those features run on.
+
+## Testing the connection
+
+A **Test connection** button sits at the bottom of the provider group on the **Assistant** page. It sends a throwaway question and reports whether the model answered. Use it after entering a new key or changing a model to catch a bad key, an empty balance, or a model id the endpoint does not serve, before the first real ask fails silently.
+
+<CardGroup cols={2}>
+  <Card title="Custom models" icon="hard-drive" href="/models/custom-models">
+    Add your own GGUF files or link a folder.
+  </Card>
+  <Card title="Quick ask" icon="comments" href="/assistant/panel">
+    How to use the assistant once it is set up.
+  </Card>
+</CardGroup>

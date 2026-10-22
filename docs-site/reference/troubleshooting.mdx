@@ -1,0 +1,196 @@
+---
+title: "Troubleshooting"
+description: "Fixes for common Zynveliq problems: macOS damaged-app message, stale permissions, the globe key, Windows SmartScreen, Linux overlay and hotkey issues, speech models that need an update, graphics driver problems, model downloads, and more."
+icon: "life-ring"
+---
+
+Find your symptom and open it.
+
+<AccordionGroup>
+  <Accordion title={`macOS says Zynveliq "is damaged and can't be opened"`} icon="apple">
+    The download is fine. macOS shows this message for any app that is not signed
+    with a paid Apple Developer certificate. Zynveliq is not signed yet.
+
+    One Terminal command clears the block, once per `.dmg` you download:
+
+    ```bash
+    xattr -dr com.apple.quarantine /Applications/Zynveliq.app
+    ```
+
+    Then open the app normally. Updates installed from inside the app are not
+    tagged, so they do not need this step. If you download a new `.dmg` by hand,
+    run the command again for that copy.
+
+    More detail in [Install](/start/install).
+
+  </Accordion>
+
+<Accordion
+  title="macOS permissions stopped working after an update"
+  icon="apple"
+>
+  After an update, macOS sometimes shows Zynveliq as allowed under
+  Accessibility, Microphone, or Screen Recording while no longer honoring it. If
+  a permission check in the app keeps waiting even though the toggle is on, go
+  to the relevant section in **System Settings → Privacy & Security**, click
+  **Reset permission** (or remove Zynveliq from the list), then add it back and
+  restart the app.
+</Accordion>
+
+  <Accordion title="The macOS globe key opens the emoji picker instead of dictating" icon="apple">
+    The Fn (globe) key is shared between Zynveliq and the system emoji picker.
+    Go to **System Settings → Keyboard** and set **Press 🌐 key to** to **Do
+    Nothing**. Zynveliq then gets the key press without interference.
+
+    Macs that were already on the older Option + Space defaults before the Fn
+    defaults shipped keep their Option-based shortcuts after updating. You can
+    switch to the new defaults by clicking the keys in _Settings → Shortcuts_ and
+    choosing "Use default".
+
+  </Accordion>
+
+<Accordion title="Windows SmartScreen warns about the installer" icon="windows">
+  Zynveliq's installer is not code-signed yet, so Windows SmartScreen may show a
+  warning the first time you run it. Choose **More info → Run anyway**. This
+  happens once per version.
+</Accordion>
+
+  <Accordion title="Dictation crashes or the graphics card misbehaves" icon="microchip">
+    Speech models run on your graphics card by default, in a process of their
+    own. If a graphics driver crashes it, Zynveliq stays open, finishes the
+    dictation on the processor, and keeps speech there until you restart the
+    app or change **Speech processing**. If dictations are slow or the text is
+    garbled, open _Settings → Advanced → Performance_ and set **Speech
+    processing** to **Processor (CPU)**. It is slower, but works on every
+    computer. See [GPU acceleration](/models/acceleration).
+
+    You can also use [cloud transcription](/dictation/cloud-transcription).
+
+  </Accordion>
+
+  <Accordion title="My speech model says it needs an update" icon="rotate">
+    The ONNX versions of Parakeet V2 and V3, Canary, Moonshine, SenseVoice,
+    GigaAM, and Cohere ran on an engine Zynveliq no longer includes. If one
+    of them is your speech model, open the **Models** page and choose
+    **Download new version**: you get the same model for the current engine,
+    and it becomes your speech model when the download finishes. See
+    [Models from an earlier version](/models/transcription-models#models-from-an-earlier-version).
+
+  </Accordion>
+
+  <Accordion title="A model download failed or stopped" icon="download">
+    Model downloads resume where they stopped. A `.partial` file in the models
+    folder holds the progress. Restart the download from the Models page and it
+    picks up from the last byte.
+
+    If the download keeps failing, check your network connection. Downloads fetch
+    eight chunks at once from Hugging Face (or a mirror), so a firewall blocking
+    that host would stop them. The model page shows the download's progress and
+    any error.
+
+  </Accordion>
+
+  <Accordion title="Hotkeys do nothing" icon="keyboard">
+    A few things to check:
+
+    1. **Onboarding finished?** Shortcuts are only registered after you complete
+       the first-run setup. If you closed the app partway through, open it again
+       and it picks the setup back up.
+    2. **Another app took the key?** Some apps register the same global shortcut.
+       Try recording a different shortcut in _Settings → Shortcuts_.
+    3. **Linux keyboard engine.** On Linux with the Tauri engine (the default),
+       shortcuts are registered through X11 and may only work while an X11 window
+       has focus under native Wayland. Compositor-owned shortcuts are more
+       reliable. See [Command-line flags](/settings/cli) for examples.
+    4. **Linux input group.** If you switched to the handy-keys engine and the
+       log shows `rdev grab error: PermissionDenied`, add your user to the
+       `input` group and log out:
+
+       ```bash
+       sudo usermod -aG input $USER
+       ```
+
+       Or switch the engine back to Tauri in _Settings → Advanced →
+       Experimental_.
+
+  </Accordion>
+
+  <Accordion title="The recording overlay will not stay on top (Linux)" icon="window-restore">
+    The overlay needs to float above every other window. On Linux that requires
+    `wlr-layer-shell` (Sway, Hyprland, KDE Plasma) or X11 "keep above" stacking.
+
+    GNOME on Wayland supports neither. Zynveliq detects this and runs under
+    XWayland automatically, where the overlay floats normally. No setup needed.
+
+    Two escape hatches if you need them:
+
+    - Force native Wayland: launch with `ZYNVELIQ_ALLOW_WAYLAND=1`. The
+      overlay may not stay on top.
+    - Disable layer shell: launch with `ZYNVELIQ_NO_GTK_LAYER_SHELL=1` if the
+      overlay misbehaves under a layer-shell compositor.
+
+    Setting `GDK_BACKEND` yourself always wins.
+
+  </Accordion>
+
+  <Accordion title="The app crashes on a touchpad pinch-to-zoom (Linux)" icon="hand">
+    A crash with `DrawingArea_CommitTransientZoom` in the log is a WebKitGTK bug,
+    not a Zynveliq bug. It affects many apps built on WebKitGTK and is tracked
+    in [tauri#13115](https://github.com/tauri-apps/tauri/issues/13115) and
+    [wry#544](https://github.com/tauri-apps/wry/issues/544).
+
+    Avoid pinch-to-zoom inside the app window until there is an upstream fix.
+    Updating your system's `webkit2gtk-4.1` packages can help.
+
+  </Accordion>
+
+  <Accordion title="A meeting only records my side of the call (macOS)" icon="phone">
+    macOS gives apps no direct way to record system audio. Windows has WASAPI
+    loopback and Linux has PulseAudio/PipeWire monitor sources, but a Mac needs a
+    virtual audio device.
+
+    Install a loopback driver like
+    [BlackHole](https://github.com/ExistentialAudio/BlackHole), create a
+    Multi-Output Device in Audio MIDI Setup that sends sound to both your speakers
+    and BlackHole, and make it your output. Zynveliq can then record the other
+    side of the call. Your microphone is recorded either way.
+
+  </Accordion>
+
+  <Accordion title="Cloud transcription returns an error" icon="cloud">
+    Check three things:
+
+    1. **API key.** Make sure the key is entered for the right provider in the
+       cloud transcription settings on the Models page.
+    2. **Model.** Some providers have separate model namespaces for transcription.
+       OpenRouter, for example, requires the `vendor/model` slug (like
+       `openai/whisper-large-v3`).
+    3. **Base URL.** For Azure AI Speech, the URL must point to your own resource
+       in a region that supports MAI-Transcribe.
+
+  </Accordion>
+
+  <Accordion title="The assistant's voice is not working in a conversation" icon="volume-xmark">
+    A [conversation](/assistant/conversation) speaks every reply regardless of the
+    "Read answers aloud" switch. If you hear nothing:
+
+    1. Check that a voice is selected on the **Assistant** page under Voice.
+    2. If you use a cloud voice engine (not Kokoro or another local voice), make
+       sure the engine has an API key and the key works.
+    3. On Linux, check that your audio output device is working. The output
+       device in _Settings → Audio_ is for feedback sounds only. The assistant
+       uses the system default output.
+
+  </Accordion>
+
+  <Accordion title="The wrong text pastes, or my last words get clipped" icon="clipboard">
+    Raise the paste delay and the extra recording buffer in
+    [Debug settings](/settings/debug).
+
+    If one specific app misbehaves with clipboard paste, try the **Direct**
+    [paste method](/dictation/output).
+
+  </Accordion>
+</AccordionGroup>
+
+Still stuck? Open an [issue](https://github.com/ishangautam7/zynveliq/issues) with your log level raised to Debug or Trace. See [Debug & advanced](/settings/debug) for where the log file is.

@@ -1,0 +1,65 @@
+---
+title: "How Zynveliq works"
+description: "How dictation, the assistant, and conversations work under the hood: what runs on your machine, what touches the network, and where your data goes."
+icon: "diagram-project"
+---
+
+Zynveliq sits in your system tray and does nothing until you press a shortcut. You never switch to it to dictate. It is a layer over whatever app you are already in.
+
+## The dictation pipeline
+
+<Steps>
+  <Step title="Microphone" icon="microphone">
+    Audio is captured from the input device you picked in _Settings → Audio_.
+  </Step>
+
+<Step title="Voice activity detection" icon="filter">
+  Silero VAD filters out silence, so pauses while you think do not become gaps
+  in your text.
+</Step>
+
+  <Step title="Speech to text" icon="microchip">
+    A local model (Parakeet, Whisper, Nemotron, or any other of the 69 in the catalog) turns the audio into text on transcribe.cpp, using your GPU or your CPU. See [Acceleration](/models/acceleration).
+
+    If you pick a [cloud speech service](/dictation/cloud-transcription) instead, the audio is sent to that provider. Nothing else in the pipeline changes.
+
+  </Step>
+
+<Step title="AI cleanup (optional)" icon="wand-magic-sparkles">
+  When [AI cleanup](/writing/ai-cleanup) is on, the transcript is handed to a
+  language model that removes filler, fixes grammar, and follows spoken edits.
+  This runs on whichever model you chose for cleanup: the built-in engine (fully
+  local), your own Ollama or LM Studio server, or a cloud provider.
+</Step>
+
+  <Step title="Text into the active app" icon="clipboard">
+    The finished text is pasted at your cursor via the clipboard, or typed directly. See [Output](/dictation/output).
+  </Step>
+</Steps>
+
+With a local speech model and the built-in cleanup engine, nothing in that chain touches the network.
+
+## The assistant
+
+When you ask the assistant a question (the [quick ask](/assistant/panel)), the question goes to whichever model you chose:
+
+- **Built-in engine.** A local llama.cpp process. No key, no network.
+- **A local server.** Ollama or LM Studio on your own machine.
+- **A cloud provider.** Your own API key for OpenAI, Anthropic, Google, or any OpenAI-compatible endpoint. See [Providers](/assistant/providers).
+
+The model gets a small set of tools (the current date and time, plus [web search](/assistant/web-search) and [screen capture](/assistant/screen-vision) if you turned them on) and decides per question whether it needs them. The loop is bounded, so a turn cannot run away.
+
+The quick ask is one question and one answer, with Copy, Insert, or Replace. [Conversations](/assistant/conversation) are the longer-form mode: you talk, the assistant answers out loud, and you can go back and forth hands-free.
+
+## What stays local, what goes to the cloud
+
+| Data                | Local model                                                       | Cloud provider                                                                 |
+| ------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Voice recordings    | Processed on your machine. Never uploaded.                        | Sent to the speech service you chose.                                          |
+| Transcripts         | Stay on your machine.                                             | Stay on your machine after the response.                                       |
+| Assistant questions | Processed on your machine.                                        | Sent to the provider, along with any selected text.                            |
+| Screenshots         | Captured and discarded locally if the model does not ask for one. | Sent to the provider only when the model asks for one and screen vision is on. |
+| Web search queries  | Not applicable.                                                   | Sent to the search provider you chose.                                         |
+| Memory              | Stored on your machine. Never uploaded.                           | Used in the prompt sent to the provider, if memory is on.                      |
+
+There is no telemetry, no analytics, and no account. More detail is in [Privacy](/reference/privacy).

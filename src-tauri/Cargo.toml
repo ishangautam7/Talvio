@@ -1,0 +1,506 @@
+[package]
+name = "zynveliq"
+version = "2.2.0"
+description = "Zynveliq"
+authors = ["Ishan Gautam"]
+edition = "2021"
+license = "MIT"
+default-run = "zynveliq"
+
+[features]
+# Tauri serves `build.devUrl` unless its production custom protocol is enabled.
+# The CLI enables this for packaged builds; source installers and other direct
+# Cargo release builds must opt in explicitly.
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.dev]
+incremental = true # Compile your binary in smaller steps.
+# Our own crate at a moderate optimisation level. The audio pipeline in
+# `audio_toolkit` — sample-format conversion, ring buffers, resampling, the VAD
+# feed — is numeric loops in *this* crate, so optimising only dependencies leaves
+# the hottest per-frame code unoptimised.
+#
+# Measured on this crate (Ryzen 7 7700X, warm incremental rebuild after a one-line
+# edit): 11.3s at level 2, against 12.9s at level 1, so level 2 costs nothing in
+# the edit loop. Level 3 is a slower cold build for little further gain. Level 0
+# builds in 40s but reinstates exactly the "dictation takes many seconds and looks
+# like a regression" trap that `[profile.dev.package."*"]` below exists to avoid.
+#
+# **If a dev build then fails to link** with
+#
+#   error LNK2019: unresolved external symbol anon.<hash>.<n>.llvm.<id>
+#   fatal error LNK1120: <n> unresolved externals
+#
+# the code is fine and the incremental cache is stale. At any opt-level above 0
+# rustc runs ThinLTO across this crate's codegen units, which renames private
+# constants to `<name>.llvm.<id>` so one unit can import a function from another.
+# Incremental compilation can then reuse a cached, already-optimised object that
+# still imports such a constant after the unit defining it was re-partitioned away
+# (rust-lang/rust#45929). The session is saved before linking, so every retry fails
+# identically until the cache goes:
+#
+#   cargo clean -p zynveliq      # then rebuild; only this crate recompiles (~2 min)
+#
+# Changing opt-level does not prevent it (it recurred at level 2 on 2026-09-30);
+# a profile change only appears to fix it because it discards the cache.
+# `incremental = false` does prevent it, at the price of a ~4 min full rebuild on
+# every edit.
+opt-level = 2
+
+# Full debug info on THIS crate is 390 MB of PDB that nothing reads. The app is
+# debugged through `log!`, not a breakpoint debugger, so the only part of
+# debuginfo that earns its cost is the line table that makes a panic backtrace
+# name a file and line. Measured on a one-line edit (median of 3 warm rebuilds,
+# 65k-line crate, Ryzen 7 7700X): 15.8s with `debug = 2` against 12.9s with line
+# tables only. Scoped to this package so all 878 dependencies stay cached — a
+# `debug` key on `[profile.dev]` itself would invalidate every one of them.
+#
+# Drop to `debug = 0` only if you also stop wanting line numbers in backtraces;
+# it measured no faster than this once the incremental cache was warm.
+[profile.dev.package.zynveliq]
+debug = "line-tables-only"
+
+# Build every DEPENDENCY optimised, even in a dev build. Our own crate stays at
+# opt-level 0, so incremental rebuilds and debugging are unaffected.
+#
+# This is not a nicety. At opt-level 0 the whole speech pipeline — transcribe.cpp
+# inference, Silero VAD, `rubato` resampling, `image` encode — runs
+# roughly an order of magnitude slower than the shipped release build. A `tauri dev`
+# session then feels catastrophically broken: dictation that takes well under a
+# second in the real app sits there for many seconds, and it looks exactly like a
+# regression in the app rather than an artefact of the build profile. Anyone testing
+# a change reasonably concludes the change made things slow.
+#
+# Dependencies are compiled once and cached, so the cost is a slower first build and
+# nothing after that.
+[profile.dev.package."*"]
+opt-level = 3
+
+# Kept explicitly as well as the blanket rule above, because the reason is specific:
+# screenshot resize/encode is pure pixel math, and unoptimized it costs SECONDS per
+# capture on a 1440p+ display.
+[profile.dev.package.image]
+opt-level = 3
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "zynveliq_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+# [[bin]]
+# name = "cli"
+# path = "src/audio_toolkit/bin/cli.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+
+[dependencies]
+once_cell = "1"
+tauri = { version = "2.10.2", features = [
+  "protocol-asset",
+  "macos-private-api",
+  "tray-icon",
+  'image-png',
+] }
+tauri-plugin-log = "2.7.1"
+tauri-plugin-opener = "2.5.2"
+tauri-plugin-store = "2.4.1"
+tauri-plugin-os = "2.3.2"
+tauri-plugin-clipboard-manager = "2.3.2"
+tauri-plugin-macos-permissions = "2.3.0"
+tauri-plugin-process = "2.3.1"
+rusqlite_migration = "2.3"
+tauri-plugin-fs = "2.4.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+cpal = "0.16.0"
+anyhow = "1.0.95"
+rubato = "0.16.2"
+hound = "3.5.1"
+# MP3 encoding for cloud transcription uploads (see `stt_cloud::encode_mp3_16k_mono`).
+# Builds the bundled LAME 3.100 from source: autotools on macOS/Linux, `cc` on
+# Windows, so there is no system library to install. LAME and these bindings are
+# LGPL-3.0; it is statically linked, which the LGPL permits as long as users can
+# rebuild against a modified LAME — they can, since this whole app is open source.
+mp3lame-encoder = "0.2.5"
+log = "0.4.25"
+env_filter = "0.1.0"
+tokio = { version = "1.43.0", features = [
+  "sync",
+  "macros",
+  "time",
+  "rt",
+  "net",
+  "io-util",
+] }
+vad-rs = { git = "https://github.com/cjpais/vad-rs", default-features = false }
+enigo = "0.6.1"
+rodio = { git = "https://github.com/cjpais/rodio.git" }
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
+# WebSocket client for realtime cloud speech-to-text (ElevenLabs Scribe v2
+# Realtime, Deepgram streaming). `native-tls` deliberately reuses the TLS stack
+# reqwest's default-tls already pulls in, so this adds a protocol client and not
+# a second TLS implementation. Pinned exactly (pre-1.0, breaking minor bumps).
+tokio-tungstenite = { version = "=0.30.0", features = ["native-tls"] }
+futures-util = "0.3"
+rustfft = "6.4.0"
+# Speaker diarization for meetings.
+#
+# `ort` is already in the graph through `vad-rs` (Silero VAD), which pins this
+# exact version with its default features, which include `download-binaries`:
+# a prebuilt, statically linked ONNX Runtime. Naming it directly therefore adds
+# NO new native build dependency on any target; it only lets `meetings::diarize`
+# open its own session instead of borrowing one through vad-rs. Pinned exactly,
+# in lockstep with vad-rs, because an rc bump would otherwise split the graph in
+# two and link two ONNX Runtimes into one binary.
+ort = "=2.0.0-rc.12"
+# Tensor construction at the `ort` boundary. Must stay on the same minor as ort's
+# own `ndarray` feature or `Value::from_array` stops type-checking.
+ndarray = "0.17"
+# Agglomerative hierarchical clustering (a port of fastcluster). Chosen for what
+# it does not bring: zero runtime dependencies, pure Rust, no native build.
+# Speaker clustering is one `linkage` call plus a flat cut written here, since
+# kodama has no `fcluster` equivalent.
+kodama = "0.3"
+strsim = "0.11.0"
+natural = "0.5.0"
+regex = "1"
+chrono = "0.4"
+rusqlite = { version = "0.37", features = ["bundled"] }
+tar = "0.4.44"
+flate2 = "1.0"
+zip = "2"
+sha2 = "0.10"
+# Amazon Transcribe streaming (stt_aws.rs) without the AWS SDK: HMAC-SHA256 for
+# the SigV4-presigned WebSocket URL, CRC32 for its event-stream framing. Both are
+# already in the graph through other crates; pinned to the versions the lockfile
+# resolves, so they add no new build.
+hmac = "=0.12.1"
+crc32fast = "=1.5.0"
+# Native local voice (native_tts.rs). sherpa-onnx is downloaded with the first
+# voice pack and loaded at runtime rather than linked, because the app already
+# links ONNX Runtime statically through `ort`. Both crates are already in the
+# graph (libloading via transitive deps, bzip2 via `zip`), so they add no new
+# native build; pinned to the versions the lockfile already resolves.
+libloading = "=0.8.9"
+bzip2 = "=0.5.2"
+# transcribe.cpp (ggml/GGUF) is the only speech-to-text engine: every local
+# model, the legacy whisper.cpp `.bin` files included, loads through it. This
+# base declaration is backend-less: default-features=false drops the macOS
+# "metal" default, so per-platform GPU backends are opted-in only in the target
+# sections below. Pinned exactly (pre-1.0 ABI). `serde` is what lets run and
+# stream options, transcripts and capabilities cross to the transcription
+# worker process (`engine_supervisor`), as upstream Handy enables it.
+transcribe-cpp = { version = "=0.4.0", default-features = false, features = [
+  "serde",
+] }
+# The transcription worker claims its stdout through the C runtime's
+# descriptors (`dup`/`dup2`) on every platform and leaves with `_exit`; Unix
+# also uses it to reap an orphaned llama-server (`kill`, `proc_pidpath`).
+# Already in the graph through other crates; pinned to the version the
+# lockfile resolves.
+libc = "=0.2.182"
+handy-keys = "0.2.4"
+ferrous-opencc = "0.2.3"
+clap = { version = "4", features = ["derive"] }
+specta = "=2.0.0-rc.22"
+specta-typescript = "0.0.9"
+tauri-specta = { version = "=2.0.0-rc.21", features = ["derive", "typescript"] }
+tauri-plugin-dialog = "2.6"
+xcap = { version = "0.9.6", default-features = false, features = ["image"] }
+base64 = "0.22.1"
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg"] }
+
+[target.'cfg(unix)'.dependencies]
+signal-hook = "0.3"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-autostart = "2.5.1"
+tauri-plugin-global-shortcut = "2.3.1"
+tauri-plugin-single-instance = "2.3.2"
+tauri-plugin-updater = "2.10.0"
+# Checks the update's signature after `updates.rs` downloads it itself (the
+# plugin only verifies what its own single-connection download fetched). The
+# same crate and version the updater plugin already pulls in.
+minisign-verify = "=0.2.4"
+
+[target.'cfg(windows)'.dependencies]
+# Secure API-key storage via the Windows Credential Manager. `windows-native`
+# uses windows-sys (no extra C/system build dependency).
+keyring = { version = "3", features = ["windows-native"] }
+# Reaches ICoreWebView2Settings3 through each webview's controller, to switch
+# off WebView2's browser accelerator keys (lib.rs). Must stay on the version
+# wry links against, or the COM types differ and the cast will not compile.
+webview2-com = "0.38.2"
+windows = { version = "0.61.3", features = [
+  "Win32_Media_Audio_Endpoints",
+  "Win32_System_Com_StructuredStorage",
+  "Win32_System_SystemInformation",
+  "Win32_System_Variant",
+  "Win32_Foundation",
+  "Win32_UI_WindowsAndMessaging",
+  # Job Objects: tie the bundled llama-server child to the app's lifetime so it
+  # is killed on crash/force-kill (orphan-process cleanup, see local_llm.rs).
+  "Win32_System_JobObjects",
+  "Win32_Security",
+  # Process snapshots (see meetings/call_detect.rs): our own WebView2 children
+  # hold the microphone during an assistant voice call, and the call detector
+  # has to recognise them as ours rather than offering to record them.
+  "Win32_System_Diagnostics_ToolHelp",
+  # Selection capture (see selection.rs): `GetClipboardSequenceNumber` proves a
+  # synthetic copy actually landed, so a copy the target app ignored can never be
+  # mistaken for the user's stale clipboard contents.
+  "Win32_System_DataExchange",
+  # `GetAsyncKeyState`, to see which modifiers the user is physically holding.
+  # The assistant hotkey itself contains Ctrl, so a synthetic Ctrl+C fired while
+  # it is held would be read as a different combo entirely.
+  "Win32_UI_Input_KeyboardAndMouse",
+  # UI Automation, for auto-learn from corrections (see `autolearn`): reads the
+  # text of the field just dictated into so a word the user fixes by hand can be
+  # learned. Read-only, and only for the field the app itself pasted into.
+  "Win32_UI_Accessibility",
+  # Smart spacing (see smart_spacing/windows.rs): the foreground process's
+  # executable name, so a terminal is recognised and never read.
+  "Win32_System_Threading",
+  # Paste that restores the clipboard only after the target read it (see
+  # paste_tx/windows.rs): delayed rendering on a message-only window needs a
+  # window class (Gdi), global memory for clipboard data, and the module
+  # handle. tao already enables all three on this same `windows` version, so
+  # nothing extra is compiled.
+  "Win32_Graphics_Gdi",
+  "Win32_System_Memory",
+  # The module handle above, and `GetProcAddress` for `IsWow64Process2`,
+  # resolved at run time so the x64 build can tell it is emulated on a Windows
+  # on ARM PC and keep speech off the GPU there (managers/transcription.rs,
+  # Handy #1731).
+  "Win32_System_LibraryLoader",
+  # The Share panel for an Insights card (see share_sheet.rs): the data
+  # package handed to it, and the image file it carries. Its interop interface
+  # is in Win32_UI_Shell, which tao already enables, so it costs nothing.
+  "Win32_UI_Shell",
+  "ApplicationModel_DataTransfer",
+  "Storage",
+  "Storage_Streams",
+] }
+# The list and the async operation the Share panel's data takes, at the
+# versions `windows` above already uses (it does not re-export them).
+windows-collections = "=0.2.0"
+windows-future = "=0.2.1"
+winreg = "0.55"
+# Clipboard writes that opt out of Win+V history and cloud clipboard sync
+# (`SetExtWindows`, see clipboard.rs `write_transient_clipboard_text`). Already in
+# the graph through tauri-plugin-clipboard-manager; pinned to the version the
+# lockfile resolves so both share one copy.
+arboard = { version = "=3.6.1", default-features = false }
+
+# transcribe.cpp Windows x86_64 backends: dynamic (loadable) backend DLLs +
+# Vulkan GPU acceleration. Build-time prereqs: cmake, Vulkan SDK, and
+# SPIRV-Headers (the Vulkan SDK bundles SPIRV-HeadersConfig.cmake; point
+# CMAKE_PREFIX_PATH at the SDK). Windows aarch64 uses the static CPU-only
+# table just below.
+[target.'cfg(all(windows, target_arch = "x86_64"))'.dependencies]
+transcribe-cpp = { version = "=0.4.0", default-features = false, features = [
+  "dynamic-backends",
+  "vulkan",
+] }
+
+# transcribe.cpp Windows aarch64 (Windows-on-ARM): STATIC, CPU-only (no
+# features → the single portable ggml CPU backend is compiled into
+# zynveliq.exe, zero DLLs shipped). Rationale (mirrors Handy):
+#   * Adreno Vulkan drivers on WoA are immature, and ggml-vulkan's shader
+#     generator (vulkan-shaders-gen) does not build under the clang-cl/lld
+#     toolchain that ggml's ARM CPU backend requires — so `vulkan` is out.
+#   * `dynamic-backends` buys nothing on ARM: GGML_CPU_ALL_VARIANTS is an x86
+#     concept, so a DL build there is just one portable CPU module shipped as a
+#     DLL. Linking statically ships zero DLLs and sidesteps the installer's
+#     per-DLL signtool verify entirely.
+# CI pins `-DGGML_NATIVE=OFF -DGGML_OPENMP=OFF` via TRANSCRIBE_CMAKE_ARGS (see
+# .github/workflows/build.yml): GGML_NATIVE=OFF targets a portable ARM baseline
+# instead of the build runner's CPU, and GGML_OPENMP=OFF avoids clang-cl's
+# unresolved LLVM-OMP externals in the static link. This entry is explicit (even
+# though it equals the backend-less base `[dependencies]` declaration) to
+# document the WoA posture and keep it from silently drifting.
+[target.'cfg(all(windows, target_arch = "aarch64"))'.dependencies]
+transcribe-cpp = { version = "=0.4.0", default-features = false }
+
+# Arch-independent macOS dependencies. The GPU/engine backends are NOT here —
+# they differ by architecture and live in the two tables below, because cargo
+# features are additive and unified: a feature enabled in this table could never
+# be turned back off for one architecture.
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+# Secure API-key storage via the macOS Keychain. `apple-native` uses the
+# system Security framework (no extra C/system build dependency).
+keyring = { version = "3", features = ["apple-native"] }
+# Smart spacing (see smart_spacing/macos.rs): reads the few characters around
+# the caret of the field a dictation is pasted into, through the Accessibility
+# API Zynveliq already has permission for. Same objc2 family and version as
+# the rest of the graph.
+objc2-application-services = { version = "=0.3.2", default-features = false, features = [
+  "std",
+  "libc",
+  "HIServices",
+  "AXUIElement",
+  "AXValue",
+  "AXError",
+] }
+objc2-core-foundation = { version = "=0.3.2", default-features = false, features = [
+  "std",
+  "CFBase",
+  "CFString",
+  "CFNumber",
+  "CFArray",
+] }
+# The Share menu for an Insights card (see share_sheet.rs): AirDrop,
+# Messages, Mail and the rest, shown beside the button that asked for it.
+# `objc2-core-foundation` brings the geometry types (NSPoint, NSRect, NSSize)
+# and `NSView::bounds`.
+objc2 = "=0.6.4"
+objc2-foundation = { version = "=0.3.2", default-features = false, features = [
+  "std",
+  "objc2-core-foundation",
+  "NSArray",
+  "NSGeometry",
+  "NSObject",
+  "NSString",
+  "NSURL",
+] }
+objc2-app-kit = { version = "=0.3.2", default-features = false, features = [
+  "std",
+  "objc2-core-foundation",
+  "NSResponder",
+  "NSSharingService",
+  "NSView",
+] }
+# Audio ducking (see audio_toolkit/ducking/macos.rs): reads the default output
+# device id, so a volume is only put back on the device it was lowered on.
+objc2-core-audio = { version = "=0.3.2", default-features = false, features = [
+  "std",
+  "AudioHardware",
+] }
+
+# macOS aarch64 (Apple Silicon, M1+) — the shipping macOS target.
+# STATIC with the Metal GPU backend compiled in (Apple's default posture).
+# `metal` does NOT imply `shared`, so there are no runtime libs to ship —
+# build.rs staging is a no-op here and nothing extra is bundled.
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+transcribe-cpp = { version = "=0.4.0", default-features = false, features = [
+  "metal",
+] }
+
+# macOS x86_64 (Intel) — STATIC, CPU-only. Deliberately NO Metal, for two
+# independent reasons:
+#   * Correctness: ggml's Metal backend targets Apple Silicon. Upstream guidance
+#     for x86_64 macOS is to build with Metal OFF, and llama.cpp/whisper.cpp
+#     carry open reports of Metal (and MoltenVK-Vulkan) producing corrupted
+#     output or failing to build on Intel Macs with AMD/Intel GPUs. A GPU path
+#     that returns garbage transcripts is worse than a slower correct one.
+#   * Hardware spread: Intel Macs span ~2013-2020 with wildly different GPUs, so
+#     there is no single GPU posture that is safe across the fleet.
+# The CPU backend is the portable one, so Intel Macs transcribe on CPU. Small
+# Whisper models are usable; large ones are slow. This is documented in README.
+#
+# This table is explicit even though it matches the backend-less base
+# `[dependencies]` declaration, so the CPU-only posture is recorded and cannot
+# drift silently — same rationale as the Windows-on-ARM table above.
+#
+# NOTE: Intel macOS is also the ONE target where ONNX Runtime (still linked
+# through `ort`, for Silero VAD and meeting diarization) is linked DYNAMICALLY
+# rather than statically embedded, because pykeio/ort dropped prebuilt
+# x86_64-apple-darwin binaries. See BUILD.md and the
+# "Stage ONNX Runtime for Intel macOS" step in .github/workflows/build.yml.
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
+transcribe-cpp = { version = "=0.4.0", default-features = false }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk-layer-shell = { version = "0.8", features = ["v0_6"] }
+gtk = "0.18"
+# Already in the graph through wry; named here so the assistant panel can answer
+# WebKitGTK's microphone permission request (see assistant.rs).
+webkit2gtk = "=2.0.2"
+# Selection capture on Wayland (see selection.rs): reads the compositor's primary
+# selection over data-control, because XWayland's PRIMARY does not hold a native
+# Wayland app's selection. Already in the graph through arboard; pinned to the
+# version the lockfile resolves so both share one copy.
+wl-clipboard-rs = "=0.9.3"
+# Smart spacing (see smart_spacing/linux.rs): reads the few characters around
+# the caret of the focused field over AT-SPI, which works on X11 and Wayland
+# alike. Pure Rust over zbus, which is already in the graph.
+atspi = { version = "=0.30.0", default-features = false, features = [
+  "proxies",
+  "connection",
+  "wrappers",
+  "tokio",
+] }
+# transcribe.cpp Linux: dynamic (loadable) backend .so modules + Vulkan GPU
+# acceleration (the `dynamic-backends` posture, same as Windows x86_64). Ships a
+# shared libtranscribe.so + loadable ggml backend modules; build.rs bakes a
+# `$ORIGIN/../lib` rpath into the binary and CI (scripts/ci/stage-transcribe-libs.sh)
+# co-locates the modules under /usr/lib so init_backends_default() finds them.
+# Build-time prereqs: cmake + Vulkan SDK + libvulkan-dev.
+transcribe-cpp = { version = "=0.4.0", default-features = false, features = [
+  "dynamic-backends",
+  "vulkan",
+] }
+# Secure API-key storage via the Secret Service (GNOME Keyring / KWallet).
+# `async-secret-service` + `crypto-rust` use the pure-Rust zbus + RustCrypto
+# stack, so the Linux build needs NO libdbus/OpenSSL system headers (keeps the
+# export/CI build self-contained). keyring access is funnelled onto a worker
+# thread in secret_store.rs because this backend can deadlock if called on the
+# main/runtime thread. Absent Secret Service (headless) is handled at runtime
+# by falling back to the settings file.
+keyring = { version = "3", features = [
+  "async-secret-service",
+  "tokio",
+  "crypto-rust",
+] }
+
+# Upstream Handy's tauri fork/patch branch. Required build dependency (not
+# our branding) — cjpais maintains a patched tauri-runtime that this app
+# still depends on for its Tauri 2.10.2 fixes.
+[patch.crates-io]
+tauri-runtime = { git = "https://github.com/cjpais/tauri.git", branch = "handy-2.10.2" }
+tauri-runtime-wry = { git = "https://github.com/cjpais/tauri.git", branch = "handy-2.10.2" }
+tauri-utils = { git = "https://github.com/cjpais/tauri.git", branch = "handy-2.10.2" }
+# Vendored handy-keys with three Windows fixes and a Linux engine of its own.
+#
+# 1. OS-level stuck keys: the low-level hook now blocks a key's UP (and
+#    auto-repeats) if-and-only-if it blocked that key's DOWN, instead of
+#    re-evaluating the hotkey match per event. Re-evaluating desyncs down/up
+#    whenever modifiers change mid-press (sloppy press order, tap-to-lock Shift
+#    taps, hotkeys registered mid-hold) and left keys "pressed forever"
+#    system-wide. See vendor/handy-keys/src/platform/windows/listener.rs.
+# 2. The app's own synthetic keystrokes are no longer matched against hotkeys
+#    while it is injecting them (`ignore_injected_input`). The assistant harvests
+#    the focused app's selection with a synthetic Ctrl+C at recording start, and
+#    that injected Ctrl key-up came back through our own hook and read as the user
+#    releasing the modifier-only `Ctrl+Alt` hotkey — ending a hold-to-talk
+#    recording ~30 ms after it began. See vendor/handy-keys/src/injected.rs.
+# 3. Modifiers a blocking hook withholds (the assistant's Ctrl+Alt) are shared
+#    with every other listener in the process. Windows reports withheld keys
+#    as up, so the Settings recorder read a held Ctrl+Alt as released when C
+#    went down, and recording Ctrl+Alt+C saved Ctrl+Alt ("Hotkey already
+#    registered"). See vendor/handy-keys/src/platform/withheld.rs.
+# 4. Linux reads input devices through its own evdev engine instead of rdev's
+#    grab (vendor/handy-keys/src/platform/linux/engine.rs). rdev's ended for good
+#    whenever an input device appeared, so a keyboard reconnecting killed every
+#    shortcut until a restart; and it took every device over at once, so a key
+#    held at that instant (Super, when the app is opened with Super+S) stayed
+#    pressed in the compositor. Keyboards are now taken over one at a time and
+#    only while no key on them is held.
+handy-keys = { path = "vendor/handy-keys" }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "unwind"

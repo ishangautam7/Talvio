@@ -1,0 +1,112 @@
+name: "Release"
+
+# Manually-triggered release: create a draft GitHub release, then build + sign +
+# audit every platform via the reusable build.yml. Mirrors upstream Handy's
+# release.yml (adapted asset-prefix). Releases build from scratch (no-cache) so a
+# stale cached native lib can never be linked into a shipped artifact.
+on: workflow_dispatch
+
+jobs:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.create-release.outputs.result }}
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Get version from tauri.conf.json
+        id: get-version
+        shell: bash
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d'"' -f4)
+          echo "Application version from tauri.conf.json: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # target_commitish: a draft's tag does not exist yet. GitHub creates it on
+      # Publish, from this field, which otherwise defaults to the default
+      # branch, so a release built from another branch was tagged on main.
+      - name: Create Draft Release
+        id: create-release
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${{ steps.get-version.outputs.version }}`,
+              name: `v${{ steps.get-version.outputs.version }}`,
+              target_commitish: context.sha,
+              draft: true,
+              prerelease: false,
+              generate_release_notes: true
+            })
+            return data.id
+
+  publish:
+    permissions:
+      contents: write
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-26" # Arm-based macs (M1+). macOS 26 for the Apple Intelligence SDK.
+            args: "--target aarch64-apple-darwin"
+            target: "aarch64-apple-darwin"
+          # Only targets proven green by test-build.yml belong here. Test Build #8
+          # showed that Intel macOS, ubuntu-22.04, .rpm and windows-11-arm had all
+          # been listed in this matrix without ever building once:
+          #   * Intel macOS — shipping from release-unsigned.yml since 1.3.0, once
+          #     its audit proved the bundle starts on a real Intel runner with
+          #     Homebrew's dylibs moved aside. Not added here because this signed
+          #     path needs an Apple certificate for the extra target and none has
+          #     been exercised for x86_64 yet.
+          #   * ubuntu-22.04 — xcap's pipewire/libspa cannot compile against
+          #     22.04's older libspa headers (E0560 on spa_video_info_raw.flags).
+          #     .deb is built on 24.04 instead.
+          #   * .rpm — Tauri's rpm bundler omits libtranscribe.so and the ggml
+          #     backends, and an .rpm cannot be unpacked/repacked like a .deb.
+          #   * windows-11-arm — not yet exercised in CI. Its old blocker
+          #     (whisper-rs-sys required VULKAN_SDK) went with transcribe-rs.
+          - platform: "ubuntu-24.04" # AppImage + .deb, x86_64
+            args: "--bundles appimage,deb"
+            target: "x86_64-unknown-linux-gnu"
+          - platform: "ubuntu-24.04-arm" # AppImage + .deb, ARM64
+            args: "--bundles appimage,deb"
+            target: "aarch64-unknown-linux-gnu"
+          - platform: "windows-latest"
+            args: ""
+            target: "x86_64-pc-windows-msvc"
+
+    uses: ./.github/workflows/build.yml
+    with:
+      platform: ${{ matrix.platform }}
+      target: ${{ matrix.target }}
+      build-args: ${{ matrix.args }}
+      sign-binaries: true
+      asset-prefix: "zynveliq"
+      upload-artifacts: false
+      release-id: ${{ needs.create-release.outputs.release-id }}
+      # The dispatched commit, not the branch: build.yml otherwise checks out
+      # the branch head when each job starts, so a push mid-release would give
+      # each platform different code.
+      ref: ${{ github.sha }}
+      # Releases always build from scratch — never restore the Rust cache, so a
+      # stale cached native lib can never be linked into a shipped artifact.
+      no-cache: true
+    secrets: inherit
+
+  # See release-unsigned.yml: one manifest, written after every platform.
+  updater-manifest:
+    permissions:
+      contents: write
+    needs: [create-release, publish]
+    if: ${{ !cancelled() && needs.create-release.result == 'success' }}
+    uses: ./.github/workflows/updater-manifest.yml
+    with:
+      release-id: ${{ needs.create-release.outputs.release-id }}
+    secrets: inherit

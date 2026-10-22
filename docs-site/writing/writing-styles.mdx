@@ -1,0 +1,46 @@
+---
+title: "Writing styles"
+description: "A writing style controls how cleaned dictation reads. Six built-in styles ship with the app, and you can create your own."
+icon: "feather"
+---
+
+A writing style changes how cleaned dictation reads. It sits on top of [AI cleanup](/writing/ai-cleanup): the cleanup prompt decides what gets corrected, and the style decides the register of whatever survives.
+
+Pick one on the **AI cleanup** page under **Writing style**.
+
+## Built-in styles
+
+| Style                             | How it reads                                     |
+| --------------------------------- | ------------------------------------------------ |
+| **None (cleanup only)** (default) | Fixes mistakes and leaves your wording alone.    |
+| **Professional**                  | Polished and clear, for work messages and email. |
+| **Friendly**                      | Warm and relaxed, like a note to a friend.       |
+| **Concise**                       | Trims extra words and gets to the point.         |
+| **Formal**                        | Complete sentences and a formal register.        |
+| **Casual**                        | Loose and conversational.                        |
+
+Every built-in style preserves your meaning, facts, and point of view, and keeps the length close to what you said. Concise is allowed to shorten, but it still never drops a detail.
+
+The **AI cleanup** page shows a live example for each style. You see the raw sentence ("we should meet tomorrow at ten, actually no, eleven, and go over the budget") and how it comes out with the selected style.
+
+## Creating your own
+
+The built-ins are fixed, but you can save any number of your own beside them. On the **AI cleanup** page, scroll to the **Writing style** section and choose **New style**.
+
+<Steps>
+  <Step title="Name it">
+    For example, "Calm and clean".
+  </Step>
+
+  <Step title="Write the instructions">
+    Describe how the wording should change. For example: "keep it casual and lowercase, and turn spoken emoji names into emoji."
+  </Step>
+</Steps>
+
+Both fields are required. Your new style is selected as soon as you save it, and it appears under **Yours** in the style list from then on. Click **Edit** to change or delete it later. Built-in styles have no edit button because they are not stored.
+
+<Note>
+  Your style never replaces the cleanup prompt. Both are sent to the model
+  together. The cleanup prompt decides what gets fixed. The style decides the
+  register of the result. They are independent.
+</Note>

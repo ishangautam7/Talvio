@@ -1,0 +1,136 @@
+---
+title: "Transcription models"
+description: "The Models page in Zynveliq, organised by the job a model does: speech to text, AI cleanup, assistant, and voice. Covers the speech catalog, downloads, switching models, and how each job can run locally or in the cloud."
+icon: "microchip"
+---
+
+The **Models** page in the sidebar shows four tabs, one per job:
+
+| Tab                | What it does                                                                 |
+| ------------------ | ---------------------------------------------------------------------------- |
+| **Speech to text** | Turns your voice into text (dictation, meetings).                            |
+| **AI cleanup**     | Follows spoken edits and applies a writing style. Also writes meeting notes. |
+| **Assistant**      | Answers your questions, looks at your screen, holds conversations.           |
+| **Voice**          | Speaks the assistant's replies out loud.                                     |
+
+Every tab starts with a **Runs on** switch: "On this computer" or "Cloud". Switching changes the settings inside the card, not the shape of the page. Below the card is the catalog of models you can download for that job.
+
+## Speech to text
+
+The catalog has 69 speech models. They are listed in a fixed order, the five recommended ones first, with the models on this computer in their own group above the ones you can download.
+
+### Recommended models
+
+| Model                                  | Size   | Languages    | Streams | Translates |
+| -------------------------------------- | ------ | ------------ | ------- | ---------- |
+| **Parakeet Unified EN 0.6B** (default) | 697 MB | English only | Yes     | No         |
+| **Nemotron Streaming 3.5**             | 716 MB | 28           | Yes     | No         |
+| **Canary 180M Flash**                  | 208 MB | 4            | No      | Yes        |
+| **Cohere Transcribe**                  | 1.7 GB | 14           | No      | No         |
+| **Whisper Medium**                     | 793 MB | 99           | No      | Yes        |
+
+Pick **Parakeet** for fast everyday English. Pick **Canary 180M Flash** on a weak machine (it covers English, German, Spanish, and French). Pick **Nemotron** for multilingual dictation with automatic language detection. Pick **Whisper Medium** for the widest language coverage. Pick **Cohere** when accuracy matters more than speed.
+
+<Note>
+  Streaming models transcribe as you speak, so the text is ready the moment you
+  stop. See [Live transcription](/dictation/live-transcription). Everything else
+  transcribes when you stop talking.
+</Note>
+
+### The rest of the catalog
+
+Below the recommended five are the other families: more Parakeet and Nemotron variants (including Parakeet TDT 0.6B v2 and v3), every Whisper size from Tiny to Large v3 and Large v3 Turbo, Canary, Cohere Transcribe for Arabic, Granite Speech, Voxtral, Qwen3-ASR, Fun-ASR, Moonshine (with English, Arabic, Chinese, Japanese, Korean, Ukrainian, and Vietnamese variants), SenseVoice Small, GigaAM v3 for Russian, Breeze-ASR-25 for Taiwanese Mandarin, MedASR, and MOSS-Transcribe-Diarize.
+
+Each row shows how many languages the model hears. A model with one language says so by name. For more than one, click the count to see the full list.
+
+All of them run on the same engine, transcribe.cpp, on your graphics card or processor.
+
+## Searching and filtering
+
+- **Search by name** to narrow the list.
+- **Filter by language** with the globe dropdown. It lists every language some model hears, and keeps only the models that hear the one you pick. Simplified and Traditional Chinese count as one language here.
+- **Streaming** keeps only models that transcribe as you speak.
+- **Translate** keeps only models that can translate speech into English.
+
+Filters combine. When nothing matches, **Clear filters** puts the full list back.
+
+## Models from an earlier version
+
+Before Zynveliq moved every model to transcribe.cpp, some models came in older formats. What happens to them depends on the format.
+
+- **Whisper `.bin` files** (Whisper Small, Medium, Turbo, Large, and Breeze ASR) still work. A downloaded one is listed with an **Older** tag, because the catalog has the same model in the current format. One you never downloaded is not offered any more.
+- **ONNX models** (Parakeet V2 and V3, Moonshine, SenseVoice, GigaAM, Canary, and Cohere) ran on an engine Zynveliq no longer includes, so they can't be used. A downloaded one is listed with a **Retired** tag and **Get new version**, which downloads the same model for the new engine. A note above the list gathers them, with one **Delete old files** button to free the space.
+
+If a retired model was your speech model, it stays selected after the update so you can see what happened. Home and the Speech to text tab show a prompt with **Download new version**, and pressing a voice shortcut shows "needs an update" on the pill and opens that prompt. When the download finishes, the new version becomes your speech model on its own. **Choose another model** takes you to the rest of the catalog instead. Until one of those happens, a meeting or a History retranscription tells you the model needs its new version instead of starting.
+
+## Downloads
+
+Downloads fetch eight chunks at once and resume where they stopped if interrupted. Progress is written to a `.partial` file, and every retry resumes from there using an HTTP Range request.
+
+Each source is retried up to four times with exponential backoff. A server error, a timeout, or a dropped connection is retried. A permanent error like a 404 moves on to the next source.
+
+Every catalog model is pinned to one version on Hugging Face, and every file is checked against its SHA-256 checksum when the download finishes. A file that does not match is deleted and the download stops with an error you can retry, so a corrupted or changed file never loads. If Hugging Face fails, the download tries a copy on Handy's mirror, which is checked the same way.
+
+Cancelling keeps the partial file, so resuming later picks up where you left off.
+
+<Tip>
+  If a download looks stuck at 0%, it is usually still negotiating the redirect
+  to the CDN. Give it a few seconds before cancelling.
+</Tip>
+
+## Switching models
+
+Pick a different model from the dropdown at the top of the Speech to text tab. You can also switch from the system tray menu without opening the app.
+
+A brand-new install is seeded with Parakeet Unified EN 0.6B. If it is not on disk yet, Zynveliq falls back to any other downloaded speech model, so the app is never left without a working model.
+
+## Deleting a model
+
+Click the delete button on any downloaded model to free disk space. You get a confirmation, and a stronger one if it is your active model.
+
+## The other three tabs
+
+### AI cleanup
+
+Shows the cleanup provider and model. When no cleanup model is set, cleanup borrows the assistant's model. The tab has its own catalog of cleanup-suitable models and settings for the cleanup timeout and unload timeout.
+
+If AI cleanup is off, the tab shows a button to turn it on. Meeting notes still use this model even when cleanup is off.
+
+### Assistant
+
+Shows the assistant's provider and model. The tab has its own catalog of assistant models. If the assistant is turned off, a note says so and links to the **Assistant** page.
+
+AI cleanup and meeting notes fall back to the assistant's model when they have none of their own.
+
+### Voice
+
+Shows the voice engine and voice for spoken replies. Covers both local voices (Kokoro, Kitten, Pocket TTS, Supertonic) and cloud voices. See [Spoken replies](/assistant/voice-output) for details.
+
+## Local vs. cloud per job
+
+Every tab's **Runs on** switch lets you move that job between your computer and a cloud provider. Cloud uses a provider's API and your own key. Your computer is private and free.
+
+See [Providers](/assistant/providers) for the full list of supported providers and how to set them up.
+
+<CardGroup cols={2}>
+  <Card
+    title="Languages and translation"
+    icon="language"
+    href="/models/languages"
+  >
+    Which model for which languages.
+  </Card>
+  <Card title="Models you already have" icon="box" href="/models/custom-models">
+    Add a model file or link a folder.
+  </Card>
+  <Card title="GPU acceleration" icon="bolt" href="/models/acceleration">
+    GPU backends, idle unloading, and memory.
+  </Card>
+  <Card
+    title="Cloud transcription"
+    icon="cloud"
+    href="/dictation/cloud-transcription"
+  >
+    Using a cloud speech service.
+  </Card>
+</CardGroup>

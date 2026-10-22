@@ -1,0 +1,10 @@
+{
+  "company": "Zynveliq",
+  "product": "Zynveliq",
+  "status": "private-development",
+  "applicationId": "com.zynveliq.desktop",
+  "mark": "brand/mark.svg",
+  "colors": { "primary": "#153e47", "accent": "#adf5cf" },
+  "website": null,
+  "additionalBrands": []
+}

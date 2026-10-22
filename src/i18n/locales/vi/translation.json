@@ -1,0 +1,3539 @@
+{
+  "appearance": {
+    "title": "Giao diện",
+    "description": "Chọn giao diện sáng, tối hoặc theo hệ thống cho ứng dụng và bảng trợ lý.",
+    "system": "Hệ thống",
+    "light": "Sáng",
+    "dark": "Tối",
+    "textSize": "Cỡ chữ",
+    "textSizeDescription": "Điều chỉnh cỡ chữ và các điều khiển trong toàn ứng dụng.",
+    "textSizeSmall": "Nhỏ",
+    "textSizeDefault": "Mặc định",
+    "textSizeLarge": "Lớn",
+    "textSizeExtraLarge": "Rất lớn"
+  },
+  "tray": {
+    "home": "Trang chủ",
+    "openAssistant": "Mở trợ lý",
+    "checkUpdates": "Kiểm tra cập nhật…",
+    "sendFeedback": "Gửi góp ý…",
+    "copyLastTranscript": "Sao chép bản chép lời mới nhất",
+    "unloadModel": "Dỡ mô hình",
+    "model": "Mô hình",
+    "quit": "Thoát",
+    "cancel": "Hủy"
+  },
+  "updates": {
+    "check": "Kiểm tra cập nhật",
+    "checking": "Đang kiểm tra…",
+    "upToDate": "Bạn đang dùng phiên bản mới nhất",
+    "checkFailed": "Không thể kiểm tra cập nhật. Hãy kiểm tra kết nối rồi thử lại.",
+    "noBuild": "Phiên bản mới chưa có cho hệ thống này.",
+    "available": "Đã có phiên bản {{version}}",
+    "availableShort": "Có bản cập nhật",
+    "installNow": "Cập nhật ngay",
+    "downloading": "Đang tải xuống… {{progress}}%",
+    "downloadingUnknown": "Đang tải xuống…",
+    "installing": "Đang cài đặt…",
+    "reopening": "Zynveliq sẽ đóng để cài đặt bản cập nhật và mở lại sau vài giây.",
+    "updatedTo": "Đã cập nhật lên phiên bản {{version}}",
+    "restart": "Khởi động lại ngay",
+    "readyToRestart": "Bản cập nhật đã được cài. Hãy khởi động lại Zynveliq để bắt đầu sử dụng.",
+    "installFailed": "Bản cập nhật chưa cài được. Bạn có thể thử lại, hoặc tải bộ cài về và tự chạy.",
+    "downloadFailed": "Chưa tải xuống xong. Hãy kiểm tra kết nối rồi thử lại.",
+    "downloadInstaller": "Tải bộ cài",
+    "downloadInstead": "Tải bộ cài thay thế",
+    "downloadNewVersion": "Tải phiên bản mới",
+    "installerSaved": "Bộ cài nằm trong thư mục Tải xuống của bạn",
+    "openInstaller": "Chạy bộ cài",
+    "showInFolder": "Hiện trong thư mục",
+    "viewRelease": "Xem trên GitHub",
+    "hint": {
+      "windows": "Zynveliq sẽ đóng, cài bản cập nhật rồi tự mở lại. Bạn không cần nhấp gì thêm.",
+      "macos": "Zynveliq sẽ khởi động lại với phiên bản mới. Sau đó macOS có thể yêu cầu bạn cho phép lại quyền Micrô và Trợ năng.",
+      "linux": "Zynveliq sẽ khởi động lại với phiên bản mới. Bản cài .deb sẽ hỏi mật khẩu của bạn trước."
+    },
+    "modes": {
+      "portable": "Đây là bản di động, không thể tự thay thế chính nó. Hãy tải phiên bản mới và sao chép thư mục Data của bạn vào đó.",
+      "packageManager": "Zynveliq được cài bằng trình quản lý gói, nên hãy cập nhật ở đó, ví dụ bằng yay -Syu zynveliq-bin.",
+      "download": "Bản này không thể tự cập nhật tại chỗ. Hãy tải bộ cài và chạy nó để có phiên bản mới."
+    },
+    "pill": {
+      "available": "Có bản cập nhật",
+      "version": "Phiên bản {{version}}",
+      "progress": "Đang cập nhật… {{progress}}%",
+      "working": "Đang cập nhật…",
+      "restart": "Khởi động lại để cập nhật",
+      "installerReady": "Đã tải bộ cài"
+    }
+  },
+  "feedback": {
+    "button": "Gửi góp ý",
+    "title": "Gửi góp ý",
+    "description": "Tôi tự đọc từng tin nhắn, nên bạn cứ viết theo cách tự nhiên nhất. Cảm ơn bạn đã giúp Zynveliq tốt hơn.",
+    "kind": {
+      "label": "Loại góp ý",
+      "bug": "Lỗi",
+      "idea": "Ý tưởng",
+      "question": "Câu hỏi"
+    },
+    "placeholder": {
+      "bug": "Chuyện gì đã xảy ra, và bạn mong đợi điều gì?",
+      "idea": "Điều gì sẽ giúp Zynveliq tốt hơn cho bạn?",
+      "question": "Bạn muốn biết điều gì?"
+    },
+    "messageLabel": "Tin nhắn",
+    "emailLabel": "Email để nhận phản hồi",
+    "emailPlaceholder": "Email, nếu bạn muốn nhận phản hồi",
+    "emailInvalid": "Địa chỉ email này có vẻ không đúng.",
+    "includeSystem": "Kèm phiên bản ứng dụng và hệ điều hành",
+    "systemDetails": "Được gửi đúng như sau: {{system}}",
+    "remaining": "Còn {{count}}",
+    "screenshots": {
+      "add": "Thêm ảnh chụp màn hình",
+      "pasteHint": "hoặc dán bằng {{shortcut}}",
+      "remove": "Xóa ảnh chụp màn hình {{index}}",
+      "preview": "Ảnh chụp màn hình {{index}}, {{width}} × {{height}}, {{size}}",
+      "working": "Đang thu nhỏ ảnh chụp màn hình…",
+      "limit": "Bạn có thể đính kèm tối đa {{count}} ảnh chụp màn hình.",
+      "notImage": "Tệp đó không phải là hình ảnh.",
+      "tooLarge": "Hình ảnh đó quá lớn để đính kèm.",
+      "unreadable": "Không thể đọc hình ảnh đó."
+    },
+    "send": "Gửi",
+    "sending": "Đang gửi…",
+    "sentTitle": "Cảm ơn bạn, góp ý đang được gửi đi",
+    "sentBody": "Tôi đã nhận được và sẽ sớm đọc.",
+    "sentWithEmail": "Nếu có điều gì cần trao đổi thêm, bạn sẽ nhận được phản hồi qua {{email}}.",
+    "screenshotsDropped_other": "Không thể lưu {{count}} ảnh chụp màn hình, nhưng tin nhắn của bạn đã được gửi đến.",
+    "sendAnother": "Gửi góp ý khác",
+    "errors": {
+      "generic": "Không thể gửi góp ý của bạn. Tin nhắn vẫn được giữ lại ở đây, hãy thử lại sau giây lát."
+    },
+    "aboutRow": {
+      "title": "Góp ý",
+      "description": "Báo lỗi, đề xuất ý tưởng hoặc đặt câu hỏi.",
+      "button": "Gửi góp ý"
+    }
+  },
+  "sidebar": {
+    "general": "Chung",
+    "dictation": "Đọc chính tả",
+    "assistant": "Trợ lý",
+    "meetings": "Cuộc họp",
+    "history": "Lịch sử",
+    "about": "Giới thiệu",
+    "debug": "Gỡ lỗi",
+    "characters": "Hồ sơ",
+    "memory": "Bộ nhớ",
+    "collapse": "Thu gọn thanh bên",
+    "expand": "Mở rộng thanh bên"
+  },
+  "window": {
+    "minimize": "Thu nhỏ",
+    "maximize": "Phóng to",
+    "restore": "Khôi phục",
+    "close": "Đóng"
+  },
+  "sectionSubtitles": {
+    "general": "Phím tắt, micrô và giao diện của ứng dụng.",
+    "dictation": "Mô hình biến giọng nói của bạn thành văn bản, và cách văn bản được dọn dẹp.",
+    "assistant": "Thiết lập trợ lý, rồi tinh chỉnh giọng nói, khả năng xem màn hình và tìm kiếm web.",
+    "meetings": "Ghi lại cuộc gọi, đọc lại theo từng người nói và biến nó thành ghi chú.",
+    "history": "Các nội dung đọc chính tả, nội dung do Flow tạo và trò chuyện với trợ lý gần đây của bạn, được lưu trên thiết bị này.",
+    "about": "Phiên bản, ngôn ngữ ứng dụng, vị trí dữ liệu và ghi công.",
+    "debug": "Công cụ chẩn đoán và dành cho nhà phát triển."
+  },
+  "onboarding": {
+    "flow": {
+      "progress": "Bước {{current}}/{{total}}",
+      "steps": {
+        "setup": "Thiết lập",
+        "tour": "Giới thiệu"
+      }
+    },
+    "setup": {
+      "installed": "Đã cài đặt",
+      "loadFailed": "Không thể tải danh sách mô hình.",
+      "retry": "Thử lại"
+    },
+    "tour": {
+      "features": "Zynveliq làm được gì",
+      "count": "{{current}}/{{total}}",
+      "next": "Tiếp",
+      "finish": "Mở Zynveliq",
+      "tabs": {
+        "dictate": "Đọc chính tả",
+        "ask": "Trợ lý",
+        "call": "Trò chuyện"
+      },
+      "keys": {
+        "hold": "Giữ để nói",
+        "tap": "Nhấn để bắt đầu, nhấn để dừng",
+        "call": "Nhấn để bắt đầu, nhấn lần nữa để kết thúc"
+      },
+      "steps": {
+        "label": "Cách hoạt động",
+        "speak": "Nói điều bạn muốn gõ",
+        "typed": "Chữ được gõ ngay tại vị trí con trỏ",
+        "select": "Chọn văn bản (tùy chọn)",
+        "use": "Chèn câu trả lời, hoặc chỉ cần đọc",
+        "talk": "Cứ nói thôi",
+        "answer": "Trả lời thành tiếng"
+      },
+      "mail": {
+        "window": "Thư mới",
+        "to": "Đến",
+        "toValue": "Lan",
+        "subject": "Chủ đề",
+        "subjectValue": "Thứ Sáu"
+      },
+      "dictate": {
+        "title": "Bạn nói.\nNó gõ.",
+        "cleanup": "Dọn dẹp bằng AI, khi bạn cần",
+        "said": "Chào Lan, mình dời cuộc gọi sang thứ Sáu được không? Mình sẽ gửi bảng ngân sách trước hôm đó."
+      },
+      "ask": {
+        "title": "Hỏi\nbất cứ điều gì.",
+        "chips": {
+          "translate": "Dịch",
+          "decline": "Viết thư trả lời",
+          "explain": "Giải thích",
+          "anything": "…mọi thứ"
+        },
+        "examples": {
+          "translate": {
+            "window": "Tin nhắn",
+            "doc": "Mình dời cuộc gọi sang thứ Sáu được không?",
+            "question": "Dịch câu này sang tiếng Anh",
+            "answer": "Can we move our call to Friday?"
+          },
+          "decline": {
+            "window": "Thư",
+            "doc": "Chào bạn, bạn có thể tham dự buổi rà soát kế hoạch lúc 3 giờ chiều thứ Năm không?",
+            "question": "Viết thư trả lời lịch sự rằng tôi không dự được hôm thứ Năm",
+            "answer": "Cảm ơn bạn đã mời! Mình không dự được lúc 3 giờ thứ Năm, nhưng sáng thứ Sáu mình rảnh nếu bạn thấy tiện."
+          },
+          "explain": {
+            "window": "Trình duyệt",
+            "doc": "The API returns 429 Too Many Requests.",
+            "question": "Cái này nghĩa là gì?",
+            "answer": "Bạn đang gửi yêu cầu nhanh hơn mức dịch vụ cho phép. Hãy đợi một chút rồi thử lại chậm hơn."
+          }
+        }
+      },
+      "call": {
+        "title": "Hoặc cứ\ntrò chuyện cho rõ.",
+        "you": "Bạn",
+        "assistant": "Trợ lý",
+        "said": "Giúp tôi lên ý cho một bài nói ngắn trong buổi họp nhóm thứ Sáu.",
+        "reply": "Được thôi. Hãy mở đầu bằng kết quả bạn tự hào nhất, nêu hai lý do nó thành công, rồi kết thúc bằng bước tiếp theo."
+      }
+    },
+    "subtitle": "Để bắt đầu, hãy chọn một mô hình chuyển đổi giọng nói",
+    "steps": {
+      "progress": "Bước {{current}} trên {{total}}",
+      "counter": "Bước {{current}} trên {{total}} · {{label}}",
+      "speechToText": "Nghe bạn nói",
+      "aiModel": "Cho nó một bộ não",
+      "ready": "Sẵn sàng"
+    },
+    "speechToText": {
+      "title": "Zynveliq nên nghe bạn thế nào?",
+      "subtitle": "Phần này biến giọng nói của bạn thành văn bản, ngay trên máy của bạn. Chọn một mô hình, đổi bất cứ lúc nào.",
+      "cards": {
+        "fast": {
+          "description": "Cực nhanh, hiện chữ ngay khi bạn nói. Chỉ tiếng Anh."
+        },
+        "multilingual": {
+          "description": "Thời gian thực với 28 ngôn ngữ."
+        }
+      },
+      "downloadAndContinue": "Tải xuống và tiếp tục",
+      "seeAllModels": "Xem tất cả mô hình",
+      "hideAllModels": "Hiện ít mô hình hơn",
+      "installedHint": "Đã thiết lập xong. Bạn có thể lấy mô hình khác sau trong Cài đặt.",
+      "useInstalled": "Dùng mô hình đã cài",
+      "continue": "Tiếp tục",
+      "downloadingHint": "Mô hình được tải ở chế độ nền. Mọi mô hình khác chỉ cách một cú nhấp trong Cài đặt.",
+      "downloadStarted": "Đang tải mô hình của bạn ở chế độ nền."
+    },
+    "aiModel": {
+      "title": "Thêm AI cục bộ (tùy chọn)",
+      "subtitle": "Một trợ lý để trò chuyện, cùng mô hình riêng của chúng tôi giúp dọn dẹp phần đọc chính tả. Chọn một trong hai, hoặc cả hai.",
+      "tiers": {
+        "small": {
+          "description": "Chạy được trên mọi máy. Rất tốt để chỉnh gọn câu chữ."
+        },
+        "mid": {
+          "description": "Nhanh nhẹn, đa năng và cũng trả lời được câu hỏi."
+        },
+        "capable": {
+          "description": "Câu trả lời sắc sảo nhất, và nó xem được màn hình của bạn."
+        }
+      },
+      "seesScreen": "Mô hình thị giác",
+      "textOnly": "Chỉ văn bản",
+      "recommendedForAssistant": "Đề xuất cho trợ lý",
+      "download": "Tải mô hình",
+      "useDownloaded": "Dùng mô hình đã tải",
+      "skip": "Bỏ qua bây giờ",
+      "skipHint": "Bạn có thể thêm bất kỳ mô hình nào trong số này sau trong Cài đặt.",
+      "continue": "Tiếp tục",
+      "downloadingHint": "Mô hình được tải xuống ở chế độ nền. Bạn có thể dùng ứng dụng ngay.",
+      "downloadStarted": "Đang tải mô hình của bạn ở chế độ nền."
+    },
+    "cleanup": {
+      "cardTitle": "SpeakoFlow Mini",
+      "cardDescription": "Áp dụng các lệnh nói như “new paragraph” hay “scratch that”. Chỉ tiếng Anh.",
+      "pill": "Dọn dẹp phần đọc chính tả",
+      "recommendedForDictation": "Đề xuất cho đọc chính tả",
+      "download": "Tải và bật",
+      "useDownloaded": "Bật lên"
+    },
+    "ready": {
+      "title": "Bạn đã sẵn sàng.",
+      "subtitle": "Chỉ cần hai phím tắt. Nhấn, nói, xong.",
+      "dictateLabel": "Đọc chính tả ở mọi nơi",
+      "dictateCaption": "Giữ, nói, thả. Câu chữ tự hiện ra.",
+      "assistantKeysLabel": "Hỏi trợ lý",
+      "assistantKeysCaption": "Giữ và hỏi. Nó còn xem được màn hình của bạn.",
+      "changeAnytime": "Bạn có thể thay đổi những mục này bất cứ lúc nào trong Cài đặt.",
+      "hotkeyLabel": "Phím đọc chính tả của bạn",
+      "downloadingAssistant": "Trợ lý của bạn đang dọn vào. Đã được {{percentage}}%.",
+      "downloadingVoice": "Mô hình giọng nói đang cập bến. Đã được {{percentage}}%.",
+      "downloadingGeneric": "Vẫn đang tải xuống. Đã được {{percentage}}%.",
+      "signOff": "Vậy là xong. Nói gì đi nào.",
+      "openApp": "Mở Zynveliq"
+    },
+    "errors": {
+      "selectModel": "Không thể chọn mô hình đó. Vui lòng thử lại.",
+      "loadModels": "Không thể tải danh sách mô hình có sẵn.",
+      "downloadModel": "Không thể tải mô hình xuống: {{error}}"
+    },
+    "downloadProgress": {
+      "sizeOf": "{{downloaded}} trên {{total}} · {{percentage}}%"
+    },
+    "recommended": "Đề xuất",
+    "download": "Tải xuống",
+    "downloading": "Đang tải xuống…",
+    "customModelDescription": "Không được hỗ trợ chính thức",
+    "downloadFailed": "Tải xuống thất bại. Vui lòng thử lại.",
+    "modelCard": {
+      "accuracy": "độ chính xác",
+      "speed": "tốc độ"
+    },
+    "models": {
+      "parakeet-unified-en-0.6b-gguf": {
+        "description": "Cực nhanh, rất phù hợp để đọc chính tả hằng ngày. Chỉ tiếng Anh."
+      },
+      "nemotron-3.5-asr-streaming-0.6b-gguf": {
+        "description": "Chuyển đổi theo thời gian thực với 28 ngôn ngữ."
+      },
+      "canary-180m-flash-gguf": {
+        "description": "Nhỏ gọn và tức thì — chạy tốt trên mọi máy."
+      },
+      "cohere-transcribe-03-2026-gguf": {
+        "description": "Chậm hơn, nhưng chính xác nhất. 14 ngôn ngữ."
+      },
+      "whisper-medium-gguf": {
+        "description": "Tốt nhất cho nhiều ngôn ngữ — hỗ trợ gần 100 ngôn ngữ."
+      },
+      "gemma-3-1b": {
+        "description": "Rất nhỏ và nhanh, nhưng hạn chế khi trò chuyện mở. Chỉ văn bản."
+      },
+      "qwen3.5-2b": {
+        "description": "Nhỏ và nhanh, lại xem được hình ảnh. Tốt trên phần lớn laptop."
+      },
+      "qwen3.5-4b": {
+        "description": "Mô hình hình ảnh thế hệ cũ; chế độ suy luận tùy chọn có thể làm chậm câu trả lời khi trò chuyện."
+      },
+      "qwen3.5-9b": {
+        "description": "Mạnh hơn, nhưng chậm khi trò chuyện trực tiếp, nhất là khi bật suy luận."
+      },
+      "qwen3.5-27b": {
+        "description": "Mô hình hình ảnh lớn cho những tác vụ cần cân nhắc, không phải một trợ lý phản hồi tức thì."
+      },
+      "gemma-4-e2b": {
+        "description": "Gemma hiện tại nhanh nhất cho trò chuyện hằng ngày. Yếu hơn với yêu cầu phức tạp."
+      },
+      "gemma-4-e4b": {
+        "description": "Cân bằng chất lượng và tốc độ tốt hơn, và mặc định không suy luận."
+      },
+      "gemma-4-12b": {
+        "description": "Mạnh hơn với những câu hỏi tinh tế, nhưng chậm rõ rệt và cần một GPU mạnh."
+      },
+      "gemma-3-4b": {
+        "description": "Trả lời nhanh, gọn gàng và xem được màn hình, nhưng yếu hơn các mô hình Gemma 4 hiện tại."
+      },
+      "kokoro-82m": {
+        "description": "Giọng nói cục bộ tích hợp cho trợ lý. Không cần tải xuống."
+      },
+      "small": {
+        "name": "Whisper Small",
+        "description": "Nhanh và khá chính xác."
+      },
+      "medium": {
+        "name": "Whisper Medium",
+        "description": "Độ chính xác tốt, tốc độ trung bình."
+      },
+      "turbo": {
+        "name": "Whisper Turbo",
+        "description": "Cân bằng giữa độ chính xác và tốc độ."
+      },
+      "large": {
+        "name": "Whisper Large",
+        "description": "Rất chính xác, nhưng chậm."
+      },
+      "parakeet-tdt-0.6b-v2": {
+        "name": "Parakeet V2",
+        "description": "Chỉ tiếng Anh. Rất tốt cho người nói tiếng Anh."
+      },
+      "parakeet-tdt-0.6b-v3": {
+        "name": "Parakeet V3",
+        "description": "Nhanh và chính xác. 25 ngôn ngữ châu Âu."
+      },
+      "moonshine-base": {
+        "name": "Moonshine Base",
+        "description": "Rất nhanh, chỉ tiếng Anh. Xử lý tốt các giọng nói."
+      },
+      "moonshine-tiny-streaming-en": {
+        "name": "Moonshine V2 Tiny",
+        "description": "Cực nhanh. Chỉ tiếng Anh."
+      },
+      "moonshine-small-streaming-en": {
+        "name": "Moonshine V2 Small",
+        "description": "Nhanh, chỉ tiếng Anh. Cân bằng tốt giữa tốc độ và độ chính xác."
+      },
+      "moonshine-medium-streaming-en": {
+        "name": "Moonshine V2 Medium",
+        "description": "Chỉ tiếng Anh. Chất lượng cao hơn, chậm hơn một chút."
+      },
+      "breeze-asr": {
+        "name": "Breeze ASR",
+        "description": "Tối ưu cho tiếng Quan Thoại Đài Loan, hỗ trợ chen lẫn tiếng Anh."
+      },
+      "sense-voice-int8": {
+        "name": "SenseVoice",
+        "description": "Rất nhanh. Tiếng Trung, tiếng Anh, tiếng Nhật, tiếng Hàn và tiếng Quảng Đông."
+      },
+      "gigaam-v3-e2e-ctc": {
+        "name": "GigaAM v3",
+        "description": "Chỉ tiếng Nga. Nhanh và chính xác."
+      },
+      "canary-180m-flash": {
+        "name": "Canary 180M Flash",
+        "description": "Rất nhanh. Tiếng Anh, tiếng Đức, tiếng Tây Ban Nha và tiếng Pháp, có hỗ trợ dịch."
+      },
+      "canary-1b-v2": {
+        "name": "Canary 1B v2",
+        "description": "Chính xác với 25 ngôn ngữ châu Âu, có hỗ trợ dịch."
+      },
+      "cohere-int8": {
+        "name": "Cohere",
+        "description": "Lớn và chậm hơn, nhưng rất chính xác. Hỗ trợ nhiều ngôn ngữ."
+      }
+    },
+    "permissions": {
+      "title": "Cần cấp quyền",
+      "description": "Zynveliq cần một số quyền để hoạt động bình thường.",
+      "microphone": {
+        "title": "Quyền truy cập micrô",
+        "description": "Cần thiết để nghe giọng nói của bạn để chuyển đổi."
+      },
+      "accessibility": {
+        "title": "Quyền truy cập Trợ năng",
+        "description": "Cần thiết để nhập văn bản đã chuyển đổi vào các ứng dụng của bạn.",
+        "stuckHint": "Đã bật trong Cài đặt hệ thống? Sau khi cập nhật, macOS có thể giữ một quyền không còn khớp với phiên bản này.",
+        "reset": "Đặt lại quyền",
+        "resetDone": "Giờ hãy bật lại Zynveliq trong Cài đặt hệ thống."
+      },
+      "grant": "Cấp quyền",
+      "granted": "Đã cấp",
+      "waiting": "Đang chờ…",
+      "allGranted": "Hoàn tất!",
+      "errors": {
+        "checkFailed": "Không thể kiểm tra quyền. Vui lòng thử lại.",
+        "requestFailed": "Không thể yêu cầu quyền. Vui lòng thử lại.",
+        "resetFailed": "Không thể đặt lại quyền. Hãy xóa Zynveliq khỏi danh sách Trợ năng rồi thêm lại."
+      }
+    },
+    "frame": {
+      "setup": "Thiết lập",
+      "tour": "Giới thiệu"
+    },
+    "welcome": {
+      "line": "Bạn nói, nó gõ. Bạn hỏi, nó trả lời.",
+      "start": "Bắt đầu",
+      "note": "Chỉ mất khoảng một phút."
+    },
+    "speech": {
+      "title": "Chọn mô hình giọng nói",
+      "body": "Chạy trên máy tính này. Hoạt động ngoại tuyến.",
+      "english": "Tiếng Anh",
+      "languages_other": "{{count}} ngôn ngữ",
+      "about": {
+        "english": "Nhanh và chính xác, dành cho tiếng Anh.",
+        "languages": "Tự nhận biết bạn đang nói ngôn ngữ nào.",
+        "small": "Nhỏ gọn và nhanh. Phù hợp với máy tính cũ.",
+        "accurate": "Chính xác nhất, nhưng tải xuống nặng hơn và chạy chậm hơn.",
+        "widest": "Hỗ trợ nhiều ngôn ngữ nhất, nhưng chạy chậm hơn."
+      },
+      "anytime": "Bạn có thể thêm mô hình khác bất cứ lúc nào.",
+      "download": "Tải xuống và tiếp tục",
+      "continue": "Tiếp tục",
+      "later": "Thiết lập sau",
+      "loading": "Đang tìm mô hình giọng nói cho bạn"
+    }
+  },
+  "modelSelector": {
+    "custom": "Tùy chỉnh",
+    "active": "Đang dùng",
+    "switching": "Đang chuyển…",
+    "noModelsAvailable": "Không có mô hình nào",
+    "verifying": "Đang xác minh {{modelName}}…",
+    "verifyingGeneric": "Đang xác minh…",
+    "extracting": "Đang giải nén {{modelName}}…",
+    "extractingMultiple": "Đang giải nén {{count}} mô hình…",
+    "extractingGeneric": "Đang giải nén…",
+    "downloading": "Đang tải xuống {{percentage}}%",
+    "downloadingMultiple": "Đang tải xuống {{count}} mô hình…",
+    "downloadDetails": "Chi tiết tải xuống",
+    "downloadSize": "{{downloaded}} trên {{total}}",
+    "modelReady": "Mô hình sẵn sàng",
+    "loading": "Đang tải {{modelName}}…",
+    "loadingGeneric": "Đang tải…",
+    "modelError": "Lỗi mô hình",
+    "modelUnloaded": "Đã dỡ mô hình",
+    "noModelDownloadRequired": "Chưa có mô hình — cần tải xuống",
+    "llmSelectModel": "Chọn mô hình trợ lý",
+    "llmModelTitle": "Mô hình trợ lý: {{model}}",
+    "deleteModel": "Xóa {{modelName}}",
+    "downloadSpeed": "{{speed}} MB/s",
+    "cancel": "Hủy",
+    "cancelDownload": "Hủy tải xuống",
+    "download": "Tải xuống",
+    "useModel": "Dùng mô hình",
+    "capabilities": {
+      "languageSelection": "Hỗ trợ nhiều ngôn ngữ đầu vào",
+      "singleLanguage": "Chỉ hỗ trợ ngôn ngữ này",
+      "multiLanguage": "Đa ngôn ngữ",
+      "languageOnly": "Chỉ {{language}}",
+      "languageList": "Các ngôn ngữ {{model}} hiểu được",
+      "translation": "Có thể dịch sang tiếng Anh",
+      "translate": "Dịch sang tiếng Anh",
+      "streaming": "Trực tiếp",
+      "quantization": "Lượng tử hóa",
+      "legacy": "Cũ hơn",
+      "retired": "Đã ngừng"
+    }
+  },
+  "settings": {
+    "personalMemory": {
+      "enable": {
+        "label": "Ghi nhớ về tôi",
+        "description": "Cho phép trợ lý lưu và dùng bộ nhớ cá nhân. Mặc định tắt."
+      },
+      "incognito": {
+        "label": "Trò chuyện ẩn danh",
+        "description": "Trong cuộc trò chuyện này, không dùng bộ nhớ và không học điều gì mới."
+      },
+      "detail": {
+        "label": "Mức chi tiết của bộ nhớ",
+        "description": "Lượng bộ nhớ thêm vào mỗi câu trả lời. Chi tiết hơn thì phong phú hơn nhưng chậm hơn một chút.",
+        "options": {
+          "light": "Nhẹ",
+          "balanced": "Cân bằng",
+          "detailed": "Chi tiết"
+        }
+      },
+      "aboutYou": {
+        "label": "Về bạn",
+        "caption": "Bản tóm tắt ngắn, luôn bật, mà trợ lý luôn ghi nhớ.",
+        "fieldLabel": "Tóm tắt",
+        "placeholder": "ví dụ: Thích câu trả lời ngắn, thẳng vào vấn đề. Làm việc với Rust và TypeScript. Đang xây dựng một trợ lý giọng nói cho máy tính.",
+        "hint": "Luôn được đưa vào khi bộ nhớ đang bật. Chỉ nên viết vài câu — đây là bức tranh tổng quan của trợ lý về bạn.",
+        "edit": "Sửa",
+        "done": "Xong",
+        "empty": "Chưa lưu gì cả — trợ lý sẽ tự điền vào khi học được, hoặc nhấn Sửa để tự viết.",
+        "collapsedEmpty": "Chưa lưu gì cả"
+      },
+      "notes": {
+        "label": "Ghi chú",
+        "caption": "Những điều cụ thể đáng ghi nhớ — do trợ lý học được hoặc do bạn thêm.",
+        "empty": "Chưa có ghi chú nào. Thêm một ghi chú bên dưới, hoặc để trợ lý học từ các cuộc trò chuyện của bạn.",
+        "add": "Thêm",
+        "addPlaceholder": "Thêm điều cần ghi nhớ…",
+        "delete": "Xóa ghi chú",
+        "learned": "đã học",
+        "added": "bạn đã thêm"
+      },
+      "confidence": {
+        "high": "Độ tin cậy cao",
+        "medium": "Độ tin cậy trung bình",
+        "low": "Độ tin cậy thấp"
+      },
+      "actions": {
+        "label": "Quản lý"
+      },
+      "distill": {
+        "label": "Học từ cuộc trò chuyện này ngay",
+        "description": "Rút những thông tin bền vững từ cuộc trò chuyện hiện tại vào bộ nhớ, ngay lúc này.",
+        "button": "Cập nhật bộ nhớ"
+      },
+      "export": "Xuất",
+      "import": "Nhập",
+      "wipe": {
+        "button": "Xóa sạch bộ nhớ",
+        "confirm": "Xóa mọi thứ trợ lý đang ghi nhớ?",
+        "yes": "Xóa tất cả",
+        "cancel": "Hủy"
+      }
+    },
+    "modelSettings": {
+      "title": "Cài đặt {{model}}",
+      "noSettingsNeeded": "Mô hình này hoạt động tự động — không cần cấu hình gì."
+    },
+    "general": {
+      "title": "Chung",
+      "recording": {
+        "title": "Ghi âm"
+      },
+      "groups": {
+        "sounds": "Âm thanh",
+        "startup": "Khởi động và khay hệ thống",
+        "overlay": "Lớp phủ",
+        "updates": "Cập nhật",
+        "system": "Hệ thống"
+      },
+      "shortcut": {
+        "title": "Phím tắt",
+        "description": "Các phím tắt để bắt đầu và dừng ghi âm.",
+        "loading": "Đang tải phím tắt…",
+        "none": "Chưa cấu hình phím tắt",
+        "notFound": "Không tìm thấy phím tắt",
+        "pressKeys": "Nhấn phím…",
+        "bindings": {
+          "transcribe": {
+            "name": "Đọc chính tả",
+            "description": "Nhấn để bắt đầu ghi âm, nhấn lần nữa để dừng và nhập văn bản."
+          },
+          "transcribe_toggle": {
+            "name": "Đọc chính tả rảnh tay",
+            "description": "Nhấn một lần để bắt đầu, nhấn lại để dừng — không cần giữ phím."
+          },
+          "cancel": {
+            "name": "Hủy",
+            "description": "Dừng bản ghi hiện tại hoặc câu trả lời đang phát."
+          },
+          "transcribe_with_post_process": {
+            "name": "Đọc chính tả và dọn dẹp",
+            "description": "Đọc chính tả, rồi AI dọn dẹp văn bản trước khi nó được gõ ra."
+          },
+          "assistant": {
+            "name": "Hỏi trợ lý",
+            "description": "Hỏi trợ lý bằng giọng nói; câu trả lời hiện dần trong bảng nổi."
+          },
+          "assistant_vision": {
+            "name": "Hỏi kèm màn hình",
+            "description": "Hỏi bằng giọng nói kèm màn hình của bạn để trợ lý thấy được thứ bạn đang xem."
+          },
+          "assistant_call": {
+            "name": "Bắt đầu trò chuyện",
+            "description": "Trò chuyện rảnh tay với trợ lý và nghe câu trả lời. Nhấn lần nữa để kết thúc."
+          },
+          "hands_free": {
+            "name": "Rảnh tay",
+            "description": "Nhấn phím này khi đang giữ các phím đọc chính tả để tiếp tục ghi âm sau khi thả tay. Nhấn lại các phím đọc chính tả để kết thúc."
+          }
+        },
+        "errors": {
+          "restore": "Không thể khôi phục phím tắt ban đầu.",
+          "set": "Không thể đặt phím tắt: {{error}}",
+          "inUse": "“{{name}}” đã dùng {{keys}}. Hãy chọn phím khác, hoặc đổi phím tắt đó trước.",
+          "sameAsOther": "{{keys}} đã được đặt cho phím tắt này.",
+          "reset": "Không thể đặt lại phím tắt."
+        },
+        "clickToChange": "Nhấp để thay đổi",
+        "notSet": "Chưa đặt"
+      },
+      "language": {
+        "title": "Ngôn ngữ",
+        "description": "Ngôn ngữ cho nhận dạng giọng nói. Chọn một ngôn ngữ cụ thể có thể cải thiện độ chính xác.",
+        "descriptionUnsupported": "Mô hình này tự động phát hiện ngôn ngữ.",
+        "searchPlaceholder": "Tìm kiếm ngôn ngữ…",
+        "noResults": "Không tìm thấy ngôn ngữ",
+        "auto": "Tự động"
+      },
+      "chineseScript": {
+        "title": "Chữ Trung Quốc",
+        "description": "Viết bản chép tiếng Trung bằng chữ giản thể hoặc phồn thể. Các ngôn ngữ khác giữ nguyên.",
+        "options": {
+          "auto": "Như khi chép",
+          "simplified": "Giản thể",
+          "traditional": "Phồn thể"
+        }
+      },
+      "pushToTalk": {
+        "dictation": "Bật: ghi âm trong khi bạn giữ các phím. Tắt: nhấn một lần để bắt đầu, nhấn lần nữa để dừng, nên mọi lần đọc chính tả đều rảnh tay.",
+        "assistant": "Bật: lắng nghe trong khi bạn giữ các phím. Tắt: nhấn một lần để bắt đầu, nhấn lần nữa để gửi.",
+        "dictationLabel": "Giữ để nói",
+        "assistantLabel": "Giữ để hỏi"
+      },
+      "handsFree": {
+        "unavailableKeys": "Hoạt động khi phím đọc chính tả chỉ gồm phím bổ trợ, như Ctrl + Win. Với {{keys}}, hãy tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
+        "unavailableEngine": "Cần bộ xử lý bàn phím Zynveliq Keys ({{where}}). Hoặc tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
+        "taken": "{{name}} đã dùng {{keys}}, nên phím này không có tác dụng cho đến khi một trong hai thay đổi.",
+        "needsKey": "Hãy chọn một phím, như phím cách hoặc Enter. Một phím bổ trợ riêng lẻ không thể là phím rảnh tay.",
+        "pressKey": "Nhấn một phím…",
+        "descriptionOff": "Đang tắt. Nhấp vào rồi nhấn một phím, như phím cách, để bật lại.",
+        "linux": "Trên Linux, hãy tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
+        "whileDictating": "Khi đang đọc chính tả, nhấn"
+      },
+      "silenceStop": {
+        "label": "Dừng khi im lặng",
+        "description": "Khi đọc chính tả rảnh tay, nếu không nghe thấy tiếng nói trong khoảng thời gian này, ứng dụng sẽ tự dừng và dán văn bản như khi bạn nhấn lại phím tắt. Ngay trước khi dừng, một vạch trên viên nhỏ sẽ ngắn dần; nói tiếp thì vẫn tiếp tục ghi âm."
+      }
+    },
+    "models": {
+      "title": "Mô hình chép lời",
+      "description": "Các mô hình đánh đổi độ chính xác lấy tốc độ — hãy chọn mô hình phù hợp với máy của bạn.",
+      "yourModels": "Mô hình đã tải",
+      "availableModels": "Có thể tải xuống",
+      "view": {
+        "label": "Mô hình hiển thị",
+        "all": "Tất cả mô hình"
+      },
+      "recommendedFor": "Đề xuất cho {{language}}",
+      "recommendedAllDownloaded": "Bạn đã có tất cả mô hình đề xuất.",
+      "browseAll": "Xem tất cả mô hình",
+      "downloaded": "Đã tải xuống",
+      "available": "Có thể tải xuống",
+      "deleteConfirm": "Bạn có chắc muốn xóa {{modelName}}? Bạn sẽ cần tải lại để sử dụng.",
+      "deleteActiveConfirm": "{{modelName}} là mô hình đang dùng. Xóa nó sẽ dừng việc chép lời cho đến khi bạn chọn mô hình mới. Bạn có chắc không?",
+      "deleteTitle": "Xóa mô hình",
+      "categories": {
+        "stt": "Chuyển đổi",
+        "llm": "Trợ lý",
+        "tts": "Giọng nói"
+      },
+      "categoryDescriptions": {
+        "stt": "Các mô hình đánh đổi độ chính xác lấy tốc độ — hãy chọn mô hình phù hợp với máy của bạn.",
+        "llm": "Mô hình cục bộ cho trợ lý tích hợp và dọn dẹp bằng AI.",
+        "tts": "Giọng đọc cho câu trả lời nói của trợ lý. Kokoro chạy trên máy của bạn."
+      },
+      "llmHint": "Sau khi tải xuống, hãy chọn mô hình này ở mục Trợ lý, dưới nhà cung cấp tích hợp (cục bộ).",
+      "ttsHint": "Các mô hình giọng nói chạy trên máy của bạn và không cần tải xuống.",
+      "filters": {
+        "all": "Tất cả",
+        "multiLanguage": "Đa ngôn ngữ",
+        "translation": "Dịch thuật",
+        "allLanguages": "Tất cả ngôn ngữ",
+        "streamingHint": "Chỉ các mô hình chép lời ngay khi bạn nói",
+        "translate": "Dịch",
+        "translateHint": "Chỉ các mô hình có thể dịch lời nói sang tiếng Anh",
+        "noMatch": "Không có mô hình nào khớp với các bộ lọc này",
+        "clear": "Xóa bộ lọc"
+      },
+      "searchPlaceholder": "Tìm mô hình theo tên…",
+      "clearSearch": "Xóa tìm kiếm",
+      "noSearchResults": "Không có mô hình nào tên “{{query}}”.",
+      "olderHint": "Định dạng cũ. {{model}} ({{size}}) là phiên bản mới của mô hình này.",
+      "retiredHint": "Dùng công cụ cũ mà Zynveliq không còn đi kèm. Hãy tải {{model}} ({{size}}) thay thế.",
+      "retired": {
+        "notice": "Các mô hình này dùng công cụ cũ mà Zynveliq không còn đi kèm.",
+        "newVersion": "Phiên bản mới: {{model}} · {{size}}",
+        "getNewVersion": "Tải phiên bản mới",
+        "useNewVersion": "Dùng phiên bản mới",
+        "deleteOld": "Xóa tệp cũ ({{size}})",
+        "deleteTitle": "Xóa tệp cũ",
+        "deleteConfirm": "Xóa tệp cũ của các mô hình này ({{size}})? Các phiên bản mới bạn đã tải vẫn được giữ."
+      },
+      "customModel": {
+        "addButton": "Tìm trên Hugging Face",
+        "searchTitle": "Cần một mô hình khác?",
+        "searchDescription": "Tìm một mô hình GGUF trên Hugging Face. Đây là tùy chọn nâng cao, nên yêu cầu phần cứng và mức tương thích có thể khác nhau.",
+        "searchButton": "Tìm trên Hugging Face",
+        "title": "Tìm một mô hình trên Hugging Face",
+        "subtitle": "Tìm các mô hình GGUF, chọn một phiên bản và tải trực tiếp về thiết bị này.",
+        "searchPlaceholder": "Tìm theo mô hình hoặc người tạo…",
+        "popularTitle": "Mô hình GGUF phổ biến",
+        "resultsTitle": "Kết quả tìm kiếm",
+        "resultCount_other": "{{count}} mô hình",
+        "searching": "Đang tìm trên Hugging Face…",
+        "searchError": "Tìm kiếm thất bại. Kiểm tra kết nối và thử lại.",
+        "tryAgain": "Thử lại",
+        "noResults": "Không tìm thấy mô hình nào. Hãy thử từ khóa khác.",
+        "downloads": "{{value}} lượt tải",
+        "visionBadge": "Hình ảnh",
+        "back": "Về kết quả",
+        "loadingFiles": "Đang tải danh sách tệp…",
+        "repoFilesError": "Không thể tải danh sách tệp của mô hình này.",
+        "noGgufFiles": "Kho này không có tệp .gguf nào để tải xuống.",
+        "selectQuant": "Chọn bản tải xuống",
+        "selectQuantHint": "Không chắc chọn gì? Q4_K_M thường cân bằng tốt nhất giữa chất lượng, tốc độ và bộ nhớ.",
+        "enableVision": "Kèm khả năng xem màn hình",
+        "enableVisionHint": "Tải thêm một tệp để mô hình hiểu được hình ảnh.",
+        "add": "Tải xuống",
+        "adding": "Đang bắt đầu…",
+        "addError": "Không thể thêm mô hình này. Vui lòng thử lại."
+      },
+      "localModel": {
+        "addButton": "Dùng mô hình có sẵn trên máy",
+        "title": "Dùng mô hình bạn đã có",
+        "subtitle": "Thêm một tệp .gguf hoặc tệp .bin của Whisper từ bất kỳ đâu trên thiết bị này, hoặc liên kết thư mục bạn dùng để lưu mô hình. Không có gì được sao chép và không có gì được tải xuống.",
+        "pickFiles": "Chọn tệp mô hình",
+        "pickFilesHint": "Chọn một hoặc nhiều tệp .gguf hoặc .bin. Phù hợp khi bạn vừa tạo xong một mô hình.",
+        "linkFolder": "Liên kết một thư mục",
+        "linkFolderHint": "Được quét tự động, kể cả thư mục con. Bạn có thể liên kết bao nhiêu thư mục cũng được.",
+        "fileFilter": "Tệp mô hình",
+        "filesAdded_other": "Đã thêm {{count}} mô hình.",
+        "folderAdded_other": "Đã liên kết thư mục. Tìm thấy {{count}} mô hình.",
+        "folderRemoved": "Đã bỏ liên kết thư mục. Các tệp của bạn không bị thay đổi.",
+        "foldersTitle": "Thư mục đã liên kết",
+        "foldersEmpty": "Chưa liên kết thư mục nào. Hãy liên kết một thư mục và mọi mô hình bên trong sẽ xuất hiện trong danh sách của bạn.",
+        "removeFolder": "Bỏ liên kết {{folder}}",
+        "rescan": "Quét lại",
+        "rescanning": "Đang quét lại…",
+        "rescanDone_other": "Tìm thấy {{count}} mô hình trên máy.",
+        "footnote": "Các thư mục đã liên kết sẽ được quét lại mỗi khi Zynveliq khởi động, nên những mô hình bạn thêm vào sau đó sẽ tự xuất hiện. Bỏ liên kết một thư mục hoặc xóa một mô hình chỉ loại nó khỏi danh sách này — các tệp của bạn vẫn ở nguyên chỗ cũ.",
+        "removeTitle": "Xóa khỏi danh sách?",
+        "removeConfirm": "Xóa “{{modelName}}” khỏi danh sách mô hình của bạn?\n\nBản thân tệp vẫn ở nguyên chỗ cũ:\n{{path}}",
+        "missingBadge": "Thiếu tệp",
+        "fileMissing": "Không còn thấy tệp của mô hình này:\n{{path}}\n\nCó thể nó đã bị di chuyển, bị đổi tên, hoặc đang ở một ổ đĩa chưa được kết nối.",
+        "foldersEmptyShort": "Chưa liên kết thư mục nào."
+      }
+    },
+    "sound": {
+      "title": "Âm thanh",
+      "microphone": {
+        "title": "Micrô",
+        "description": "Chọn thiết bị micrô ưa thích của bạn",
+        "placeholder": "Chọn micrô…",
+        "loading": "Đang tải…"
+      },
+      "audioFeedback": {
+        "label": "Phản hồi âm thanh",
+        "description": "Phát âm thanh khi bắt đầu và kết thúc ghi âm"
+      },
+      "soundTheme": {
+        "label": "Âm thanh phản hồi",
+        "description": "Chọn âm báo bắt đầu/kết thúc phát trong khi đọc chính tả",
+        "default": "Mặc định",
+        "preview": "Nghe thử (phát âm bắt đầu rồi âm kết thúc)",
+        "themes": {
+          "marimba": "Marimba",
+          "pop": "Pop",
+          "click": "Click",
+          "custom": "Tùy chỉnh"
+        }
+      },
+      "outputDevice": {
+        "title": "Thiết bị đầu ra",
+        "description": "Chọn thiết bị đầu ra âm thanh ưa thích của bạn cho âm thanh phản hồi",
+        "placeholder": "Chọn thiết bị đầu ra…",
+        "loading": "Đang tải…"
+      },
+      "volume": {
+        "title": "Âm lượng",
+        "description": "Điều chỉnh âm lượng của âm thanh phản hồi"
+      },
+      "ducking": {
+        "label": "Khi ghi âm",
+        "ariaLabel": "Âm thanh khác khi ghi âm",
+        "description": "Giảm hoặc tắt tiếng âm thanh khác khi bạn ghi âm, để không làm bạn phân tâm hoặc lọt vào micrô. Âm thanh trở lại ngay khi ghi âm kết thúc. Còn gọi là ducking.",
+        "options": {
+          "off": "Không đổi",
+          "lower": "Giảm",
+          "mute": "Tắt tiếng"
+        },
+        "amount": {
+          "label": "Giảm bớt",
+          "description": "Âm thanh khác nhỏ đi bao nhiêu. Kéo thanh trượt khi đang phát nội dung để nghe thử. Nếu bạn tự thay đổi âm lượng trong lúc ghi âm, âm lượng sẽ giữ nguyên như bạn đặt."
+        }
+      }
+    },
+    "advanced": {
+      "title": "Nâng cao",
+      "groups": {
+        "app": "Ứng dụng",
+        "output": "Đầu ra",
+        "transcription": "Chuyển đổi",
+        "textReplacements": "Thay thế văn bản",
+        "history": "Lịch sử",
+        "aiCorrection": "Dọn dẹp bằng AI",
+        "experimental": "Thử nghiệm"
+      },
+      "aiCorrection": {
+        "label": "Dọn dẹp bằng AI (đang phát triển)",
+        "description": "Thử nghiệm: dùng AI dọn dẹp phần đọc chính tả của bạn. Còn thô và chưa hoàn thiện — mặc định tắt.",
+        "info": "Chạy một mô hình ngôn ngữ trên phần đọc chính tả của bạn để sửa dấu câu, loại bỏ từ đệm và tùy chọn điều chỉnh văn phong. Chỉ áp dụng cho đọc chính tả (không áp dụng cho trò chuyện với trợ lý) và chạy bằng phím tắt riêng. Nó thêm một khoảng chờ vì mô hình chạy sau khi chuyển đổi; nếu thất bại hoặc quá thời gian, văn bản gốc của bạn sẽ được dán. Mặc định dùng mô hình của trợ lý. Tính năng này vẫn đang phát triển — bạn chưa thể chọn mô hình cục bộ tích hợp từ danh sách riêng của nó, và nó cần tinh chỉnh thêm trước khi trở thành một tính năng chính."
+      },
+      "postProcessTimeout": {
+        "title": "Thời gian chờ dọn dẹp bằng AI",
+        "description": "Chờ mô hình trong bao lâu trước khi bỏ qua và dán bản chuyển đổi gốc của bạn. Với mô hình cục bộ tích hợp, hãy để đủ thời gian cho nó nạp lần đầu.",
+        "seconds": "{{seconds}} giây"
+      },
+      "experimentalToggle": {
+        "label": "Tính năng thử nghiệm",
+        "description": "Hiện các tính năng đang phát triển. Mặc định tắt."
+      },
+      "lazyStreamClose": {
+        "label": "Giữ micrô mở giữa các lần chép lời",
+        "description": "Đọc chính tả liên tiếp nhanh hơn. Có thể ảnh hưởng đến chất lượng âm thanh Bluetooth."
+      },
+      "mouseButtonShortcuts": {
+        "label": "Dùng nút chuột làm phím tắt",
+        "description": "Dùng nút giữa, nút Lùi hoặc nút Tiến của chuột làm phím tắt: bấm vào phím của một phím tắt rồi nhấn nút đó. Khi đã là phím tắt, nút đó không làm gì khác.",
+        "linux": "Trên Linux chỉ nút giữa hoạt động.",
+        "needsEngine": "Cần cơ chế bàn phím Zynveliq Keys."
+      },
+      "longFormChunking": {
+        "title": "Chia nhỏ bản ghi dài",
+        "description": "Bản đọc dài được chép thành từng phần tại các chỗ ngắt tự nhiên, giúp các mô hình không dành cho âm thanh dài vẫn chính xác."
+      },
+      "acceleration": {
+        "title": "Xử lý giọng nói",
+        "description": "Tự động dùng card đồ họa của bạn, card rời nếu bạn có hai card. Chọn Bộ xử lý nếu đọc chính tả bị treo hoặc trình điều khiển đồ họa gặp sự cố. Chậm hơn nhưng chạy được ở mọi nơi.",
+        "auto": "Tự động",
+        "cpu": "Bộ xử lý (CPU)"
+      },
+      "startHidden": {
+        "label": "Khởi động ẩn",
+        "description": "Khởi động vào khay hệ thống mà không mở cửa sổ."
+      },
+      "autostart": {
+        "label": "Khởi động cùng hệ thống",
+        "description": "Tự động mở Zynveliq khi bạn đăng nhập."
+      },
+      "showTrayIcon": {
+        "label": "Hiện biểu tượng khay",
+        "description": "Giữ Zynveliq trong khay hệ thống."
+      },
+      "trayIconColor": {
+        "label": "Biểu tượng khay có màu",
+        "description": "Hiện logo có màu thay cho biểu tượng trắng. Bật nếu thanh tác vụ của bạn sáng màu và khó thấy biểu tượng trắng."
+      },
+      "closeBehavior": {
+        "label": "Thoát khi tôi đóng cửa sổ",
+        "description": "Khi tắt, đóng cửa sổ vẫn giữ Zynveliq chạy trong khay hệ thống để phím tắt của bạn tiếp tục hoạt động. Khi bật, đóng cửa sổ sẽ thoát hẳn ứng dụng."
+      },
+      "overlayStyle": {
+        "title": "Lớp phủ",
+        "description": "Lớp phủ ghi âm trông thế nào khi bạn đọc chính tả. Không có sẽ ẩn nó, Tối giản là viên nhỏ gọn, còn Trực tiếp hiện một thẻ dễ đọc kèm câu chữ của bạn khi bạn nói (với những mô hình hỗ trợ).",
+        "options": {
+          "none": "Không có",
+          "minimal": "Tối giản",
+          "live": "Trực tiếp"
+        }
+      },
+      "overlayLinger": {
+        "title": "Giữ văn bản đã xong trên màn hình",
+        "description": "Thẻ Trực tiếp hiển thị bao lâu sau khi bạn đọc chính tả xong, để bạn đọc hoặc sao chép những gì đã gõ. Di chuột lên thẻ sẽ giữ nó mở.",
+        "options": {
+          "quick": "Thoáng qua (1 giây)",
+          "standard": "Tiêu chuẩn (3 giây)",
+          "long": "Lâu hơn (6 giây)",
+          "extended": "Lâu hơn nhiều (10 giây)"
+        }
+      },
+      "overlay": {
+        "title": "Vị trí lớp phủ",
+        "description": "Vị trí của lớp phủ ghi âm trên màn hình của bạn.",
+        "options": {
+          "none": "Không có",
+          "bottom": "Dưới",
+          "top": "Trên",
+          "topleft": "Trên bên trái",
+          "topright": "Trên bên phải",
+          "bottomleft": "Dưới bên trái",
+          "bottomright": "Dưới bên phải"
+        }
+      },
+      "pasteMethod": {
+        "title": "Phương thức dán",
+        "description": "Cách văn bản đã chuyển đổi được chèn vào ứng dụng đang hoạt động.",
+        "options": {
+          "clipboard": "Bảng nhớ tạm ({{modifier}}+V)",
+          "clipboardCtrlShiftV": "Bảng nhớ tạm (Ctrl+Shift+V)",
+          "clipboardShiftInsert": "Bảng nhớ tạm (Shift+Insert)",
+          "direct": "Trực tiếp",
+          "none": "Không có",
+          "externalScript": "Script bên ngoài"
+        },
+        "externalScriptPlaceholder": "/duong-dan/toi/script.sh"
+      },
+      "typingTool": {
+        "title": "Công cụ gõ",
+        "description": "Công cụ Linux dùng cho phương thức dán Trực tiếp.",
+        "options": {
+          "auto": "Tự động (khuyến nghị)"
+        }
+      },
+      "clipboardHandling": {
+        "title": "Xử lý bộ nhớ tạm",
+        "description": "Bản chuyển đổi có còn nằm trong clipboard sau khi dán hay không.",
+        "options": {
+          "dontModify": "Không thay đổi bộ nhớ tạm",
+          "copyToClipboard": "Sao chép vào bộ nhớ tạm"
+        }
+      },
+      "autoSubmit": {
+        "title": "Tự động gửi",
+        "description": "Tự động gửi một tổ hợp phím sau khi chèn văn bản.",
+        "options": {
+          "off": "Tắt",
+          "enter": "Enter",
+          "cmdEnter": "Cmd+Enter",
+          "superEnter": "Super+Enter",
+          "ctrlEnter": "Ctrl+Enter"
+        }
+      },
+      "translateToEnglish": {
+        "label": "Dịch sang tiếng Anh",
+        "description": "Dịch giọng nói từ các ngôn ngữ khác sang tiếng Anh.",
+        "descriptionUnsupported": "Mô hình {{model}} không hỗ trợ dịch thuật."
+      },
+      "modelUnload": {
+        "title": "Dỡ mô hình",
+        "description": "Giải phóng bộ nhớ khi mô hình không hoạt động trong khoảng thời gian này.",
+        "options": {
+          "never": "Không bao giờ",
+          "immediately": "Ngay lập tức",
+          "min2": "Sau 2 phút",
+          "min5": "Sau 5 phút",
+          "min10": "Sau 10 phút",
+          "min15": "Sau 15 phút",
+          "hour1": "Sau 1 giờ",
+          "sec15": "Sau 15 giây (Gỡ lỗi)"
+        }
+      },
+      "customWords": {
+        "title": "Từ tùy chỉnh",
+        "description": "Tên riêng, sản phẩm và cụm từ mà Zynveliq nên viết theo cách của bạn.",
+        "info": "Ví dụ: thêm “Kokoro” nếu Zynveliq viết thành “Coco row.”",
+        "placeholder": "Thêm tên riêng, thuật ngữ hoặc cụm từ ngắn",
+        "add": "Thêm",
+        "empty": "Chưa có từ tùy chỉnh nào.",
+        "remove": "Xóa {{word}}",
+        "duplicate": "\"{{word}}\" đã tồn tại"
+      },
+      "autoLearn": {
+        "label": "Học các từ tôi sửa",
+        "description": "Ghi nhớ cách viết của bạn khi bạn sửa một từ Zynveliq nhận sai.",
+        "info": "Nó chỉ đọc ô vừa được gõ vào, trong khoảng một phút. Không có gì được tải lên, và mọi từ nó học được đều liệt kê ở đây.",
+        "unsupported": "Hiện tính năng học từ các lần sửa chỉ có trên Windows. Bạn vẫn có thể tự thêm từ ở phía trên.",
+        "learnedTitle": "Học được từ các lần sửa của bạn",
+        "learnedEmpty": "Chưa học được gì. Hãy sửa một từ bị nghe nhầm trong ứng dụng bạn đã đọc chính tả vào, và nó sẽ hiện ở đây.",
+        "keep": "Giữ {{word}} trong từ tùy chỉnh của tôi",
+        "remove": "Quên {{word}}",
+        "clearAll": "Quên tất cả",
+        "reviewHint": "Đây chỉ là phỏng đoán. Đánh dấu một từ để chuyển nó vào từ tùy chỉnh của bạn, hoặc xóa nó. Khi vượt quá {{max}} từ, các từ cũ nhất sẽ bị bỏ."
+      },
+      "textReplacements": {
+        "title": "Thay thế văn bản",
+        "description": "Thay một cụm từ trong bản chuyển đổi bằng đoạn văn bản bạn hay dùng. Ví dụ: “email của tôi” thành “alex@example.com”.",
+        "rulesTitle": "Quy tắc thay thế",
+        "rulesHint": "Chọn điều Zynveliq nghe được và điều nó nên chèn vào.",
+        "empty": "Hãy tạo một quy tắc cho cụm từ bạn thường nói.",
+        "addFirst": "Tạo quy tắc đầu tiên",
+        "addRule": "Thêm thay thế",
+        "manageRules": "Thay thế ({{count}})",
+        "searchLabel": "Cụm từ nói ra",
+        "searchPlaceholder": "email của tôi",
+        "replaceLabel": "Chèn văn bản này",
+        "replacePlaceholder": "alex@example.com",
+        "advanced": "Tùy chọn nâng cao",
+        "regex": "Regex",
+        "trimBefore": "Cắt phía trước",
+        "trimAfter": "Cắt phía sau",
+        "enabledLabel": "Đã bật",
+        "remove": "Xóa quy tắc",
+        "import": "Nhập",
+        "export": "Xuất",
+        "importSuccess": "Đã nhập {{count}} quy tắc thay thế",
+        "importError": "Không thể nhập: tệp không phải là danh sách thay thế hợp lệ",
+        "exportSuccess": "Đã xuất các quy tắc thay thế",
+        "exportError": "Không thể xuất các quy tắc thay thế",
+        "magicHint": "Dùng [date], [time], [uppercase], [lowercase], [capitalize] hoặc [nospace] trong văn bản được chèn.",
+        "capitalization": {
+          "label": "Chữ hoa",
+          "none": "Không",
+          "uppercase": "CHỮ IN HOA",
+          "lowercase": "chữ thường",
+          "capitalize": "Viết hoa đầu"
+        }
+      }
+    },
+    "postProcessing": {
+      "title": "Dọn dẹp bằng AI",
+      "readiness": {
+        "checking": "Đang kiểm tra thiết lập dọn dẹp bằng AI…",
+        "checkFailed": "Không thể kiểm tra thiết lập dọn dẹp bằng AI.",
+        "ready": "Sẵn sàng — {{provider}}.",
+        "assistantFallback": "Sẵn sàng — đang dùng mô hình Trợ lý của bạn ({{provider}}).",
+        "selectPrompt": "Hãy chọn một prompt dọn dẹp.",
+        "selectModel": "Hãy chọn một mô hình cho nhà cung cấp này.",
+        "addApiKey": "Hãy thêm khóa API cho nhà cung cấp này.",
+        "providerMissing": "Nhà cung cấp đã chọn không còn khả dụng."
+      },
+      "errors": {
+        "saveFailed": "Không thể lưu cài đặt dọn dẹp bằng AI.",
+        "modelsLoadFailed": "Không thể tải danh sách mô hình của nhà cung cấp này.",
+        "promptCreateFailed": "Không thể tạo prompt.",
+        "promptSelectFailed": "Đã tạo prompt, nhưng không thể chọn nó.",
+        "promptUpdateFailed": "Không thể cập nhật prompt.",
+        "promptDeleteFailed": "Không thể xóa prompt.",
+        "promptRestoreFailed": "Không thể phục hồi prompt.",
+        "toneSelectFailed": "Không thể chọn văn phong.",
+        "toneCreateFailed": "Không thể tạo văn phong.",
+        "toneSelectAfterCreateFailed": "Đã tạo văn phong, nhưng không thể chọn nó.",
+        "toneUpdateFailed": "Không thể cập nhật văn phong.",
+        "toneDeleteFailed": "Không thể xóa văn phong."
+      },
+      "enable": {
+        "title": "Dọn dẹp bằng AI"
+      },
+      "hotkey": {
+        "title": "Phím tắt"
+      },
+      "tone": {
+        "title": "2 · Văn phong",
+        "description": "Được áp dụng thêm trên lời nhắc hệ thống: thay đổi cách văn bản đã dọn dẹp đọc lên, không thay đổi những gì được sửa. “Không có” giữ nguyên giọng văn của bạn.",
+        "options": {
+          "none": "Không (chỉ dọn dẹp)",
+          "formal": "Trang trọng",
+          "casual": "Thoải mái",
+          "professional": "Chuyên nghiệp",
+          "friendly": "Thân thiện",
+          "concise": "Ngắn gọn"
+        },
+        "edit": "Sửa",
+        "closeEditor": "Đóng",
+        "createNew": "Tạo văn phong",
+        "nameLabel": "Tên văn phong",
+        "namePlaceholder": "Ví dụ: Điềm tĩnh và gọn gàng",
+        "instructionsLabel": "Hướng dẫn văn phong",
+        "instructionsPlaceholder": "Mô tả chính xác cách câu chữ nên thay đổi. Ví dụ: Bỏ từ ngữ thô tục và thay bằng cách diễn đạt điềm tĩnh, trung tính.",
+        "instructionsHint": "Những quy tắc này định hình câu chữ sau khi dọn dẹp. Chúng tách biệt với prompt dọn dẹp của bạn.",
+        "createTone": "Tạo văn phong",
+        "updateTone": "Lưu thay đổi",
+        "deleteTone": "Xóa văn phong",
+        "cancel": "Hủy"
+      },
+      "api": {
+        "title": "API (tương thích OpenAI)",
+        "location": {
+          "title": "Nơi chạy",
+          "description": "Chạy dọn dẹp riêng tư bằng một mô hình đã tải, hoặc dùng nhà cung cấp đám mây."
+        },
+        "provider": {
+          "title": "Nhà cung cấp",
+          "description": "Chọn một nhà cung cấp tương thích OpenAI."
+        },
+        "appleIntelligence": {
+          "title": "Apple Intelligence",
+          "description": "Chạy hoàn toàn trên thiết bị. Không cần khóa API hoặc truy cập mạng.",
+          "requirements": "Yêu cầu Mac Apple Silicon chạy macOS Tahoe (26.0) trở lên. Apple Intelligence phải được bật trong Cài đặt Hệ thống.",
+          "unavailable": "Apple Intelligence không khả dụng trên thiết bị này. Yêu cầu Mac Apple Silicon chạy macOS Tahoe (26.0) trở lên với Apple Intelligence được bật trong Cài đặt Hệ thống."
+        },
+        "baseUrl": {
+          "title": "URL cơ sở",
+          "description": "URL cơ sở API cho nhà cung cấp đã chọn. Có thể chỉnh sửa với Custom, Local và Azure OpenAI (hãy đặt thành tài nguyên của bạn, ví dụ https://your-resource.openai.azure.com/openai/v1).",
+          "placeholder": "https://api.openai.com/v1",
+          "managed": "URL cơ sở do nhà cung cấp đã chọn quản lý."
+        },
+        "apiKey": {
+          "title": "Khóa API",
+          "description": "Khóa API cho nhà cung cấp đã chọn.",
+          "placeholder": "sk-..."
+        },
+        "builtin": {
+          "modelDescription": "Chọn một mô hình bạn đã tải. Nó chạy trên máy của bạn, không cần khóa API hay thiết lập.",
+          "modelPlaceholder": "Chọn một mô hình đã tải",
+          "noModels": "Chưa có mô hình cục bộ nào. Hãy tải một mô hình từ danh mục mô hình.",
+          "ready": "Chạy hoàn toàn trên máy của bạn. Không cần khóa API, không cần thiết lập."
+        },
+        "model": {
+          "title": "Mô hình",
+          "descriptionApple": "Nhập giới hạn độ dài dạng số (tùy chọn) hoặc giữ cài đặt mặc định trên thiết bị.",
+          "descriptionCustom": "Nhập mã định danh mô hình mà nhà cung cấp tùy chỉnh của bạn yêu cầu.",
+          "descriptionDefault": "Chọn một mô hình được cung cấp bởi nhà cung cấp đã chọn.",
+          "placeholderApple": "Apple Intelligence",
+          "placeholderWithOptions": "Tìm kiếm hoặc chọn một mô hình",
+          "placeholderNoOptions": "Nhập tên mô hình",
+          "refreshModels": "Làm mới mô hình"
+        },
+        "testConnection": {
+          "title": "Kiểm tra kết nối",
+          "description": "Gửi một yêu cầu ngắn để kiểm tra tính năng dọn dẹp bằng AI có thực sự kết nối được với mô hình này. Mô hình trên thiết bị cần tải trước, nên lần kiểm tra đầu có thể mất một lúc.",
+          "button": "Kiểm tra kết nối",
+          "testing": "Đang kiểm tra…"
+        }
+      },
+      "prompts": {
+        "title": "Prompt",
+        "selectedPrompt": {
+          "title": "Prompt",
+          "description": "Chỉ dẫn cơ bản: mô hình sửa những gì và phải giữ nguyên những gì. Văn bản đã chép lời được gửi riêng, nên bạn chỉ cần viết chỉ dẫn."
+        },
+        "noPrompts": "Không có prompt nào",
+        "nonePrompt": "Không dùng (không có prompt)",
+        "selectPrompt": "Chọn một prompt",
+        "createNew": "Tạo prompt mới",
+        "edit": "Sửa",
+        "closeEditor": "Đóng",
+        "promptLabel": "Tên prompt",
+        "promptLabelPlaceholder": "Nhập tên prompt",
+        "promptInstructions": "Chỉ dẫn của prompt",
+        "promptInstructionsPlaceholder": "Viết chỉ dẫn để dọn dẹp bản chép lời. Ví dụ: Sửa ngữ pháp và dấu câu, rồi viết lại thành một tin nhắn chỉn chu, chuyên nghiệp.",
+        "promptTip": "Mẹo: Văn bản đã chuyển đổi của bạn được gửi tới mô hình tự động — bạn chỉ cần viết hướng dẫn. (Các prompt cũ dùng <code>${output}</code> vẫn hoạt động.)",
+        "updatePrompt": "Cập nhật prompt",
+        "deletePrompt": "Xóa prompt",
+        "restorePrompt": "Phục hồi bản đề xuất",
+        "createPrompt": "Tạo prompt",
+        "cancel": "Hủy",
+        "selectToEdit": "Chọn một prompt ở trên để xem và chỉnh sửa chi tiết.",
+        "createFirst": "Nhấn “Tạo prompt mới” ở trên để tạo prompt dọn dẹp đầu tiên của bạn."
+      }
+    },
+    "dictation": {
+      "hero": {
+        "eyebrow": "Đang lắng nghe bằng",
+        "loading": "Đang nạp mô hình của bạn…",
+        "noModelTitle": "Chưa có mô hình",
+        "noModelCaption": "Hãy chọn một mô hình để giọng nói của bạn thành văn bản.",
+        "chooseModel": "Chọn mô hình",
+        "changeModel": "Đổi mô hình",
+        "streams": "Hiện chữ trực tiếp",
+        "accuracy": "Độ chính xác",
+        "speed": "Tốc độ"
+      },
+      "catalog": {
+        "title": "Chọn mô hình của bạn",
+        "description": "Mọi mô hình đều chạy trên máy của bạn — hãy đánh đổi độ chính xác lấy tốc độ và chọn mô hình vừa vặn."
+      },
+      "cloud": {
+        "groupTitle": "Nơi chuyển đổi giọng nói",
+        "engine": {
+          "title": "Công cụ chuyển giọng nói thành văn bản",
+          "description": "Trên máy này, hoặc một nhà cung cấp trực tuyến mà bạn có khóa.",
+          "info": "Trên máy của tôi chạy một mô hình bạn đã tải: riêng tư, miễn phí và ngoại tuyến. Đám mây gửi bản ghi âm của bạn tới nhà cung cấp bạn chọn và bị họ tính phí theo từng phút âm thanh, đổi lại bạn có mô hình hàng đầu mà không cần tải xuống hay GPU."
+        },
+        "bypassNotice": "Chuyển đổi trên đám mây đang bật, nên mô hình ở trên không được dùng và vẫn chưa được tải.",
+        "provider": {
+          "title": "Nhà cung cấp"
+        },
+        "key": {
+          "title": "Khóa API",
+          "stored": "Đã lưu một khóa trong chuỗi khóa của hệ thống.",
+          "missing": "Chưa lưu khóa nào cho nhà cung cấp này.",
+          "placeholder": "Dán khóa API của bạn",
+          "replacePlaceholder": "Dán khóa mới để thay khóa đã lưu",
+          "save": "Lưu",
+          "saved": "Đã lưu khóa API",
+          "clear": "Xóa",
+          "getOne": "Lấy khóa"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "description": "URL cơ sở của một máy chủ chuyển đổi giọng nói tương thích OpenAI.",
+          "azureDescription": "Endpoint của tài nguyên Azure của bạn, lấy trong mục Keys and Endpoint trên cổng Azure. MAI-Transcribe cần một tài nguyên ở Central India, Southeast Asia, East US, West US, West US 2 hoặc North Europe.",
+          "azurePlaceholder": "https://your-resource.cognitiveservices.azure.com"
+        },
+        "amazon": {
+          "credentials": {
+            "title": "Khóa truy cập AWS",
+            "missing": "Chưa lưu khóa nào. Hãy dùng khóa truy cập của một người dùng hoặc vai trò IAM được phép gọi transcribe:StartStreamTranscriptionWebSocket.",
+            "keyId": "ID khóa truy cập",
+            "secret": "Khóa truy cập bí mật",
+            "sessionToken": "Mã thông báo phiên (chỉ cho thông tin xác thực tạm thời)",
+            "invalid": "Đây có vẻ không phải khóa AWS. ID khóa truy cập chỉ gồm chữ và số, và không ô nào được chứa dấu cách hoặc dấu hai chấm.",
+            "permission": "Quyền cần có"
+          },
+          "region": {
+            "title": "Khu vực",
+            "description": "Nơi Amazon Transcribe chạy. Khu vực gần bạn nhất phản hồi nhanh nhất."
+          },
+          "streaming": "Luôn bật: Amazon Transcribe chỉ chuyển đổi trực tiếp. Nếu kết nối bị ngắt giữa lúc ghi âm, bản ghi sẽ được gửi lại theo tốc độ nói, nên việc hoàn tất mất bằng thời gian ghi âm.",
+          "language": "Amazon Transcribe cần được cho biết ngôn ngữ. Chế độ Tự động chọn giữa tiếng Anh, ngôn ngữ của ứng dụng và một vài ngôn ngữ phổ biến khác, vì vậy hãy chọn ngôn ngữ của bạn nếu bạn nói thứ tiếng khác.",
+          "unsupportedLanguage": "Amazon Transcribe không thể chuyển đổi trực tiếp ngôn ngữ này ở {{region}}. Hãy chọn ngôn ngữ hoặc khu vực khác. Cho đến lúc đó, tính năng đọc chính tả sẽ không dùng Amazon Transcribe."
+        },
+        "model": {
+          "title": "Mô hình",
+          "info": "Nhập bất kỳ mô hình nào nhà cung cấp hỗ trợ, hoặc tải danh sách. Với ElevenLabs, chọn scribe_v2_realtime để chuyển đổi ngay khi bạn nói và scribe_v2 để chuyển đổi sau khi bạn dừng.",
+          "load": "Tải danh sách mô hình"
+        },
+        "streaming": {
+          "label": "Chuyển đổi ngay khi tôi nói",
+          "description": "Văn bản hiện ra khi bạn vẫn đang nói, nên lúc thả phím chỉ còn vài từ cuối cần xử lý.",
+          "needsRealtimeModel": "Chọn một mô hình thời gian thực ở trên để dùng tính năng này — mô hình hiện tại chỉ chuyển đổi sau khi bạn dừng."
+        },
+        "keyterms": {
+          "label": "Gửi từ tùy chỉnh của tôi",
+          "description": "Gửi từ vựng tùy chỉnh của bạn cho nhà cung cấp để họ ưu tiên đúng cách viết đó.",
+          "unsupported": "{{provider}} không nhận danh sách từ, nên các từ tùy chỉnh của bạn được sửa ngay trên máy tính này."
+        },
+        "noVerbatim": {
+          "label": "Bỏ từ đệm",
+          "description": "Bỏ “ờ”, “ừm”, những câu nói hụt và lặp lại. Tắt mục này để nhận đúng từng chữ bạn đã nói."
+        },
+        "language": {
+          "description": "Ngôn ngữ bạn nói. Mọi nhà cung cấp ở đây đều trả kết quả bằng chính ngôn ngữ đó — báo trước giúp tăng độ chính xác, còn Tự động để họ tự nhận biết ngôn ngữ."
+        },
+        "translate": {
+          "supported": "{{provider}} có thể trả về tiếng Anh thay vì ngôn ngữ bạn đã nói. Chỉ tiếng Anh — không API chuyển đổi giọng nói nào dịch sang ngôn ngữ khác."
+        },
+        "test": {
+          "title": "Kiểm tra kết nối",
+          "description": "Gửi một giây âm thanh để kiểm tra khóa, endpoint và mô hình.",
+          "action": "Chạy kiểm tra",
+          "running": "Đang kiểm tra…"
+        }
+      },
+      "aiCleanup": {
+        "groupTitle": "Dọn dẹp bằng AI",
+        "modelGroupTitle": "Mô hình dọn dẹp",
+        "unloadTimeout": {
+          "title": "Giữ mô hình dọn dẹp trong bộ nhớ",
+          "description": "Mô hình dọn dẹp trên máy sẽ nằm trong bộ nhớ bao lâu sau khi bạn ngừng dùng. Lâu hơn nghĩa là không phải nạp lại trước lần đọc chính tả kế tiếp; mô hình đang rảnh chiếm bộ nhớ nhưng không dùng CPU. Cài đặt này tách riêng với cài đặt của trợ lý."
+        },
+        "model": {
+          "emptyTitle": "Chưa có mô hình dọn dẹp nào",
+          "emptyDescription": "SpeakoFlow Mini là một bản tải nhỏ được làm riêng cho việc này.",
+          "choose": "Chọn một mô hình",
+          "tunedBadge": "Tinh chỉnh cho dọn dẹp"
+        },
+        "catalog": {
+          "title": "Chọn mô hình dọn dẹp của bạn",
+          "description": "Dọn dẹp chạy sau mỗi lần đọc chính tả, nên tốc độ quan trọng hơn kích thước. Mọi thứ đều chạy ngoại tuyến.",
+          "recommendedTitle": "Đề xuất cho dọn dẹp",
+          "recommendedDescription": "SpeakoFlow Mini được huấn luyện riêng cho việc này và làm tốt hơn cả những mô hình lớn hơn nhiều."
+        },
+        "promptGroupTitle": "Chỉ dẫn dọn dẹp",
+        "tunedModelNotice": "Mô hình này được tinh chỉnh để dọn dẹp phần đọc chính tả tiếng Anh, nên hoạt động tốt nhất với prompt được đề xuất và không dùng văn phong.",
+        "tunedModelNoticeDismiss": "Ẩn mẹo này",
+        "tunedModelNoticeRestore": "Hiện mẹo về mô hình",
+        "title": "Dùng AI chỉnh lại phần đọc chính tả của tôi",
+        "caption": "Thử nghiệm — dọn dấu câu và từ đệm sau khi bạn đọc chính tả.",
+        "info": "Tính năng dọn dẹp dùng mô hình AI để viết lại những gì bạn nói trước khi nhập vào. Việc này có thể mất một chút thời gian, và sẽ dùng lại lời gốc của bạn nếu quá chậm."
+      },
+      "spokenEmoji": {
+        "title": "Emoji bằng giọng nói",
+        "description": "Nói “happy emoji” hoặc “thumbs up emoji” để chèn 😊 hoặc 👍. Các tên gọi phổ biến và lỗi nhận dạng nhỏ được xử lý trên thiết bị; tên không xác định vẫn giữ nguyên dạng văn bản."
+      },
+      "flow": {
+        "groupTitle": "Tạo nội dung với Flow",
+        "enableLabel": "Tạo nội dung với Flow",
+        "enableDescription": "Bắt đầu một lần đọc chính tả bằng cụm từ kích hoạt để AI viết kết quả cho bạn — “Hey Flow, viết một email lịch sự xin đổi lịch hẹn” sẽ dán ra email đã hoàn chỉnh.",
+        "phraseLabel": "Cụm từ kích hoạt",
+        "phraseDescription": "Flow chỉ kích hoạt khi một lần đọc chính tả bắt đầu bằng cụm từ này. Ở mọi chỗ khác, cùng những từ đó vẫn được dán như đọc chính tả bình thường. Dùng mô hình của trợ lý; để trống để đặt lại thành “Hey Flow”.",
+        "phrasePlaceholder": "Hey Flow",
+        "screenLabel": "Cho phép truy cập màn hình",
+        "screenDescription": "Cho Flow chụp một ảnh màn hình khi câu lệnh rõ ràng nói về màn hình của bạn, kiểu “xem email này và viết nháp một câu trả lời”. Mô hình tự quyết định có cần hay không. Tách biệt với quyền truy cập màn hình của trợ lý."
+      },
+      "output": {
+        "title": "Tùy chọn đầu ra"
+      }
+    },
+    "history": {
+      "title": "Lịch sử",
+      "storage": {
+        "title": "Lưu trữ bản ghi âm",
+        "description": "Các tùy chọn này ảnh hưởng đến bản ghi đọc chính tả và Flow. Bản ghi đã lưu luôn được giữ lại. Trò chuyện với trợ lý được lưu trữ riêng."
+      },
+      "filters": {
+        "label": "Loại lịch sử",
+        "all": "Tất cả",
+        "recordings": "Đọc chính tả",
+        "flow": "Flow",
+        "asks": "Trợ lý",
+        "calls": "Cuộc trò chuyện"
+      },
+      "openFolder": "Mở thư mục ghi âm",
+      "loading": "Đang tải lịch sử…",
+      "empty": "Chưa có gì ở đây. Nội dung đọc chính tả, nội dung do Flow tạo và trò chuyện với trợ lý của bạn sẽ xuất hiện ở đây.",
+      "emptyRecordings": "Chưa có nội dung đọc chính tả nào.",
+      "emptyFlow": "Chưa có nội dung nào do Flow tạo.",
+      "emptyAsks": "Chưa có câu hỏi nào.",
+      "emptyCalls": "Chưa có cuộc trò chuyện nào.",
+      "flowLabel": "Flow",
+      "kinds": {
+        "ask": "Trợ lý",
+        "call": "Trò chuyện"
+      },
+      "flowTranscriptLabel": "Bạn đã nói",
+      "originalTranscriptionLabel": "Bản chuyển đổi gốc",
+      "flowOutputLabel": "Kết quả từ Flow",
+      "finalTextLabel": "Văn bản cuối",
+      "flowNoOutput": "Flow không tạo ra kết quả nào.",
+      "copyToClipboard": "Sao chép bản ghi vào clipboard",
+      "copyFlowOutput": "Sao chép kết quả từ Flow",
+      "copyFinalText": "Sao chép văn bản cuối",
+      "save": "Lưu bản ghi",
+      "unsave": "Xóa khỏi đã lưu",
+      "delete": "Xóa mục",
+      "deleteError": "Không thể xóa mục này. Vui lòng thử lại.",
+      "retranscribe": "Phiên âm lại",
+      "retranscribeError": "Không thể chép lời lại. Vui lòng thử lại.",
+      "transcribing": "Đang phiên âm…",
+      "transcriptionFailed": "Chép lời thất bại — dùng biểu tượng thử lại để thử lần nữa.",
+      "copyConversation": "Sao chép cuộc trò chuyện",
+      "copyAnswer": "Sao chép câu trả lời",
+      "noAnswer": "Không có câu trả lời nào được lưu cho câu hỏi này.",
+      "resumeConversation": "Tiếp tục cuộc trò chuyện này trong trợ lý",
+      "branchConversation": "Tiếp tục từ đây thành một cuộc trò chuyện mới. Cuộc trò chuyện này được giữ nguyên.",
+      "showConversation": "Hiện cuộc trò chuyện",
+      "hideConversation": "Ẩn cuộc trò chuyện",
+      "roleUser": "Bạn",
+      "roleAssistant": "Trợ lý",
+      "screenshotAttached": "Màn hình",
+      "messageCount_other": "{{count}} tin nhắn",
+      "deleteAssistantError": "Không thể xóa cuộc trò chuyện. Vui lòng thử lại.",
+      "openFolderError": "Không thể mở thư mục ghi âm."
+    },
+    "debug": {
+      "title": "Gỡ lỗi",
+      "logDirectory": {
+        "title": "Thư mục nhật ký",
+        "description": ""
+      },
+      "logLevel": {
+        "title": "Mức nhật ký",
+        "description": "",
+        "levels": {
+          "error": "Lỗi",
+          "warn": "Cảnh báo",
+          "info": "Thông tin",
+          "debug": "Gỡ lỗi",
+          "trace": "Truy vết"
+        }
+      },
+      "updateChecks": {
+        "label": "Tự động kiểm tra cập nhật",
+        "description": "Tìm phiên bản mới khi Zynveliq khởi động và cứ 12 giờ một lần. Bạn luôn có thể tự kiểm tra."
+      },
+      "soundTheme": {
+        "label": "Chủ đề âm thanh",
+        "description": ""
+      },
+      "wordCorrectionThreshold": {
+        "title": "Ngưỡng sửa từ",
+        "description": "Độ nhạy cho việc sửa từ tùy chỉnh"
+      },
+      "historyLimit": {
+        "title": "Giới hạn bản ghi",
+        "description": "Số bản ghi đọc chính tả và Flow chưa gắn sao tối đa được giữ lại. Bản ghi đã gắn sao luôn được giữ, và các cuộc trò chuyện với trợ lý không được tính. Giá trị thấp nhất cho phép là 1.",
+        "entries": "bản ghi"
+      },
+      "recordingRetention": {
+        "title": "Tự động xóa bản ghi",
+        "description": "Chọn cách dọn các bản ghi chưa lưu. Thay đổi có hiệu lực ngay và không bao giờ ảnh hưởng đến trò chuyện với trợ lý.",
+        "never": "Không bao giờ",
+        "preserveLimit": "Giữ một số lượng nhất định",
+        "days3": "Sau 3 ngày",
+        "weeks2": "Sau 2 tuần",
+        "months3": "Sau 3 tháng",
+        "customDays": "Sau một số ngày nhất định",
+        "customDaysTitle": "Xóa sau",
+        "customDaysDescription": "Bản ghi âm chưa gắn sao sẽ bị xóa khi đạt đến số ngày này. Bản ghi âm đã gắn sao luôn được giữ lại.",
+        "days": "ngày",
+        "placeholder": "Chọn thời gian lưu giữ…",
+        "savedToast": "Đã lưu thời gian lưu giữ.",
+        "appliedToast": "Đã áp dụng thời gian lưu giữ bản ghi âm",
+        "saveFailed": "Không thể lưu cài đặt thời gian lưu giữ.",
+        "confirmTitle_other": "Thao tác này sẽ xóa {{count}} bản ghi âm",
+        "confirmTitleUnknown": "Thao tác này có thể xóa bản ghi âm",
+        "confirmBody": "Âm thanh và bản chép lời sẽ bị xóa khỏi thiết bị này và không thể khôi phục. Bản ghi âm đã gắn sao được giữ lại.",
+        "confirmAction_other": "Xóa {{count}} bản ghi âm",
+        "confirmActionUnknown": "Vẫn áp dụng"
+      },
+      "alwaysOnMicrophone": {
+        "label": "Micrô luôn bật",
+        "description": "Giữ micrô sẵn sàng để không bao giờ mất những từ đầu tiên. Tốn thêm một chút pin."
+      },
+      "clamshellMicrophone": {
+        "title": "Micrô khi gập máy",
+        "description": "Micrô sử dụng khi nắp laptop được đóng"
+      },
+      "postProcessingToggle": {
+        "label": "Dọn dẹp bằng AI",
+        "description": "Dùng AI dọn dẹp phần đọc chính tả sau khi chép lời"
+      },
+      "appendTrailingSpace": {
+        "label": "Thêm dấu cách ở cuối",
+        "description": "Thêm dấu cách sau mỗi lần đọc chính tả. Khi bật khoảng cách thông minh, tùy chọn này chỉ áp dụng ở những ô không đọc được."
+      },
+      "smartSpacing": {
+        "label": "Khoảng cách thông minh",
+        "description": "Khớp mỗi lần đọc chính tả với văn bản đã có trong ô, để bạn có thể dừng rồi nói tiếp mà các từ không bị dính vào nhau.",
+        "info": "Trước khi dán, Zynveliq xem vài ký tự quanh con trỏ và chỉ thêm dấu cách ở chỗ cần. Khi ứng dụng ẩn văn bản của mình, nó dùng lần đọc chính tả gần nhất của chính nó. Không có gì được lưu hay gửi đi đâu. Trên macOS, tính năng này dùng quyền Trợ năng mà Zynveliq đã có. Trên Linux, ứng dụng Chrome, Electron và Qt chỉ chia sẻ văn bản khi cài đặt trợ năng của màn hình nền được bật."
+      },
+      "smartSpacingFixCase": {
+        "label": "Sửa chữ hoa",
+        "description": "Bắt đầu bằng chữ thường khi lần đọc nối tiếp một câu. Tên riêng, từ viết tắt và \"I\" vẫn giữ chữ hoa."
+      },
+      "smartSpacingJoin": {
+        "label": "Nối câu bị ngắt giữa chừng",
+        "description": "Xóa dấu chấm mà Zynveliq đã thêm khi bạn dừng giữa câu, như trong \"I went to the.\""
+      },
+      "keyboardImplementation": {
+        "title": "Cơ chế bàn phím",
+        "description": "Chọn hệ thống xử lý phím tắt.",
+        "bindingsReset": "Các phím tắt không tương thích và đã được đặt lại về mặc định"
+      },
+      "paths": {
+        "appData": "Dữ liệu ứng dụng:",
+        "models": "Mô hình:",
+        "settings": "Cài đặt:"
+      },
+      "pasteDelay": {
+        "title": "Độ trễ dán",
+        "description": "Số mili giây chờ trước khi dán. Tăng lên nếu văn bản bị dán sai."
+      },
+      "recordingBuffer": {
+        "title": "Bộ đệm ghi âm bổ sung",
+        "description": "Số mili giây tiếp tục ghi âm sau khi bạn nhả phím."
+      }
+    },
+    "about": {
+      "title": "Giới thiệu",
+      "version": {
+        "title": "Phiên bản",
+        "description": ""
+      },
+      "updates": {
+        "title": "Cập nhật",
+        "button": "Kiểm tra cập nhật",
+        "disabledHint": "Tự động kiểm tra cập nhật đang tắt. Bật lại trong mục Chung."
+      },
+      "folders": {
+        "title": "Thư mục"
+      },
+      "appDataDirectory": {
+        "title": "Thư mục dữ liệu ứng dụng",
+        "description": "Nơi Zynveliq lưu mô hình, lịch sử và cài đặt của bạn."
+      },
+      "sourceCode": {
+        "title": "Mã nguồn",
+        "description": "",
+        "button": "Xem trên GitHub"
+      },
+      "license": {
+        "title": "Giấy phép",
+        "description": "Zynveliq là mã nguồn mở theo Giấy phép MIT, dựa trên Handy (cũng MIT) của CJ Pais.",
+        "button": "Xem giấy phép"
+      },
+      "supportDevelopment": {
+        "title": "Hỗ trợ phát triển",
+        "description": "Giúp chúng tôi tiếp tục xây dựng Zynveliq",
+        "button": "Quyên góp"
+      }
+    },
+    "assistant": {
+      "enable": {
+        "title": "Trợ lý",
+        "label": "Bật trợ lý",
+        "description": "Tắt tùy chọn này để Zynveliq chỉ làm việc đọc chính tả. Bảng nổi sẽ đóng và không bao giờ được nạp, các phím tắt của nó được giải phóng, và bộ nhớ nó dùng được trả lại. Tạo nội dung với Flow và dọn dẹp bằng AI vẫn hoạt động."
+      },
+      "shortcuts": {
+        "title": "Phím tắt"
+      },
+      "brain": {
+        "title": "Bộ não trợ lý",
+        "whereLabel": "Nơi chạy",
+        "testLabel": "Kiểm tra kết nối",
+        "testDescription": "Gửi một câu hỏi ngắn để kiểm tra trợ lý có thực sự kết nối được với mô hình này. Mô hình trên thiết bị cần tải trước, nên lần kiểm tra đầu có thể mất một lúc.",
+        "testButton": "Kiểm tra kết nối",
+        "testing": "Đang kiểm tra…",
+        "onDevice": "Trên máy tính này",
+        "cloud": "Đám mây",
+        "downloadModel": "Xem và tải mô hình",
+        "downloadModelDescription": "Chọn một mô hình được đề xuất hoặc tìm trên Hugging Face.",
+        "downloadModelAction": "Xem các mô hình",
+        "catalogTitle": "Chọn một mô hình chạy trên thiết bị",
+        "catalogDescription": "Tải một mô hình cục bộ riêng tư. Nó nằm lại trên máy này và không cần khóa API.",
+        "currentModelTitle": "Mô hình hiện tại",
+        "currentModelDescription": "Đã chọn cho trợ lý tích hợp trên thiết bị này.",
+        "recommendedTitle": "Mô hình được đề xuất",
+        "recommendedDescription": "Ba lựa chọn ưu tiên trò chuyện: nhanh nhất, được đề xuất, và mạnh hơn nhưng chậm hơn.",
+        "acceleratorDetected": "{{name}} · {{memory}} GB bộ nhớ đồ họa được báo cáo",
+        "acceleratorDetectedDedicated": "{{name}} · {{memory}} GB VRAM riêng",
+        "acceleratorDetectedIntegrated": "{{name}} · {{memory}} GB bộ nhớ đồ họa dùng chung",
+        "acceleratorDetectedNoMemory": "Đã phát hiện {{name}} · không có báo cáo về bộ nhớ đồ họa",
+        "acceleratorUnknownWithMemory": "Không rõ bộ nhớ đồ họa · {{memory}} GB RAM hệ thống để dự phòng bằng CPU",
+        "acceleratorUnknown": "Không rõ bộ nhớ đồ họa · không thể dự đoán tốc độ trả lời",
+        "details": "Chi tiết",
+        "detailFile": "Tệp",
+        "detailLocation": "Vị trí",
+        "detailFormat": "Định dạng",
+        "detailId": "ID mô hình",
+        "switchBeforeDelete": "Mô hình này đang được dùng. Hãy chuyển sang mô hình khác trước khi xóa.",
+        "deleteModelConfirm": "Xóa {{modelName}}? Các tệp đã tải và mục đã lưu của nó sẽ bị loại bỏ.",
+        "deleteModelFailed": "Không thể xóa mô hình.",
+        "finderSectionTitle": "Thêm mô hình chạy trên thiết bị",
+        "finderTitle": "Xem trên Hugging Face",
+        "finderDescription": "Tìm trong hàng nghìn mô hình GGUF và tải một mô hình trực tiếp vào Zynveliq.",
+        "finderAction": "Tìm một mô hình",
+        "huggingFaceTitle": "Mô hình của bạn",
+        "catalogEmpty": "Hiện không có mô hình cục bộ được đề xuất nào."
+      },
+      "subpages": {
+        "profilesCaption": "Đổi tên, vai trò và tính cách của trợ lý.",
+        "memoryCaption": "Những gì trợ lý ghi nhớ về bạn giữa các cuộc trò chuyện."
+      },
+      "provider": {
+        "title": "Nhà cung cấp cho trợ lý",
+        "saveFailed": "Không thể chuyển nhà cung cấp cho Trợ lý.",
+        "providerLabel": "Nhà cung cấp",
+        "providerDescription": "Nhà cung cấp trả lời các câu hỏi cho trợ lý.",
+        "baseUrlLabel": "URL cơ sở",
+        "baseUrlDescription": "URL cơ sở tương thích OpenAI. URL của Azure được chuẩn hóa tự động.",
+        "apiKeyLabel": "Khóa API",
+        "apiKeyDescription": "Dùng chung với dọn dẹp bằng AI.",
+        "apiKeyPlaceholder": "Nhập khóa API…",
+        "modelLabel": "Mô hình",
+        "modelDescription": "Tên mô hình hoặc tên bản triển khai dùng cho câu trả lời của trợ lý.",
+        "modelPlaceholder": "ví dụ: gpt-4o-mini",
+        "modelSearchPlaceholder": "Tìm hoặc nhập tên mô hình…",
+        "modelUse": "Dùng “{{model}}”",
+        "loadModels": "Tải danh sách mô hình",
+        "loadingModels": "Đang tải…",
+        "noModelsFound": "Không có mô hình nào được trả về. Hãy tự nhập tên mô hình.",
+        "builtinModelDescription": "Chọn một mô hình cục bộ đã tải. Nó chạy trên máy của bạn, không cần khóa API.",
+        "builtinModelPlaceholder": "Chọn một mô hình đã tải",
+        "builtinNoModels": "Chưa có mô hình nào trên máy của bạn — hãy tải một mô hình bên dưới.",
+        "builtinReady": "Chạy hoàn toàn trên máy của bạn. Không cần khóa API, không cần thiết lập.",
+        "builtinEngineMissing": "Lần dùng đầu tiên sẽ tự động tải một công cụ cục bộ nhỏ (chỉ một lần), sau đó chạy hoàn toàn ngoại tuyến. Không cần thiết lập gì.",
+        "builtinEngineDownloading": "Đang tải công cụ cục bộ… {{percent}}%",
+        "builtinEnginePreparing": "Đang tải công cụ cục bộ…",
+        "builtinEngineExtracting": "Đang cài đặt công cụ cục bộ…",
+        "builtinEngineReady": "Công cụ cục bộ đã sẵn sàng.",
+        "contextSizeLabel": "Cửa sổ ngữ cảnh",
+        "contextSizeDescription": "Lượng nội dung cuộc trò chuyện mà mô hình đọc được cùng lúc. Lớn hơn thì nhớ nhiều hơn, nhưng tốn nhiều bộ nhớ hơn và tải chậm hơn.",
+        "unloadTimeoutLabel": "Giải phóng khỏi bộ nhớ sau",
+        "unloadTimeoutDescription": "Giải phóng bộ nhớ bằng cách dỡ mô hình cục bộ sau khi nó rảnh đủ lâu. Nó tự nạp lại ở lần dùng tiếp theo."
+      },
+      "systemPrompt": {
+        "title": "Prompt hệ thống",
+        "label": "Prompt hệ thống của trợ lý",
+        "description": "Quy định cách trợ lý hành xử."
+      },
+      "characters": {
+        "title": "Hồ sơ",
+        "description": "Các nhân vật có tên, chỉ dẫn và độ dài câu trả lời riêng. Chuyển đổi bất cứ lúc nào từ bảng điều khiển.",
+        "galleryLabel": "Hồ sơ của bạn",
+        "editSection": "Sửa hồ sơ",
+        "avatarLabel": "Ảnh đại diện",
+        "active": "Đang dùng",
+        "meowsOnly": "Chỉ biết meo meo",
+        "builtin": "Có sẵn",
+        "custom": "Tùy chỉnh",
+        "new": "Mới",
+        "newName": "Hồ sơ mới",
+        "copyName": "Bản sao của {{name}}",
+        "createAi": "Tạo bằng AI",
+        "import": "Nhập",
+        "aiTitle": "Mô tả hồ sơ của bạn",
+        "aiClose": "Đóng",
+        "aiPlaceholder": "ví dụ: một người viết ghi chú phát hành ngắn gọn, hoặc một gia sư kiên nhẫn giải thích từng bước",
+        "aiDictate": "Đọc chính tả phần mô tả",
+        "aiDictateStop": "Dừng đọc chính tả",
+        "generate": "Tạo",
+        "avatarUpload": "Tải ảnh lên",
+        "avatarRemove": "Xóa",
+        "nameLabel": "Tên",
+        "roleLabel": "Vai trò",
+        "rolePlaceholder": "Mô tả ngắn hiện trên thẻ (tùy chọn)",
+        "promptLabel": "Hướng dẫn (prompt hệ thống)",
+        "responseLength": {
+          "label": "Độ dài câu trả lời",
+          "hint": "Câu trả lời của hồ sơ này dài đến đâu. “Kế thừa” sẽ theo cài đặt Trợ lý chung của bạn.",
+          "options": {
+            "inherit": "Kế thừa cài đặt chung",
+            "short": "Ngắn",
+            "medium": "Trung bình",
+            "long": "Dài"
+          }
+        },
+        "greetingLabel": "Lời chào (tùy chọn)",
+        "greetingPlaceholder": "Câu mở đầu tùy chọn hiện trong cuộc trò chuyện trống",
+        "catNote": "Con Mèo bỏ qua AI hoàn toàn — nó chỉ meo meo. Không có gì để cấu hình ở đây.",
+        "duplicate": "Tạo bản sao",
+        "export": "Xuất",
+        "restoreDefault": "Khôi phục mặc định",
+        "restoreBuiltins": "Khôi phục hồ sơ có sẵn",
+        "moreActions": "Thêm hành động",
+        "expand": "Mở rộng",
+        "collapse": "Thu gọn",
+        "delete": "Xóa",
+        "deleteConfirm": "Xóa hồ sơ này? Hành động này không thể hoàn tác.",
+        "emptyState": "Chưa có hồ sơ nào. Hãy tạo hồ sơ đầu tiên để trợ lý có một tính cách."
+      },
+      "behavior": {
+        "title": "Hành vi"
+      },
+      "memory": {
+        "label": "Bộ nhớ cuộc trò chuyện",
+        "description": "Số tin nhắn gần đây được gửi kèm làm ngữ cảnh mỗi lượt. 0 sẽ tắt bộ nhớ."
+      },
+      "autoSummarize": {
+        "label": "Tóm tắt cuộc trò chuyện dài",
+        "description": "Cô đọng các cuộc trò chuyện dài để trợ lý không quên phần đầu."
+      },
+      "responseLength": {
+        "label": "Độ dài câu trả lời",
+        "description": "Độ dài câu trả lời bạn muốn. “Không tác động” sẽ giữ nguyên prompt của bạn.",
+        "options": {
+          "default": "Không tác động",
+          "short": "Ngắn",
+          "medium": "Trung bình",
+          "long": "Dài"
+        }
+      },
+      "vision": {
+        "timing": {
+          "label": "Thời điểm chụp"
+        },
+        "screenRecording": {
+          "description": "Khả năng xem màn hình cần quyền Ghi màn hình của macOS. Hãy cấp quyền trong Cài đặt Hệ thống, rồi khởi động lại Zynveliq để có hiệu lực.",
+          "grant": "Mở Cài đặt Hệ thống"
+        }
+      },
+      "webSearch": {
+        "title": "Tìm kiếm web",
+        "enableLabel": "Cho phép tìm kiếm web",
+        "enableDescription": "Cho trợ lý tìm trên web khi một câu hỏi cần thông tin mới nhất.",
+        "openRouterNativeLabel": "Dùng tìm kiếm tích hợp của OpenRouter",
+        "openRouterNativeDescription": "Khi bật, OpenRouter tự thực hiện việc tìm kiếm (chế độ :online của họ) và dùng tín dụng OpenRouter của bạn. Khi tắt, ứng dụng tìm kiếm bằng nhà cung cấp bạn chọn bên dưới.",
+        "providerLabel": "Nhà cung cấp tìm kiếm",
+        "providerDescription": "Serper là lựa chọn mặc định tốt. Mọi nhà cung cấp đều có bậc miễn phí, và TinyFish miễn phí mà không cần thẻ.",
+        "providers": {
+          "serper": "Serper (Google, nhanh)",
+          "brave": "Brave Search",
+          "tavily": "Tavily (tìm kiếm AI)",
+          "exa": "Exa (nơ-ron)",
+          "serpapi": "SerpAPI (Google)",
+          "tinyfish": "TinyFish (miễn phí, không cần thẻ)"
+        },
+        "apiKeyLabel": "Khóa API",
+        "apiKeyDescription": "Khóa cho nhà cung cấp tìm kiếm đã chọn.",
+        "apiKeyPlaceholder": "Nhập khóa API…",
+        "fetchContentLabel": "Đọc toàn bộ trang (chất lượng tốt nhất)",
+        "fetchContentDescription": "Đọc toàn văn từng kết quả thay vì chỉ đoạn trích. Câu trả lời tốt hơn, nhưng chậm hơn.",
+        "maxResultsLabel": "Số nguồn sử dụng",
+        "maxResultsDescription": "Số kết quả cần đọc (1–10).",
+        "depthLabel": "Độ sâu tìm kiếm",
+        "depthDescription": "Nhanh cho thông tin đơn giản, Chuẩn cho phần lớn câu hỏi, Sâu cho câu hỏi khó.",
+        "depthOptions": {
+          "low": "Nhanh",
+          "medium": "Chuẩn",
+          "high": "Sâu"
+        },
+        "localSmartLabel": "Tự quyết định tìm kiếm thông minh (mô hình cục bộ)",
+        "localSmartDescription": "Cho mô hình cục bộ tự quyết khi nào cần tìm kiếm. Khi tắt, ứng dụng dùng phép kiểm tra từ khóa nhanh.",
+        "creditBudgetLabel": "Giới hạn tín dụng Firecrawl mỗi ngày",
+        "creditBudgetDescription": "Mức trần tín dụng Firecrawl mỗi ngày trước khi tìm kiếm tạm dừng. 0 = không giới hạn.",
+        "testLabel": "Thử tìm kiếm",
+        "testDescription": "Chạy một lần tìm kiếm mẫu với nhà cung cấp và khóa hiện tại.",
+        "testButton": "Thử tìm kiếm",
+        "testing": "Đang tìm…",
+        "testResult": "Đã nhận {{count}} kết quả."
+      },
+      "tts": {
+        "title": "Đầu ra giọng nói",
+        "enableLabel": "Đọc to câu trả lời trong cuộc trò chuyện",
+        "enableDescription": "Đọc to câu trả lời khi bạn đang trong cuộc trò chuyện trực tiếp. Các câu trả lời nhanh bằng văn bản không bao giờ được đọc.",
+        "stopOnDictationLabel": "Dừng đọc khi bắt đầu đọc chính tả",
+        "stopOnDictationDescription": "Dừng câu trả lời còn đang phát khi bạn bắt đầu đọc chính tả.",
+        "engineLabel": "Công cụ",
+        "engineDescription": "Giọng đọc trên máy tính này miễn phí, riêng tư và hoạt động không cần internet. Giọng đọc đám mây dùng khóa API của nhà cung cấp tương ứng. Tùy chỉnh kết nối tới máy chủ giọng nói do bạn tự vận hành.",
+        "sectionLocal": "Trên máy tính này",
+        "sectionLocalHint": "Miễn phí và riêng tư. Chạy trên máy tính này và hoạt động ngoại tuyến.",
+        "sectionCloud": "Đám mây",
+        "sectionCloudHint": "Cần khóa API của nhà cung cấp. Tùy chỉnh kết nối tới máy chủ giọng nói do bạn tự vận hành.",
+        "readyLabel": "Sẵn sàng sử dụng",
+        "kokoroSetupLabel": "Mô hình giọng nói Kokoro",
+        "kokoroSetupDescription": "Tải một lần, sau đó câu trả lời nói ra sẽ chạy riêng tư trên thiết bị này.",
+        "kokoroDownload": "Tải Kokoro",
+        "kokoroDownloading": "Đang tải Kokoro",
+        "kokoroReady": "Đã sẵn sàng trên thiết bị này",
+        "kokoroRetry": "Thử tải lại",
+        "runsOnLabel": "Chạy trên",
+        "runsOn": {
+          "auto": "Tự động",
+          "gpu": "Card đồ họa",
+          "cpu": "Bộ xử lý"
+        },
+        "runsOnStatus": {
+          "checking": "Dùng card đồ họa khi được, và bộ xử lý khi không được.",
+          "gpu": "Đang đọc bằng card đồ họa.",
+          "processor": "Đang đọc bằng bộ xử lý.",
+          "gpuUnusable": "Đang đọc bằng bộ xử lý, vì card đồ họa không chạy được giọng nói trên máy tính này.",
+          "needsPack": "Card đồ họa không chạy được giọng nói trên máy tính này. Hãy tải giọng cho bộ xử lý bên dưới để có câu trả lời nhanh.",
+          "cpuNeedsPack": "Hãy tải giọng cho bộ xử lý bên dưới. Trước đó, Kokoro chạy bên trong ứng dụng và khá chậm.",
+          "loadFailed": "Giọng cho bộ xử lý không khởi động được trên máy tính này, nên tạm thời Kokoro chạy bên trong ứng dụng.",
+          "noNativeSlow": "Card đồ họa không chạy được giọng nói trên máy tính này, nên Kokoro chạy chậm bên trong ứng dụng. Một giọng trên đám mây sẽ nhanh hơn.",
+          "gpuForcedUnusable": "Card đồ họa không chạy giọng nói ổn định trên máy tính này. Hãy đặt Chạy trên thành Tự động hoặc Bộ xử lý."
+        },
+        "kokoroNativeLabel": "Giọng cho bộ xử lý",
+        "kokoroNativeDescription": "Giúp Kokoro đọc nhanh bằng bộ xử lý khi card đồ họa không làm được. Dung lượng tải xuống {{size}}.",
+        "kittenSizeLabel": "Kích thước Kitten",
+        "kittenSizeDescription": "Cả ba kích thước đều có cùng tám giọng. Kích thước lớn hơn nghe tự nhiên hơn nhưng mất nhiều thời gian hơn để bắt đầu nói, nhất là trên bộ xử lý yếu.",
+        "kittenSizes": {
+          "nano": "Nano · nhanh nhất ({{size}})",
+          "micro": "Micro · cân bằng ({{size}})",
+          "mini": "Mini · tự nhiên nhất ({{size}})"
+        },
+        "packLabel": {
+          "kitten": "Giọng Kitten",
+          "pocket": "Giọng Pocket TTS",
+          "supertonic": "Giọng Supertonic"
+        },
+        "packDescription": {
+          "kitten": "Một giọng nhỏ gọn chạy trên bộ xử lý. Dung lượng tải xuống {{size}}.",
+          "pocket": "Giọng nghe tự nhiên của Kyutai, dành cho bộ xử lý, với 14 người đọc. Dung lượng tải xuống {{size}}.",
+          "supertonic": "Giọng nhanh, rõ ràng của Supertone, với mười người đọc. Dung lượng tải xuống {{size}}."
+        },
+        "voiceNamedFemale": "{{name}} (nữ)",
+        "voiceNamedMale": "{{name}} (nam)",
+        "voiceNumberedFemale": "Nữ {{n}}",
+        "voiceNumberedMale": "Nam {{n}}",
+        "packSize": "{{size}} MB",
+        "packDownload": "Tải xuống ({{size}})",
+        "packDownloading": "Đang tải xuống",
+        "packInstalling": "Đang thiết lập",
+        "packCancel": "Hủy tải xuống",
+        "packRemove": "Xóa",
+        "packUnsupported": "Không khả dụng trên hệ thống này",
+        "kittenSuggestLabel": "Thử Kitten",
+        "kittenSuggestDescription": "Máy tính này có bộ xử lý yếu. Kitten là giọng nhẹ hơn và trả lời nhanh hơn ở đây.",
+        "kittenSuggestButton": "Dùng Kitten",
+        "engines": {
+          "kokoro": "Kokoro (cục bộ, miễn phí)",
+          "kitten": "Kitten (cục bộ, nhẹ)",
+          "pocket": "Pocket TTS (cục bộ)",
+          "supertonic": "Supertonic (cục bộ)",
+          "openai": "OpenAI",
+          "elevenlabs": "ElevenLabs",
+          "openrouter": "OpenRouter",
+          "deepgram": "Deepgram Aura",
+          "cartesia": "Cartesia Sonic",
+          "google": "Google Cloud TTS",
+          "azure": "Azure AI Speech",
+          "groq": "Groq Orpheus",
+          "xai": "xAI Grok Voice",
+          "mistral": "Mistral Voxtral",
+          "inworld": "Inworld TTS",
+          "custom": "Máy chủ tùy chỉnh (tương thích OpenAI)"
+        },
+        "voiceLabel": "Giọng",
+        "voiceDescription": "Giọng Kokoro cho câu trả lời nói ra.",
+        "dtypeLabel": "Độ chính xác Kokoro",
+        "dtypeDescription": "Chỉ dành cho Kokoro chạy trong ứng dụng. fp32 cho chất lượng cao nhất; q8 nhỏ gọn hơn. Đổi tùy chọn này sẽ nạp lại mô hình. Nếu giọng đọc bị méo, hãy đặt Chạy trên thành Bộ xử lý.",
+        "speedLabel": "Tốc độ phát",
+        "speedDescription": "1× là tốc độ bình thường.",
+        "speedRange": "{{engine}} hỗ trợ từ {{min}}× đến {{max}}×; các tốc độ khác sẽ dùng giới hạn gần nhất.",
+        "speedUnsupported": "{{engine}} luôn nói ở tốc độ tự nhiên.",
+        "speedValue": "{{value}}×",
+        "speedCustomLabel": "Tốc độ phát tùy chỉnh",
+        "volumeLabel": "Âm lượng giọng nói",
+        "volumeDescription": "Độ lớn của câu trả lời bằng giọng nói. Tách biệt với âm thanh phản hồi.",
+        "expressivenessLabel": "Độ biểu cảm",
+        "expressivenessDescription": "Mức độ thay đổi trong cách giọng nói thể hiện, từ đều đặn và ổn định đến sinh động và giàu cảm xúc.",
+        "expressivenessInfo": "Đây là cài đặt Độ ổn định của ElevenLabs, được đảo ngược. Cho đến khi bạn kéo thanh này, mỗi giọng sẽ dùng cài đặt đã lưu của riêng nó. Ở mức biểu cảm cao nhất, giọng đôi khi có thể nghe không đều.",
+        "expressivenessSteady": "Ổn định",
+        "expressivenessExpressive": "Biểu cảm",
+        "expressivenessDefault": "Mặc định của giọng",
+        "expressivenessReset": "Dùng mặc định của giọng",
+        "expressivenessLevels": {
+          "verySteady": "Rất ổn định",
+          "steady": "Ổn định",
+          "balanced": "Cân bằng",
+          "lively": "Sinh động",
+          "veryExpressive": "Rất biểu cảm"
+        },
+        "audioTagsLabel": "Thẻ âm thanh",
+        "audioTagsDescription": "Để giọng nói diễn câu trả lời với các chỉ dẫn như [laughs] và [whispers], cùng hiệu ứng âm thanh như [applause].",
+        "audioTagsNeedsModel": "Cần một mô hình Eleven v3 hoặc v4, chẳng hạn eleven_v4. Hãy chọn một mô hình ở mục Mô hình để bật tính năng này.",
+        "audioTagsInfo": "Trợ lý viết các chỉ dẫn ngắn trong dấu ngoặc vuông vào câu trả lời nói, và giọng ElevenLabs sẽ diễn chúng hoặc phát thành âm thanh thay vì đọc ra. Hãy yêu cầu một cảnh, như đám đông cổ vũ bạn, và trợ lý sẽ dựng cảnh bằng hiệu ứng. Cuộc trò chuyện hiển thị chỉ dẫn đúng như đã viết. Chỉ giọng ElevenLabs v3 và v4 diễn được chúng; với mọi giọng khác, chúng bị loại bỏ trước khi nói.",
+        "audioTagIntensityLabel": "Diễn xuất",
+        "audioTagIntensityDescription": "Mức độ giọng nói phản ứng và thêm hiệu ứng, từ điểm xuyết nhẹ đến một màn trình diễn trọn vẹn.",
+        "audioTagIntensityLevels": {
+          "subtle": "Nhẹ nhàng",
+          "balanced": "Cân bằng",
+          "theatrical": "Kịch tính"
+        },
+        "testLabel": "Thử giọng",
+        "testDescription": "Phát một mẫu ngắn với cài đặt hiện tại.",
+        "testButton": "Thử giọng",
+        "testing": "Đang thử…",
+        "testOk": "Đã phát ✓",
+        "testFailed": "Kokoro không tạo được mẫu. Hãy thử lại, hoặc đặt Chạy trên thành Bộ xử lý.",
+        "testGpuMoved": "Card đồ họa của bạn làm méo mẫu âm thanh, nên nó đã bị tắt tiếng. Kokoro giờ dùng bộ xử lý, hãy kiểm tra lại để nghe.",
+        "testGpuForced": "Card đồ họa của bạn làm méo mẫu âm thanh, nên nó đã bị tắt tiếng. Hãy đặt Chạy trên thành Tự động hoặc Bộ xử lý.",
+        "testGpuSuspect": "Mẫu âm thanh bị méo, nên đã bị tắt tiếng. Hãy kiểm tra lại để xem card đồ họa của bạn.",
+        "testPhrase": "Xin chào! Đây là bản thử đầu ra giọng nói của Zynveliq.",
+        "downloadStart": "Đang tải giọng Kokoro…",
+        "downloadProgress": "Đang tải giọng Kokoro… {{progress}}%",
+        "downloadReady": "Giọng Kokoro đã sẵn sàng ✓",
+        "downloadError": "Không thể tải mô hình giọng nói Kokoro",
+        "baseUrlLabel": "URL cơ sở",
+        "baseUrlDescription": "Địa chỉ tương thích OpenAI của máy chủ giọng nói, ví dụ http://localhost:8880/v1. Hoạt động với Kokoro-FastAPI, Speaches, Chatterbox, Orpheus-FastAPI, LocalAI và các máy chủ khác cung cấp /v1/audio/speech. URL /audio/speech đầy đủ cũng được.",
+        "azureBaseUrlLabel": "URL Speech",
+        "azureBaseUrlDescription": "URL Azure Speech của bạn lấy từ cổng quản trị, ví dụ https://eastus2.tts.speech.microsoft.com.",
+        "apiKeyLabel": "Khóa API",
+        "apiKeyDescription": "Khóa API {{provider}} của bạn. Mỗi công cụ giọng nói giữ khóa riêng.",
+        "apiKeyOptionalDescription": "Chỉ cần khi máy chủ của bạn yêu cầu.",
+        "modelLabel": "Mô hình",
+        "modelDescription": "Mô hình dùng để đọc. Để trống để dùng mô hình mặc định của công cụ, hiển thị màu xám.",
+        "remoteVoiceLabel": "Tên giọng",
+        "remoteVoiceDescription": "Giọng cho TTS tương thích OpenAI, ví dụ alloy, echo, nova, shimmer.",
+        "azureVoiceLabel": "Tên giọng",
+        "azureVoiceDescription": "Tên giọng Azure, ví dụ en-US-JennyNeural. Nhấn Tải danh sách giọng để xem.",
+        "voiceLoadDescription": "Nhấn Tải danh sách giọng để xem các giọng của công cụ này, hoặc nhập ID giọng.",
+        "deepgramVoiceDescription": "Với Deepgram, giọng cũng chính là mô hình, ví dụ aura-2-thalia-en. Nhấn Tải danh sách giọng để duyệt.",
+        "loadVoices": "Tải danh sách giọng",
+        "voicesLoading": "Đang tải…",
+        "voicesPick": "Chọn trong {{count}} giọng…",
+        "loadModels": "Tải danh sách mô hình",
+        "modelsLoading": "Đang tải…",
+        "modelsPick": "Chọn trong {{count}} mô hình…",
+        "modelsUse": "Dùng “{{model}}”",
+        "voicesUse": "Dùng “{{voice}}”",
+        "elevenVoiceLabel": "ID giọng",
+        "elevenVoiceDescription": "ID giọng của ElevenLabs (lấy ở tab Voices trong bảng điều khiển của họ).",
+        "promptLabel": "Prompt tóm tắt",
+        "promptDescription": "Hướng dẫn để tạo bản tóm tắt ngắn được đọc lên cho mỗi câu trả lời.",
+        "kokoroVoices": {
+          "usFemale": "{{name}} (nữ, Mỹ)",
+          "usFemaleSoft": "{{name}} (nữ, Mỹ, nhẹ nhàng)",
+          "usMale": "{{name}} (nam, Mỹ)",
+          "ukFemale": "{{name}} (nữ, Anh)",
+          "ukMale": "{{name}} (nam, Anh)"
+        },
+        "dtypes": {
+          "fp32": "fp32 (chất lượng tốt nhất, WebGPU)",
+          "fp16": "fp16 (độ chính xác một nửa)",
+          "q8": "q8 (8-bit, nhanh trên CPU)",
+          "q4": "q4 (4-bit, nhanh nhất)",
+          "q4f16": "q4f16 (4-bit hỗn hợp)"
+        }
+      },
+      "appearance": {
+        "title": "Giao diện bảng",
+        "previewLabel": "Xem trước",
+        "previewDescription": "Xem trước trực tiếp bảng với cỡ chữ và độ mờ bạn chọn.",
+        "previewUser": "Này, bạn làm được những gì?",
+        "previewAssistant": "Nhiều lắm! Hỏi tôi bất cứ điều gì — tôi còn xem được màn hình của bạn.",
+        "fontSizeLabel": "Cỡ chữ",
+        "fontSizeDescription": "Cỡ chữ của phần trò chuyện trong bảng trợ lý.",
+        "fontSizes": {
+          "small": "Nhỏ",
+          "medium": "Trung bình",
+          "large": "Lớn",
+          "extraLarge": "Rất lớn"
+        },
+        "askDisplayLabel": "Màn hình nào",
+        "askDisplayDescription": "Màn hình mà trợ lý mở ra. Mặc định là màn hình có con trỏ chuột.",
+        "askDisplays": {
+          "cursor": "Màn hình có con trỏ chuột",
+          "numbered": "Màn hình {{number}} ({{width}}×{{height}}){{suffix}}",
+          "mainSuffix": " · chính"
+        },
+        "askAnchorLabel": "Vị trí mở",
+        "askAnchorDescription": "Vị trí trợ lý mở ra, mỗi lần.",
+        "askAnchors": {
+          "center": "Giữa màn hình",
+          "top": "Trên cùng",
+          "bottom": "Dưới cùng",
+          "left": "Bên trái",
+          "right": "Bên phải"
+        },
+        "opacityLabel": "Độ mờ của bảng",
+        "opacityDescription": "Bảng nổi đục đến mức nào. 100% là hoàn toàn đặc; giá trị thấp hơn cho phép thấy mờ màn hình nền phía sau."
+      }
+    },
+    "thinking": {
+      "title": "Suy nghĩ",
+      "description": {
+        "cleanup": "Thời gian một mô hình suy luận suy nghĩ trước khi làm sạch nội dung đọc chính tả của bạn. Tắt là nhanh nhất, và các mô hình luôn suy nghĩ như gpt-oss sẽ dùng mức thấp nhất. Chỉ tăng lên khi phần làm sạch bị sai, vì nó làm chậm mọi lần đọc chính tả.",
+        "assistant": "Thời gian một mô hình suy luận suy nghĩ trước khi trả lời. Tắt là nhanh nhất, và các mô hình luôn suy nghĩ như gpt-oss sẽ dùng mức thấp nhất. Mức cao hơn xử lý câu hỏi khó tốt hơn nhưng mất nhiều thời gian hơn để bắt đầu trả lời."
+      },
+      "unsupported": {
+        "builtin": "Các mô hình trên máy tính này luôn trả lời mà không suy nghĩ, nhờ vậy chúng chạy nhanh.",
+        "anthropic": "Anthropic không cho ứng dụng đặt mục này, nên Claude tự quyết định. Hãy dùng Claude qua OpenRouter để đặt.",
+        "apple": "Apple Intelligence không có cài đặt suy nghĩ."
+      },
+      "options": {
+        "off": "Tắt",
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao"
+      }
+    }
+  },
+  "footer": {
+    "downloadingModel": "Đang tải {{model}}…",
+    "checkingUpdates": "Đang kiểm tra cập nhật…",
+    "updateAvailable": "Có bản cập nhật: {{version}}",
+    "updateAvailableShort": "Có bản cập nhật",
+    "upToDate": "Đã cập nhật",
+    "downloadUpdate": "Tải bản cập nhật",
+    "restart": "Khởi động lại",
+    "updateCheckingDisabled": "Đã tắt kiểm tra cập nhật",
+    "downloading": "Đang tải… {{progress}}%",
+    "installing": "Đang cài đặt…",
+    "preparing": "Đang chuẩn bị…",
+    "checkForUpdates": "Kiểm tra cập nhật",
+    "checkFailed": "Kiểm tra cập nhật thất bại",
+    "updateFailed": "Cập nhật thất bại",
+    "clickToRetry": "Nhấn để thử lại",
+    "portableUpdateTitle": "Cần cập nhật thủ công",
+    "portableUpdateMessage": "Bản cài đặt di động không thể tự cập nhật. Để cập nhật: tải bộ cài NSIS mới nhất từ GitHub Releases, cài vào cùng thư mục, rồi sao chép thư mục Data/ của bạn (cài đặt, mô hình, bản ghi âm) từ phiên bản cũ sang phiên bản mới.",
+    "portableUpdateButton": "Mở GitHub Releases"
+  },
+  "meetings": {
+    "newTitle": "Cuộc họp {{when}}",
+    "speakers": {
+      "me": "Bạn",
+      "others": "Người khác",
+      "numbered": "Người nói {{number}}"
+    },
+    "recorder": {
+      "idleTitle": "Ghi âm cuộc họp",
+      "idleCaption": "Ghi lại micrô của bạn và những người tham gia khác thành hai luồng riêng biệt.",
+      "recording": "Đang ghi âm",
+      "paused": "Đã tạm dừng",
+      "liveCaption": "Đang chép lời khi mọi người nói.",
+      "start": "Bắt đầu ghi âm",
+      "starting": "Đang bắt đầu…",
+      "stop": "Dừng",
+      "stopping": "Đang dừng…",
+      "stoppingHint": "Đang hoàn tất bản chép lời. Với cuộc họp dài, việc này có thể mất một lúc.",
+      "pause": "Tạm dừng",
+      "resume": "Tiếp tục",
+      "transcriptEmpty": "Chưa có gì được chép lời. Nội dung sẽ hiện ở đây khi mọi người nói."
+    },
+    "offer": {
+      "detected": "Có vẻ bạn đang trong một cuộc gọi. Ghi âm lại nhé?",
+      "detectedApp": "Có vẻ {{app}} đang trong một cuộc gọi. Ghi âm lại nhé?",
+      "idle": "Không ghi âm",
+      "record": "Ghi âm cuộc gọi này",
+      "dismiss": "Lần này thì không"
+    },
+    "autoDetect": {
+      "title": "Đề nghị ghi âm cuộc gọi",
+      "description": "Nhận biết khi một ứng dụng khác bắt đầu dùng micrô của bạn và đề nghị ghi âm. Nó không bao giờ tự bắt đầu. Nếu đoán sai, bạn chỉ cần đóng thẻ.",
+      "unsupported": "Hiện tính năng phát hiện cuộc gọi chỉ có trên Windows. Trên hệ thống này, hãy tự bắt đầu cuộc họp."
+    },
+    "indicator": {
+      "title": "Chỉ báo nổi",
+      "description": "Một viên nhỏ cho biết đang ghi âm. Nhấp vào để xem bản chép lời trực tiếp. Tắt nó đi để màn hình gọn gàng; khi đó việc ghi âm chỉ hiển thị ở đây, và bạn dừng nó từ trang này.",
+      "hide": "Ẩn chỉ báo nổi",
+      "show": "Hiện chỉ báo nổi"
+    },
+    "notesPrefs": {
+      "autoTitle": "Viết ghi chú khi cuộc gọi kết thúc",
+      "autoDescription": "Tắt nếu bạn chỉ cần bản ghi lời. Bạn vẫn có thể viết ghi chú cho từng cuộc họp từ bản ghi lời của nó.",
+      "languageTitle": "Ngôn ngữ ghi chú",
+      "languageDescription": "Mặc định, ghi chú được viết bằng ngôn ngữ của cuộc họp. Chọn một ngôn ngữ để luôn nhận ghi chú bằng ngôn ngữ đó.",
+      "auto": "Giống cuộc họp",
+      "autoHint": "Ngôn ngữ được dùng trong phần lớn cuộc họp"
+    },
+    "pill": {
+      "expand": "Mở bản chép lời trực tiếp",
+      "collapse": "Trở về viên nhỏ",
+      "copy": "Sao chép bản ghi lời",
+      "copied": "Đã sao chép bản ghi lời",
+      "stop": "Dừng ghi âm",
+      "listening": "Đang nghe. Lời mọi người nói sẽ hiện ở đây.",
+      "micOnly": "Chỉ micrô của bạn đang được ghi — lời của những người tham gia khác sẽ không có trong bản chép lời này."
+    },
+    "ask": {
+      "placeholder": "Hỏi bất cứ điều gì về cuộc họp này…",
+      "send": "Hỏi",
+      "stop": "Dừng",
+      "thinking": "Đang đọc bản chép lời…",
+      "title": "Hỏi về cuộc họp này",
+      "empty": "Hỏi xem đã quyết định những gì, ai phụ trách việc gì, hoặc bất cứ điều gì khác đã được nhắc đến.",
+      "clear": "Xóa các câu hỏi này",
+      "youAsked": "Bạn đã hỏi"
+    },
+    "systemAudio": {
+      "liveTitle": "Chỉ giọng của bạn đang được ghi âm",
+      "liveBody": "Không thể ghi âm thanh hệ thống, nên cuộc họp này chỉ có phần nói của bạn và không có gì từ những người tham gia khác.",
+      "unavailableTitle": "Không thể ghi âm những người tham gia khác trên máy này",
+      "unavailableBody": "Không ghi được âm thanh hệ thống, nên cuộc họp được ghi lúc này sẽ chỉ có giọng của bạn.",
+      "help": "Hướng dẫn thiết lập"
+    },
+    "list": {
+      "title": "Các cuộc họp đã ghi",
+      "emptyTitle": "Chưa có cuộc họp nào",
+      "emptyHint": "Bắt đầu ghi âm trước cuộc gọi và Zynveliq sẽ lưu bản chép lời, chia theo người nói.",
+      "loadMore": "Tải thêm",
+      "speakers_other": "{{count}} người nói",
+      "hasNotes": "Đã tạo ghi chú"
+    },
+    "status": {
+      "recording": "Đang ghi âm",
+      "processing": "Đang xử lý",
+      "complete": "Hoàn tất",
+      "interrupted": "Bị gián đoạn"
+    },
+    "delete": {
+      "action": "Xóa cuộc họp",
+      "whileRecording": "Hãy dừng ghi âm trước khi xóa cuộc họp này.",
+      "confirmTitle": "Xóa cuộc họp này?",
+      "confirmBody": "Bản chép lời, ghi chú và âm thanh của cuộc họp sẽ bị xóa khỏi máy tính này. Không thể hoàn tác."
+    },
+    "detail": {
+      "title": "Cuộc họp",
+      "rename": "Đổi tên cuộc họp",
+      "gone": "Cuộc họp này đã bị xóa.",
+      "tabsLabel": "Chế độ xem cuộc họp"
+    },
+    "tabs": {
+      "myNotes": "Suy nghĩ của tôi",
+      "transcript": "Bản chép lời",
+      "summary": "Tóm tắt",
+      "ask": "Hỏi"
+    },
+    "discuss": {
+      "button": "Thảo luận cuộc họp này",
+      "hint": "Trao đổi về cuộc họp này với trợ lý. Trợ lý biết những gì đã được nói và có thể tra cứu trong bản chép lời.",
+      "whileRecording": "Có thể dùng khi bản ghi dừng lại.",
+      "nothingYet": "Chưa có nội dung nào được chép lời.",
+      "failed": "Không thể bắt đầu cuộc trò chuyện: {{error}}",
+      "earlier": "Các cuộc thảo luận trước",
+      "continue": "Tiếp tục thảo luận này",
+      "untitled": "Thảo luận chưa đặt tên",
+      "messages_other": "{{count}} tin nhắn",
+      "more": "Xem thêm trong Các cuộc trò chuyện trước."
+    },
+    "myNotes": {
+      "description": "Ghi lại những điều quan trọng với bạn. Chúng sẽ được kết hợp với bản chép lời khi tạo ghi chú.",
+      "placeholder": "Những gì bạn muốn nhớ từ cuộc họp này…",
+      "saving": "Đang lưu…",
+      "saved": "Đã lưu"
+    },
+    "transcript": {
+      "empty": "Cuộc họp này không có bản chép lời.",
+      "loadingMore": "Đang tải thêm bản chép lời…",
+      "renameSpeaker": "Đổi tên người nói này",
+      "copyTitle": "Sao chép toàn bộ bản ghi lời kèm tên người nói",
+      "lowConfidence": "Chưa chắc chắn",
+      "lowConfidenceHelp": "Nhãn người nói này chỉ là phỏng đoán. Lời nói được chép đúng như đã nói; chỉ có người nói là chưa chắc chắn."
+    },
+    "diarize": {
+      "title": "Phân biệt người nói",
+      "ready": "Nhóm những người tham gia khác thành Người nói 1, Người nói 2, v.v.",
+      "needsModel": "Cần tải xuống một lần {{size}} MB. Sau đó nó chạy trên máy của bạn, và mọi cuộc họp về sau đều được gắn nhãn tự động.",
+      "install": "Tải xuống và nhận diện",
+      "downloading": "Đang tải xuống…",
+      "identify": "Nhận diện người nói",
+      "running": "Đang nghe…",
+      "progress": "Đang so sánh giọng nói, {{done}}/{{total}} đoạn.",
+      "oneSpeaker": "Cuộc gọi này chỉ có một giọng khác, nên không có ai cần phân biệt.",
+      "skipped": {
+        "modelNotInstalled": "Mô hình nhận diện người nói chưa được cài đặt.",
+        "noSystemAudio": "Cuộc họp này không có bản ghi âm của những người tham gia khác.",
+        "audioUnreadable": "Không thể đọc bản ghi âm của những người tham gia khác. Điều này xảy ra khi ứng dụng bị đóng giữa cuộc họp.",
+        "tooFewSegments": "Không đủ lời nói từ những người tham gia khác để so sánh.",
+        "alreadyDone": "Người nói trong cuộc họp này đã được nhận diện.",
+        "modelUnusable": "Không thể tải mô hình nhận diện người nói, nên nó đã bị xóa. Hãy tải xuống lại."
+      }
+    },
+    "summary": {
+      "template": "Mẫu",
+      "languageAuto": "Ngôn ngữ cuộc họp",
+      "templates": {
+        "general": "Chung",
+        "standup": "Họp đứng",
+        "one_on_one": "Gặp riêng 1:1",
+        "interview": "Phỏng vấn",
+        "action_items": "Việc cần làm"
+      },
+      "templateHints": {
+        "general": "Tóm tắt, điểm chính, chủ đề, quyết định và bước tiếp theo. Mẫu mặc định.",
+        "standup": "Nhóm theo từng người: đã xong việc gì, việc gì tiếp theo, điều gì đang cản trở.",
+        "one_on_one": "Chủ đề, góp ý, và những gì mỗi người đã cam kết.",
+        "interview": "Các dữ kiện về ứng viên, không đưa ra kết luận.",
+        "action_items": "Chỉ các đầu việc, chia thành việc của bạn và việc của những người khác."
+      },
+      "generate": "Tạo ghi chú",
+      "regenerate": "Tạo lại",
+      "rewrite": "Viết lại bằng mẫu khác",
+      "generating": "Đang viết ghi chú…",
+      "writing": "Đang viết ghi chú cho cuộc họp này. Với cuộc gọi dài, việc này mất một lúc.",
+      "autoCaption": "Được viết khi cuộc gọi kết thúc",
+      "retryCaption": "Ghi chú cho cuộc họp này chưa được viết.",
+      "whileRecording": "Ghi chú sẽ được viết tự động khi dừng ghi âm.",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép",
+      "toggleTask": "Đánh dấu bước tiếp theo này là đã xong hoặc chưa xong",
+      "failed": "Không thể viết ghi chú: {{error}}",
+      "tryAgain": "Thử lại",
+      "empty": "Cuộc họp này chưa có ghi chú.",
+      "needsTranscript": "Không có bản chép lời để tóm tắt.",
+      "skipped_other": "Không thể tóm tắt {{count}} phần của bản chép lời, nên ghi chú này còn thiếu sót."
+    },
+    "errors": {
+      "startFailed": "Không thể bắt đầu cuộc họp: {{error}}",
+      "stopFailed": "Không thể dừng cuộc họp: {{error}}",
+      "pauseFailed": "Không thể thay đổi trạng thái ghi âm: {{error}}",
+      "loadFailed": "Không thể tải các cuộc họp: {{error}}",
+      "transcriptFailed": "Không thể tải bản chép lời: {{error}}",
+      "deleteFailed": "Không thể xóa cuộc họp: {{error}}",
+      "renameFailed": "Không thể đổi tên cuộc họp: {{error}}",
+      "renameSpeakerFailed": "Không thể đổi tên người nói: {{error}}",
+      "notesSaveFailed": "Không thể lưu ghi chú của bạn: {{error}}",
+      "copyFailed": "Không thể sao chép ghi chú: {{error}}",
+      "generateFailed": "Không thể tạo ghi chú: {{error}}"
+    }
+  },
+  "common": {
+    "loading": "Đang tải…",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "reset": "Đặt lại",
+    "add": "Thêm",
+    "remove": "Xóa",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo",
+    "update": "Cập nhật",
+    "close": "Đóng",
+    "open": "Mở",
+    "default": "Mặc định",
+    "enabled": "Đã bật",
+    "disabled": "Đã tắt",
+    "on": "Bật",
+    "off": "Tắt",
+    "yes": "Có",
+    "no": "Không",
+    "noOptionsFound": "Không tìm thấy tùy chọn",
+    "back": "Quay lại",
+    "showAdvanced": "Thêm tùy chọn",
+    "showLess": "Hiển thị ít hơn",
+    "beta": "Beta",
+    "select": "Chọn…",
+    "search": "Tìm kiếm",
+    "moreInfo": "Thêm thông tin",
+    "change": "Thay đổi",
+    "saveFailed": "Không thể lưu thay đổi đó. Hãy thử lại.",
+    "more": "Thêm",
+    "hideTips": "Ẩn mẹo",
+    "showTips": "Hiện mẹo",
+    "play": "Phát",
+    "pause": "Tạm dừng",
+    "unknownSize": "Không rõ dung lượng"
+  },
+  "accessibility": {
+    "permissionsRequired": "Cần quyền Trợ năng",
+    "permissionsDescription": "Zynveliq cần quyền truy cập để gõ văn bản đã chuyển đổi.",
+    "openSettings": "Mở Cài đặt Hệ thống",
+    "dismiss": "Bỏ qua"
+  },
+  "errors": {
+    "loadDirectory": "Không thể tải thư mục: {{error}}",
+    "micPermissionDeniedTitle": "Quyền truy cập micrô bị từ chối",
+    "micPermissionDenied": {
+      "generic": "Quyền truy cập micrô đã bị hệ điều hành từ chối. Vui lòng cấp quyền micrô trong cài đặt hệ thống.",
+      "windows": "Bật quyền truy cập micrô trong Cài đặt → Quyền riêng tư & bảo mật → Micrô (bao gồm quyền truy cập ứng dụng máy tính).",
+      "macos": "Cấp quyền truy cập micrô trong Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Micrô.",
+      "linux": "Cấp quyền truy cập micrô trong cài đặt âm thanh hoặc quyền riêng tư của hệ thống."
+    },
+    "noInputDeviceTitle": "Không tìm thấy micrô",
+    "noInputDevice": "Không phát hiện thiết bị đầu vào âm thanh nào. Vui lòng kết nối micrô hoặc tai nghe và thử lại.",
+    "recordingFailed": "Không thể bắt đầu ghi âm: {{error}}",
+    "modelLoadFailed": "Không thể tải mô hình: {{model}}",
+    "modelLoadFailedUnknown": "mô hình không xác định",
+    "loadModelsFailed": "Không thể tải danh sách mô hình: {{error}}",
+    "switchModelFailed": "Không thể chuyển mô hình: {{error}}",
+    "cancelDownloadFailed": "Không thể hủy tải xuống: {{error}}",
+    "deleteModelFailed": "Không thể xóa mô hình: {{error}}",
+    "extractModelFailed": "Không thể giải nén mô hình: {{error}}",
+    "downloadFailedTitle": "Tải xuống thất bại",
+    "pasteFailedTitle": "Không thể dán văn bản",
+    "pasteFailed": "Không thể dán văn bản vào ứng dụng đang hoạt động."
+  },
+  "appLanguage": {
+    "title": "Ngôn ngữ ứng dụng",
+    "description": "Thay đổi ngôn ngữ giao diện của Zynveliq"
+  },
+  "overlay": {
+    "preparing": "Đang chuẩn bị micrô…",
+    "recording": "Đang ghi âm",
+    "transcribing": "Đang chuyển đổi…",
+    "loading": "Đang tải mô hình…",
+    "processing": "Đang dọn dẹp…",
+    "generating": "Đang viết bằng Flow…",
+    "vision": "Đang xem màn hình của bạn…",
+    "notices": {
+      "flowNotConfigured": "Flow cần một mô hình trợ lý — đã dán như đọc chính tả",
+      "flowFailed": "Flow không tạo được nội dung — không có gì được dán",
+      "cloudSttFailed": "Chuyển đổi trên đám mây thất bại — hãy kiểm tra khóa và số dư trong Cài đặt",
+      "flowEmpty": "Hãy nói một câu lệnh sau cụm từ kích hoạt",
+      "cleanupFallback": "Dọn dẹp bằng AI không chạy — đã dán văn bản gốc",
+      "cleanupModelRejected": "Nhà cung cấp dọn dẹp đã từ chối mô hình đó — hãy kiểm tra mô hình trong Cài đặt",
+      "cloudSttFellBack": "Chuyển giọng nói trên đám mây thất bại — đã dùng mô hình trên thiết bị",
+      "noSpeechModel": "Chưa có mô hình giọng nói. Hãy chọn một mô hình trong trang Mô hình"
+    },
+    "listening": "Đang lắng nghe…",
+    "locked": "Đang ghi âm rảnh tay — nhấn lại phím tắt để dừng",
+    "cancel": "Hủy",
+    "copy": "Sao chép bản chép lời",
+    "transcript": "Bản chép lời",
+    "copied": "Đã sao chép",
+    "copyFailed": "Không thể sao chép — hãy thử lại",
+    "done": "Xong",
+    "finish": "Hoàn tất",
+    "askAssistant": "Hỏi trợ lý thay vì gõ nội dung này",
+    "recovery": {
+      "dismissed": "Đã hủy",
+      "failed": "Phiên âm thất bại",
+      "undo": "Hoàn tác",
+      "retry": "Thử lại"
+    },
+    "downloading": {
+      "title": "Đang tải mô hình giọng nói…",
+      "percent": "Đang tải mô hình giọng nói · {{percent}}%",
+      "hint": "Đọc chính tả sẽ hoạt động khi tải xong"
+    },
+    "update": {
+      "title": "{{model}} cần được cập nhật",
+      "hint": "Phiên bản mới có trong trang Mô hình"
+    },
+    "handsFreeHint": "Nhấn {{key}} để rảnh tay",
+    "lockedKeys": "Đang ghi âm rảnh tay. Nhấn {{keys}} để kết thúc",
+    "finishKeys": "Hoàn tất ({{keys}})"
+  },
+  "reminders": {
+    "title": "Lời nhắc",
+    "due": {
+      "now": "vừa xong",
+      "minutesAgo": "{{count}} phút trước",
+      "hoursAgo": "{{count}} giờ trước"
+    },
+    "done": "Xong",
+    "snooze": "Báo lại",
+    "snoozeFor_other": "{{count}} phút",
+    "snoozedTimes_other": "Đã báo lại {{count}} lần",
+    "later": "Tạm ẩn — lời nhắc vẫn được giữ",
+    "settings": {
+      "label": "Lời nhắc",
+      "description": "Nhờ trợ lý nhắc bạn về điều gì đó; lời nhắc sẽ được liệt kê ở đây cho đến khi đến hạn.",
+      "empty": "Chưa có lời nhắc nào. Hãy nhờ trợ lý nhắc bạn về điều gì đó.",
+      "waiting": "Đang chờ bạn",
+      "cancel": "Hủy lời nhắc này",
+      "dueAt": "Đến hạn {{when}}"
+    }
+  },
+  "assistant": {
+    "conversation": {
+      "title": "Trò chuyện",
+      "newChat": "Trò chuyện mới",
+      "type": "Nhập tin nhắn",
+      "backToVoice": "Quay lại giọng nói",
+      "mute": "Tắt micrô",
+      "unmute": "Bật micrô",
+      "speakerOn": "Đọc to câu trả lời",
+      "speakerOff": "Ngừng đọc to câu trả lời",
+      "expand": "Mở cuộc trò chuyện",
+      "collapse": "Thu gọn",
+      "historyOpen": "Các cuộc trò chuyện trước",
+      "historyClose": "Quay lại cuộc trò chuyện này",
+      "end": "Kết thúc trò chuyện",
+      "send": "Gửi",
+      "stop": "Dừng câu trả lời",
+      "placeholder": "Nhắn cho {{name}}",
+      "dismiss": "Bỏ qua",
+      "retry": "Thử lại",
+      "details": "Chi tiết",
+      "startHint": "Hãy bắt đầu nói, hoặc nhập tin nhắn.",
+      "mutedHint": "Micrô đang tắt. Bạn vẫn có thể nhập.",
+      "heldHint": "Tạm dừng trong khi bạn đọc chính tả.",
+      "preparingVoice": "Đang chuẩn bị giọng nói… {{progress}}%",
+      "history": {
+        "title": "Các cuộc trò chuyện trước",
+        "hint": "Chọn một cuộc để tiếp tục từ chỗ bạn dừng. Cuộc trò chuyện hiện tại vẫn được giữ mở.",
+        "empty": "Chưa có cuộc trò chuyện nào được lưu.",
+        "noMatches": "Không có kết quả phù hợp.",
+        "noMeetings": "Chưa có cuộc trò chuyện nào về cuộc họp. Mở một cuộc họp và chọn Thảo luận cuộc họp này.",
+        "loading": "Đang tải…",
+        "failed": "Không thể tải các cuộc trò chuyện của bạn.",
+        "more": "Xem thêm",
+        "untitled": "Cuộc trò chuyện chưa đặt tên",
+        "current": "Đang mở",
+        "search": "Tìm cuộc trò chuyện",
+        "clearSearch": "Xóa tìm kiếm",
+        "scopeLabel": "Cuộc trò chuyện nào",
+        "scopes": {
+          "all": "Tất cả",
+          "meetings": "Cuộc họp"
+        },
+        "groups": {
+          "today": "Hôm nay",
+          "yesterday": "Hôm qua",
+          "week": "7 ngày qua",
+          "earlier": "Trước đó"
+        },
+        "matchCount_other": "{{count}} cuộc trò chuyện",
+        "messages_other": "{{count}} tin nhắn"
+      },
+      "meeting": {
+        "about": "Về {{title}}",
+        "chipHint": "Trợ lý có ghi chú của cuộc họp này và có thể tìm trong bản chép lời.",
+        "untitled": "Cuộc họp chưa đặt tên",
+        "startTitle": "Cùng bàn về {{title}}",
+        "startHint": "Hỏi bất cứ điều gì về cuộc họp, hoặc nên làm gì tiếp theo. Hãy bắt đầu nói, hoặc chọn một gợi ý:",
+        "prompts": {
+          "recap": "Tóm tắt nhanh giúp tôi",
+          "next": "Tôi nên làm gì tiếp theo?",
+          "followUp": "Soạn tin nhắn theo dõi",
+          "missed": "Tôi có bỏ sót gì không?"
+        }
+      },
+      "options": "Tùy chọn trò chuyện",
+      "pace": "Thời gian chờ bạn nói xong",
+      "paceHint": "Chờ bao lâu sau khi bạn ngừng nói rồi mới trả lời.",
+      "paces": {
+        "quick": "Nhanh",
+        "natural": "Tự nhiên",
+        "patient": "Kiên nhẫn"
+      },
+      "sensitivity": "Độ nhạy micrô",
+      "sensitivityHint": "Mức độ dễ dàng để một âm thanh được coi là bạn đang nói. Hãy giảm xuống nếu tiếng ồn xung quanh hoặc chính giọng trợ lý cứ chen ngang.",
+      "sensitivities": {
+        "low": "Thấp — phòng ồn hoặc dùng loa",
+        "normal": "Bình thường",
+        "high": "Cao — phòng yên tĩnh hoặc dùng tai nghe"
+      },
+      "phase": {
+        "off": "Cuộc trò chuyện đã kết thúc",
+        "starting": "Đang kết nối…",
+        "listening": "Đang nghe",
+        "hearing": "Đang nghe…",
+        "transcribing": "Đang chép lời…",
+        "responding": "Đang suy nghĩ…",
+        "speaking": "Đang nói",
+        "muted": "Micrô đang tắt",
+        "held": "Tạm dừng để đọc chính tả",
+        "error": "Cuộc trò chuyện bị gián đoạn"
+      },
+      "errors": {
+        "microphone": "Không thể mở micrô của bạn. Hãy cho phép truy cập micrô và kiểm tra xem ứng dụng khác có đang dùng nó không.",
+        "device": "Micrô của bạn đã bị ngắt kết nối. Hãy kết nối lại rồi thử lại.",
+        "setup": "Không thể bắt đầu cuộc trò chuyện. Hãy kiểm tra micrô, loa và mô hình trợ lý trong Cài đặt.",
+        "turn": "Câu trả lời này không thể hoàn tất. Hãy xem chi tiết rồi thử lại.",
+        "playback": "Không thể phát câu trả lời bằng giọng nói. Hãy kiểm tra nhà cung cấp giọng nói và thiết bị đầu ra.",
+        "tooLong": "Bản ghi âm đó đã đạt giới hạn một phút. Hãy thử lại với lượt nói ngắn hơn.",
+        "history": "Không thể mở cuộc trò chuyện đó. Hãy thử lại."
+      },
+      "chooseProfile": "Đổi hồ sơ, hiện đang là {{name}}",
+      "profiles": "Hồ sơ",
+      "profileHint": "Thay đổi sẽ áp dụng cho câu trả lời tiếp theo của bạn.",
+      "chatOnlyProfile": "Hồ sơ này chỉ dùng được trong trò chuyện bằng văn bản.",
+      "profileError": "Không thể chuyển hồ sơ. Hãy thử lại."
+    },
+    "title": "Trợ lý",
+    "character": {
+      "switch": "Đổi hồ sơ"
+    },
+    "empty": "Hỏi bằng giọng nói với phím tắt trợ lý,\nhoặc gõ bên dưới.",
+    "inputPlaceholder": "Tin nhắn…",
+    "bar": {
+      "placeholder": "Hỏi bất cứ điều gì…"
+    },
+    "send": "Gửi",
+    "stop": "Dừng",
+    "cancel": "Hủy",
+    "copy": "Sao chép",
+    "copyCode": "Sao chép mã",
+    "insert": "Chèn vào chỗ bạn đang gõ",
+    "insertShort": "Chèn",
+    "insertReplace": "Thay văn bản bạn đã chọn bằng nội dung này",
+    "insertReplaceShort": "Thay thế",
+    "selectionAttached_other": "Đã chọn {{count}} ký tự",
+    "regenerate": "Tạo lại câu trả lời (câu cũ vẫn còn trong Lịch sử)",
+    "summarizing": "Đang tóm tắt các tin nhắn trước đó…",
+    "screenAttached": "Màn hình",
+    "attach": {
+      "file": "Gửi kèm hình ảnh hoặc tệp",
+      "imageCount_other": "{{count}} hình ảnh",
+      "dropHint": "Thả để gửi kèm"
+    },
+    "webSearch": {
+      "enable": "Bật tìm kiếm web",
+      "disable": "Tắt tìm kiếm web"
+    },
+    "tts": {
+      "enable": "Bật tóm tắt bằng giọng nói",
+      "disable": "Tắt tóm tắt bằng giọng nói",
+      "loading": "Đang nạp mô hình giọng nói Kokoro..."
+    },
+    "status": {
+      "listening": "Đang lắng nghe…",
+      "locked": "Đang lắng nghe",
+      "transcribing": "Đang chuyển đổi…",
+      "searching": "Đang tìm trên web…",
+      "thinking": "Đang suy nghĩ…",
+      "speaking": "Đang nói…"
+    },
+    "tool": {
+      "search": "Đang tìm trên web",
+      "screen": "Đang xem màn hình của bạn…",
+      "meetingSearch": "Đang tìm trong cuộc họp",
+      "meetingRead": "Đang đọc cuộc họp",
+      "working": "Đang xử lý",
+      "elapsed": "{{seconds}} giây"
+    },
+    "errors": {
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+      "genericShort": "Đã xảy ra lỗi",
+      "no_provider": "Chưa thiết lập mô hình trợ lý nào. Hãy chọn một nhà cung cấp trong Cài đặt → Trợ lý.",
+      "no_providerShort": "Chưa thiết lập mô hình",
+      "no_model": "Nhà cung cấp của bạn chưa chọn mô hình nào. Hãy chọn một mô hình trong Cài đặt → Trợ lý.",
+      "no_modelShort": "Chưa chọn mô hình",
+      "engine_start": "Mô hình tích hợp không khởi động được. Hãy thử lại, hoặc chọn mô hình khác trong Cài đặt → Trợ lý.",
+      "engine_startShort": "Mô hình không khởi động được",
+      "provider": "Mô hình không trả lời được. Hãy kiểm tra khóa API và kết nối của bạn, rồi thử lại.",
+      "providerShort": "Không nhận được câu trả lời",
+      "empty_reply": "Mô hình đã kết thúc mà không viết câu trả lời. Hãy thử hỏi lại, hoặc chọn mô hình khác trong Cài đặt → Trợ lý.",
+      "empty_replyShort": "Câu trả lời trống",
+      "vision_unsupported": "Mô hình này không đọc được màn hình của bạn. Hãy chọn một mô hình xem được hình ảnh trong Cài đặt → Trợ lý, hoặc hỏi lại mà không dùng khả năng xem màn hình.",
+      "vision_unsupportedShort": "Mô hình không xem được hình ảnh",
+      "screenshot_too_large": "Ảnh màn hình quá lớn với nhà cung cấp này. Vui lòng thử lại — ảnh sẽ được nén mạnh hơn.",
+      "screenshot_too_largeShort": "Ảnh màn hình quá lớn",
+      "screen_capture": "Không thể chụp màn hình. Hãy thử lại, hoặc hỏi mà không dùng khả năng xem màn hình.",
+      "screen_captureShort": "Chụp màn hình thất bại",
+      "transcription": "Không thể chuyển giọng nói của bạn thành văn bản. Vui lòng thử nói lại.",
+      "transcriptionShort": "Chuyển đổi thất bại",
+      "tts": "Câu trả lời bằng giọng nói thất bại. Hãy kiểm tra cài đặt TTS, hoặc đọc câu trả lời trong bảng.",
+      "ttsShort": "Trả lời bằng giọng nói thất bại",
+      "tts_local": "Giọng nói cục bộ không nạp được. Hãy kiểm tra kết nối hoặc đổi công cụ TTS trong Cài đặt.",
+      "tts_localShort": "Không nạp được giọng nói",
+      "tts_blocked": "Hệ thống của bạn đã chặn giọng nói tự phát. Hãy nhấn vào bất kỳ đâu trong bảng để nghe câu trả lời.",
+      "tts_blockedShort": "Nhấn vào bảng để nghe",
+      "tts_playback": "Không thể phát giọng nói trên thiết bị đầu ra của bạn. Hãy kiểm tra cài đặt loa/đầu ra, rồi thử lại.",
+      "tts_playbackShort": "Phát giọng nói thất bại",
+      "tts_gpu": "Card đồ họa của bạn làm méo giọng nói, nên nó đã bị tắt tiếng. Câu trả lời tiếp theo sẽ dùng giọng cho bộ xử lý.",
+      "tts_gpuShort": "Đã tắt tiếng: card đồ họa làm méo giọng",
+      "tts_gpu_slow": "Card đồ họa của bạn làm méo giọng nói, nên giọng nói đã bị tắt tiếng. Câu trả lời giờ chạy trên bộ xử lý và sẽ chậm cho đến khi bạn tải giọng nói cho bộ xử lý trong Mô hình → Giọng nói.",
+      "tts_gpu_slowShort": "Đã tắt tiếng: card đồ họa làm méo giọng",
+      "tts_gpu_forced": "Card đồ họa của bạn làm méo giọng nói, nên giọng nói đã bị tắt tiếng. Hãy đặt Chạy trên thành Tự động hoặc Bộ xử lý trong Mô hình → Giọng nói.",
+      "tts_gpu_forcedShort": "Đã tắt tiếng: card đồ họa làm méo giọng",
+      "mic_denied": "Quyền truy cập micrô đang bị chặn. Hãy cho phép trong cài đặt quyền riêng tư của hệ thống.",
+      "mic_deniedShort": "Quyền micrô bị chặn",
+      "mic_unavailable": "Không tìm thấy micrô nào. Hãy kết nối một micrô rồi thử lại.",
+      "mic_unavailableShort": "Không tìm thấy micrô",
+      "mic_error": "Micrô không khởi động được. Có thể nó đang được ứng dụng khác sử dụng.",
+      "mic_errorShort": "Micrô không khởi động được",
+      "file_read": "Không thể gửi kèm tệp đó.",
+      "file_readShort": "Không thể gửi kèm tệp"
+    },
+    "notices": {
+      "web_search_failed": "Tìm kiếm web không trả về kết quả — đang trả lời mà không có chúng.",
+      "web_search_failedShort": "Không có kết quả từ web",
+      "queued": "Đã xếp hàng — sẽ gửi ngay khi câu trả lời này kết thúc.",
+      "queuedShort": "Đã xếp hàng"
+    },
+    "engineSetup": {
+      "downloading": "Đang thiết lập công cụ cục bộ (lần chạy đầu)… {{percent}}%",
+      "preparing": "Đang thiết lập công cụ cục bộ (lần chạy đầu)…",
+      "extracting": "Đang cài đặt công cụ cục bộ…",
+      "short": "Đang thiết lập công cụ…"
+    },
+    "quick": {
+      "selection": "Vùng chọn",
+      "copied": "Đã sao chép"
+    }
+  },
+  "nav": {
+    "label": "Chính",
+    "home": "Trang chủ",
+    "history": "Lịch sử",
+    "assistant": "Trợ lý",
+    "meetings": "Cuộc họp",
+    "cleanup": "Dọn dẹp bằng AI",
+    "dictionary": "Từ điển",
+    "models": "Mô hình",
+    "settings": "Cài đặt",
+    "status": {
+      "label": "Mô hình giọng nói: {{model}}, {{status}}. Mở cài đặt chuyển giọng nói thành văn bản.",
+      "setup": "Cần thiết lập",
+      "needsUpdate": "Cần cập nhật",
+      "cloud": "Đám mây · {{provider}}",
+      "loading": "Đang tải…",
+      "error": "Không tải được",
+      "ready": "Sẵn sàng",
+      "idle": "Tải khi bạn đọc chính tả",
+      "noModel": "Chưa có mô hình giọng nói"
+    },
+    "insights": "Thống kê"
+  },
+  "settingsDialog": {
+    "title": "Cài đặt",
+    "tabs": {
+      "general": "Chung",
+      "shortcuts": "Phím tắt",
+      "audio": "Âm thanh",
+      "dictation": "Đọc chính tả",
+      "privacy": "Quyền riêng tư & dữ liệu",
+      "advanced": "Nâng cao",
+      "about": "Giới thiệu",
+      "debug": "Gỡ lỗi"
+    },
+    "general": {
+      "appearance": "Giao diện"
+    },
+    "shortcuts": {
+      "intro": "Mọi phím tắt đều hoạt động trong mọi ứng dụng. Nhấp vào một phím tắt để ghi phím mới.",
+      "dictation": "Đọc chính tả",
+      "assistant": "Trợ lý",
+      "mouse": "Chuột",
+      "cleanupOff": "Bật Dọn dẹp bằng AI để dùng phím tắt này.",
+      "assistantOff": "Trợ lý đang tắt, nên các phím tắt của nó không có tác dụng."
+    },
+    "audio": {
+      "microphone": "Micrô",
+      "otherAudio": "Âm thanh khác",
+      "otherAudioHint": "Nhạc, video và cuộc gọi đang phát trên máy tính khi bạn đọc chính tả hoặc hỏi trợ lý.",
+      "overlayHint": "Viên nhỏ hiện ra trong khi bạn ghi âm."
+    },
+    "dictation": {
+      "intro": "Cách lời nói của bạn xuất hiện trong ứng dụng bạn đang gõ.",
+      "output": "Gõ và dán",
+      "extras": "Tiện ích thêm"
+    },
+    "privacy": {
+      "intro": "Bản ghi âm và lịch sử chỉ được lưu trên máy tính này. Chọn thời gian lưu giữ bản ghi âm.",
+      "recordingsFolder": "Thư mục ghi âm"
+    },
+    "advanced": {
+      "performance": "Hiệu năng"
+    },
+    "about": {
+      "appName": "Zynveliq",
+      "version": "Phiên bản {{version}}",
+      "project": "Dự án",
+      "docs": "Tài liệu",
+      "openDocs": "Mở tài liệu"
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "Chào buổi sáng",
+      "afternoon": "Chào buổi chiều",
+      "evening": "Chào buổi tối",
+      "night": "Làm việc khuya nhỉ"
+    },
+    "subtitleHold": "Giữ phím tắt trong bất kỳ ứng dụng nào, nói, rồi thả ra. Lời bạn nói sẽ xuất hiện tại vị trí con trỏ.",
+    "subtitleTap": "Nhấn phím tắt trong bất kỳ ứng dụng nào, nói, rồi nhấn lại. Lời bạn nói sẽ xuất hiện tại vị trí con trỏ.",
+    "needsModel": {
+      "title": "Chọn một mô hình giọng nói để bắt đầu đọc chính tả.",
+      "description": "Zynveliq cần một mô hình chuyển giọng nói thành văn bản trước khi có thể gõ những gì bạn nói.",
+      "action": "Chọn mô hình"
+    },
+    "stats": {
+      "label": "Mức sử dụng của bạn",
+      "none": "–",
+      "spoken": "đã nói",
+      "words": "từ",
+      "wpm": "từ/phút",
+      "wpmHint": "Số từ mỗi phút trên các bản ghi âm của bạn, tính cả khoảng dừng.",
+      "saved": "tiết kiệm",
+      "savedHint": "So với việc gõ cùng số từ đó với tốc độ {{wpm}} từ mỗi phút.",
+      "empty": "Số liệu của bạn sẽ hiện ra sau lần đọc chính tả đầu tiên.",
+      "streak_other": "Chuỗi {{count}} ngày",
+      "noStreak": "Đọc chính tả hôm nay để bắt đầu một chuỗi ngày",
+      "today": "{{words}} từ hôm nay",
+      "duration": {
+        "seconds": "{{seconds}} giây",
+        "minutes": "{{minutes}} phút",
+        "hours": "{{hours}} giờ",
+        "hoursMinutes": "{{hours}} giờ {{minutes}} phút"
+      },
+      "wordsLabel": "Số từ đã đọc",
+      "wpmLabel": "Số từ mỗi phút",
+      "savedLabel": "Thời gian tiết kiệm",
+      "streakLabel_other": "Chuỗi ngày",
+      "streakUnit_other": "ngày liên tiếp",
+      "seeInsights": "Xem thống kê"
+    },
+    "shortcuts": {
+      "title": "Phím tắt",
+      "edit": "Sửa phím tắt",
+      "turnOn": "Bật",
+      "off": "Đã tắt",
+      "setKey": "Đặt phím tắt",
+      "dictate": {
+        "title": "Đọc chính tả",
+        "hold": "Giữ, nói, thả ra. Lời bạn nói được gõ tại vị trí con trỏ.",
+        "tap": "Nhấn để bắt đầu, nói, nhấn để dừng. Lời bạn nói được gõ tại vị trí con trỏ.",
+        "whatHold": "Giữ, nói, thả ra. Lời bạn nói được gõ tại vị trí con trỏ.",
+        "whatTap": "Nhấn, nói, nhấn lại. Lời bạn nói được gõ tại vị trí con trỏ."
+      },
+      "handsFree": {
+        "what": "Giữ {{keys}}, nhấn {{key}} rồi thả ra: ứng dụng tiếp tục nghe cho đến khi bạn nhấn lại {{keys}}.",
+        "linux": "Để đọc chính tả rảnh tay trên Linux, hãy tắt “Giữ để nói”. Khi đó nhấn một lần để bắt đầu, nhấn lần nữa để dừng."
+      },
+      "cleanup": {
+        "title": "Đọc chính tả và dọn dẹp",
+        "description": "Giống Đọc chính tả, sau đó AI sửa dấu câu, từ đệm và văn phong.",
+        "what": "Đọc chính tả, rồi AI sửa dấu câu, từ đệm và văn phong."
+      },
+      "ask": {
+        "title": "Hỏi trợ lý",
+        "description": "Hỏi thành tiếng và nhận câu trả lời trong một bảng nổi.",
+        "whatHold": "Giữ, hỏi, thả ra. Câu trả lời hiện trong một bảng nổi.",
+        "whatTap": "Nhấn, hỏi, nhấn lại. Câu trả lời hiện trong một bảng nổi."
+      },
+      "call": {
+        "title": "Bắt đầu trò chuyện",
+        "description": "Trò chuyện rảnh tay với câu trả lời bằng giọng nói.",
+        "what": "Trò chuyện qua lại, rảnh tay. Nhấn lần nữa để kết thúc."
+      },
+      "info": "Nhấn các phím này trong bất kỳ ứng dụng nào. Nhấp vào phím để thay đổi.",
+      "offHint": "Đã tắt",
+      "cancel": {
+        "title": "Hủy",
+        "what": "Dừng ghi âm, hoặc dừng câu trả lời đang được đọc to."
+      },
+      "globe": {
+        "hint": "macOS cũng phản hồi phím 🌐. Đặt “Nhấn phím 🌐 để” thành “Không làm gì” để phím chỉ dùng cho đọc chính tả.",
+        "open": "Cài đặt bàn phím"
+      },
+      "linux": {
+        "wayland": "Trên Wayland, màn hình nền chỉ chuyển các phím này cho Zynveliq khi một cửa sổ của nó đang ở phía trước. Để dùng chúng trong mọi ứng dụng, hãy thêm chúng làm phím tắt trong cài đặt hệ thống.",
+        "noAccess": "Zynveliq Keys không đọc được bàn phím trên máy tính này, nên các phím tắt này chưa có tác dụng.",
+        "setUp": "Thiết lập",
+        "where": {
+          "gnome": "Mở Cài đặt → Bàn phím → Xem và tùy chỉnh phím tắt → Phím tắt tùy chỉnh, thêm một phím tắt cho mỗi lệnh bên dưới rồi nhấn các phím bạn muốn.",
+          "kde": "Mở Thiết lập hệ thống → Bàn phím → Phím tắt, chọn Thêm mới → Lệnh hoặc tập lệnh cho mỗi lệnh bên dưới rồi nhấn các phím bạn muốn.",
+          "other": "Với mỗi lệnh bên dưới, hãy thêm một phím tắt tùy chỉnh trong cài đặt bàn phím của màn hình nền, hoặc một dòng bind trong cấu hình compositor."
+        },
+        "tapOnly": "Phím tắt thêm theo cách này hoạt động như “Nhấn để bật/tắt”: nhấn một lần để bắt đầu và nhấn lần nữa để dừng.",
+        "access": "Hoặc cho phép Zynveliq Keys đọc bàn phím. Chạy lệnh này trong terminal, rồi đăng xuất và đăng nhập lại:",
+        "copy": "Sao chép",
+        "copied": "Đã sao chép"
+      }
+    },
+    "setup": {
+      "title": "Mô hình của bạn",
+      "manage": "Quản lý"
+    },
+    "recent": {
+      "title": "Gần đây",
+      "viewAll": "Xem tất cả",
+      "copy": "Sao chép văn bản",
+      "cleaned": "Đã dọn dẹp",
+      "tryPrefix": "Thử ngay: nhấp vào ô, rồi nhấn",
+      "trySuffixHold": "và giữ trong khi bạn nói.",
+      "trySuffixTap": "và nói. Nhấn lại khi bạn nói xong.",
+      "tryPlaceholder": "Lời bạn nói sẽ xuất hiện ở đây…"
+    },
+    "activity": {
+      "title": "30 ngày qua",
+      "summary_other": "{{words}} từ trong {{count}} ngày",
+      "chartLabel": "Số từ đọc chính tả mỗi ngày trong {{days}} ngày qua: tổng cộng {{words}} từ.",
+      "words_other": "{{formatted}} từ",
+      "today": "Hôm nay"
+    }
+  },
+  "speechUpdate": {
+    "title": "{{model}} dùng công cụ cũ mà Zynveliq không còn đi kèm.",
+    "newVersion": "Phiên bản mới của nó là {{model}}.",
+    "ready": "{{model}} đã được tải về và sẵn sàng.",
+    "noVersion": "Hãy chọn mô hình khác để tiếp tục đọc chính tả.",
+    "failed": "Không tải được {{model}}.",
+    "download": "Tải phiên bản mới ({{size}})",
+    "retry": "Thử lại",
+    "chooseAnother": "Chọn mô hình khác",
+    "progressLabel": "Đang tải phiên bản mới",
+    "dialogTitle": "Zynveliq có công cụ giọng nói mới",
+    "dialogBody": "Nó nhanh hơn và ổn định hơn, nên bạn sẽ ít gặp sự cố hơn. {{model}} chạy trên công cụ cũ và cần phiên bản mới để tiếp tục hoạt động.",
+    "later": "Để sau"
+  },
+  "modelsHub": {
+    "description": "Mỗi việc trong Zynveliq do một mô hình bạn chọn đảm nhận. Chạy trên máy tính này để riêng tư, hoặc trên đám mây để nhanh hơn.",
+    "addLocal": "Thêm tệp mô hình",
+    "privacyNote": "Mô hình trên máy tính này không bao giờ gửi giọng nói hay văn bản của bạn đi đâu cả. Mô hình đám mây gửi chúng tới nhà cung cấp bạn đã chọn, bằng khóa API của bạn.",
+    "inUse": "Đang dùng",
+    "needsSetup": "Cần thiết lập",
+    "needsUpdate": "Cần cập nhật",
+    "performance": "Hiệu năng",
+    "where": {
+      "device": "Trên máy tính này",
+      "cloud": "Đám mây",
+      "cloudWith": "Đám mây · {{provider}}",
+      "deviceShort": "Máy tính này"
+    },
+    "status": {
+      "voiceOff": "Câu trả lời bằng giọng nói đang tắt",
+      "assistantOff": "Trợ lý đang tắt",
+      "noModel": "Chưa chọn mô hình",
+      "notDownloaded": "Chưa tải mô hình",
+      "needsUpdate": "{{model}} cần được cập nhật",
+      "noKey": "Thêm khóa API",
+      "noEndpoint": "Thêm endpoint"
+    },
+    "voice": {
+      "kokoroModel": "Giọng Kokoro"
+    },
+    "usedBy": {
+      "label": "Được dùng bởi",
+      "dictation": "Đọc chính tả",
+      "assistant": "Trợ lý",
+      "meetings": "Cuộc họp",
+      "cleanup": "Dọn dẹp bằng AI",
+      "meetingNotes": "Ghi chú cuộc họp",
+      "calls": "Trò chuyện",
+      "flow": "Tạo bằng Flow",
+      "spokenReplies": "Trả lời bằng giọng nói"
+    },
+    "slots": {
+      "stt": {
+        "name": "Giọng nói thành văn bản",
+        "description": "Biến giọng nói của bạn thành văn bản.",
+        "whereHint": "Trên máy tính này thì riêng tư và miễn phí. Đám mây dùng API của nhà cung cấp và khóa của bạn.",
+        "catalogTitle": "Mô hình giọng nói",
+        "catalogDescription": "Mọi mô hình ở đây đều chạy trên máy tính này. Mô hình nhanh hợp với đọc chính tả; mô hình lớn hơn thì chính xác hơn."
+      },
+      "cleanup": {
+        "name": "Dọn dẹp bằng AI",
+        "description": "Làm theo các chỉnh sửa bạn nói ra, áp dụng văn phong và viết ghi chú cuộc họp.",
+        "turnOn": "Bật Dọn dẹp bằng AI",
+        "offNotice": "Dọn dẹp bằng AI đang tắt. Ghi chú cuộc họp vẫn dùng mô hình này.",
+        "borrowsNotice": "Chưa đặt mô hình dọn dẹp, nên việc dọn dẹp dùng mô hình của trợ lý ({{model}}).",
+        "catalogTitle": "Mô hình dọn dẹp"
+      },
+      "assistant": {
+        "name": "Trợ lý",
+        "description": "Trả lời câu hỏi, xem màn hình của bạn và trò chuyện cùng bạn.",
+        "openAssistant": "Mở Trợ lý",
+        "offNotice": "Trợ lý đang tắt. Tạo bằng Flow và phương án dọn dẹp dự phòng vẫn dùng mô hình này.",
+        "catalogTitle": "Mô hình trợ lý",
+        "fallbackNote": "Dọn dẹp bằng AI và ghi chú cuộc họp cũng dùng mô hình này khi chúng không có mô hình riêng."
+      },
+      "voice": {
+        "name": "Giọng nói",
+        "description": "Đọc to câu trả lời của trợ lý."
+      }
+    }
+  },
+  "cleanup": {
+    "description": "Từ đệm vốn đã được loại bỏ trong mọi lần đọc chính tả. Dọn dẹp bằng AI làm nhiều hơn: nó làm theo các chỉnh sửa bạn nói ra và áp dụng văn phong.",
+    "toggle": "Dọn dẹp bằng AI",
+    "how": {
+      "plain": "Gõ đúng những gì bạn nói.",
+      "cleaned": "Gõ những gì bạn nói, đã được AI dọn dẹp.",
+      "off": "Bật Dọn dẹp bằng AI để dùng phím tắt này.",
+      "change": "Thay đổi"
+    },
+    "model": {
+      "title": "Mô hình dọn dẹp",
+      "borrows": "Mượn từ trợ lý của bạn",
+      "own": "Chạy mỗi khi bạn dùng phím tắt dọn dẹp",
+      "change": "Thay đổi",
+      "info": "Chạy mỗi khi bạn dùng phím tắt dọn dẹp. Nếu không có mô hình riêng, việc dọn dẹp sẽ dùng mô hình của trợ lý."
+    },
+    "needsModel": {
+      "description": "Dọn dẹp bằng AI cần một mô hình mới chạy được. Trước đó, văn bản sẽ được gõ đúng như bạn nói.",
+      "action": "Chọn mô hình",
+      "short": "Chọn một mô hình để bắt đầu dọn dẹp."
+    },
+    "instructions": {
+      "title": "Hướng dẫn dọn dẹp",
+      "description": "Prompt cơ bản cho mô hình biết cần sửa gì. Hầu hết mọi người không bao giờ thay đổi nó.",
+      "current": "Đang dùng"
+    },
+    "styles": {
+      "title": "Văn phong",
+      "description": "Văn bản sau khi dọn dẹp nên đọc lên thế nào. Được áp dụng sau các chỉnh sửa, nên phần sửa lỗi vẫn giữ nguyên.",
+      "createTitle": "Văn phong mới",
+      "createHint": "Mô tả bạn muốn văn bản của mình nghe như thế nào.",
+      "editTitle": "Sửa văn phong",
+      "editorIntro": "Đặt tên cho văn phong và mô tả văn bản của bạn nên thay đổi ra sao. Nó được áp dụng sau khi dọn dẹp, nên phần sửa lỗi vẫn giữ nguyên.",
+      "inUse": "Đang dùng",
+      "editNamed": "Sửa {{name}}",
+      "builtin": {
+        "none": "Sửa lỗi và giữ nguyên cách diễn đạt của bạn.",
+        "professional": "Trau chuốt và rõ ràng, cho tin nhắn công việc và email.",
+        "friendly": "Ấm áp và thoải mái, như lời nhắn gửi bạn bè.",
+        "concise": "Bỏ bớt chữ thừa và đi thẳng vào vấn đề.",
+        "formal": "Câu đầy đủ và lời lẽ trang trọng.",
+        "casual": "Thoải mái, như nói chuyện."
+      },
+      "groups": {
+        "builtin": "Có sẵn",
+        "custom": "Của bạn"
+      },
+      "manage": "Quản lý",
+      "manageTitle": "Văn phong của bạn",
+      "noneYet": "Bạn chưa có văn phong riêng nào.",
+      "newStyle": "Văn phong mới",
+      "customHint": "Một văn phong của riêng bạn. Nó được áp dụng sau các chỉnh sửa.",
+      "preview": {
+        "youSay": "Bạn nói",
+        "itTypes": "Kết quả gõ ra",
+        "yourInstruction": "Hướng dẫn của bạn"
+      },
+      "samples": {
+        "raw": "mai mình họp lúc mười giờ nhé, à không, mười một giờ, rồi xem lại ngân sách",
+        "none": "Mai mình họp lúc mười một giờ và xem lại ngân sách.",
+        "professional": "Tôi đề xuất chúng ta họp vào 11:00 ngày mai để rà soát ngân sách.",
+        "friendly": "Mai mình gặp nhau lúc mười một giờ rồi cùng xem lại ngân sách nhé?",
+        "concise": "Họp 11 giờ mai, rà soát ngân sách.",
+        "formal": "Tôi xin đề nghị chúng ta tổ chức cuộc họp vào lúc mười một giờ sáng mai để rà soát ngân sách.",
+        "casual": "mai họp lúc mười một giờ rồi xem lại ngân sách nha"
+      },
+      "form": {
+        "name": "Tên",
+        "instruction": "Hướng dẫn",
+        "instructionTip": "Cách diễn đạt nên thay đổi thế nào. Được áp dụng sau khi dọn dẹp, nên phần sửa lỗi vẫn giữ nguyên.",
+        "instructionPlaceholder": "Ví dụ: giữ giọng thoải mái, viết thường toàn bộ, và chuyển tên emoji được nói ra thành emoji."
+      },
+      "specialist": {
+        "ignored": "{{model}} chỉ dọn dẹp cơ bản nên sẽ bỏ qua phong cách viết. Hãy dùng một mô hình đa năng để áp dụng phong cách.",
+        "changeModel": "Đổi mô hình"
+      }
+    },
+    "shortcut": {
+      "title": "Phím tắt",
+      "info": "Cho việc dọn dẹp một phím tắt riêng, hoặc để phím tắt đọc chính tả dọn dẹp mọi lần đọc, như vậy bạn chỉ cần nhớ một bộ phím.",
+      "separate": "Phím tắt riêng",
+      "dictation": "Giống đọc chính tả"
+    },
+    "skipShort": {
+      "title": "Bỏ qua dọn dẹp với lần đọc ngắn",
+      "info": "Những lần đọc ngắn, như một truy vấn tìm kiếm hay một câu trả lời nhanh, được gõ đúng như bạn nói mà không phải chờ mô hình. Những lần đọc dài hơn vẫn được dọn dẹp.",
+      "limit": "Ngắn hơn",
+      "limitInfo": "Tính theo số từ. Với các ngôn ngữ viết không có dấu cách như tiếng Trung, tiếng Nhật hay tiếng Thái, số từ được ước tính từ số ký tự.",
+      "words_other": "từ"
+    },
+    "shortcutRow": "Phím tắt"
+  },
+  "dictionary": {
+    "description": "Dạy Zynveliq những tên riêng và thuật ngữ bạn hay dùng, và đặt các cụm viết tắt để mở rộng thành văn bản dài hơn.",
+    "words": {
+      "title": "Từ của bạn",
+      "description": "Tên riêng, thuật ngữ chuyên ngành và cách viết mà Zynveliq luôn phải viết đúng.",
+      "placeholder": "Thêm tên, thuật ngữ hoặc cách viết…",
+      "empty": "Chưa có gì ở đây. Hãy thêm những từ Zynveliq hay viết sai."
+    },
+    "replacements": {
+      "title": "Thay thế",
+      "description": "Nói một cụm từ và nhận văn bản khác, chẳng hạn “email của tôi” trở thành địa chỉ email của bạn."
+    },
+    "addWord": "Thêm từ"
+  },
+  "assistantPage": {
+    "description": "Hỏi bất cứ điều gì bằng giọng nói, từ bất kỳ ứng dụng nào. Trợ lý có thể xem màn hình, tìm kiếm trên web và ghi nhớ những điều quan trọng với bạn.",
+    "offNotice": "Trợ lý đang tắt. Các phím tắt của nó không có tác dụng và nó không dùng bộ nhớ cho đến khi bạn bật lại.",
+    "hero": {
+      "askHold": "Giữ, đặt câu hỏi, thả ra. Câu trả lời hiện trong một bảng nổi.",
+      "askTap": "Nhấn, đặt câu hỏi, nhấn lại. Câu trả lời hiện trong một bảng nổi.",
+      "call": "Trò chuyện qua lại, rảnh tay. Nhấn lần nữa để kết thúc.",
+      "title": "Hỏi bất cứ điều gì, từ <em>bất cứ đâu.</em>",
+      "ask": "Hỏi",
+      "callLabel": "Trò chuyện",
+      "askHoldShort": "Giữ, hỏi, thả ra",
+      "askTapShort": "Nhấn, hỏi, nhấn lại",
+      "callShort": "Nhấn lần nữa để kết thúc",
+      "subtitle": "Đặt câu hỏi thành tiếng, hoặc bắt đầu trò chuyện và trao đổi kỹ hơn."
+    },
+    "models": {
+      "title": "Được vận hành bởi",
+      "assistant": "Suy nghĩ bằng",
+      "voice": "Đọc câu trả lời bằng"
+    },
+    "features": {
+      "title": "Trợ lý làm được gì",
+      "vision": {
+        "title": "Xem màn hình",
+        "description": "Cho phép trợ lý xem màn hình khi bạn hỏi về nó."
+      },
+      "webSearch": {
+        "title": "Tìm kiếm web",
+        "description": "Tra cứu trực tuyến để có câu trả lời cập nhật, chính xác."
+      },
+      "reminders": {
+        "title": "Lời nhắc",
+        "description": "Nói “nhắc tôi sau 20 phút nữa” và trợ lý sẽ nhắc.",
+        "status": "Hỏi bằng giọng nói"
+      },
+      "profiles": {
+        "title": "Hồ sơ",
+        "description": "Các nhân cách mà trợ lý có thể chuyển đổi, mỗi nhân cách có hướng dẫn riêng.",
+        "status": "Mặc định"
+      },
+      "memory": {
+        "title": "Bộ nhớ",
+        "description": "Những gì trợ lý ghi nhớ về bạn, được lưu trên máy tính này."
+      },
+      "behavior": {
+        "title": "Câu trả lời",
+        "description": "Câu trả lời dài bao nhiêu và trợ lý ghi nhớ bao nhiêu phần của cuộc trò chuyện."
+      },
+      "appearance": {
+        "title": "Bảng",
+        "description": "Kích thước, chữ, vị trí và độ mờ của bảng nổi.",
+        "status": "Tùy chỉnh"
+      }
+    },
+    "cards": {
+      "keySaved": "Đã lưu khóa",
+      "vision": {
+        "description": "Cho phép trợ lý xem màn hình để trả lời câu hỏi về những gì bạn đang thấy.",
+        "timing": {
+          "immediate": "Khi tôi bắt đầu",
+          "onSend": "Khi tôi gửi"
+        }
+      },
+      "webSearch": {
+        "description": "Tra cứu trực tuyến để có câu trả lời cập nhật, chính xác.",
+        "offHint": "Tắt: câu trả lời chỉ đến từ mô hình, có thể đã lỗi thời.",
+        "keyFor": "Khóa API {{provider}}",
+        "getKey": "Lấy khóa miễn phí tại {{site}}.",
+        "hints": {
+          "tinyfish": "Miễn phí, không cần thẻ",
+          "serper": "Kết quả Google",
+          "brave": "Chỉ mục độc lập",
+          "tavily": "Xây dựng cho AI",
+          "exa": "Tìm kiếm nơ-ron",
+          "serpapi": "Kết quả Google"
+        }
+      },
+      "reminders": {
+        "description": "Nhờ trợ lý nhắc bạn, và một ghi chú sẽ hiện lên khi đến giờ.",
+        "trySaying": "Thử nói",
+        "examples": {
+          "one": "“Nhắc tôi gọi cho Nam sau 20 phút nữa”",
+          "two": "“Lúc 6 giờ tối, nhắc tôi gửi hóa đơn”",
+          "three": "“Xem cái này và nhắc tôi vào ngày mai”"
+        },
+        "upcoming": "Sắp tới",
+        "none": "Chưa có lời nhắc nào.",
+        "more_other": "và {{count}} lời nhắc khác"
+      },
+      "memory": {
+        "title": "Bộ nhớ",
+        "description": "Ghi nhớ những điều quan trọng với bạn, chỉ lưu trên máy tính này.",
+        "open": "Mở bộ nhớ",
+        "manage_other": "Xem và sửa bộ nhớ · {{count}} ghi chú",
+        "pausedHint": "Tạm dừng: bộ nhớ đã lưu vẫn được giữ nhưng không được dùng."
+      },
+      "profiles": {
+        "title": "Hồ sơ",
+        "description": "Các nhân cách có tên, hướng dẫn và kiểu trả lời riêng.",
+        "edit": "Sửa hồ sơ",
+        "more": "+{{count}}"
+      },
+      "replies": {
+        "title": "Câu trả lời",
+        "description": "Câu trả lời dài bao nhiêu và trợ lý ghi nhớ bao nhiêu phần của cuộc trò chuyện.",
+        "lengths": {
+          "default": "Mặc định",
+          "short": "Ngắn",
+          "medium": "Vừa",
+          "long": "Dài"
+        },
+        "lengthHints": {
+          "default": "Dài vừa đủ theo câu hỏi.",
+          "short": "Một hai câu.",
+          "medium": "Một đoạn ngắn.",
+          "long": "Kỹ lưỡng và chi tiết."
+        },
+        "history": "Số tin nhắn được ghi nhớ"
+      },
+      "panel": {
+        "title": "Bảng nổi",
+        "description": "Giao diện của bảng và nơi nó mở ra. Bản xem trước cập nhật khi bạn thay đổi.",
+        "positionHint": "Nhấp vào một vị trí trên màn hình. Hình dạng chính là hình dạng bảng sẽ mở ra: một cột cao dọc theo cạnh bên, hoặc một dải rộng dọc theo cạnh trên hay dưới. Kéo bảng lại gần một vị trí và nó sẽ tự bám vào đó."
+      }
+    },
+    "groups": {
+      "personal": "Cá nhân",
+      "replies": "Câu trả lời"
+    },
+    "rows": {
+      "replyLength": "Độ dài câu trả lời",
+      "reminders": {
+        "none": "Chưa đặt",
+        "count_other": "Đã đặt {{count}}"
+      },
+      "memory": {
+        "edit": "Xem bộ nhớ",
+        "manage": "Quản lý"
+      },
+      "profiles": {
+        "manage": "Quản lý"
+      },
+      "screen": {
+        "ask": "Xem màn hình khi hỏi",
+        "call": "Xem màn hình khi trò chuyện"
+      }
+    },
+    "tips": {
+      "thinksWith": "Mô hình trả lời bạn. Dọn dẹp bằng AI và ghi chú cuộc họp cũng dùng nó khi chúng không có mô hình riêng.",
+      "speaks": "Đọc to câu trả lời trong khi trò chuyện.",
+      "screenAsk": "Cho phép trợ lý xem màn hình khi câu hỏi liên quan đến màn hình của bạn, hoặc khi bạn yêu cầu. Câu hỏi về văn bản đã chọn sẽ được trả lời dựa trên chính văn bản đó. Ảnh chụp màn hình chỉ được gửi tới nhà cung cấp AI của bạn.",
+      "screenCall": "Cho phép trợ lý xem màn hình trong khi trò chuyện khi bạn yêu cầu, hoặc khi bạn đang nói về thứ gì đó trên màn hình.",
+      "captureTiming": "Chụp màn hình tại thời điểm bạn bắt đầu hỏi, hoặc khi bạn gửi.",
+      "webSearch": "Tra cứu trực tuyến khi câu hỏi cần thông tin cập nhật.",
+      "depth": "Nhanh cho thông tin đơn giản, Sâu cho câu hỏi khó.",
+      "openRouterSearch": "Dùng tính năng tìm kiếm riêng của OpenRouter và tín dụng OpenRouter của bạn.",
+      "localSmart": "Để mô hình trên thiết bị tự quyết định khi nào cần tìm kiếm.",
+      "reminders": "Cứ hỏi: “Nhắc tôi gọi cho Nam sau 20 phút nữa.” Một ghi chú sẽ hiện lên khi đến giờ.",
+      "memory": "Ghi nhớ những điều quan trọng với bạn. Chỉ lưu trên máy tính này.",
+      "profiles": "Các nhân cách có tên, hướng dẫn và kiểu trả lời riêng.",
+      "replyLength": "Độ dài thông thường của câu trả lời.",
+      "history": "Số tin nhắn gần đây mà trợ lý ghi nhớ.",
+      "summarize": "Rút gọn các cuộc trò chuyện dài để trợ lý không quên phần đầu.",
+      "opacity": "Giảm xuống để màn hình nền hiện ra phía sau.",
+      "position": "Nhấp vào một vị trí trên màn hình.",
+      "display": "Màn hình mà bảng sẽ mở ra."
+    },
+    "memory": {
+      "aboutTip": "Một bản tóm tắt ngắn mà trợ lý ghi nhớ trong mọi câu trả lời. Nó được cập nhật khi bạn trò chuyện, và bạn có thể sửa bất cứ lúc nào.",
+      "aboutEmpty": "Chưa có gì. Trợ lý sẽ điền dần khi bạn trò chuyện, hoặc bạn có thể tự viết.",
+      "write": "Tự viết",
+      "notesTitle": "Những điều trợ lý ghi nhớ",
+      "notesTip": "Các thông tin trợ lý học được từ cuộc trò chuyện của bạn, cùng mọi thứ bạn thêm vào. Mỗi câu trả lời dùng những ghi chú phù hợp.",
+      "notesEmpty": "Chưa có gì. Trợ lý học từ các cuộc trò chuyện của bạn, hoặc bạn có thể thêm ở trên.",
+      "showAll": "Hiện tất cả {{count}}",
+      "showFewer": "Hiện ít hơn",
+      "detailTip": "Nhẹ chỉ dùng bản tóm tắt. Chi tiết thêm nhiều ghi chú hơn và chậm hơn một chút.",
+      "more": "Tùy chọn bộ nhớ khác",
+      "learnNow": "Học từ cuộc trò chuyện này ngay",
+      "export": "Xuất bộ nhớ…",
+      "import": "Nhập bộ nhớ…",
+      "erase": "Xóa bộ nhớ…",
+      "eraseTitle": "Xóa bộ nhớ?",
+      "eraseBody_other": "Thao tác này xóa bản tóm tắt và toàn bộ {{count}} ghi chú. Không thể hoàn tác.",
+      "eraseConfirm": "Xóa",
+      "learnedToast": "Đã cập nhật bộ nhớ từ cuộc trò chuyện này",
+      "exportedToast": "Đã xuất bộ nhớ",
+      "importedToast": "Đã nhập bộ nhớ",
+      "dialogDescription": "Những gì trợ lý biết về bạn. Mọi thứ nằm trên máy tính này, và bạn có thể sửa hoặc xóa bất kỳ phần nào."
+    },
+    "profiles": {
+      "new": "Hồ sơ mới",
+      "newBlank": "Bắt đầu từ đầu",
+      "newWithAi": "Mô tả và để AI viết",
+      "listMore": "Tùy chọn hồ sơ khác",
+      "import": "Nhập từ tệp…",
+      "restoreBuiltins": "Khôi phục hồ sơ có sẵn",
+      "restored_other": "Đã khôi phục {{count}} hồ sơ",
+      "restoredNone": "Tất cả hồ sơ có sẵn đều đã có ở đây",
+      "inUse": "Đang dùng",
+      "use": "Dùng hồ sơ này",
+      "more": "Tùy chọn khác cho hồ sơ này",
+      "duplicate": "Nhân bản",
+      "export": "Xuất…",
+      "exported": "Đã xuất hồ sơ",
+      "restoreDefault": "Khôi phục bản gốc",
+      "delete": "Xóa hồ sơ…",
+      "deleteTitle": "Xóa {{name}}?",
+      "deleteBody": "Không thể hoàn tác thao tác này.",
+      "addPicture": "Thêm ảnh",
+      "changePicture": "Đổi ảnh",
+      "removePicture": "Gỡ ảnh",
+      "roleLabel": "Mô tả",
+      "roleTip": "Vài chữ hiển thị dưới tên.",
+      "rolePlaceholder": "Ví dụ: trả lời ngắn gọn, thẳng thắn",
+      "instructionsLabel": "Hướng dẫn",
+      "instructionsTip": "Cách hồ sơ này suy nghĩ và nói chuyện. Được gửi kèm mọi tin nhắn.",
+      "lengthLabel": "Độ dài câu trả lời",
+      "lengthTip": "Mặc định sẽ theo Độ dài câu trả lời trên trang Trợ lý.",
+      "lengths": {
+        "inherit": "Mặc định",
+        "short": "Ngắn",
+        "medium": "Vừa",
+        "long": "Dài"
+      },
+      "greetingLabel": "Lời chào",
+      "greetingTip": "Không bắt buộc. Hiển thị khi bắt đầu cuộc trò chuyện mới.",
+      "greetingPlaceholder": "Chào bạn! Hôm nay mình làm gì nhé?",
+      "aiTitle": "Mô tả một hồ sơ mới",
+      "aiBody": "Nói hoặc gõ hồ sơ này nên như thế nào. Trợ lý sẽ viết tên và hướng dẫn cho nó.",
+      "aiCreate": "Tạo hồ sơ"
+    },
+    "panel": {
+      "where": "Nơi mở ra",
+      "text": "Cỡ chữ",
+      "opacity": "Độ mờ",
+      "screen": "Màn hình nào"
+    }
+  },
+  "meetingsPage": {
+    "transcript": "Bản chép lời",
+    "notes": "Ghi chú",
+    "hero": {
+      "title": "Mọi cuộc gọi, <em>đều được ghi lại.</em>",
+      "subtitle": "Tách theo người nói, kèm ghi chú khi kết thúc."
+    },
+    "transcribedBy": "Chép lời bởi",
+    "notesBy": "Ghi chú bởi",
+    "transcribedByTip": "Viết bản chép lời. Đây là mô hình Giọng nói thành văn bản của bạn, cũng là mô hình dùng cho đọc chính tả.",
+    "notesByTip": "Viết ghi chú và tiêu đề, và trả lời câu hỏi về cuộc họp. Đây là mô hình Trợ lý của bạn."
+  },
+  "historyPage": {
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "storage": "Lưu trữ",
+    "showOriginal": "Hiện bản gốc",
+    "showSaid": "Hiện những gì bạn đã nói",
+    "hideOriginal": "Ẩn bản gốc",
+    "playRecording": "Phát bản ghi âm",
+    "hideRecording": "Đóng trình phát",
+    "audioMissing": "Tệp âm thanh của bản ghi này không còn nữa.",
+    "failed": "Chép lời thất bại",
+    "retry": "Thử lại",
+    "dismissed": "Bản chép lời này đã bị bỏ qua.",
+    "recover": "Khôi phục",
+    "recoverTitle": "Chép lời lại và giữ lại nó",
+    "recoverError": "Không thể khôi phục bản chép lời này. Hãy thử lại.",
+    "more": "Thao tác khác",
+    "chat": {
+      "continueInCall": "Tiếp tục dưới dạng trò chuyện",
+      "assistantOff": "Bật trợ lý để tiếp tục cuộc trò chuyện này."
+    }
+  },
+  "pickers": {
+    "browse": "Quản lý mô hình",
+    "download": "Tải thêm mô hình",
+    "choose": "Chọn mô hình",
+    "switchFailed": "Không thể chuyển mô hình. Hãy thử lại.",
+    "borrowsAssistant": "Đang dùng {{model}} của trợ lý",
+    "needsKey": "Cần khóa API",
+    "groups": {
+      "device": "Trên máy tính này",
+      "cloud": "Đám mây",
+      "setup": "Chưa thiết lập"
+    },
+    "label": {
+      "assistant": "Mô hình trợ lý",
+      "cleanup": "Mô hình dọn dẹp bằng AI",
+      "stt": "Mô hình chuyển giọng nói thành văn bản",
+      "voice": "Giọng nói"
+    },
+    "needsSetup": "Cần thiết lập",
+    "finishSetup": "Hoàn tất thiết lập",
+    "setup": {
+      "title": "Thiết lập {{provider}}",
+      "bodyKey": "Dán khóa API của bạn, rồi chọn một mô hình.",
+      "bodyServer": "Nhập địa chỉ máy chủ của bạn, rồi chọn một mô hình.",
+      "bodyBoth": "Nhập endpoint và khóa API của bạn, rồi chọn một mô hình.",
+      "endpoint": "URL endpoint",
+      "apiKey": "Khóa API",
+      "apiKeyOptional": "Khóa API (không bắt buộc)",
+      "keyPlaceholder": "Dán khóa của bạn",
+      "getKey": "Lấy khóa tại {{site}}",
+      "model": "Mô hình",
+      "modelPlaceholder": "Chọn hoặc nhập tên mô hình",
+      "loadModels": "Tải danh sách mô hình",
+      "noModels": "Không tìm thấy mô hình nào. Hãy nhập tên mô hình.",
+      "typeInstead": "Nhập tên thay thế",
+      "pickFromList": "Chọn từ danh sách",
+      "use": "Lưu và dùng",
+      "done": "Đang dùng {{provider}}"
+    },
+    "voiceSetup": {
+      "bodyKey": "Dán khóa API của bạn, rồi chọn một giọng.",
+      "bodyEndpoint": "Nhập endpoint và khóa API của bạn, rồi chọn một giọng.",
+      "voice": "Giọng",
+      "voicePlaceholder": "Chọn một giọng",
+      "loadVoices": "Tải danh sách giọng",
+      "noVoices": "Không tìm thấy giọng nào. Hãy dán ID giọng.",
+      "model": "Mô hình (không bắt buộc)"
+    }
+  },
+  "catalog": {
+    "recommended": "Đề xuất",
+    "searchHuggingFace": "Tìm trên Hugging Face",
+    "useFor": {
+      "button": "Dùng cho",
+      "label": "Dùng {{model}} cho…",
+      "assistant": "Trợ lý",
+      "cleanup": "Dọn dẹp bằng AI",
+      "cleanupOnly": "Chỉ dành cho việc dọn dẹp; không thể trò chuyện."
+    },
+    "inUse": {
+      "assistant": "Trợ lý",
+      "cleanup": "Dọn dẹp bằng AI"
+    },
+    "use": "Dùng",
+    "useNamed": "Dùng {{model}} cho {{job}}",
+    "useForJob": "Dùng cho {{job}}",
+    "inUseShort": "Đang dùng",
+    "more": "Thêm",
+    "moreFor": "Thao tác khác cho {{model}}",
+    "showDetails": "Hiện chi tiết tệp",
+    "hideDetails": "Ẩn chi tiết tệp",
+    "removeFromList": "Xóa khỏi danh sách",
+    "nowUsing": "Đang dùng {{model}} cho {{job}}.",
+    "yoursInfo": "Các mô hình bạn đã tải hoặc thêm từ ổ đĩa. Mô hình nào cũng làm được cả hai việc; menu ⋯ cho phép giao cho nó việc còn lại."
+  },
+  "models": {
+    "runsOn": "Chạy trên",
+    "options": "Tùy chọn",
+    "downloadTitle": "Tải mô hình",
+    "cleanupOff": "Dọn dẹp bằng AI đang tắt. Ghi chú cuộc họp vẫn dùng mô hình này.",
+    "assistantOff": "Trợ lý đang tắt. Tạo bằng Flow và việc dọn dẹp vẫn dùng mô hình này.",
+    "usedBy": "Được dùng bởi: {{features}}."
+  },
+  "shortcutEditor": {
+    "change": "Đổi phím tắt {{name}}",
+    "useDefault": "Dùng mặc định",
+    "turnOff": "Tắt",
+    "turnedOff": "Đã tắt phím tắt {{name}}",
+    "undo": "Hoàn tác",
+    "addAnother": "Thêm phím khác",
+    "addAnotherHint": "Gán cho phím tắt này bộ phím thứ hai, ví dụ một nút chuột",
+    "addButtonOrKeys": "Thêm nút chuột hoặc phím",
+    "addButtonOrKeysHint": "Gán cho phím tắt này một nút chuột hoặc bộ phím thứ hai, bên cạnh các phím đã có",
+    "mouseAddedAsOther": "{{button}} giờ cũng dùng được cho {{name}}. {{keys}} vẫn hoạt động.",
+    "mouseNeedsOtherSlot": "{{name}} đã có phím khác ({{keys}}). Nhấp vào đó để đặt nút chuột thay thế.",
+    "mouseNeedsOwnKeys": "Hãy gán phím cho {{name}} trước. Nút chuột sẽ được thêm bên cạnh.",
+    "remove": "Xóa",
+    "or": "hoặc",
+    "changeOther": "Đổi phím khác của phím tắt {{name}}",
+    "pressKeysOrButton": "Nhấn phím hoặc một nút chuột…",
+    "mouseNeedsKeysEngine": "Nút chuột cần cơ chế bàn phím Zynveliq Keys (Cài đặt → Nâng cao → Thử nghiệm).",
+    "mouse": {
+      "middle": "Nút giữa chuột",
+      "back": "Nút Lùi của chuột",
+      "forward": "Nút Tiến của chuột"
+    }
+  },
+  "memoryManager": {
+    "status": {
+      "on": "Bật: được dùng trong câu trả lời và học từ các cuộc trò chuyện",
+      "off": "Tắt: không dùng và không học gì"
+    },
+    "incognitoHint": "Cuộc trò chuyện này không được dùng hay học hỏi",
+    "editNote": "Sửa ghi chú",
+    "source": {
+      "learned": "Đã học",
+      "added": "Do bạn thêm"
+    },
+    "filterLabel": "Hiện ghi chú",
+    "filters": {
+      "all": "Tất cả",
+      "learned": "Đã học {{count}}",
+      "added": "Của tôi {{count}}"
+    },
+    "search": "Tìm ghi chú",
+    "noMatches": "Không có ghi chú nào khớp.",
+    "detailHints": {
+      "light": "Chỉ bản tóm tắt Về bạn được đưa vào mỗi câu trả lời. Nhanh nhất.",
+      "balanced": "Bản tóm tắt cùng vài ghi chú phù hợp với câu hỏi.",
+      "detailed": "Bản tóm tắt cùng nhiều ghi chú liên quan hơn. Phong phú nhất, chậm hơn một chút."
+    },
+    "learnNow": "Học từ cuộc trò chuyện này",
+    "tips": {
+      "enable": "Cho phép trợ lý dùng và học một bộ nhớ về bạn. Mặc định tắt.",
+      "incognito": "Cuộc trò chuyện này không được dùng và không được học hỏi.",
+      "aboutYou": "Một bản tóm tắt ngắn được đưa vào mọi câu trả lời khi bộ nhớ đang bật."
+    }
+  },
+  "providerGrid": {
+    "showAll": "Hiện tất cả {{count}} nhà cung cấp",
+    "showFewer": "Hiện ít hơn"
+  },
+  "voiceEngines": {
+    "kokoro": "Chất lượng tốt nhất",
+    "kitten": "Nhẹ nhất",
+    "pocket": "14 giọng",
+    "supertonic": "Nhanh và rõ",
+    "openai": "Giọng GPT",
+    "elevenlabs": "Tự nhiên nhất",
+    "openrouter": "Nhiều giọng",
+    "deepgram": "Nhanh, chi phí thấp",
+    "cartesia": "Độ trễ thấp nhất",
+    "google": "Giọng Chirp 3 HD",
+    "azure": "Giọng nơ-ron",
+    "groq": "Giọng Orpheus",
+    "xai": "Giọng Grok",
+    "mistral": "Giọng Voxtral",
+    "inworld": "Giọng giàu cảm xúc",
+    "custom": "Máy chủ của bạn",
+    "names": {
+      "kokoro": "Kokoro",
+      "kitten": "Kitten",
+      "pocket": "Pocket TTS",
+      "supertonic": "Supertonic",
+      "openai": "OpenAI",
+      "elevenlabs": "ElevenLabs",
+      "openrouter": "OpenRouter",
+      "deepgram": "Deepgram",
+      "cartesia": "Cartesia",
+      "google": "Google Cloud",
+      "azure": "Azure Speech",
+      "groq": "Groq",
+      "xai": "xAI",
+      "mistral": "Mistral",
+      "inworld": "Inworld",
+      "custom": "Tùy chỉnh"
+    }
+  },
+  "insights": {
+    "about": "Cách bạn dùng Zynveliq, được đếm trên máy tính này.",
+    "nothingYet": "Thống kê của bạn sẽ hiện ra khi bạn đọc chính tả, hỏi trợ lý hoặc ghi âm một cuộc họp.",
+    "goHome": "Xem phím tắt",
+    "figures": {
+      "dictations": "Lượt đọc chính tả",
+      "dictationsInfo": "Mỗi lượt đọc chính tả được tính một lần, dù dài hay ngắn.",
+      "questions": "Câu hỏi đã hỏi",
+      "meetings": "Cuộc họp đã ghi âm"
+    },
+    "activityTitle": "Hoạt động",
+    "pages_other": "Khoảng {{count}} trang",
+    "longest_other": "Dài nhất: {{count}} ngày",
+    "streakHint": "Một ngày được tính khi bạn đọc chính tả, hỏi trợ lý, trò chuyện hoặc ghi âm một cuộc họp.",
+    "gridSummary_other": "{{words}} từ trong {{count}} ngày của 6 tháng qua",
+    "gridSummaryAssistant_other": "{{questions}} trong {{count}} ngày của 6 tháng qua",
+    "gridSummaryMeetings_other": "{{time}} họp trong {{count}} ngày của 6 tháng qua",
+    "gridSummaryAll_other": "Hoạt động trong {{count}} ngày của 6 tháng qua",
+    "dayWords_other": "{{formatted}} từ",
+    "dayQuestions_other": "{{formatted}} câu hỏi",
+    "dayMeetings": "{{time}} họp",
+    "dayNoneFor": {
+      "all": "Không có hoạt động",
+      "dictation": "Không đọc chính tả",
+      "assistant": "Không có câu hỏi",
+      "meetings": "Không có cuộc họp"
+    },
+    "less": "Ít hơn",
+    "more": "Nhiều hơn",
+    "busiest": "Ngày bận rộn nhất",
+    "best": "Ngày tốt nhất",
+    "typical": "Ngày điển hình",
+    "typicalFor": {
+      "dictation": "Vào những ngày bạn đọc chính tả",
+      "assistant": "Vào những ngày bạn hỏi",
+      "meetings": "Vào những ngày có cuộc họp"
+    },
+    "activity": {
+      "label": "Hoạt động hiển thị",
+      "all": "Tất cả",
+      "dictation": "Đọc chính tả",
+      "assistant": "Trợ lý",
+      "meetings": "Cuộc họp"
+    },
+    "assistantCard": {
+      "info": "Các câu hỏi nhanh và những gì bạn nói khi trò chuyện. Vẫn được tính kể cả khi bạn xóa cuộc trò chuyện.",
+      "noCalls": "Chưa có cuộc trò chuyện nào"
+    },
+    "meetingsCard": {
+      "info": "Các cuộc họp bạn đã ghi âm. Vẫn được tính kể cả khi bạn xóa một cuộc họp."
+    },
+    "share": {
+      "button": "Chia sẻ",
+      "nothingYet": "Sẽ có thứ để chia sẻ khi bạn đã dùng Zynveliq.",
+      "title": "Chia sẻ thống kê của bạn",
+      "private": "Được tạo trên máy tính này. Không có gì được tải lên.",
+      "size": "Kích thước",
+      "formats": {
+        "square": "Vuông",
+        "story": "Dọc",
+        "wide": "Ngang"
+      },
+      "formatHints": {
+        "square": "1080 × 1080, cho bảng tin",
+        "story": "1080 × 1920, cho tin (story)",
+        "wide": "1600 × 900, cho bài đăng và liên kết"
+      },
+      "previous": "Thẻ trước",
+      "next": "Thẻ tiếp theo",
+      "cardsLabel": "Thẻ",
+      "position": "Thẻ {{index}}/{{count}}",
+      "copy": "Sao chép ảnh",
+      "copied": "Đã sao chép",
+      "copyFailed": "Không sao chép được ảnh",
+      "save": "Lưu ảnh",
+      "saved": "Đã lưu ảnh",
+      "saveFailed": "Không lưu được ảnh",
+      "showInFolder": "Hiện trong thư mục",
+      "postOn": "Đăng lên {{site}}",
+      "copiedForPost": "Đã sao chép thẻ. Trong bài đăng mới, nhấn {{keys}} để thêm thẻ.",
+      "savedForPost": "Đã lưu thẻ vào Tải xuống. {{site}} không nhận ảnh dán vào, nên hãy thêm bằng nút ảnh trong bài đăng mới.",
+      "openSite": "Mở {{site}}",
+      "openFailed": "Không mở được {{site}}",
+      "more": "Ứng dụng khác",
+      "sheetTitle": "Thống kê Zynveliq của mình",
+      "shareFailed": "Không mở được Chia sẻ",
+      "drawFailed": "Không vẽ được thẻ. Hãy đóng lại và thử lại.",
+      "tagline": "Miễn phí · Mã nguồn mở · Chạy ngoại tuyến",
+      "cards": {
+        "highlights": {
+          "title": "Dấu ấn Zynveliq của mình",
+          "words_other": "từ đã nói",
+          "streak_other": "ngày liên tiếp",
+          "wpm": "từ mỗi phút",
+          "questions_other": "câu hỏi đã hỏi",
+          "meetings_other": "cuộc họp đã ghi âm",
+          "saved": "tiết kiệm so với gõ"
+        },
+        "words": {
+          "title": "Cứ nói, khỏi gõ",
+          "label_other": "từ đã nói",
+          "pages_other": "Khoảng {{count}} trang",
+          "books_other": "Dài bằng {{count}} cuốn tiểu thuyết"
+        },
+        "speed": {
+          "title": "Mình nói nhanh cỡ nào",
+          "label": "từ mỗi phút",
+          "note": "Nhanh hơn gõ phím {{times}}×",
+          "you": "Nói",
+          "typing": "Gõ phím thông thường"
+        },
+        "saved": {
+          "title": "Thời gian tiết kiệm",
+          "label": "khỏi phải gõ phím",
+          "workdays_other": "Khoảng {{count}} ngày làm việc"
+        },
+        "streak": {
+          "title": "Đang vào guồng",
+          "unit_other": "ngày liên tiếp",
+          "longest_other": "Chuỗi dài nhất: {{count}} ngày",
+          "best": "Chuỗi dài nhất của mình từ trước đến nay"
+        },
+        "assistant": {
+          "title": "Trợ lý của mình",
+          "label_other": "câu hỏi đã hỏi",
+          "calls_other": "{{count}} cuộc trò chuyện, tổng cộng {{time}}"
+        },
+        "meetings": {
+          "title": "Các cuộc họp của mình",
+          "label_other": "cuộc họp đã ghi âm",
+          "note": "Đã ghi âm {{time}}, chép lại {{words}} từ",
+          "time": "Đã ghi âm và chép lại {{time}}"
+        },
+        "activity": {
+          "title": "Sáu tháng nói không ngừng",
+          "label_other": "ngày hoạt động"
+        }
+      },
+      "post": {
+        "dictation_other": "Mình đã nói {{formatted}} từ với máy tính thay vì gõ, nhờ Zynveliq.",
+        "asks_other": "Mình đã hỏi trợ lý của Zynveliq {{formatted}} câu mà không cần chuyển tab.",
+        "meetings_other": "Zynveliq đã ghi âm {{formatted}} cuộc họp và viết ghi chú giúp mình."
+      }
+    }
+  },
+  "settingsNotice": {
+    "restored": "Cài đặt của bạn bị hỏng và đã được khôi phục từ bản sao lưu.",
+    "restoredDescription": "Những thay đổi gần đây có thể bị thiếu.",
+    "unrecoverableTitle": "Không thể khôi phục cài đặt của bạn",
+    "unrecoverableDescription": "Zynveliq đã khởi động với cài đặt mặc định. Tệp bị hỏng được giữ lại với tên {{file}}.",
+    "notSavingTitle": "Các thay đổi cài đặt sẽ không được lưu",
+    "notSavingDescription": "Không thể đọc tệp cài đặt nên tệp được giữ nguyên. Hãy khởi động lại Zynveliq để thử lại.",
+    "saveFailingTitle": "Cài đặt không được lưu",
+    "saveFailingDescription": "Các thay đổi gần đây của bạn chưa được lưu. Zynveliq sẽ tiếp tục thử.",
+    "dismiss": "Đóng"
+  }
+}

@@ -1,0 +1,96 @@
+---
+title: "Output and pasting"
+description: "How Zynveliq inserts transcribed text into the active app. Covers paste methods, clipboard handling, auto submit, trailing spaces, spoken emoji, filler removal, and paste-target restore."
+icon: "clipboard"
+---
+
+The defaults are right for most people. Change these only if a specific app misbehaves.
+
+The paste method, clipboard handling, trailing space, and auto submit settings live in _Settings → Dictation → Output_. Spoken emoji is under _Settings → Dictation → Extras_.
+
+## Paste method
+
+The default is `Clipboard (Ctrl+V)` on Windows, `Clipboard (Cmd+V)` on macOS, and `Direct` on Linux, because clipboard paste is less dependable across Linux compositors.
+
+| Method                     | Platforms      | What it does                                                                                                                                    |
+| -------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clipboard (Ctrl+V / Cmd+V) | All            | Writes the text to the clipboard, sends the paste combo, then restores your previous clipboard contents. Fast and reliable in almost every app. |
+| Direct                     | All            | Types the text key by key. Slower, but works in apps that block or ignore synthetic paste.                                                      |
+| None                       | All            | Inserts nothing. Pair it with "Copy to clipboard" to paste manually.                                                                            |
+| Clipboard (Ctrl+Shift+V)   | Windows, Linux | The paste-as-plain-text combo in many terminals and editors.                                                                                    |
+| Clipboard (Shift+Insert)   | Windows, Linux | For apps that only accept the legacy combo.                                                                                                     |
+| External script            | Linux          | Runs a script you provide, passing the text as its single argument. A path field appears when you select this.                                  |
+
+## Clipboard handling
+
+| Option                           | What it does                                                         |
+| -------------------------------- | -------------------------------------------------------------------- |
+| Don't modify clipboard (default) | Clipboard paste saves whatever you had copied and restores it after. |
+| Copy to clipboard                | Leaves the transcription on the clipboard instead of restoring.      |
+
+## Other output settings
+
+| Setting               | Default | What it does                                                                                                                                                       |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Append trailing space | Off     | Adds one space after the inserted text so back-to-back dictations do not run together.                                                                             |
+| Auto submit           | Off     | Sends a key combo after the text is inserted. Options: Enter, Ctrl+Enter, Cmd+Enter (macOS) or Super+Enter (Linux/Windows). Skipped when the paste method is None. |
+
+## Spoken emoji
+
+Under _Settings → Dictation → Extras_. Say "happy emoji" or "thumbs up emoji" and Zynveliq inserts 😊 or 👍. Common aliases and minor speech-to-text errors are handled on your device. Unknown names stay as text. Off by default.
+
+## Filler-word removal
+
+On a local speech engine, Zynveliq removes filler words ("um", "uh", false starts, repeated words) automatically on every dictation. The local engines have always done this, and there is no switch on the local side.
+
+On a cloud provider, the **Remove filler words** switch controls both layers: it asks the provider to strip fillers server-side and runs the app's own filter as a backstop. Turn it off to get verbatim output, word for word. See [Cloud transcription](/dictation/cloud-transcription).
+
+## Paste-target restore (Windows)
+
+On Windows, Zynveliq remembers which window was in the foreground when you started recording. If one of its own windows takes the foreground during the recording (because the overlay or the assistant panel appeared), it hands focus back to that window before pasting. This only happens when a Zynveliq window is what took focus. If you alt-tab to a different app during the recording, Zynveliq respects that and pastes into the new app.
+
+## The order things happen
+
+Once a recording is transcribed, the text passes through these stages:
+
+<Steps>
+  <Step title="Transcription">
+    Custom-word correction and filler removal. See [Custom words](/dictation/custom-words).
+  </Step>
+
+<Step title="AI cleanup (optional)">
+  Only on the dictation-with-cleanup shortcut, or when cleanup is set to run on
+  every dictation. See [AI cleanup](/writing/ai-cleanup).
+</Step>
+
+<Step title="Spoken emoji, then text replacements">
+  Both opt-in. Replacement rules run last, so they always win. See [Text
+  replacements](/dictation/text-replacements).
+</Step>
+
+  <Step title="Insert">
+    Trailing space, paste method, then auto submit.
+  </Step>
+</Steps>
+
+<AccordionGroup>
+  <Accordion title="Linux: typing tools">
+    **Typing tool** appears in _Settings → Dictation → Output_ only on Linux, and only while the paste method is Direct. It picks which tool types the text. The dropdown lists only the tools present on your system (`wtype`, `kwtype`, `dotool`, `ydotool`, `xdotool`). Leave it on Auto unless a specific tool misbehaves.
+
+    Clipboard writes prefer `wl-copy` under Wayland, which handles non-ASCII text better.
+
+  </Accordion>
+
+  <Accordion title="Timing knobs in Debug">
+    Two settings in _Settings → Debug_ affect insertion (Debug appears after pressing Ctrl+Shift+D, or Cmd+Shift+D on macOS):
+
+    **Paste delay** (default 60 ms). How long to wait after writing the clipboard before sending the paste combo. Increase it if the wrong text pastes.
+
+    **Extra recording buffer** (default 0 ms). How much longer to keep recording after you release the key. Increase it if your last word or two gets cut off.
+
+  </Accordion>
+
+  <Accordion title="Modifiers are always released">
+    Any method that synthesizes keystrokes releases every modifier afterwards, even if the combo was interrupted. This guards against Ctrl or Shift appearing stuck down after a paste.
+  </Accordion>
+</AccordionGroup>

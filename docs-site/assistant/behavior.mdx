@@ -1,0 +1,49 @@
+---
+title: "Behavior"
+description: "Control how long the assistant's replies run, how many messages it remembers per conversation, and whether it summarizes long chats."
+icon: "sliders"
+---
+
+These settings are on the **Assistant** page under **Replies**.
+
+## Reply length
+
+| Setting      | Default     | Options                        |
+| ------------ | ----------- | ------------------------------ |
+| Reply length | `Automatic` | Automatic, Short, Medium, Long |
+
+**Automatic** adds nothing to the prompt and lets the model decide. The other three append a length instruction. The model still matches your intent: a greeting gets a short reply even on Long.
+
+Individual [profiles](/personalize/profiles) can override this, and the profile's choice wins for its own turns.
+
+## Conversation memory
+
+| Setting              | Default | Range    |
+| -------------------- | ------- | -------- |
+| Messages to remember | `12`    | 0 to 200 |
+
+How many recent messages are sent as context each turn. Higher keeps more of the thread in mind, at the cost of a bigger prompt. Set it to 0 to treat every message as standalone.
+
+## Summarize long chats
+
+On by default. When the conversation grows past the messages-to-remember window, the oldest messages are folded into a rolling summary instead of being dropped. The most recent messages stay verbatim.
+
+The summary is injected ahead of the history, so a long chat keeps its beginning in condensed form. Turn it off and the oldest messages are simply lost once they fall outside the window.
+
+<AccordionGroup>
+  <Accordion title="What triggers a summary">
+    The trigger is the conversation memory setting above, not the model's
+    context window. The fold runs in the background after a reply finishes, so
+    it never delays an answer. If it fails, the summary is left alone and the
+    next turn tries again.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Profiles" icon="users" href="/personalize/profiles">
+    Give the assistant different personas, each with its own reply length.
+  </Card>
+  <Card title="Personal memory" icon="brain" href="/personalize/memory">
+    Durable facts the assistant remembers across chats.
+  </Card>
+</CardGroup>

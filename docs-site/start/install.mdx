@@ -1,0 +1,127 @@
+---
+title: "Install Zynveliq"
+description: "How to install Zynveliq on Windows, macOS, or Linux, including the one-time Terminal command that clears the macOS quarantine message, and how updates work."
+icon: "download"
+---
+
+Download Zynveliq for your operating system from the [Releases page](https://github.com/ishangautam7/zynveliq/releases), then follow the section for your platform.
+
+| Platform    | Files                                               |
+| ----------- | --------------------------------------------------- |
+| **Windows** | `.exe` installer and `.msi`, x86_64                 |
+| **macOS**   | `.dmg`, Apple Silicon (`aarch64`) and Intel (`x64`) |
+| **Linux**   | AppImage and `.deb`, each in x86_64 and ARM64       |
+
+## Windows
+
+Run the `.exe` installer. Use the `.msi` instead if you deploy with one.
+
+<Note>
+  Windows code signing isn't in place yet, so SmartScreen may warn that the
+  installer isn't from a known publisher. Choose **More info → Run anyway**.
+</Note>
+
+## macOS
+
+<Steps>
+  <Step title="Drag Zynveliq into Applications">
+    Open the `.dmg` for your Mac (`aarch64` for Apple silicon, `x64` for Intel) and drag the app across.
+  </Step>
+
+  <Step title="Clear the quarantine flag">
+    Open Terminal (press `Cmd` + `Space`, type *Terminal*) and run:
+
+    ```bash
+    xattr -dr com.apple.quarantine /Applications/Zynveliq.app
+    ```
+
+  </Step>
+
+  <Step title="Open the app">
+    Launch from Launchpad, Spotlight, or Applications. macOS then asks for **Microphone** and **Accessibility** permission. Grant both.
+  </Step>
+</Steps>
+
+You run the `xattr` command once per version you install from a `.dmg`, not once per launch. Updates installed from inside the app are not tagged, so they skip this step.
+
+<AccordionGroup>
+  <Accordion title="Why macOS says the app is damaged">
+    **The app is not damaged.** That wording is what macOS shows for any app it cannot trace to a paid Apple Developer account. Signing costs $99 a year, which this project does not have yet.
+
+    The `xattr` command removes the "downloaded from the internet" tag macOS puts on the file. macOS 15 and later removed the old right-click → *Open* bypass, and "damaged" is the one case where no *Open Anyway* button appears in *System Settings → Privacy & Security*. Terminal is the only way through.
+
+  </Accordion>
+
+<Accordion title="Intel Mac support">
+  Builds are available for both Apple silicon and Intel. The Intel build needs
+  macOS 14 Sonoma or later. It runs on the processor only, so transcription is
+  slower than on Apple silicon, but everything works. CI runs every Intel build
+  on a real Intel Mac before release.
+</Accordion>
+
+  <Accordion title="What the two permissions are for">
+    **Microphone** (*System Settings → Privacy & Security → Microphone*). So it can hear you.
+
+    **Accessibility** (*System Settings → Privacy & Security → Accessibility*). So it can type into other apps.
+
+  </Accordion>
+</AccordionGroup>
+
+## Linux
+
+| Your distro                                    | Install                                           |
+| ---------------------------------------------- | ------------------------------------------------- |
+| Arch and derivatives                           | `yay -S zynveliq-bin` (or `paru -S zynveliq-bin`) |
+| Debian 13+, Ubuntu 24.04+, Mint 22+, Pop!\_OS  | `sudo apt install ./Zynveliq_*_amd64.deb`         |
+| Everything else, including Fedora and openSUSE | `chmod +x Zynveliq_*.AppImage`, then run it       |
+
+Prefer the `.deb` where there is one. It registers the app icon and menu entry, which the AppImage cannot do on its own.
+
+<AccordionGroup>
+  <Accordion title="Minimum glibc version">
+    Both packages are built on Ubuntu 24.04, so they need glibc 2.39 or newer. That rules out Ubuntu 22.04, Debian 12, Mint 21, and RHEL 9 and its rebuilds.
+  </Accordion>
+
+<Accordion title="Why there is no .rpm">
+  The packaging does not bundle the speech engine correctly. An `.rpm` that
+  installs but cannot transcribe would be worse than not shipping one.
+</Accordion>
+
+  <Accordion title="AppImage with no icon or menu entry">
+    Normal AppImage behavior. The icon appears once the app is running, and the file stays generic in your file manager. Gear Lever or AppImageLauncher adds a menu entry if you want one.
+  </Accordion>
+</AccordionGroup>
+
+## Updates
+
+Zynveliq checks for new versions in the background (8 seconds after launch, then every 12 hours) and shows available updates in _Settings → About_. Each update is verified against the project's signing key before it is applied.
+
+How the update reaches you depends on how you installed:
+
+| Install type                            | What happens                                                                                                                                            |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows `.exe` / `.msi`                 | Installs in place from _Settings → About_.                                                                                                              |
+| macOS `.dmg`                            | Installs in place from _Settings → About_.                                                                                                              |
+| Linux AppImage (running as an AppImage) | Installs in place from _Settings → About_.                                                                                                              |
+| Linux `.deb` on a Debian-family system  | Installs in place if the app can ask for the admin password (pkexec, zenity, or kdialog). Otherwise downloads the installer for you to run.             |
+| Arch (AUR)                              | Update through your package manager (`yay -Syu`, etc.). The in-app updater does not touch AUR packages.                                                 |
+| Windows portable build                  | The portable build cannot update in place. Download the new version from the [Releases page](https://github.com/ishangautam7/zynveliq/releases/latest). |
+
+Automatic checks can be turned off in _Settings → About_, and you can always check manually there too.
+
+<Note>
+  Versions 1.4 and earlier cannot install 2.0 from inside the app. Download 2.0
+  once from the [Releases
+  page](https://github.com/ishangautam7/zynveliq/releases/latest) and install it
+  over the old version; settings and history are kept. From 2.0 on, updates
+  install from _Settings → About_.
+</Note>
+
+<Tip>
+  To hear about releases on GitHub, click **Watch → Custom → Releases** at the
+  top of the repository page.
+</Tip>
+
+## After installing
+
+A short setup walks you through first launch. Next: [dictate your first sentence](/start/getting-started).

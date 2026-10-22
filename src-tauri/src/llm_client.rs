@@ -1,0 +1,2977 @@
+use crate::settings::PostProcessProvider;
+use futures_util::StreamExt;
+use log::{debug, info, warn};
+use once_cell::sync::Lazy;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE, REFERER, USER_AGENT};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use specta::Type;
+use std::collections::HashMap;
+use std::hash::{DefaultHasher, Hash, Hasher};
+use std::sync::Mutex;
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type)]
+pub struct ChatMessage {
+    pub role: String,
+    pub content: String,
+    /// Small JPEG **display thumbnails** (data URLs) for any images that rode
+    /// along with this message — a screen capture and/or user-attached pictures.
+    /// Display + history only: these are never sent to the model (the full-res
+    /// copy is sent once, for that turn), they just let the panel show and
+    /// hover-enlarge what was sent, and survive restarts. Older history rows
+    /// (and text-only turns) simply have an empty list.
+    #[serde(default)]
+    pub images: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct JsonSchema {
+    name: String,
+    strict: bool,
+    schema: Value,
+}
+
+#[derive(Debug, Serialize)]
+struct ResponseFormat {
+    #[serde(rename = "type")]
+    format_type: String,
+    json_schema: JsonSchema,
+}
+
+#[derive(Debug, Serialize, Clone, Default)]
+pub struct ReasoningConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effort: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude: Option<bool>,
+}
+
+#[derive(Debug, Serialize)]
+struct ChatCompletionRequest {
+    model: String,
+    /// Message objects (`{role, content}`); content may be a plain string or
+    /// an array of multimodal content parts (text / image_url).
+    messages: Vec<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    response_format: Option<ResponseFormat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_effort: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning: Option<ReasoningConfig>,
+    /// Sampling temperature. Left unset for the assistant, where the provider's
+    /// own default is the right creative behaviour, and pinned to 0 for cleanup,
+    /// which is a deterministic transform.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    temperature: Option<f32>,
+    /// Hard ceiling on generated tokens. Unset for the assistant, whose answer
+    /// length is the model's business, and set for cleanup, whose output length
+    /// is bounded by its input: a cleaned transcript is never much longer than
+    /// the transcript.
+    ///
+    /// Without it, the classic small-model failure — narrating a plan instead of
+    /// returning the text — is paid for in full before it can be detected.
+    /// Measured on this app's own log against `google.gemma-3-27b-it`: a
+    /// six-character transcript ("Ё-ё-ё.") spent 5.17s inside the structured
+    /// attempt and returned something invalid, then 0.66s on the plain retry and
+    /// succeeded. A cap sized to the input would have ended the first attempt in
+    /// well under a second.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_tokens: Option<u32>,
+    /// The same ceiling under the name OpenAI's reasoning models require.
+    ///
+    /// Never set by a caller. [`adapt_request_to_rejections`] moves
+    /// `max_tokens` here for an endpoint that has answered
+    /// `'max_tokens' is not supported with this model. Use
+    /// 'max_completion_tokens' instead.` (Azure's GPT-6 deployments do). The two
+    /// are not interchangeable everywhere — most gateways and llama.cpp only know
+    /// `max_tokens` — so the rename is learned per endpoint, never assumed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_completion_tokens: Option<u32>,
+    /// llama.cpp-specific template options. Sent only to the built-in engine.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_template_kwargs: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stream: Option<bool>,
+    /// OpenAI-style tool definitions (`[{type:"function", function:{…}}]`).
+    /// Only sent on the tool-calling web-search path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tools: Option<Value>,
+    /// Tool choice policy ("auto" for the web-search path). Sent only with `tools`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_choice: Option<Value>,
+}
+
+#[derive(Default)]
+struct ChatRequestOptions {
+    json_schema: Option<Value>,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+    temperature: Option<f32>,
+    max_tokens: Option<u32>,
+    stream: Option<bool>,
+    tools: Option<Value>,
+    tool_choice: Option<Value>,
+    /// Skip the built-in engine's system-role folding and send the `system`
+    /// message as-is. Only the raw-prompt cleanup path sets this: a fine-tune
+    /// trained with a system prompt behaves differently when that text arrives
+    /// glued to the front of the user turn instead. Chat templates that reject
+    /// a `system` role (Gemma-style) make the request fail, so the caller is
+    /// responsible for retrying folded — see `send_post_process_request`.
+    keep_system_role: bool,
+}
+
+/// Build an OpenAI-compatible request body without performing any I/O.
+///
+/// Keeping provider-specific message normalization and optional request fields
+/// here gives transport tests a stable seam for plain, structured-output, and
+/// tool-enabled rounds.
+fn build_chat_completion_request(
+    provider: &PostProcessProvider,
+    model: &str,
+    mut messages: Vec<Value>,
+    options: ChatRequestOptions,
+) -> ChatCompletionRequest {
+    if provider.id == "builtin" && !options.keep_system_role {
+        fold_system_into_first_user(&mut messages);
+    }
+    // Applies to every provider: a strict chat template is a property of the
+    // model, not of who serves it (Gemma is strict locally and on a cloud
+    // gateway alike), and a well-formed conversation is left untouched.
+    enforce_alternating_roles(&mut messages);
+
+    let response_format = options.json_schema.map(|schema| ResponseFormat {
+        format_type: "json_schema".to_string(),
+        json_schema: JsonSchema {
+            name: "transcription_output".to_string(),
+            strict: true,
+            schema,
+        },
+    });
+
+    ChatCompletionRequest {
+        model: normalize_model_name(provider, model),
+        messages,
+        response_format,
+        reasoning_effort: options.reasoning_effort,
+        reasoning: options.reasoning,
+        temperature: options.temperature,
+        max_tokens: options.max_tokens,
+        max_completion_tokens: None,
+        chat_template_kwargs: builtin_chat_template_kwargs(provider),
+        stream: options.stream,
+        tools: options.tools,
+        tool_choice: options.tool_choice,
+    }
+}
+
+fn builtin_chat_template_kwargs(provider: &PostProcessProvider) -> Option<Value> {
+    (provider.id == "builtin").then(|| serde_json::json!({ "enable_thinking": false }))
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatCompletionResponse {
+    choices: Vec<ChatChoice>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatChoice {
+    message: ChatMessageResponse,
+    /// Why the model stopped. Absent on some gateways, hence the default.
+    #[serde(default)]
+    finish_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatMessageResponse {
+    content: Option<String>,
+}
+
+/// One chat completion's answer, and why the model stopped writing it.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct Completion {
+    pub(crate) content: Option<String>,
+    pub(crate) finish_reason: Option<String>,
+}
+
+impl Completion {
+    /// The model ran out of output tokens before it finished (see
+    /// [`is_truncation`]).
+    pub(crate) fn truncated(&self) -> bool {
+        self.finish_reason.as_deref().is_some_and(is_truncation)
+    }
+}
+
+/// Whether a `finish_reason` means the answer was cut off at an output limit
+/// rather than finished.
+///
+/// OpenAI and every OpenAI-compatible layer the app talks to (llama.cpp,
+/// Ollama, LM Studio, OpenRouter, Groq, Anthropic's and Gemini's compatibility
+/// endpoints, Azure, Bedrock's) say `length`. A few gateways pass the native
+/// reason through instead: Anthropic, Bedrock and Gemini call it `max_tokens`
+/// (Gemini in capitals), and OpenAI's Responses API `max_output_tokens`.
+///
+/// What a caller does with it is its own decision: a cut-off assistant answer
+/// is still worth showing, a cut-off cleanup is not worth pasting (it ends
+/// mid-sentence, with the rest of what the user said gone).
+pub(crate) fn is_truncation(finish_reason: &str) -> bool {
+    matches!(
+        finish_reason.trim().to_ascii_lowercase().as_str(),
+        "length" | "max_tokens" | "max_output_tokens"
+    )
+}
+
+/// Build headers for API requests based on provider type
+fn build_headers(provider: &PostProcessProvider, api_key: &str) -> Result<HeaderMap, String> {
+    let mut headers = HeaderMap::new();
+
+    // Common headers
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    // OpenRouter reads `HTTP-Referer` (not the standard `Referer`) plus `X-Title`
+    // for app attribution / leaderboard ranking; other gateways ignore both.
+    // We send `HTTP-Referer` (the name OpenRouter documents) and keep the plain
+    // `Referer` too — harmless everywhere, and some proxies still look at it.
+    headers.insert(
+        "HTTP-Referer",
+        HeaderValue::from_static("https://github.com/ishangautam7/zynveliq"),
+    );
+    headers.insert(
+        REFERER,
+        HeaderValue::from_static("https://github.com/ishangautam7/zynveliq"),
+    );
+    headers.insert(
+        USER_AGENT,
+        HeaderValue::from_static("Zynveliq/1.0 (+https://github.com/ishangautam7/zynveliq)"),
+    );
+    headers.insert("X-Title", HeaderValue::from_static("Zynveliq"));
+
+    // Provider-specific auth headers
+    if !api_key.is_empty() {
+        if provider.id == "anthropic" {
+            // Anthropic's OpenAI-compatible layer (api.anthropic.com/v1) accepts
+            // either the native `x-api-key` header or `Authorization: Bearer`.
+            // We send the native pair, which also works on the classic API.
+            headers.insert(
+                "x-api-key",
+                HeaderValue::from_str(api_key)
+                    .map_err(|e| format!("Invalid API key header value: {}", e))?,
+            );
+            headers.insert("anthropic-version", HeaderValue::from_static("2023-06-01"));
+        } else {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", api_key))
+                    .map_err(|e| format!("Invalid authorization header value: {}", e))?,
+            );
+            // Azure OpenAI's v1 endpoint (`{res}.openai.azure.com/openai/v1`)
+            // accepts key auth via the `api-key` header as well as `Bearer`.
+            // Send both for Azure hosts so a key works regardless of which auth
+            // style the gateway honors; non-Azure hosts ignore the extra header.
+            if provider.base_url.contains("azure.com") {
+                headers.insert(
+                    "api-key",
+                    HeaderValue::from_str(api_key)
+                        .map_err(|e| format!("Invalid api-key header value: {}", e))?,
+                );
+            }
+        }
+    }
+
+    Ok(headers)
+}
+
+/// Configured clients, keyed by the provider/auth fingerprint that decides the
+/// default headers.
+///
+/// A `reqwest::Client` owns its connection pool, so building a fresh one per
+/// request throws that pool away and re-pays DNS + TCP + TLS on every call —
+/// easily 100–300ms against a cloud provider, and more on a slow link. Cloning
+/// a cached client is cheap and shares the pool, so a warm keep-alive
+/// connection is reused across turns. Bounded to a handful of entries because
+/// the key only varies with provider/base URL/key, not per request.
+static CLIENT_CACHE: Lazy<Mutex<HashMap<u64, reqwest::Client>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+/// Fingerprint the inputs that affect a client's default headers. The API key
+/// is hashed rather than stored so the long-lived cache key holds no secret.
+fn client_cache_key(provider: &PostProcessProvider, api_key: &str) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    provider.id.hash(&mut hasher);
+    provider.base_url.hash(&mut hasher);
+    api_key.hash(&mut hasher);
+    hasher.finish()
+}
+
+/// Get an HTTP client with provider-specific headers, reusing a cached one (and
+/// therefore its live connections) whenever the provider and key are unchanged.
+fn create_client(provider: &PostProcessProvider, api_key: &str) -> Result<reqwest::Client, String> {
+    let key = client_cache_key(provider, api_key);
+    if let Ok(cache) = CLIENT_CACHE.lock() {
+        if let Some(client) = cache.get(&key) {
+            return Ok(client.clone());
+        }
+    }
+
+    let headers = build_headers(provider, api_key)?;
+    let client = reqwest::Client::builder()
+        .default_headers(headers)
+        // HTTP/1.1 avoids h2 flow-control issues seen with some gateways
+        // (Azure) on large bodies, e.g. multi-hundred-KB image payloads
+        // arriving truncated ("Unterminated string" 400s).
+        .http1_only()
+        // Bound connection setup so an unreachable/hung host fails fast instead
+        // of leaving a turn pending forever (which would pin the built-in
+        // engine's in-flight guard and block idle-unload). Intentionally NOT an
+        // overall `.timeout()`: that would abort long, legitimate streaming
+        // generations. Per-chunk stall detection lives in `read_sse_round`.
+        .connect_timeout(std::time::Duration::from_secs(30))
+        // Keep idle sockets around between turns so a follow-up question reuses
+        // the handshake instead of repeating it.
+        .pool_idle_timeout(std::time::Duration::from_secs(90))
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
+
+    if let Ok(mut cache) = CLIENT_CACHE.lock() {
+        // Guard against unbounded growth if a caller ever varies the key wildly.
+        if cache.len() >= 8 {
+            cache.clear();
+        }
+        cache.insert(key, client.clone());
+    }
+    Ok(client)
+}
+
+/// If `raw` points at an Azure OpenAI–style host, return just the host. Covers
+/// the Azure OpenAI resource domain, the AI Foundry domain, the classic
+/// Cognitive Services domain, and the US-gov domain.
+fn azure_openai_host(raw: &str) -> Option<String> {
+    let without_scheme = raw
+        .strip_prefix("https://")
+        .or_else(|| raw.strip_prefix("http://"))
+        .unwrap_or(raw);
+    let host = without_scheme
+        .split('/')
+        .next()
+        .unwrap_or("")
+        .to_lowercase();
+    if host.ends_with(".openai.azure.com")
+        || host.ends_with(".services.ai.azure.com")
+        || host.ends_with(".cognitiveservices.azure.com")
+        || host.ends_with(".openai.azure.us")
+    {
+        Some(host)
+    } else {
+        None
+    }
+}
+
+/// Resolve the effective OpenAI-compatible base URL for a provider.
+///
+/// Most providers are used verbatim (trailing slash trimmed). Azure endpoints
+/// are normalized to the v1 API surface: whatever the user pastes from the
+/// portal — `https://{res}.openai.azure.com/`, the AI Foundry project endpoint
+/// `https://{res}.services.ai.azure.com/api/projects/{proj}`, or a
+/// `cognitiveservices.azure.com` domain — is rewritten to
+/// `https://{host}/openai/v1`, which is where the app appends
+/// `/chat/completions` and `/models`. This makes "paste the endpoint from the
+/// Azure portal" just work instead of 404ing on a missing `/openai/v1` path.
+fn effective_base_url(provider: &PostProcessProvider) -> String {
+    let raw = provider.base_url.trim().trim_end_matches('/');
+    if let Some(host) = azure_openai_host(raw) {
+        return format!("https://{}/openai/v1", host);
+    }
+    raw.to_string()
+}
+
+/// True when a provider targets Google Gemini's OpenAI-compatible surface.
+fn is_gemini_provider(provider: &PostProcessProvider) -> bool {
+    provider
+        .base_url
+        .contains("generativelanguage.googleapis.com")
+}
+
+/// Normalize a model id for provider-specific quirks before it is sent.
+///
+/// Google Gemini's OpenAI-compatible `/models` endpoint returns ids with a
+/// `models/` prefix (e.g. `models/gemini-2.5-flash`), mirroring the native REST
+/// resource names — but its `/chat/completions` endpoint expects the BARE id
+/// (`gemini-2.5-flash`), exactly like every example in Google's OpenAI-compat
+/// docs. A user who picks a model from the "Load models" list therefore ends up
+/// with a `models/…` value the chat endpoint rejects (surfacing as "couldn't
+/// get an answer"), while OpenRouter and the other providers — which return
+/// bare ids — just work. Strip the prefix for Gemini so it behaves like the
+/// rest. No-op for every other provider and for values that are already bare.
+///
+/// Applies to both the Assistant and the dictation AI-cleanup path, since both
+/// share this client and the provider table.
+fn normalize_model_name(provider: &PostProcessProvider, model: &str) -> String {
+    if is_gemini_provider(provider) {
+        if let Some(bare) = model.strip_prefix("models/") {
+            return bare.to_string();
+        }
+    }
+    model.to_string()
+}
+
+/// Extract the plain-text content of a chat message whose `content` may be a
+/// string or an array of OpenAI-style content parts (text / image_url). Only
+/// text parts contribute; images are ignored.
+fn message_text(message: &Value) -> String {
+    match message.get("content") {
+        Some(Value::String(s)) => s.clone(),
+        Some(Value::Array(parts)) => parts
+            .iter()
+            .filter_map(|p| p.get("text").and_then(|t| t.as_str()))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        _ => String::new(),
+    }
+}
+
+/// Whether a message may be merged with an adjacent one of the same role.
+///
+/// A `tool` result and an assistant turn that carries `tool_calls` are part of
+/// the tool-calling protocol and are paired by id, so they are never touched.
+fn is_mergeable_role(message: &Value) -> bool {
+    let role = message.get("role").and_then(|r| r.as_str());
+    matches!(role, Some("system") | Some("user") | Some("assistant"))
+        && message.get("tool_calls").is_none()
+}
+
+/// Append `extra`'s content onto `target`'s, preserving multimodal parts.
+fn append_message_content(target: &mut Value, extra: &Value) {
+    let extra_text = message_text(extra);
+    match (target.get_mut("content"), extra.get("content")) {
+        // Both plain strings: join as two paragraphs.
+        (Some(Value::String(existing)), _)
+            if !matches!(extra.get("content"), Some(Value::Array(_))) =>
+        {
+            if !extra_text.trim().is_empty() {
+                if existing.trim().is_empty() {
+                    *existing = extra_text;
+                } else {
+                    existing.push_str("\n\n");
+                    existing.push_str(&extra_text);
+                }
+            }
+        }
+        // Either side carries content parts (text + images): concatenate parts
+        // so an attached image is never dropped by the merge.
+        (Some(Value::Array(parts)), Some(Value::Array(extra_parts))) => {
+            parts.extend(extra_parts.iter().cloned());
+        }
+        (Some(Value::Array(parts)), _) => {
+            if !extra_text.trim().is_empty() {
+                parts.push(serde_json::json!({ "type": "text", "text": extra_text }));
+            }
+        }
+        (Some(existing @ Value::String(_)), Some(Value::Array(extra_parts))) => {
+            let mut parts = vec![serde_json::json!({
+                "type": "text",
+                "text": existing.as_str().unwrap_or_default(),
+            })];
+            parts.extend(extra_parts.iter().cloned());
+            *existing = Value::Array(parts);
+        }
+        _ => {
+            target["content"] = Value::String(extra_text);
+        }
+    }
+}
+
+/// Enforce the strictly-alternating message shape that several chat templates
+/// require, without changing what the user sees in the panel.
+///
+/// Gemma is the strict case and it is not only the local template: a Gemma
+/// served through a cloud gateway answers a request with two consecutive `user`
+/// messages with HTTP 400 "Conversation roles must alternate
+/// user/assistant/user/assistant/...". Our own history produces exactly that
+/// shape whenever a turn ends without a reply — a voice barge-in cancels
+/// generation before the first token, so the user message is recorded and no
+/// assistant message follows it. The offending pair then stays in the
+/// conversation, so *every* later turn fails the same way and the assistant
+/// goes permanently silent until the conversation is cleared.
+///
+/// Two passes fix it for every provider, and both are no-ops on a well-formed
+/// conversation:
+/// 1. Drop an assistant message that has neither text nor tool calls — it
+///    carries nothing and only breaks alternation (and is what an errored turn
+///    used to leave behind).
+/// 2. Merge adjacent same-role messages into one.
+fn enforce_alternating_roles(messages: &mut Vec<Value>) {
+    messages.retain(|message| {
+        let is_assistant = message.get("role").and_then(|r| r.as_str()) == Some("assistant");
+        !(is_assistant
+            && message.get("tool_calls").is_none()
+            && message_text(message).trim().is_empty())
+    });
+
+    let mut merged: Vec<Value> = Vec::with_capacity(messages.len());
+    for message in messages.drain(..) {
+        let same_role_as_previous = merged.last().is_some_and(|previous: &Value| {
+            is_mergeable_role(previous)
+                && is_mergeable_role(&message)
+                && previous.get("role") == message.get("role")
+        });
+        if same_role_as_previous {
+            // `merged` is non-empty whenever the predicate held.
+            if let Some(previous) = merged.last_mut() {
+                append_message_content(previous, &message);
+                continue;
+            }
+        }
+        merged.push(message);
+    }
+    *messages = merged;
+}
+
+/// Fold a leading `system` message into the first `user` message.
+///
+/// The bundled llama.cpp engine (the "Built-in (Local)" provider) runs with
+/// `--jinja`, so it applies each model's own chat template. Some templates —
+/// notably Gemma's — reject a `system` role outright and require messages to
+/// start with `user` and strictly alternate, returning a 400 "Conversation
+/// roles must alternate user/assistant". To keep the zero-setup built-in
+/// provider working across every local model, we merge the system prompt into
+/// the first user turn instead of sending it as its own message. External
+/// providers (Ollama / LM Studio / cloud) manage their own templating and are
+/// never passed through this.
+fn fold_system_into_first_user(messages: &mut Vec<Value>) {
+    // Only act when the first message is a system message.
+    let leads_with_system = messages
+        .first()
+        .and_then(|m| m.get("role"))
+        .and_then(|r| r.as_str())
+        == Some("system");
+    if !leads_with_system {
+        return;
+    }
+
+    let system_msg = messages.remove(0);
+    let system_text = message_text(&system_msg);
+    if system_text.trim().is_empty() {
+        return;
+    }
+
+    // Graft the system text onto the first user message.
+    if let Some(user_msg) = messages
+        .iter_mut()
+        .find(|m| m.get("role").and_then(|r| r.as_str()) == Some("user"))
+    {
+        match user_msg.get_mut("content") {
+            Some(Value::String(s)) => {
+                *s = format!("{}\n\n{}", system_text, s);
+            }
+            // Multimodal content (text + image parts): prepend a text part so
+            // the system prompt still leads the turn without disturbing images.
+            Some(Value::Array(parts)) => {
+                parts.insert(
+                    0,
+                    serde_json::json!({ "type": "text", "text": format!("{}\n\n", system_text) }),
+                );
+            }
+            _ => {
+                user_msg["content"] = Value::String(system_text);
+            }
+        }
+    } else {
+        // No user message to attach to — re-add the content as a user turn so
+        // the request isn't empty and still satisfies the alternation rule.
+        messages.insert(
+            0,
+            serde_json::json!({ "role": "user", "content": system_text }),
+        );
+    }
+}
+
+/// Send a chat completion request to an OpenAI-compatible API
+/// Returns Ok(Some(content)) on success, Ok(None) if response has no content,
+/// or Err on actual errors (HTTP, parsing, etc.)
+pub async fn send_chat_completion(
+    provider: &PostProcessProvider,
+    api_key: String,
+    model: &str,
+    prompt: String,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+) -> Result<Option<String>, String> {
+    send_chat_completion_with_schema(
+        provider,
+        api_key,
+        model,
+        prompt,
+        None,
+        None,
+        reasoning_effort,
+        reasoning,
+    )
+    .await
+}
+
+#[derive(Debug)]
+pub(crate) enum ChatCompletionError {
+    RequestBuild(String),
+    Transport(String),
+    HttpStatus {
+        status: u16,
+        detail: String,
+    },
+    ResponseDecode(String),
+    /// The model stopped at its output limit. Never produced here (an
+    /// assistant answer that ran long is still an answer); a caller that
+    /// cannot use a partial answer turns a truncated [`Completion`] into this.
+    Truncated,
+}
+
+impl std::fmt::Display for ChatCompletionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::RequestBuild(detail) => write!(f, "Request setup failed: {detail}"),
+            Self::Transport(detail) => write!(f, "HTTP request failed: {detail}"),
+            Self::HttpStatus { status, detail } => {
+                write!(f, "API request failed with status {status}: {detail}")
+            }
+            Self::ResponseDecode(detail) => write!(f, "Failed to parse API response: {detail}"),
+            Self::Truncated => write!(f, "The answer was cut off at the model's output limit"),
+        }
+    }
+}
+
+/// [`send_chat_completion_detailed`] for callers that only want the text.
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn send_chat_completion_with_schema_typed(
+    provider: &PostProcessProvider,
+    api_key: String,
+    model: &str,
+    user_content: String,
+    system_prompt: Option<String>,
+    json_schema: Option<Value>,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+    temperature: Option<f32>,
+    max_tokens: Option<u32>,
+    keep_system_role: bool,
+) -> Result<Option<String>, ChatCompletionError> {
+    send_chat_completion_detailed(
+        provider,
+        api_key,
+        model,
+        user_content,
+        system_prompt,
+        json_schema,
+        reasoning_effort,
+        reasoning,
+        temperature,
+        max_tokens,
+        keep_system_role,
+    )
+    .await
+    .map(|completion| completion.content)
+}
+
+/// Send one non-streaming chat completion and return the answer together with
+/// the model's `finish_reason`, so a caller can tell a finished answer from
+/// one cut off at the output limit.
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn send_chat_completion_detailed(
+    provider: &PostProcessProvider,
+    api_key: String,
+    model: &str,
+    user_content: String,
+    system_prompt: Option<String>,
+    json_schema: Option<Value>,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+    temperature: Option<f32>,
+    max_tokens: Option<u32>,
+    keep_system_role: bool,
+) -> Result<Completion, ChatCompletionError> {
+    let base_url = effective_base_url(provider);
+    let url = format!("{}/chat/completions", base_url);
+
+    debug!("Sending chat completion request to: {}", url);
+
+    let client = create_client(provider, &api_key).map_err(ChatCompletionError::RequestBuild)?;
+
+    let mut messages = Vec::new();
+    if let Some(system) = system_prompt {
+        messages.push(serde_json::json!({"role": "system", "content": system}));
+    }
+    messages.push(serde_json::json!({"role": "user", "content": user_content}));
+
+    let mut request_body = build_chat_completion_request(
+        provider,
+        model,
+        messages,
+        ChatRequestOptions {
+            json_schema,
+            reasoning_effort,
+            reasoning,
+            temperature,
+            max_tokens,
+            keep_system_role,
+            ..Default::default()
+        },
+    );
+
+    let memo_key = format!("{url}|{}", request_body.model);
+    let mut adaptations = known_param_adaptations(&memo_key);
+    adapt_request_to_rejections(&mut request_body, adaptations);
+
+    // One round per distinct parameter a model can refuse, plus the original.
+    // Each retry changes the body, so this cannot loop on the same 400.
+    for _ in 0..=ParamAdaptations::MAX_ROUNDS {
+        let response = client
+            .post(&url)
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(|error| ChatCompletionError::Transport(error.to_string()))?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Failed to read error response".to_string());
+            if status.as_u16() == 400 {
+                if let Some(rejected) = rejected_request_parameter(&error_text) {
+                    let learned = adaptations.with(rejected);
+                    if learned != adaptations && adapt_would_change(&request_body, rejected) {
+                        warn!(
+                            "Model '{}' refused the '{}' parameter; adapting the request and retrying",
+                            request_body.model,
+                            rejected.name()
+                        );
+                        adaptations = learned;
+                        remember_param_adaptations(&memo_key, adaptations);
+                        adapt_request_to_rejections(&mut request_body, adaptations);
+                        continue;
+                    }
+                }
+            }
+            return Err(ChatCompletionError::HttpStatus {
+                status: status.as_u16(),
+                detail: error_text,
+            });
+        }
+
+        let completion: ChatCompletionResponse = response
+            .json()
+            .await
+            .map_err(|error| ChatCompletionError::ResponseDecode(error.to_string()))?;
+
+        return Ok(completion
+            .choices
+            .into_iter()
+            .next()
+            .map(|choice| Completion {
+                content: choice.message.content,
+                finish_reason: choice.finish_reason,
+            })
+            .unwrap_or_default());
+    }
+
+    Err(ChatCompletionError::RequestBuild(
+        "the provider kept rejecting request parameters".to_string(),
+    ))
+}
+
+/// An optional request parameter a model refused with HTTP 400.
+///
+/// Only parameters the app can *repair* are listed. A rejected `reasoning_effort`
+/// is deliberately absent: cleanup has its own step-down ladder for it
+/// (`none` → `low` → nothing) because dropping it silently changes which effort
+/// the model runs at, and that is a decision the caller has to make.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum RejectedParam {
+    /// "Use 'max_completion_tokens' instead." — OpenAI reasoning models.
+    MaxTokens,
+    /// "'temperature' does not support 0 with this model. Only the default (1)
+    /// value is supported." — the same models; any explicit value is refused.
+    Temperature,
+}
+
+impl RejectedParam {
+    fn name(self) -> &'static str {
+        match self {
+            Self::MaxTokens => "max_tokens",
+            Self::Temperature => "temperature",
+        }
+    }
+}
+
+/// What has been learned about an endpoint+model's parameter rules.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct ParamAdaptations {
+    max_tokens_renamed: bool,
+    temperature_dropped: bool,
+}
+
+impl ParamAdaptations {
+    const MAX_ROUNDS: usize = 2;
+
+    fn with(mut self, rejected: RejectedParam) -> Self {
+        match rejected {
+            RejectedParam::MaxTokens => self.max_tokens_renamed = true,
+            RejectedParam::Temperature => self.temperature_dropped = true,
+        }
+        self
+    }
+}
+
+/// Endpoint+model → what it refused. Remembered for the life of the run so the
+/// 400 costs one extra round trip per model rather than one per dictation —
+/// cleanup is on the interactive path and a doubled round trip is felt.
+static PARAM_ADAPTATIONS: Lazy<Mutex<HashMap<String, ParamAdaptations>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+fn known_param_adaptations(key: &str) -> ParamAdaptations {
+    PARAM_ADAPTATIONS
+        .lock()
+        .ok()
+        .and_then(|map| map.get(key).copied())
+        .unwrap_or_default()
+}
+
+fn remember_param_adaptations(key: &str, adaptations: ParamAdaptations) {
+    if let Ok(mut map) = PARAM_ADAPTATIONS.lock() {
+        map.insert(key.to_string(), adaptations);
+    }
+}
+
+fn adapt_request_to_rejections(body: &mut ChatCompletionRequest, adaptations: ParamAdaptations) {
+    if adaptations.max_tokens_renamed {
+        if let Some(limit) = body.max_tokens.take() {
+            body.max_completion_tokens = Some(limit);
+        }
+    }
+    if adaptations.temperature_dropped {
+        body.temperature = None;
+    }
+}
+
+/// Whether adapting for `rejected` would change the body at all. Without this a
+/// provider that names a parameter we did not send would be retried with an
+/// identical request.
+fn adapt_would_change(body: &ChatCompletionRequest, rejected: RejectedParam) -> bool {
+    match rejected {
+        RejectedParam::MaxTokens => body.max_tokens.is_some(),
+        RejectedParam::Temperature => body.temperature.is_some(),
+    }
+}
+
+/// Which repairable parameter a 400 body is complaining about, if any.
+///
+/// Reads the structured `error.param` first (OpenAI and Azure both send it), and
+/// falls back to the quoted parameter name in the message for gateways that
+/// forward only the text. The fallback requires the *quoted* name next to an
+/// "unsupported" phrase, so a message that merely mentions temperature in
+/// passing cannot trigger a retry.
+pub(crate) fn rejected_request_parameter(detail: &str) -> Option<RejectedParam> {
+    let from_param = serde_json::from_str::<Value>(detail).ok().and_then(|json| {
+        json.get("error")
+            .and_then(|error| error.get("param"))
+            .and_then(Value::as_str)
+            .map(str::to_ascii_lowercase)
+    });
+    let classify = |name: &str| match name {
+        "max_tokens" => Some(RejectedParam::MaxTokens),
+        "temperature" => Some(RejectedParam::Temperature),
+        _ => None,
+    };
+    if let Some(param) = from_param.as_deref() {
+        return classify(param);
+    }
+
+    let text = detail.to_ascii_lowercase();
+    let unsupported = text.contains("unsupported")
+        || text.contains("not supported")
+        || text.contains("does not support");
+    if !unsupported {
+        return None;
+    }
+    if text.contains("'max_tokens'") || text.contains("max_completion_tokens") {
+        return Some(RejectedParam::MaxTokens);
+    }
+    if text.contains("'temperature'") {
+        return Some(RejectedParam::Temperature);
+    }
+    None
+}
+
+/// Send a chat completion request with structured output support.
+/// Existing assistant/memory callers retain the historical string error API;
+/// cleanup uses the typed inner function above for safe classification.
+pub async fn send_chat_completion_with_schema(
+    provider: &PostProcessProvider,
+    api_key: String,
+    model: &str,
+    user_content: String,
+    system_prompt: Option<String>,
+    json_schema: Option<Value>,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+) -> Result<Option<String>, String> {
+    send_chat_completion_with_schema_typed(
+        provider,
+        api_key,
+        model,
+        user_content,
+        system_prompt,
+        json_schema,
+        reasoning_effort,
+        reasoning,
+        // Assistant/memory callers keep the provider's default temperature.
+        None,
+        // Assistant/memory callers do not bound their answer length; only
+        // cleanup can, because only cleanup knows its output is the size of its
+        // input.
+        None,
+        // Assistant/memory callers keep the historical folding behavior.
+        false,
+    )
+    .await
+    .map_err(|error| error.to_string())
+}
+
+#[derive(Debug, Deserialize)]
+struct StreamChunk {
+    choices: Vec<StreamChoice>,
+}
+
+/// An error the provider delivers *inside* a 200 SSE stream rather than as an
+/// HTTP status. Bedrock does this for a rejected request body, and it used to
+/// be indistinguishable from a malformed frame: the chunk failed to
+/// deserialize as a `StreamChunk`, was skipped at debug level, and the round
+/// resolved to an empty answer — so the panel showed no reply, no error, and
+/// nothing to act on.
+#[derive(Debug, Deserialize)]
+struct StreamErrorEnvelope {
+    error: StreamError,
+}
+
+#[derive(Debug, Deserialize)]
+struct StreamError {
+    #[serde(default)]
+    message: Option<String>,
+    #[serde(default, rename = "type")]
+    error_type: Option<String>,
+    #[serde(default)]
+    code: Option<Value>,
+}
+
+impl StreamError {
+    fn describe(&self) -> String {
+        let message = self
+            .message
+            .as_deref()
+            .map(str::trim)
+            .filter(|m| !m.is_empty())
+            .unwrap_or("the provider reported an error with no message");
+        match (
+            self.error_type.as_deref(),
+            self.code.as_ref().map(render_error_code),
+        ) {
+            (Some(kind), Some(code)) => format!("{message} ({kind}, {code})"),
+            (Some(kind), None) => format!("{message} ({kind})"),
+            (None, Some(code)) => format!("{message} ({code})"),
+            (None, None) => message.to_string(),
+        }
+    }
+}
+
+fn render_error_code(code: &Value) -> String {
+    match code {
+        Value::String(code) => code.clone(),
+        other => other.to_string(),
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct StreamChoice {
+    delta: StreamDelta,
+    /// Set on the last content chunk of a round. Absent elsewhere.
+    #[serde(default)]
+    finish_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct StreamDelta {
+    #[serde(default)]
+    content: Option<String>,
+    #[serde(default)]
+    tool_calls: Option<Vec<StreamToolCall>>,
+}
+
+/// A streamed tool-call delta. `id`/`name` arrive on the first chunk for an
+/// index; `arguments` streams in fragments that must be concatenated per index.
+#[derive(Debug, Deserialize)]
+struct StreamToolCall {
+    #[serde(default)]
+    index: usize,
+    #[serde(default)]
+    id: Option<String>,
+    #[serde(default)]
+    function: Option<StreamToolCallFn>,
+    /// Gemini-only side channel (see `ToolCall::thought_signature`). Absent on
+    /// every other OpenAI-compatible provider.
+    #[serde(default)]
+    extra_content: Option<StreamToolCallExtra>,
+}
+
+#[derive(Debug, Deserialize)]
+struct StreamToolCallFn {
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    arguments: Option<String>,
+}
+
+/// `tool_calls[].extra_content` as Gemini's OpenAI-compatibility layer emits it:
+/// `{"google": {"thought_signature": "<opaque>"}}`.
+#[derive(Debug, Deserialize)]
+struct StreamToolCallExtra {
+    #[serde(default)]
+    google: Option<StreamToolCallGoogleExtra>,
+}
+
+#[derive(Debug, Deserialize)]
+struct StreamToolCallGoogleExtra {
+    #[serde(default)]
+    thought_signature: Option<String>,
+}
+
+/// A fully-assembled tool call the model asked us to run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ToolCall {
+    pub id: String,
+    pub name: String,
+    /// Raw JSON arguments string (parse at the call site).
+    pub arguments: String,
+    /// Gemini thinking models return an opaque, encrypted `thought_signature`
+    /// alongside every function call and require it echoed back verbatim on the
+    /// follow-up request, or the next call fails with
+    /// "Function call is missing a thought_signature in functionCall parts"
+    /// (HTTP 400). It is opaque to us: capture it, carry it, hand it back
+    /// untouched (see the `extra_content` re-attach in `assistant.rs`).
+    /// `None` for every provider that does not send one, which is all of them
+    /// except Gemini — so nothing extra is ever put on the wire elsewhere.
+    pub thought_signature: Option<String>,
+}
+
+/// Outcome of one streamed tool-calling round: any content the model streamed
+/// (via `on_token`) is accumulated in `text`; if the model instead asked to run
+/// tools, they're in `tool_calls` (and `text` is usually empty).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ToolStreamOutcome {
+    pub text: String,
+    pub tool_calls: Vec<ToolCall>,
+}
+
+/// Transport-neutral result of one assistant chat round. This crate-visible
+/// shape can be scripted directly by later agent-loop tests without mocking an
+/// HTTP client or adding a test dependency.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct ChatRound {
+    pub(crate) text: String,
+    pub(crate) tool_calls: Vec<ToolCall>,
+}
+
+impl From<ChatRound> for ToolStreamOutcome {
+    fn from(round: ChatRound) -> Self {
+        Self {
+            text: round.text,
+            tool_calls: round.tool_calls,
+        }
+    }
+}
+
+/// Per-index scratch space while a tool call streams in. Named fields (rather
+/// than a positional tuple) keep the merge below readable now that a fourth,
+/// provider-specific value rides along.
+#[derive(Default)]
+struct ToolCallParts {
+    id: String,
+    name: String,
+    arguments: String,
+    thought_signature: Option<String>,
+}
+
+/// Byte-buffered decoder and accumulator for an OpenAI-compatible SSE chat
+/// round. Complete lines are decoded only after all their bytes arrive, so a
+/// UTF-8 code point may be split across any number of network chunks safely.
+#[derive(Default)]
+struct SseChatAccumulator {
+    pending: Vec<u8>,
+    round: ChatRound,
+    tool_call_parts: Vec<ToolCallParts>,
+    done: bool,
+    /// First in-stream provider error seen, if any (see `StreamErrorEnvelope`).
+    error: Option<String>,
+    /// The round's `finish_reason`, once a chunk carries one.
+    finish_reason: Option<String>,
+}
+
+impl SseChatAccumulator {
+    fn push(&mut self, chunk: &[u8], on_token: &mut dyn FnMut(&str)) {
+        if self.done {
+            return;
+        }
+
+        self.pending.extend_from_slice(chunk);
+        while !self.done {
+            let Some(newline_pos) = self.pending.iter().position(|byte| *byte == b'\n') else {
+                break;
+            };
+            let line: Vec<u8> = self.pending.drain(..=newline_pos).collect();
+            self.process_line(&line[..line.len() - 1], on_token);
+        }
+
+        if self.done {
+            self.pending.clear();
+        }
+    }
+
+    fn is_done(&self) -> bool {
+        self.done
+    }
+
+    fn finish(mut self, _on_token: &mut dyn FnMut(&str)) -> ChatRound {
+        // Preserve the wrappers' historical EOF behavior: return everything
+        // decoded from complete lines, but ignore an unterminated trailing line.
+        self.round.tool_calls = assemble_tool_calls(self.tool_call_parts);
+        self.round
+    }
+
+    fn process_line(&mut self, line: &[u8], on_token: &mut dyn FnMut(&str)) {
+        let line = trim_ascii_whitespace(line);
+        let Some(data) = line.strip_prefix(b"data:") else {
+            return; // ignore comments, event: lines, and blank keep-alives
+        };
+        let data = trim_ascii_whitespace(data);
+
+        if data == b"[DONE]" {
+            self.done = true;
+            return;
+        }
+
+        let data = match std::str::from_utf8(data) {
+            Ok(data) => data,
+            Err(error) => {
+                debug!(
+                    "Skipping unparsable SSE chunk: {} ({})",
+                    crate::utils::redact_text(&String::from_utf8_lossy(data)),
+                    error
+                );
+                return;
+            }
+        };
+
+        match serde_json::from_str::<StreamChunk>(data) {
+            Ok(parsed) => self.accumulate_chunk(parsed, on_token),
+            Err(error) => {
+                // An error frame is not a malformed frame: it is the provider
+                // refusing the request on a 200 stream. Report it instead of
+                // resolving the round to a silent empty answer.
+                if let Ok(envelope) = serde_json::from_str::<StreamErrorEnvelope>(data) {
+                    let detail = envelope.error.describe();
+                    warn!("LLM stream returned a provider error: {}", detail);
+                    if self.error.is_none() {
+                        self.error = Some(detail);
+                    }
+                    self.done = true;
+                    return;
+                }
+                // Assistant wrappers historically skip malformed provider
+                // frames and continue streaming; preserve that behavior.
+                debug!(
+                    "Skipping unparsable SSE chunk: {} ({})",
+                    crate::utils::redact_text(data),
+                    error
+                );
+            }
+        }
+    }
+
+    fn accumulate_chunk(&mut self, parsed: StreamChunk, on_token: &mut dyn FnMut(&str)) {
+        let Some(choice) = parsed.choices.first() else {
+            return;
+        };
+
+        if let Some(reason) = choice.finish_reason.as_deref() {
+            if !reason.is_empty() {
+                self.finish_reason = Some(reason.to_string());
+            }
+        }
+
+        if let Some(token) = choice.delta.content.as_deref() {
+            if !token.is_empty() {
+                self.round.text.push_str(token);
+                on_token(token);
+            }
+        }
+
+        if let Some(tool_calls) = &choice.delta.tool_calls {
+            for tool_call in tool_calls {
+                while self.tool_call_parts.len() <= tool_call.index {
+                    self.tool_call_parts.push(ToolCallParts::default());
+                }
+                let slot = &mut self.tool_call_parts[tool_call.index];
+                if let Some(id) = &tool_call.id {
+                    if !id.is_empty() {
+                        slot.id = id.clone();
+                    }
+                }
+                if let Some(function) = &tool_call.function {
+                    if let Some(name) = &function.name {
+                        if !name.is_empty() {
+                            slot.name = name.clone();
+                        }
+                    }
+                    if let Some(arguments) = &function.arguments {
+                        slot.arguments.push_str(arguments);
+                    }
+                }
+                // Gemini may deliver the signature on any chunk for this index
+                // (often a frame of its own, with no function payload), so merge
+                // it by index like everything else and never clobber a captured
+                // value with a later empty one.
+                if let Some(signature) = tool_call
+                    .extra_content
+                    .as_ref()
+                    .and_then(|extra| extra.google.as_ref())
+                    .and_then(|google| google.thought_signature.as_deref())
+                {
+                    if !signature.is_empty() {
+                        slot.thought_signature = Some(signature.to_string());
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn trim_ascii_whitespace(mut bytes: &[u8]) -> &[u8] {
+    while bytes.first().is_some_and(u8::is_ascii_whitespace) {
+        bytes = &bytes[1..];
+    }
+    while bytes.last().is_some_and(u8::is_ascii_whitespace) {
+        bytes = &bytes[..bytes.len() - 1];
+    }
+    bytes
+}
+
+async fn read_sse_round(
+    response: reqwest::Response,
+    mut on_token: impl FnMut(&str),
+) -> Result<ChatRound, String> {
+    // Abort a stream that goes silent for too long. A stalled provider — or a
+    // wedged local llama-server (e.g. KV-cache exhaustion) — would otherwise
+    // keep this future pending indefinitely, which pins the assistant turn's
+    // in-flight guard so the built-in engine never idle-unloads and its RAM is
+    // never reclaimed. Generous enough not to trip on slow first tokens or long
+    // reasoning pauses between chunks.
+    const SSE_STALL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
+
+    let mut stream = response.bytes_stream();
+    let mut accumulator = SseChatAccumulator::default();
+
+    loop {
+        match tokio::time::timeout(SSE_STALL_TIMEOUT, stream.next()).await {
+            Ok(Some(chunk)) => {
+                let chunk = chunk.map_err(|error| format!("Stream read failed: {}", error))?;
+                accumulator.push(&chunk, &mut on_token);
+                if accumulator.is_done() {
+                    break;
+                }
+            }
+            Ok(None) => break, // stream ended normally
+            Err(_) => {
+                return Err(format!(
+                    "LLM stream stalled: no data for {}s",
+                    SSE_STALL_TIMEOUT.as_secs()
+                ));
+            }
+        }
+    }
+
+    let stream_error = accumulator.error.take();
+    // Streamed rounds are the assistant's, Flow's and meeting chat's: a reply
+    // that ran into the output limit is still worth showing, so this is only
+    // said in the log, where "the answer stops mid-sentence" can be traced.
+    if accumulator
+        .finish_reason
+        .as_deref()
+        .is_some_and(is_truncation)
+    {
+        info!("LLM stream stopped at the model's output limit; the reply may be cut off");
+    }
+    let round = accumulator.finish(&mut on_token);
+    // A provider error that arrives mid-stream truncates an answer whose tokens
+    // are already on screen; keep that text rather than making the panel go
+    // blank, and only fail the round when the error is all we got.
+    if let Some(error) = stream_error {
+        if round.text.trim().is_empty() && round.tool_calls.is_empty() {
+            return Err(error);
+        }
+        warn!("Keeping the partial reply that preceded a stream error: {error}");
+    }
+    Ok(round)
+}
+
+/// Interactive requests should answer immediately when the model supports it.
+/// Reasoning-only models get their lowest effort; unsupported controls are
+/// negotiated by `send_stream_request` without sacrificing the answer.
+fn fast_reasoning_options(
+    provider_id: &str,
+    model: &str,
+) -> (Option<String>, Option<ReasoningConfig>) {
+    let effort = if crate::actions::wants_low_rather_than_no_reasoning(model) {
+        "low"
+    } else {
+        "none"
+    };
+    effort_options(provider_id, effort)
+}
+
+/// One effort value in the shape each provider reads, or nothing for a
+/// provider with no request-level control (see
+/// [`crate::settings::provider_supports_thinking`]).
+fn effort_options(provider_id: &str, effort: &str) -> (Option<String>, Option<ReasoningConfig>) {
+    if !crate::settings::provider_supports_thinking(provider_id) {
+        return (None, None);
+    }
+    match provider_id {
+        "openrouter" => (
+            None,
+            Some(ReasoningConfig {
+                effort: Some(effort.into()),
+                exclude: Some(true),
+            }),
+        ),
+        _ => (Some(effort.into()), None),
+    }
+}
+
+/// Reasoning options for an assistant turn at the user's thinking level.
+///
+/// `Off` is [`fast_reasoning_options`], unchanged. An explicit level is sent
+/// as-is; a provider that refuses it is stepped down by `send_stream_request`
+/// exactly as for `Off`, so a dial set too high for a model costs one retry,
+/// once, rather than the reply.
+pub(crate) fn reasoning_options_for(
+    provider_id: &str,
+    model: &str,
+    level: crate::settings::ThinkingLevel,
+) -> (Option<String>, Option<ReasoningConfig>) {
+    match level.effort() {
+        None => fast_reasoning_options(provider_id, model),
+        Some(effort) => effort_options(provider_id, effort),
+    }
+}
+
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
+enum StreamReasoningSupport {
+    #[default]
+    Requested,
+    /// An explicit `"none"`. Distinct from [`Self::Unsupported`], which omits
+    /// the parameter: some endpoints treat an omitted effort as their default
+    /// (a non-zero one) and refuse it exactly like the effort that was asked for.
+    NoEffort,
+    Low,
+    Unsupported,
+}
+
+static STREAM_REASONING_SUPPORT: Lazy<Mutex<HashMap<String, StreamReasoningSupport>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+fn set_stream_effort(body: &mut ChatCompletionRequest, value: &str) {
+    if let Some(effort) = &mut body.reasoning_effort {
+        *effort = value.into();
+    }
+    if let Some(reasoning) = &mut body.reasoning {
+        reasoning.effort = Some(value.into());
+    }
+}
+
+fn apply_stream_reasoning_support(
+    body: &mut ChatCompletionRequest,
+    support: StreamReasoningSupport,
+) {
+    match support {
+        StreamReasoningSupport::Requested => {}
+        StreamReasoningSupport::NoEffort => set_stream_effort(body, "none"),
+        StreamReasoningSupport::Low => set_stream_effort(body, "low"),
+        StreamReasoningSupport::Unsupported => {
+            body.reasoning_effort = None;
+            body.reasoning = None;
+        }
+    }
+}
+
+/// Whether a rejection tells us to send an effort of `"none"`.
+///
+/// Azure's GPT-6 deployments refuse function tools together with *any*
+/// reasoning effort on `/chat/completions`, including an omitted one:
+/// "Function tools with reasoning_effort are not supported for gpt-6-luna in
+/// /v1/chat/completions. To use function tools, use /v1/responses or set
+/// reasoning_effort to 'none'." The old ladder (requested → low → omitted)
+/// never tried `"none"`, so every tool turn failed twice and the assistant then
+/// fell back to answering with no tools at all — no web search, no reminders,
+/// no clock. This reads the provider's own instruction instead of guessing.
+///
+/// Matches "to 'none'", not just "'none'": Bedrock's "reasoning_effort 'none'
+/// is not one of low, medium, high" quotes the same word to refuse it.
+fn rejection_asks_for_no_effort(error: &str) -> bool {
+    let error = error.to_ascii_lowercase();
+    ["to 'none'", "to \"none\"", "to \\\"none\\\"", "to none"]
+        .iter()
+        .any(|hint| error.contains(hint))
+}
+
+/// The next reasoning setting to try after `effort` was refused with `error`,
+/// or `None` when the ladder has nothing left. The caller also stops on a
+/// setting it has already tried, so the ladder can never cycle.
+fn next_stream_reasoning_support(effort: &str, error: &str) -> Option<StreamReasoningSupport> {
+    if effort != "none" && rejection_asks_for_no_effort(error) {
+        return Some(StreamReasoningSupport::NoEffort);
+    }
+    match effort {
+        "low" => Some(StreamReasoningSupport::Unsupported),
+        _ => Some(StreamReasoningSupport::Low),
+    }
+}
+
+fn reasoning_rejection(error: &str) -> bool {
+    let error = error.to_ascii_lowercase();
+    // Only negotiate an explicitly rejected reasoning parameter. Auth, network,
+    // tool, context and model errors must reach the user unchanged.
+    (error.contains("reasoning") || error.contains("thinking"))
+        && [
+            "unsupported",
+            "not support",
+            "not allowed",
+            "not permitted",
+            "invalid",
+            "not one of",
+            "must be",
+            "unknown",
+            "unrecognized",
+            "extra inputs",
+        ]
+        .iter()
+        .any(|word| error.contains(word))
+}
+
+async fn send_stream_request(
+    client: &reqwest::Client,
+    url: &str,
+    mut body: ChatCompletionRequest,
+    mut on_token: impl FnMut(&str),
+) -> Result<ChatRound, String> {
+    let tuned = body.reasoning_effort.is_some() || body.reasoning.is_some();
+    // Keyed by the effort *asked for* as well as the model. What a model refuses
+    // depends on the value: gpt-oss rejects "none" and accepts "high", so a
+    // memo learned while the dial was Off ("none" refused → use "low") must not
+    // pin the reply to "low" after the user turns thinking up.
+    let requested = body
+        .reasoning_effort
+        .clone()
+        .or_else(|| body.reasoning.as_ref().and_then(|r| r.effort.clone()))
+        .unwrap_or_default();
+    // And by whether tools ride along: a model can accept an effort on a plain
+    // request and refuse the same effort next to `tools` (Azure GPT-6), so what
+    // a tool turn learns must not strip reasoning from cleanup or a summary.
+    let with_tools = if body.tools.is_some() {
+        "tools"
+    } else {
+        "plain"
+    };
+    let key = format!("{url}|{}|{requested}|{with_tools}", body.model);
+    let mut tried: Vec<StreamReasoningSupport> = Vec::new();
+    if tuned {
+        let support = STREAM_REASONING_SUPPORT
+            .lock()
+            .ok()
+            .and_then(|cache| cache.get(&key).copied())
+            .unwrap_or_default();
+        apply_stream_reasoning_support(&mut body, support);
+        tried.push(support);
+    }
+    loop {
+        let response = client
+            .post(url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| format!("HTTP request failed: {e}"))?;
+        let status = response.status();
+        let mut emitted = false;
+        let (result, can_negotiate) = if status.is_success() {
+            (
+                read_sse_round(response, |token| {
+                    emitted = true;
+                    on_token(token);
+                })
+                .await,
+                true,
+            )
+        } else {
+            let error_text = response.text().await.unwrap_or_default();
+            (
+                Err(format!(
+                    "API request failed with status {status}: {error_text}"
+                )),
+                matches!(status.as_u16(), 400 | 422),
+            )
+        };
+        let Err(error) = &result else {
+            return result;
+        };
+        let effort = body
+            .reasoning_effort
+            .as_deref()
+            .or_else(|| body.reasoning.as_ref().and_then(|r| r.effort.as_deref()));
+        let Some(effort) = effort else {
+            return result;
+        };
+        if emitted || !can_negotiate || !reasoning_rejection(error) {
+            return result;
+        }
+        // Retain tools, images and history, and remember the supported level
+        // for later turns. Bounded: every step is a setting not tried before,
+        // and there are only four.
+        let Some(support) = next_stream_reasoning_support(effort, error) else {
+            return result;
+        };
+        if tried.contains(&support) {
+            return result;
+        }
+        tried.push(support);
+        warn!(
+            "Model '{}' rejected reasoning effort '{}'{}; retrying with {}",
+            body.model,
+            effort,
+            if body.tools.is_some() {
+                " on a tool request"
+            } else {
+                ""
+            },
+            match support {
+                StreamReasoningSupport::NoEffort => "effort 'none'",
+                StreamReasoningSupport::Low => "low effort",
+                _ => "provider defaults",
+            }
+        );
+        apply_stream_reasoning_support(&mut body, support);
+        if let Ok(mut cache) = STREAM_REASONING_SUPPORT.lock() {
+            cache.insert(key.clone(), support);
+        }
+    }
+}
+
+/// Send a streaming chat completion request to an OpenAI-compatible API.
+/// Parses the SSE response (`data: {...}` lines, `data: [DONE]` sentinel) and
+/// invokes `on_token` for every content delta. Returns the full accumulated
+/// response text on success. `reasoning_effort` / `reasoning` suppress or tune
+/// reasoning-model thinking. With neither set, use the fastest supported mode.
+pub async fn send_chat_stream(
+    provider: &PostProcessProvider,
+    api_key: String,
+    model: &str,
+    messages: Vec<Value>,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+    on_token: impl FnMut(&str),
+) -> Result<String, String> {
+    let (reasoning_effort, reasoning) = if reasoning_effort.is_none() && reasoning.is_none() {
+        fast_reasoning_options(&provider.id, model)
+    } else {
+        (reasoning_effort, reasoning)
+    };
+    let base_url = effective_base_url(provider);
+    let url = format!("{}/chat/completions", base_url);
+
+    debug!("Sending streaming chat completion request to: {}", url);
+
+    let client = create_client(provider, &api_key)?;
+    let request_body = build_chat_completion_request(
+        provider,
+        model,
+        messages,
+        ChatRequestOptions {
+            stream: Some(true),
+            reasoning_effort,
+            reasoning,
+            ..Default::default()
+        },
+    );
+
+    Ok(send_stream_request(&client, &url, request_body, on_token)
+        .await?
+        .text)
+}
+
+/// Streaming chat completion WITH tool support (the web-search tool-calling
+/// path). Sends `tools` + `tool_choice: "auto"`; streams any assistant content
+/// via `on_token`, and if the model instead requests tool calls, assembles and
+/// returns them. The caller runs the tool(s), appends the results as messages,
+/// and calls this again. Not used for the built-in/local engine (small models
+/// handle tools poorly) — the caller gates on provider capability and falls
+/// back to the planner path.
+pub async fn send_chat_stream_with_tools(
+    provider: &PostProcessProvider,
+    api_key: String,
+    model: &str,
+    messages: Vec<Value>,
+    tools: Value,
+    tool_choice: Value,
+    reasoning_effort: Option<String>,
+    reasoning: Option<ReasoningConfig>,
+    on_token: impl FnMut(&str),
+) -> Result<ToolStreamOutcome, String> {
+    let (reasoning_effort, reasoning) = if reasoning_effort.is_none() && reasoning.is_none() {
+        fast_reasoning_options(&provider.id, model)
+    } else {
+        (reasoning_effort, reasoning)
+    };
+    let base_url = effective_base_url(provider);
+    let url = format!("{}/chat/completions", base_url);
+    let client = create_client(provider, &api_key)?;
+    let request_body = build_chat_completion_request(
+        provider,
+        model,
+        messages,
+        ChatRequestOptions {
+            stream: Some(true),
+            tools: Some(tools),
+            tool_choice: Some(tool_choice),
+            reasoning_effort,
+            reasoning,
+            ..Default::default()
+        },
+    );
+
+    Ok(send_stream_request(&client, &url, request_body, on_token)
+        .await?
+        .into())
+}
+
+/// Turn accumulated tool-call fragments into ToolCalls, dropping any entry
+/// without a function name (defensive against malformed streams).
+fn assemble_tool_calls(acc: Vec<ToolCallParts>) -> Vec<ToolCall> {
+    acc.into_iter()
+        .enumerate()
+        .filter(|(_, parts)| !parts.name.is_empty())
+        .map(|(i, parts)| ToolCall {
+            id: if parts.id.is_empty() {
+                format!("call_{}", i)
+            } else {
+                parts.id
+            },
+            name: parts.name,
+            arguments: parts.arguments,
+            thought_signature: parts.thought_signature,
+        })
+        .collect()
+}
+
+/// One entry from a provider's model catalogue: the id chat requests must carry,
+/// plus the human-readable name the provider shows for it.
+///
+/// The two are not interchangeable and confusing them silently breaks cleanup.
+/// OpenRouter lists `{"id": "z-ai/glm-5.3-flash", "name": "Z.ai: GLM 5.3
+/// Flash"}`, and its chat endpoint answers `400 … is not a valid model ID` for
+/// anything but the id. This type exists so the picker can display the name a
+/// user recognises from the provider's own website while still storing — and
+/// sending — the id.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct ModelChoice {
+    /// The value chat requests carry.
+    pub id: String,
+    /// What the provider calls it. Equal to `id` when the provider offers no
+    /// separate display name.
+    pub label: String,
+}
+
+impl ModelChoice {
+    fn bare(id: impl Into<String>) -> Self {
+        let id = id.into();
+        Self {
+            label: id.clone(),
+            id,
+        }
+    }
+}
+
+/// Fetch available models from an OpenAI-compatible API.
+pub async fn fetch_models(
+    provider: &PostProcessProvider,
+    api_key: String,
+) -> Result<Vec<ModelChoice>, String> {
+    let base_url = effective_base_url(provider);
+    let url = format!("{}/models", base_url);
+
+    debug!("Fetching models from: {}", url);
+
+    let client = create_client(provider, &api_key)?;
+
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch models: {}", e))?;
+
+    let status = response.status();
+    if !status.is_success() {
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        return Err(format!(
+            "Model list request failed ({}): {}",
+            status, error_text
+        ));
+    }
+
+    let parsed: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse response: {}", e))?;
+
+    let mut models = Vec::new();
+
+    // Handle OpenAI format: { data: [ { id: "...", name: "..." }, ... ] }
+    if let Some(data) = parsed.get("data").and_then(|d| d.as_array()) {
+        for entry in data {
+            let label = entry
+                .get("name")
+                .and_then(|name| name.as_str())
+                .map(str::trim)
+                .filter(|name| !name.is_empty());
+            if let Some(id) = entry.get("id").and_then(|i| i.as_str()) {
+                models.push(ModelChoice {
+                    id: id.to_string(),
+                    label: label.unwrap_or(id).to_string(),
+                });
+            } else if let Some(name) = label {
+                // No id at all: the name is the only handle this provider gives
+                // out, so it has to serve as both.
+                models.push(ModelChoice::bare(name));
+            }
+        }
+    }
+    // Handle array format: [ "model1", "model2", ... ]
+    else if let Some(array) = parsed.as_array() {
+        for entry in array {
+            if let Some(model) = entry.as_str() {
+                models.push(ModelChoice::bare(model));
+            }
+        }
+    }
+
+    // Present bare model ids for Gemini (its `/models` lists `models/…` names
+    // that its chat endpoint rejects), so both the picker and the value that
+    // gets stored are the ones chat actually accepts. No-op elsewhere.
+    let models = models
+        .into_iter()
+        .map(|model| ModelChoice {
+            id: normalize_model_name(provider, &model.id),
+            label: model.label,
+        })
+        .collect();
+
+    Ok(models)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::PostProcessProvider;
+    use serde_json::json;
+
+    fn provider(id: &str, base: &str) -> PostProcessProvider {
+        PostProcessProvider {
+            id: id.to_string(),
+            label: id.to_string(),
+            base_url: base.to_string(),
+            allow_base_url_edit: true,
+            models_endpoint: Some("/models".to_string()),
+            supports_structured_output: true,
+        }
+    }
+
+    /* ─────────────── parameter rejections (Azure GPT-6 bodies) ─────────────── */
+
+    /// Verbatim shape of what Azure's `gpt-6-luna` deployment answers when a
+    /// cleanup request carries `max_tokens`.
+    const AZURE_MAX_TOKENS_400: &str = r#"{"error":{"message":"Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.","type":"invalid_request_error","param":"max_tokens","code":"unsupported_parameter"}}"#;
+    const AZURE_TEMPERATURE_400: &str = r#"{"error":{"message":"Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported.","type":"invalid_request_error","param":"temperature","code":"unsupported_value"}}"#;
+    const AZURE_EFFORT_400: &str = r#"{"error":{"message":"Unsupported value: 'reasoning_effort' does not support 'minimal' with this model.","type":"invalid_request_error","param":"reasoning_effort","code":"unsupported_value"}}"#;
+
+    #[test]
+    fn azure_parameter_rejections_are_recognised() {
+        assert_eq!(
+            rejected_request_parameter(AZURE_MAX_TOKENS_400),
+            Some(RejectedParam::MaxTokens)
+        );
+        assert_eq!(
+            rejected_request_parameter(AZURE_TEMPERATURE_400),
+            Some(RejectedParam::Temperature)
+        );
+    }
+
+    /// Effort has its own ladder in cleanup; silently dropping it here would run
+    /// the model at its default effort, which is the bug that ladder prevents.
+    #[test]
+    fn a_rejected_reasoning_effort_is_left_to_the_caller() {
+        assert_eq!(rejected_request_parameter(AZURE_EFFORT_400), None);
+    }
+
+    #[test]
+    fn a_plain_text_rejection_is_recognised_without_json() {
+        assert_eq!(
+            rejected_request_parameter(
+                "Unsupported parameter: 'max_tokens' is not supported with this model."
+            ),
+            Some(RejectedParam::MaxTokens)
+        );
+        // Mentioning a parameter is not refusing it.
+        assert_eq!(
+            rejected_request_parameter("temperature must be between 0 and 2"),
+            None
+        );
+        assert_eq!(rejected_request_parameter("model not found"), None);
+    }
+
+    #[test]
+    fn adaptations_rename_max_tokens_and_drop_temperature() {
+        let mut body = build_chat_completion_request(
+            &provider("azure_openai", "https://x.openai.azure.com/openai/v1"),
+            "gpt-6-luna",
+            vec![json!({"role": "user", "content": "hi"})],
+            ChatRequestOptions {
+                temperature: Some(0.0),
+                max_tokens: Some(512),
+                ..Default::default()
+            },
+        );
+        assert!(adapt_would_change(&body, RejectedParam::MaxTokens));
+        let adaptations = ParamAdaptations::default()
+            .with(RejectedParam::MaxTokens)
+            .with(RejectedParam::Temperature);
+        adapt_request_to_rejections(&mut body, adaptations);
+
+        let value = serde_json::to_value(&body).unwrap();
+        assert_eq!(value["max_completion_tokens"], 512);
+        assert!(value.get("max_tokens").is_none());
+        assert!(value.get("temperature").is_none());
+        // Nothing left to adapt, so a repeat 400 is returned instead of looping.
+        assert!(!adapt_would_change(&body, RejectedParam::MaxTokens));
+        assert!(!adapt_would_change(&body, RejectedParam::Temperature));
+    }
+
+    /// Other providers must keep receiving `max_tokens`: most gateways and
+    /// llama.cpp do not know the newer name.
+    #[test]
+    fn max_completion_tokens_is_never_sent_unprompted() {
+        let body = build_chat_completion_request(
+            &provider("groq", "https://api.groq.com/openai/v1"),
+            "openai/gpt-oss-120b",
+            vec![json!({"role": "user", "content": "hi"})],
+            ChatRequestOptions {
+                max_tokens: Some(64),
+                ..Default::default()
+            },
+        );
+        let value = serde_json::to_value(&body).unwrap();
+        assert_eq!(value["max_tokens"], 64);
+        assert!(value.get("max_completion_tokens").is_none());
+    }
+
+    use std::io::{Read, Write};
+
+    fn read_request_body(stream: &mut std::net::TcpStream) -> String {
+        stream
+            .set_read_timeout(Some(std::time::Duration::from_secs(2)))
+            .unwrap();
+        let mut bytes = Vec::new();
+        let mut buffer = [0_u8; 4096];
+        let mut expected_len = None;
+        let mut header_end = None;
+
+        loop {
+            let read = stream.read(&mut buffer).unwrap();
+            if read == 0 {
+                break;
+            }
+            bytes.extend_from_slice(&buffer[..read]);
+            if header_end.is_none() {
+                header_end = bytes.windows(4).position(|window| window == b"\r\n\r\n");
+                if let Some(position) = header_end {
+                    let headers = String::from_utf8_lossy(&bytes[..position]);
+                    expected_len = headers.lines().find_map(|line| {
+                        let (name, value) = line.split_once(':')?;
+                        name.eq_ignore_ascii_case("content-length")
+                            .then(|| value.trim().parse::<usize>().ok())
+                            .flatten()
+                    });
+                    header_end = Some(position + 4);
+                }
+            }
+            if let (Some(start), Some(length)) = (header_end, expected_len) {
+                if bytes.len() >= start + length {
+                    return String::from_utf8(bytes[start..start + length].to_vec()).unwrap();
+                }
+            }
+        }
+
+        let start = header_end.unwrap_or(bytes.len());
+        String::from_utf8(bytes[start..].to_vec()).unwrap()
+    }
+
+    async fn verify_reasoning_fallback(id: &str, rejection_status: u16, rejections: &[&str]) {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let base = format!("http://{}/v1", listener.local_addr().unwrap());
+        let (tx, rx) = std::sync::mpsc::channel();
+        let mut replies: Vec<(u16, String)> = rejections
+            .iter()
+            .map(|error| {
+                (
+                    rejection_status,
+                    if rejection_status == 200 {
+                        format!("data: {}\n\n", json!({"error":{"message":error}}))
+                    } else {
+                        json!({"error":{"message":error}}).to_string()
+                    },
+                )
+            })
+            .collect();
+        let answer =
+            "data: {\"choices\":[{\"delta\":{\"content\":\"Hello\"}}]}\n\ndata: [DONE]\n\n";
+        replies.extend([(200, answer.into()), (200, answer.into())]);
+        let server = std::thread::spawn(move || {
+            for (status, body) in replies {
+                let (mut stream, _) = listener.accept().unwrap();
+                let request = read_request_body(&mut stream);
+                tx.send(serde_json::from_str::<Value>(&request).unwrap())
+                    .unwrap();
+                write!(stream, "HTTP/1.1 {status} Response\r\nContent-Type: text/event-stream\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+            }
+        });
+        let provider = provider(id, &base);
+        let messages = vec![json!({"role":"user", "content":"Hi"})];
+        let mut tokens = String::new();
+        let tools = json!([{ "type":"function", "function":{"name":"get_current_datetime", "parameters":{"type":"object"}}}]);
+        let reply = send_chat_stream_with_tools(
+            &provider,
+            String::new(),
+            "test-model",
+            messages.clone(),
+            tools.clone(),
+            json!("auto"),
+            None,
+            None,
+            |t| tokens.push_str(t),
+        )
+        .await
+        .unwrap();
+        assert_eq!(reply.text, "Hello");
+        assert_eq!(tokens, "Hello");
+        // The next tool turn starts from what the first one learned.
+        let reply = send_chat_stream_with_tools(
+            &provider,
+            String::new(),
+            "test-model",
+            messages.clone(),
+            tools.clone(),
+            json!("auto"),
+            None,
+            None,
+            |_| {},
+        )
+        .await
+        .unwrap();
+        assert_eq!(reply.text, "Hello");
+        server.join().unwrap();
+        let requests: Vec<Value> = rx.into_iter().collect();
+        assert_eq!(requests.len(), rejections.len() + 2);
+        let effort = |body: &Value| {
+            body.get("reasoning_effort")
+                .or_else(|| body.get("reasoning").and_then(|r| r.get("effort")))
+                .cloned()
+        };
+        assert_eq!(effort(&requests[0]), Some(json!("none")));
+        assert_eq!(effort(&requests[1]), Some(json!("low")));
+        let last_effort = if rejections.len() == 1 {
+            Some(json!("low"))
+        } else {
+            None
+        };
+        assert_eq!(effort(requests.last().unwrap()), last_effort);
+        for request in &requests {
+            assert_eq!(request["tools"], tools);
+            assert_eq!(request["messages"], json!(messages));
+        }
+    }
+
+    #[tokio::test]
+    async fn stream_reasoning_retries_low_and_remembers_it() {
+        verify_reasoning_fallback(
+            "bedrock_mantle",
+            400,
+            &["reasoning_effort 'none' is not one of low, medium, high"],
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn stream_reasoning_negotiates_in_stream_rejections_for_openrouter() {
+        verify_reasoning_fallback(
+            "openrouter",
+            200,
+            &[
+                "invalid reasoning effort none",
+                "reasoning is not supported",
+            ],
+        )
+        .await;
+    }
+
+    /// Verbatim from Azure's `gpt-6-luna` deployment when a tool request carries
+    /// any reasoning effort other than "none" — including an omitted one.
+    const AZURE_TOOLS_WITH_EFFORT_400: &str = r#"{"error":{"message":"Function tools with reasoning_effort are not supported for gpt-6-luna in /v1/chat/completions. To use function tools, use /v1/responses or set reasoning_effort to 'none'.","type":"invalid_request_error","param":"reasoning_effort","code":null}}"#;
+
+    #[test]
+    fn the_reasoning_ladder_follows_a_set_to_none_hint() {
+        let azure = format!(
+            "API request failed with status 400 Bad Request: {AZURE_TOOLS_WITH_EFFORT_400}"
+        );
+        assert!(reasoning_rejection(&azure));
+        assert!(rejection_asks_for_no_effort(&azure));
+        for effort in ["low", "medium", "high", "xhigh"] {
+            assert_eq!(
+                next_stream_reasoning_support(effort, &azure),
+                Some(StreamReasoningSupport::NoEffort),
+                "{effort} should step straight to 'none'"
+            );
+        }
+        // Quoting 'none' to refuse it is not a hint to send it.
+        let bedrock = "reasoning_effort 'none' is not one of low, medium, high";
+        assert!(!rejection_asks_for_no_effort(bedrock));
+        assert_eq!(
+            next_stream_reasoning_support("none", bedrock),
+            Some(StreamReasoningSupport::Low)
+        );
+        assert_eq!(
+            next_stream_reasoning_support("low", "reasoning is not supported"),
+            Some(StreamReasoningSupport::Unsupported)
+        );
+        // Asking for "none" again when "none" was refused cannot loop.
+        assert_eq!(
+            next_stream_reasoning_support("none", &azure),
+            Some(StreamReasoningSupport::Low)
+        );
+    }
+
+    /// The bug behind "web search does nothing" on Azure GPT-6 with Thinking on:
+    /// the tool request was refused, the ladder never tried "none", and the turn
+    /// fell back to no tools at all. Now the tool turn is retried at "none" and
+    /// remembered, while a plain request keeps the user's effort.
+    #[tokio::test]
+    async fn azure_tool_turns_drop_to_no_effort_and_plain_requests_keep_theirs() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let base = format!("http://{}/v1", listener.local_addr().unwrap());
+        let (tx, rx) = std::sync::mpsc::channel();
+        let answer = "data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}\n\ndata: [DONE]\n\n";
+        let replies: Vec<(u16, String)> = vec![
+            (400, AZURE_TOOLS_WITH_EFFORT_400.to_string()),
+            (200, answer.to_string()),
+            (200, answer.to_string()),
+            (200, answer.to_string()),
+        ];
+        let server = std::thread::spawn(move || {
+            for (status, body) in replies {
+                let (mut stream, _) = listener.accept().unwrap();
+                let request = read_request_body(&mut stream);
+                tx.send(serde_json::from_str::<Value>(&request).unwrap())
+                    .unwrap();
+                write!(stream, "HTTP/1.1 {status} Response\r\nContent-Type: text/event-stream\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+            }
+        });
+        let provider = provider("azure_openai", &base);
+        let model = "gpt-6-luna";
+        let messages = vec![json!({"role":"user", "content":"Latest news?"})];
+        let tools = json!([{ "type":"function", "function":{"name":"web_search", "parameters":{"type":"object"}}}]);
+        let (effort, reasoning) =
+            reasoning_options_for(&provider.id, model, crate::settings::ThinkingLevel::Low);
+        assert_eq!(effort.as_deref(), Some("low"));
+
+        for _ in 0..2 {
+            let round = send_chat_stream_with_tools(
+                &provider,
+                String::new(),
+                model,
+                messages.clone(),
+                tools.clone(),
+                json!("auto"),
+                effort.clone(),
+                reasoning.clone(),
+                |_| {},
+            )
+            .await
+            .unwrap();
+            assert_eq!(round.text, "Hi");
+        }
+        let plain = send_chat_stream(
+            &provider,
+            String::new(),
+            model,
+            messages.clone(),
+            effort.clone(),
+            reasoning.clone(),
+            |_| {},
+        )
+        .await
+        .unwrap();
+        assert_eq!(plain, "Hi");
+        server.join().unwrap();
+
+        let requests: Vec<Value> = rx.into_iter().collect();
+        let sent: Vec<(Option<&str>, bool)> = requests
+            .iter()
+            .map(|r| (r["reasoning_effort"].as_str(), r.get("tools").is_some()))
+            .collect();
+        assert_eq!(
+            sent,
+            vec![
+                (Some("low"), true),  // refused
+                (Some("none"), true), // the provider's own instruction
+                (Some("none"), true), // remembered: one request, not three
+                (Some("low"), false), // a plain request keeps the user's effort
+            ]
+        );
+    }
+
+    #[test]
+    fn fast_reasoning_uses_low_only_when_thinking_is_required() {
+        assert_eq!(
+            fast_reasoning_options("bedrock_mantle", "openai.gpt-oss-20b")
+                .0
+                .as_deref(),
+            Some("low")
+        );
+        assert_eq!(
+            fast_reasoning_options("bedrock_mantle", "xai.grok-4.3")
+                .0
+                .as_deref(),
+            Some("none")
+        );
+        assert!(fast_reasoning_options("builtin", "qwen3").0.is_none());
+        assert!(!reasoning_rejection("Invalid API key"));
+        assert!(!reasoning_rejection("model not found"));
+    }
+
+    #[test]
+    fn the_thinking_dial_reaches_each_provider_in_its_own_shape() {
+        use crate::settings::ThinkingLevel;
+        // Off is the fast path, unchanged.
+        assert_eq!(
+            reasoning_options_for("groq", "openai/gpt-oss-120b", ThinkingLevel::Off)
+                .0
+                .as_deref(),
+            Some("low")
+        );
+        assert_eq!(
+            reasoning_options_for("azure_openai", "gpt-6-luna", ThinkingLevel::Off)
+                .0
+                .as_deref(),
+            Some("none")
+        );
+        // An explicit level is sent as-is, including to a model that must think.
+        for (level, wire) in [
+            (ThinkingLevel::Low, "low"),
+            (ThinkingLevel::Medium, "medium"),
+            (ThinkingLevel::High, "high"),
+        ] {
+            let (effort, reasoning) = reasoning_options_for("azure_openai", "gpt-oss-120b", level);
+            assert_eq!(effort.as_deref(), Some(wire));
+            assert!(reasoning.is_none());
+            // OpenRouter reads its own object, and keeps the trace out of the reply.
+            let (effort, reasoning) = reasoning_options_for("openrouter", "x/y", level);
+            assert!(effort.is_none());
+            let reasoning = reasoning.unwrap();
+            assert_eq!(reasoning.effort.as_deref(), Some(wire));
+            assert_eq!(reasoning.exclude, Some(true));
+            // No request-level control: nothing is sent rather than a value
+            // that would be ignored or refused.
+            for id in ["builtin", "anthropic", "apple_intelligence"] {
+                assert_eq!(reasoning_options_for(id, "m", level).0, None);
+                assert!(reasoning_options_for(id, "m", level).1.is_none());
+            }
+        }
+    }
+
+    /// A model that refused "none" while the dial was Off is remembered as
+    /// "use low". That memo must not cap the reply once the user asks for more.
+    #[tokio::test]
+    async fn a_reasoning_memo_learned_at_one_level_does_not_cap_another() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let base = format!("http://{}/v1", listener.local_addr().unwrap());
+        let (tx, rx) = std::sync::mpsc::channel();
+        let answer = "data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}\n\ndata: [DONE]\n\n";
+        let rejection =
+            json!({"error":{"message":"reasoning_effort 'none' is not one of low, medium, high"}})
+                .to_string();
+        let replies: Vec<(u16, String)> = vec![
+            (400, rejection),
+            (200, answer.to_string()),
+            (200, answer.to_string()),
+        ];
+        let server = std::thread::spawn(move || {
+            for (status, body) in replies {
+                let (mut stream, _) = listener.accept().unwrap();
+                let request = read_request_body(&mut stream);
+                tx.send(serde_json::from_str::<Value>(&request).unwrap())
+                    .unwrap();
+                write!(stream, "HTTP/1.1 {status} Response\r\nContent-Type: text/event-stream\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+            }
+        });
+        let provider = provider("bedrock_mantle", &base);
+        let messages = vec![json!({"role":"user", "content":"Hi"})];
+        let model = "memo-per-level-model";
+
+        // Dial Off: "none" is refused, "low" answers and is remembered.
+        let (effort, reasoning) =
+            reasoning_options_for(&provider.id, model, crate::settings::ThinkingLevel::Off);
+        send_chat_stream(
+            &provider,
+            String::new(),
+            model,
+            messages.clone(),
+            effort,
+            reasoning,
+            |_| {},
+        )
+        .await
+        .unwrap();
+        // Dial High: the memo for "none" must not turn this into "low".
+        let (effort, reasoning) =
+            reasoning_options_for(&provider.id, model, crate::settings::ThinkingLevel::High);
+        send_chat_stream(
+            &provider,
+            String::new(),
+            model,
+            messages,
+            effort,
+            reasoning,
+            |_| {},
+        )
+        .await
+        .unwrap();
+
+        server.join().unwrap();
+        let sent: Vec<Value> = rx.into_iter().collect();
+        assert_eq!(sent.len(), 3);
+        assert_eq!(sent[0]["reasoning_effort"], "none");
+        assert_eq!(sent[1]["reasoning_effort"], "low");
+        assert_eq!(sent[2]["reasoning_effort"], "high");
+    }
+
+    /// A voice barge-in cancels a turn before the first token, so history keeps
+    /// the user message with no assistant reply after it. Gemma (local template
+    /// or cloud gateway) answers the next request with HTTP 400 "Conversation
+    /// roles must alternate", and the pair persists, so the assistant stays
+    /// silent for the rest of the conversation. The request must be repaired.
+    #[test]
+    fn consecutive_user_turns_are_merged_for_strict_templates() {
+        let mut messages = vec![
+            json!({"role": "system", "content": "persona"}),
+            json!({"role": "user", "content": "first"}),
+            json!({"role": "assistant", "content": "reply"}),
+            // Cancelled turn: recorded, never answered.
+            json!({"role": "user", "content": "interrupted"}),
+            json!({"role": "user", "content": "second"}),
+        ];
+        enforce_alternating_roles(&mut messages);
+
+        let roles: Vec<&str> = messages
+            .iter()
+            .map(|m| m["role"].as_str().unwrap())
+            .collect();
+        assert_eq!(roles, ["system", "user", "assistant", "user"]);
+        assert_eq!(messages[3]["content"], "interrupted\n\nsecond");
+    }
+
+    #[test]
+    fn a_content_free_assistant_turn_is_dropped_rather_than_breaking_alternation() {
+        let mut messages = vec![
+            json!({"role": "user", "content": "first"}),
+            // What an errored turn used to leave behind.
+            json!({"role": "assistant", "content": ""}),
+            json!({"role": "user", "content": "second"}),
+        ];
+        enforce_alternating_roles(&mut messages);
+
+        let roles: Vec<&str> = messages
+            .iter()
+            .map(|m| m["role"].as_str().unwrap())
+            .collect();
+        assert_eq!(roles, ["user"]);
+        assert_eq!(messages[0]["content"], "first\n\nsecond");
+    }
+
+    #[test]
+    fn tool_protocol_messages_are_never_merged_away() {
+        let mut messages = vec![
+            json!({"role": "user", "content": "search"}),
+            json!({"role": "assistant", "content": "", "tool_calls": [
+                {"id": "c1", "type": "function", "function": {"name": "web_search", "arguments": "{}"}}
+            ]}),
+            json!({"role": "tool", "tool_call_id": "c1", "content": "results"}),
+            json!({"role": "tool", "tool_call_id": "c2", "content": "more results"}),
+        ];
+        let before = messages.clone();
+        enforce_alternating_roles(&mut messages);
+        assert_eq!(messages, before);
+    }
+
+    #[test]
+    fn merging_a_user_turn_keeps_its_attached_image() {
+        let mut messages = vec![
+            json!({"role": "user", "content": [
+                {"type": "text", "text": "look"},
+                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,AAA"}}
+            ]}),
+            json!({"role": "user", "content": "and answer"}),
+        ];
+        enforce_alternating_roles(&mut messages);
+
+        assert_eq!(messages.len(), 1);
+        let parts = messages[0]["content"].as_array().expect("content parts");
+        assert_eq!(parts.len(), 3);
+        assert_eq!(parts[1]["type"], "image_url");
+        assert_eq!(parts[2]["text"], "and answer");
+    }
+
+    /// The normalizer has to be on the actual request path, not only unit
+    /// tested: this is the exact body Bedrock rejected with HTTP 400.
+    #[test]
+    fn a_cloud_request_body_alternates_even_when_history_does_not() {
+        let request = build_chat_completion_request(
+            &provider("bedrock_mantle", "https://bedrock-mantle.example/v1"),
+            "google.gemma-3-27b-it",
+            vec![
+                json!({"role": "system", "content": "persona"}),
+                json!({"role": "user", "content": "all right, hello"}),
+                json!({"role": "assistant", "content": "Hi there!"}),
+                json!({"role": "user", "content": "so"}),
+                json!({"role": "user", "content": "basically what I was doing"}),
+            ],
+            ChatRequestOptions {
+                stream: Some(true),
+                ..Default::default()
+            },
+        );
+
+        let roles: Vec<&str> = request
+            .messages
+            .iter()
+            .map(|m| m["role"].as_str().unwrap())
+            .collect();
+        assert_eq!(roles, ["system", "user", "assistant", "user"]);
+        for pair in roles[1..].windows(2) {
+            assert_ne!(
+                pair[0], pair[1],
+                "roles must alternate after the system turn"
+            );
+        }
+    }
+
+    #[test]
+    fn merging_into_a_plain_user_turn_keeps_a_later_attached_image() {
+        let mut messages = vec![
+            json!({"role": "user", "content": "what is this"}),
+            json!({"role": "user", "content": [
+                {"type": "text", "text": "this"},
+                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,AAA"}}
+            ]}),
+        ];
+        enforce_alternating_roles(&mut messages);
+
+        assert_eq!(messages.len(), 1);
+        let parts = messages[0]["content"].as_array().expect("content parts");
+        assert_eq!(parts.len(), 3);
+        assert_eq!(parts[0]["text"], "what is this");
+        assert_eq!(parts[2]["type"], "image_url");
+    }
+
+    #[test]
+    fn a_well_formed_conversation_is_left_untouched() {
+        let mut messages = vec![
+            json!({"role": "system", "content": "persona"}),
+            json!({"role": "user", "content": "hi"}),
+            json!({"role": "assistant", "content": "hello"}),
+            json!({"role": "user", "content": "again"}),
+        ];
+        let before = messages.clone();
+        enforce_alternating_roles(&mut messages);
+        assert_eq!(messages, before);
+    }
+
+    /// Bedrock reports a rejected body inside a 200 SSE stream. That used to be
+    /// skipped as a malformed frame, so the turn resolved to an empty answer and
+    /// the user saw silence with no error anywhere.
+    #[test]
+    fn an_in_stream_provider_error_is_captured_instead_of_skipped() {
+        let mut accumulator = SseChatAccumulator::default();
+        let mut tokens = String::new();
+        accumulator.push(
+            br#"data: {"error":{"code":"validation_error","message":"Conversation roles must alternate user/assistant/user/assistant/...","type":"invalid_request_error"}}
+"#,
+            &mut |token| tokens.push_str(token),
+        );
+
+        let error = accumulator.error.clone().expect("error should be captured");
+        assert!(error.contains("Conversation roles must alternate"));
+        assert!(error.contains("invalid_request_error"));
+        assert!(accumulator.is_done());
+        assert!(tokens.is_empty());
+    }
+
+    #[test]
+    fn a_malformed_frame_is_still_skipped_without_failing_the_round() {
+        let mut accumulator = SseChatAccumulator::default();
+        let mut tokens = String::new();
+        accumulator.push(
+            b"data: {\"not\":\"a chunk\"}\ndata: {\"choices\":[{\"delta\":{\"content\":\"hi\"}}]}\n",
+            &mut |token| tokens.push_str(token),
+        );
+
+        assert!(accumulator.error.is_none());
+        assert_eq!(tokens, "hi");
+    }
+
+    #[test]
+    fn builtin_requests_disable_optional_thinking() {
+        let builtin = provider("builtin", "http://127.0.0.1:8080/v1");
+        let kwargs = builtin_chat_template_kwargs(&builtin)
+            .expect("built-in requests should carry chat template options");
+        assert_eq!(kwargs["enable_thinking"], false);
+
+        let cloud = provider("openai", "https://api.openai.com/v1");
+        assert!(builtin_chat_template_kwargs(&cloud).is_none());
+    }
+
+    #[test]
+    fn azure_openai_endpoints_normalize_to_v1() {
+        // Bare resource endpoint from the Azure portal.
+        assert_eq!(
+            effective_base_url(&provider("azure_openai", "https://res.openai.azure.com/")),
+            "https://res.openai.azure.com/openai/v1"
+        );
+        // AI Foundry project endpoint (path is stripped).
+        assert_eq!(
+            effective_base_url(&provider(
+                "azure_openai",
+                "https://res.services.ai.azure.com/api/projects/proj"
+            )),
+            "https://res.services.ai.azure.com/openai/v1"
+        );
+        // Classic Cognitive Services custom domain.
+        assert_eq!(
+            effective_base_url(&provider(
+                "azure_openai",
+                "https://res.cognitiveservices.azure.com"
+            )),
+            "https://res.cognitiveservices.azure.com/openai/v1"
+        );
+        // Already-correct v1 endpoint is left equivalent.
+        assert_eq!(
+            effective_base_url(&provider(
+                "azure_openai",
+                "https://res.openai.azure.com/openai/v1"
+            )),
+            "https://res.openai.azure.com/openai/v1"
+        );
+    }
+
+    #[test]
+    fn non_azure_base_urls_are_untouched() {
+        assert_eq!(
+            effective_base_url(&provider("openai", "https://api.openai.com/v1/")),
+            "https://api.openai.com/v1"
+        );
+        assert_eq!(
+            effective_base_url(&provider("groq", "https://api.groq.com/openai/v1")),
+            "https://api.groq.com/openai/v1"
+        );
+        assert_eq!(
+            effective_base_url(&provider("local", "http://localhost:11434/v1")),
+            "http://localhost:11434/v1"
+        );
+    }
+
+    #[test]
+    fn gemini_model_name_strips_leading_models_prefix() {
+        let gemini = provider(
+            "gemini",
+            "https://generativelanguage.googleapis.com/v1beta/openai",
+        );
+        // The `models/…` id returned by Gemini's /models list is reduced to the
+        // bare id its chat endpoint expects.
+        assert_eq!(
+            normalize_model_name(&gemini, "models/gemini-2.5-flash"),
+            "gemini-2.5-flash"
+        );
+        assert_eq!(
+            normalize_model_name(&gemini, "models/gemini-3.1-flash-lite"),
+            "gemini-3.1-flash-lite"
+        );
+        // An already-bare id is untouched.
+        assert_eq!(
+            normalize_model_name(&gemini, "gemini-2.5-flash"),
+            "gemini-2.5-flash"
+        );
+        // Only a single leading prefix is stripped; interior text is preserved.
+        assert_eq!(
+            normalize_model_name(&gemini, "models/tuned-models/my-model"),
+            "tuned-models/my-model"
+        );
+    }
+
+    #[test]
+    fn non_gemini_model_names_are_untouched() {
+        // OpenRouter uses `vendor/model` ids that must NOT be altered.
+        let openrouter = provider("openrouter", "https://openrouter.ai/api/v1");
+        assert_eq!(
+            normalize_model_name(&openrouter, "google/gemini-2.5-flash"),
+            "google/gemini-2.5-flash"
+        );
+        // A hypothetical `models/`-prefixed id on a non-Gemini host is left as-is.
+        let openai = provider("openai", "https://api.openai.com/v1");
+        assert_eq!(normalize_model_name(&openai, "models/foo"), "models/foo");
+    }
+
+    #[test]
+    fn request_builder_normalizes_gemini_model() {
+        let gemini = provider(
+            "gemini",
+            "https://generativelanguage.googleapis.com/v1beta/openai",
+        );
+        let request = build_chat_completion_request(
+            &gemini,
+            "models/gemini-2.5-flash",
+            vec![serde_json::json!({"role": "user", "content": "hi"})],
+            ChatRequestOptions::default(),
+        );
+        let value = serde_json::to_value(request).unwrap();
+        assert_eq!(value["model"], "gemini-2.5-flash");
+    }
+
+    #[test]
+    fn azure_host_detection() {
+        assert!(azure_openai_host("https://res.openai.azure.com/openai/v1").is_some());
+        assert!(azure_openai_host("https://res.services.ai.azure.com/api/projects/p").is_some());
+        assert!(azure_openai_host("https://api.openai.com/v1").is_none());
+        assert!(azure_openai_host("http://localhost:11434/v1").is_none());
+    }
+
+    #[test]
+    fn fold_system_merges_into_string_user_message() {
+        let mut messages = vec![
+            serde_json::json!({"role": "system", "content": "You are helpful."}),
+            serde_json::json!({"role": "user", "content": "Hi there"}),
+        ];
+        fold_system_into_first_user(&mut messages);
+
+        // System turn is gone; conversation now starts with user.
+        assert_eq!(messages.len(), 1);
+        assert_eq!(messages[0]["role"], "user");
+        assert_eq!(messages[0]["content"], "You are helpful.\n\nHi there");
+    }
+
+    #[test]
+    fn fold_system_preserves_history_alternation() {
+        let mut messages = vec![
+            serde_json::json!({"role": "system", "content": "SYS"}),
+            serde_json::json!({"role": "user", "content": "first"}),
+            serde_json::json!({"role": "assistant", "content": "reply"}),
+            serde_json::json!({"role": "user", "content": "second"}),
+        ];
+        fold_system_into_first_user(&mut messages);
+
+        // Only the FIRST user message absorbs the system prompt; the rest keep
+        // their strict user/assistant/user alternation (what Gemma requires).
+        assert_eq!(messages.len(), 3);
+        assert_eq!(messages[0]["role"], "user");
+        assert_eq!(messages[0]["content"], "SYS\n\nfirst");
+        assert_eq!(messages[1]["role"], "assistant");
+        assert_eq!(messages[2]["role"], "user");
+        assert_eq!(messages[2]["content"], "second");
+    }
+
+    #[test]
+    fn fold_system_prepends_text_part_for_multimodal_user() {
+        let mut messages = vec![
+            serde_json::json!({"role": "system", "content": "SYS"}),
+            serde_json::json!({"role": "user", "content": [
+                {"type": "text", "text": "what is this"},
+                {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAAA"}}
+            ]}),
+        ];
+        fold_system_into_first_user(&mut messages);
+
+        assert_eq!(messages.len(), 1);
+        let parts = messages[0]["content"].as_array().unwrap();
+        // A leading text part carries the system prompt; the image is untouched.
+        assert_eq!(parts[0]["type"], "text");
+        assert_eq!(parts[0]["text"], "SYS\n\n");
+        assert_eq!(parts[1]["type"], "text");
+        assert_eq!(parts[2]["type"], "image_url");
+    }
+
+    #[test]
+    fn fold_system_is_noop_without_leading_system() {
+        let mut messages = vec![
+            serde_json::json!({"role": "user", "content": "hello"}),
+            serde_json::json!({"role": "assistant", "content": "hi"}),
+        ];
+        let before = messages.clone();
+        fold_system_into_first_user(&mut messages);
+        assert_eq!(messages, before);
+    }
+
+    #[test]
+    fn builtin_keeps_the_system_role_when_asked() {
+        let messages = vec![
+            serde_json::json!({"role": "system", "content": "fine-tune instructions"}),
+            serde_json::json!({"role": "user", "content": "um the meeting is at six"}),
+        ];
+
+        // Default: the built-in engine folds, because Gemma-style templates
+        // reject a system role outright.
+        let folded = serde_json::to_value(build_chat_completion_request(
+            &provider("builtin", "http://127.0.0.1:11436/v1"),
+            "local-model",
+            messages.clone(),
+            ChatRequestOptions::default(),
+        ))
+        .unwrap();
+        assert_eq!(folded["messages"].as_array().unwrap().len(), 1);
+        assert_eq!(folded["messages"][0]["role"], "user");
+
+        // Raw-prompt cleanup: the system prompt stays a system message, which is
+        // what a fine-tune was trained on.
+        let kept = serde_json::to_value(build_chat_completion_request(
+            &provider("builtin", "http://127.0.0.1:11436/v1"),
+            "local-model",
+            messages,
+            ChatRequestOptions {
+                keep_system_role: true,
+                ..Default::default()
+            },
+        ))
+        .unwrap();
+        assert_eq!(kept["messages"].as_array().unwrap().len(), 2);
+        assert_eq!(kept["messages"][0]["role"], "system");
+        assert_eq!(kept["messages"][0]["content"], "fine-tune instructions");
+        assert_eq!(kept["messages"][1]["content"], "um the meeting is at six");
+    }
+
+    fn decode_sse(chunks: impl IntoIterator<Item = Vec<u8>>) -> (ChatRound, Vec<String>) {
+        let mut accumulator = SseChatAccumulator::default();
+        let mut tokens = Vec::new();
+        {
+            let mut on_token = |token: &str| tokens.push(token.to_string());
+            for chunk in chunks {
+                accumulator.push(&chunk, &mut on_token);
+            }
+            let round = accumulator.finish(&mut on_token);
+            return (round, tokens);
+        }
+    }
+
+    #[test]
+    fn request_builder_omits_optional_fields_for_plain_completion() {
+        let request = build_chat_completion_request(
+            &provider("openai", "https://api.openai.com/v1"),
+            "gpt-test",
+            vec![serde_json::json!({"role": "user", "content": "hello"})],
+            ChatRequestOptions::default(),
+        );
+        let value = serde_json::to_value(request).unwrap();
+
+        assert_eq!(value["model"], "gpt-test");
+        assert_eq!(value["messages"][0]["content"], "hello");
+        for omitted in [
+            "response_format",
+            "reasoning_effort",
+            "reasoning",
+            "chat_template_kwargs",
+            "stream",
+            "tools",
+            "tool_choice",
+        ] {
+            assert!(value.get(omitted).is_none(), "{omitted} should be omitted");
+        }
+    }
+
+    #[test]
+    fn request_builder_emits_structured_output_fields() {
+        let schema = serde_json::json!({
+            "type": "object",
+            "properties": {"text": {"type": "string"}},
+            "required": ["text"],
+            "additionalProperties": false
+        });
+        let request = build_chat_completion_request(
+            &provider("openai", "https://api.openai.com/v1"),
+            "gpt-test",
+            vec![serde_json::json!({"role": "user", "content": "hello"})],
+            ChatRequestOptions {
+                json_schema: Some(schema.clone()),
+                reasoning_effort: Some("low".to_string()),
+                reasoning: Some(ReasoningConfig {
+                    effort: Some("minimal".to_string()),
+                    exclude: Some(true),
+                }),
+                ..Default::default()
+            },
+        );
+        let value = serde_json::to_value(request).unwrap();
+
+        assert_eq!(value["response_format"]["type"], "json_schema");
+        assert_eq!(
+            value["response_format"]["json_schema"]["name"],
+            "transcription_output"
+        );
+        assert_eq!(value["response_format"]["json_schema"]["strict"], true);
+        assert_eq!(value["response_format"]["json_schema"]["schema"], schema);
+        assert_eq!(value["reasoning_effort"], "low");
+        assert_eq!(value["reasoning"]["effort"], "minimal");
+        assert_eq!(value["reasoning"]["exclude"], true);
+        assert!(value.get("tools").is_none());
+    }
+
+    #[test]
+    fn request_builder_emits_tool_round_fields() {
+        let tools = serde_json::json!([{
+            "type": "function",
+            "function": {
+                "name": "web_search",
+                "parameters": {"type": "object"}
+            }
+        }]);
+        let request = build_chat_completion_request(
+            &provider("openai", "https://api.openai.com/v1"),
+            "gpt-test",
+            vec![serde_json::json!({"role": "user", "content": "latest news"})],
+            ChatRequestOptions {
+                stream: Some(true),
+                tools: Some(tools.clone()),
+                tool_choice: Some(serde_json::json!("auto")),
+                ..Default::default()
+            },
+        );
+        let value = serde_json::to_value(request).unwrap();
+
+        assert_eq!(value["stream"], true);
+        assert_eq!(value["tools"], tools);
+        assert_eq!(value["tool_choice"], "auto");
+        assert!(value.get("response_format").is_none());
+    }
+
+    #[test]
+    fn sse_decoder_preserves_utf8_split_at_every_byte_and_stops_at_done() {
+        let first = serde_json::json!({
+            "choices": [{"delta": {"content": "hé"}}]
+        });
+        let second = serde_json::json!({
+            "choices": [{"delta": {"content": "llo 🌍"}}]
+        });
+        let ignored = serde_json::json!({
+            "choices": [{"delta": {"content": " ignored"}}]
+        });
+        let wire =
+            format!("data: {first}\r\n\r\ndata: {second}\n\ndata: [DONE]\n\ndata: {ignored}\n\n");
+        let chunks = wire
+            .as_bytes()
+            .iter()
+            .map(|byte| vec![*byte])
+            .collect::<Vec<_>>();
+
+        let (round, tokens) = decode_sse(chunks);
+        assert_eq!(round.text, "héllo 🌍");
+        assert_eq!(tokens, ["hé", "llo 🌍"]);
+        assert!(round.tool_calls.is_empty());
+    }
+
+    #[test]
+    fn sse_decoder_assembles_complete_tool_fragments_at_eof() {
+        let first = serde_json::json!({
+            "choices": [{"delta": {"tool_calls": [{
+                "index": 0,
+                "id": "call_screen",
+                "function": {"name": "capture_screen", "arguments": "{\"tim"}
+            }]}}]
+        });
+        let second = serde_json::json!({
+            "choices": [{"delta": {"tool_calls": [{
+                "index": 0,
+                "function": {"arguments": "ing\":\"now\"}"}
+            }]}}]
+        });
+        let unterminated = serde_json::json!({
+            "choices": [{"delta": {"content": " ignored"}}]
+        });
+        // Omit [DONE]. Complete lines must survive EOF, while the final
+        // unterminated line is discarded to match the historical wrappers.
+        let wire = format!("data: {first}\n\ndata: {second}\ndata: {unterminated}");
+        let chunks = wire
+            .as_bytes()
+            .chunks(7)
+            .map(<[u8]>::to_vec)
+            .collect::<Vec<_>>();
+
+        let (round, tokens) = decode_sse(chunks);
+        assert!(round.text.is_empty());
+        assert!(tokens.is_empty());
+        assert_eq!(
+            round.tool_calls,
+            [ToolCall {
+                id: "call_screen".to_string(),
+                name: "capture_screen".to_string(),
+                arguments: "{\"timing\":\"now\"}".to_string(),
+                thought_signature: None,
+            }]
+        );
+    }
+
+    /// Gemini thinking models return an opaque `thought_signature` with every
+    /// function call and 400 the follow-up request if it is not echoed back. It
+    /// can arrive on a later frame than the call itself, so the decoder has to
+    /// merge it by index like the argument fragments.
+    #[test]
+    fn sse_decoder_captures_gemini_thought_signature_from_extra_content() {
+        let call = serde_json::json!({
+            "choices": [{"delta": {"tool_calls": [{
+                "index": 0,
+                "id": "call_search",
+                "function": {"name": "web_search", "arguments": "{\"query\":\"rust\"}"}
+            }]}}]
+        });
+        let signature = serde_json::json!({
+            "choices": [{"delta": {"tool_calls": [{
+                "index": 0,
+                "extra_content": {"google": {"thought_signature": "SIG-ABC"}}
+            }]}}]
+        });
+        let wire = format!("data: {call}\n\ndata: {signature}\n\ndata: [DONE]\n\n");
+
+        let (round, _) = decode_sse(vec![wire.into_bytes()]);
+        assert_eq!(
+            round.tool_calls,
+            [ToolCall {
+                id: "call_search".to_string(),
+                name: "web_search".to_string(),
+                arguments: "{\"query\":\"rust\"}".to_string(),
+                thought_signature: Some("SIG-ABC".to_string()),
+            }]
+        );
+    }
+
+    /// Providers that send no signature must stay at `None`, so nothing extra is
+    /// ever attached to a non-Gemini follow-up request.
+    #[test]
+    fn sse_decoder_leaves_thought_signature_unset_without_extra_content() {
+        let call = serde_json::json!({
+            "choices": [{"delta": {"tool_calls": [{
+                "index": 0,
+                "id": "call_time",
+                "function": {"name": "get_current_datetime", "arguments": "{}"}
+            }]}}]
+        });
+        let wire = format!("data: {call}\n\ndata: [DONE]\n\n");
+
+        let (round, _) = decode_sse(vec![wire.into_bytes()]);
+        assert_eq!(round.tool_calls.len(), 1);
+        assert_eq!(round.tool_calls[0].thought_signature, None);
+    }
+
+    #[test]
+    fn sse_decoder_skips_malformed_frames_and_keeps_following_content() {
+        let valid = serde_json::json!({
+            "choices": [{"delta": {"content": "still works"}}]
+        });
+        let mut wire = b"data: {not json}\n\ndata: \xff\n\n".to_vec();
+        wire.extend_from_slice(format!("data: {valid}\n").as_bytes());
+
+        let (round, tokens) = decode_sse([wire]);
+        assert_eq!(round.text, "still works");
+        assert_eq!(tokens, ["still works"]);
+    }
+}
+
+#[cfg(test)]
+mod finish_reason_tests {
+    use super::*;
+
+    #[test]
+    fn output_limit_reasons_count_as_truncation() {
+        for reason in [
+            "length",
+            "LENGTH",
+            "max_tokens",
+            "MAX_TOKENS",
+            " max_output_tokens ",
+        ] {
+            assert!(is_truncation(reason), "{reason}");
+        }
+        for reason in ["stop", "tool_calls", "content_filter", "end_turn", ""] {
+            assert!(!is_truncation(reason), "{reason}");
+        }
+    }
+
+    #[test]
+    fn a_completion_carries_its_finish_reason() {
+        let body =
+            r#"{"choices":[{"message":{"content":"Hello there"},"finish_reason":"length"}]}"#;
+        let parsed: ChatCompletionResponse = serde_json::from_str(body).unwrap();
+        let choice = parsed.choices.into_iter().next().unwrap();
+        let completion = Completion {
+            content: choice.message.content,
+            finish_reason: choice.finish_reason,
+        };
+        assert!(completion.truncated());
+        assert_eq!(completion.content.as_deref(), Some("Hello there"));
+    }
+
+    #[test]
+    fn a_completion_without_a_finish_reason_is_not_truncated() {
+        // Some gateways leave it out; that must parse and read as finished.
+        let body = r#"{"choices":[{"message":{"content":"Hi"}}]}"#;
+        let parsed: ChatCompletionResponse = serde_json::from_str(body).unwrap();
+        assert!(parsed.choices[0].finish_reason.is_none());
+        assert!(!Completion {
+            content: Some("Hi".into()),
+            finish_reason: None,
+        }
+        .truncated());
+    }
+
+    #[test]
+    fn a_stream_records_its_finish_reason_and_keeps_the_text() {
+        let first = serde_json::json!({"choices": [{"delta": {"content": "A long ans"}}]});
+        let last = serde_json::json!({
+            "choices": [{"delta": {"content": "wer"}, "finish_reason": "length"}]
+        });
+        let wire = format!("data: {first}\n\ndata: {last}\n\ndata: [DONE]\n\n");
+        let mut accumulator = SseChatAccumulator::default();
+        let mut on_token = |_: &str| {};
+        accumulator.push(wire.as_bytes(), &mut on_token);
+        assert_eq!(accumulator.finish_reason.as_deref(), Some("length"));
+        // The assistant still shows a long answer in full.
+        assert_eq!(accumulator.finish(&mut on_token).text, "A long answer");
+    }
+}

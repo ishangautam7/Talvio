@@ -1,0 +1,1145 @@
+@import "tailwindcss";
+
+/* Drive the `dark:` utility variant from the data-theme attribute we set on
+ * <html> (light / dark / system, resolved in JS) instead of the OS media
+ * query. This keeps any `dark:` utilities (e.g. the Alert component) in lock
+ * step with a manual theme choice. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Design system — clean paper, one bright teal, one typeface.
+ *
+ * Neutrals are tinted a hair toward the brand teal (chroma ≈ 0.003–0.01 in
+ * OKLCH), so the page reads as crisp white rather than grey, and the chrome —
+ * title bar and sidebar — is one step deeper so the content pane floats as a
+ * sheet. They used to lean warm (a beige-grey), which next to the teal read as
+ * faintly dirty paper rather than as a clean surface.
+ *
+ * Type is Inter, everywhere. Hierarchy comes from size and weight inside one
+ * family, the way a tool is expected to look. The one exception is a feature
+ * banner's headline, set in Instrument Serif: a single editorial moment per
+ * page, never a label or a control.
+ *
+ * Colour: ink is the primary action colour (dark buttons, like a pen); the
+ * brand teal marks state — the page you are on, a switch that is on, the
+ * selected option, a link. Feature banners (Assistant, Meetings) are a stage
+ * of their own: near-black on the dark theme, a pale tinted surface on the
+ * light one. Provider and model logos carry their own brand colours
+ * (ProviderLogos.tsx), which is where the rest of the colour on a page comes
+ * from.
+ *
+ * The light theme is paper, not a lightbox: the pane is a soft off-white so
+ * the white cards on it are the brightest thing, and ink is a deep slate
+ * rather than near-black (15:1 on a card instead of 18:1). At the old values
+ * long passages such as the Recent list were stark enough to tire the eye,
+ * which is the same reason the dark theme's text is a step below white.
+ *
+ * Every text pairing below was checked for WCAG AA: ink on a card 15:1,
+ * muted on canvas 4.9:1 (on the chrome 4.6:1), accent on canvas 4.6:1, white
+ * on accent 5.0:1.
+ */
+@theme {
+  /* === Surfaces === */
+  --color-canvas: #f3f6f6; /* content pane */
+  --color-canvas-soft: #eaeff0; /* chrome: title bar + sidebar */
+  --color-surface: #ffffff; /* cards */
+  --color-surface-strong: #ebf0f1; /* fills, hover, badges */
+  --color-surface-muted: #f5f8f8; /* quiet wells inside a card */
+
+  /* === Ink / text === */
+  --color-ink: #1b292e;
+  --color-ink-soft: #26353a;
+  --color-body: #3d494d;
+  --color-muted: #616d70; /* ≥4.8:1 on every surface above */
+  --color-muted-soft: #99a4a6; /* decorative + disabled only */
+
+  /* === Hairlines === */
+  --color-hairline: #e3e8e8;
+  --color-hairline-strong: #d1d8da;
+
+  /* === Feature banners ===
+   * The dark stage. It is also the default for anything drawn with the hero
+   * tokens outside a banner (the onboarding tour's keys, on its dark faux
+   * desktop); the light theme overrides them on `.hero-stage` only. */
+  --color-hero-surface: #0b0d0e; /* the art is rendered on exactly this */
+  --color-hero-ink: #f6f2ec; /* warm white, 17:1 on the stage */
+  --color-hero-muted: #aba7a0; /* 8.4:1 on the stage */
+  --color-hero-border: #ffffff24;
+  --color-hero-control: #1f2225;
+  --color-hero-hover: #ffffff17;
+
+  /* === Brand teal (state and links) === */
+  --color-accent: #007e70;
+  --color-accent-strong: #00675e;
+  /* A lighter teal for fills that carry no text (tiles, bars, dots). */
+  --color-accent-fill: #009684;
+
+  /* === Semantic === */
+  --color-success: #15803d;
+  --color-error: #c9372c;
+  --color-warning: #b45309;
+
+  /* === On-colour text === */
+  --color-on-primary: #ffffff; /* text on accent fills */
+  --color-on-ink: #f9fcfc; /* text on ink (primary) buttons */
+
+  /* === Toggle switch === */
+  --color-toggle-track-on: var(--color-accent);
+  --color-toggle-track-off: #c9d1d2;
+  --color-toggle-knob-on: #ffffff;
+
+  /* === Back-compat aliases (leaf components still use these names) === */
+  --color-background: var(--color-canvas);
+  --color-text: var(--color-ink);
+  --color-background-ui: var(--color-accent);
+  --color-logo-primary: var(--color-accent);
+  --color-logo-stroke: #1e2b2f;
+  --color-text-stroke: #ffffff;
+  --color-mid-gray: #7f8a8d;
+
+  /* === Type families === */
+  --font-sans:
+    "Inter Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-brand:
+    "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    sans-serif;
+  /* Banner headlines only. */
+  --font-hero:
+    "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root {
+  /* The main window is sized in rem, so this one value sets the scale of the
+   * whole UI. It follows the display the window lives on (see
+   * `applyScreenScale` in main.tsx). */
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-feature-settings:
+    "cv11" 1,
+    "ss01" 1;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  --scrollbar-thumb: color-mix(in srgb, var(--color-text), transparent 86%);
+  --scrollbar-thumb-hover: color-mix(
+    in srgb,
+    var(--color-text),
+    transparent 70%
+  );
+
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+:root[data-screen="compact"] {
+  font-size: 15px;
+}
+:root[data-screen="large"] {
+  font-size: 17px;
+}
+:root[data-screen="huge"] {
+  font-size: 18px;
+}
+
+/* Headings. Inter at a heavier weight with slightly tightened tracking, so a
+ * title reads as the same voice as the label under it, only louder. */
+.font-display {
+  font-family: var(--font-sans);
+  font-weight: 620;
+  letter-spacing: -0.021em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+/* Brand wordmark. */
+.font-brand {
+  font-family: var(--font-brand);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
+}
+
+/* === Dark ===
+ * A deep blue-green slate rather than near-black: the same faint teal tint as
+ * the light theme, with each step lighter than the one under it (chrome →
+ * pane → card → fill), because in the dark depth comes from lightness, not
+ * shadow. The old ramp sat three near-identical blacks on top of each other,
+ * so cards barely separated from the page and the whole window read as flat.
+ *
+ * Text is a step softer than white (13:1 on a card, not 17:1): light glyphs on
+ * a dark ground bloom and look heavier than the same weight on paper, which is
+ * also why the weights ease off a notch below. Every pairing stays above AA —
+ * muted on a card 6.0:1, accent on a card 9.0:1. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #121a1c;
+  --color-canvas-soft: #0c1315;
+  --color-surface: #1a2326;
+  --color-surface-strong: #263134;
+  /* Lighter than a card, so a hovered row lifts instead of sinking. */
+  --color-surface-muted: #1e282b;
+
+  --color-ink: #e4ebeb;
+  --color-ink-soft: #d6dedf;
+  --color-body: #bfcacb;
+  --color-muted: #94a1a4;
+  --color-muted-soft: #5f6c6e;
+
+  --color-hairline: #273133;
+  --color-hairline-strong: #354144;
+
+  --color-accent: #5cd6be;
+  --color-accent-strong: #90e8d4;
+  --color-accent-fill: #1ea28f;
+
+  --color-success: #4ade80;
+  --color-error: #f06a5f;
+  --color-warning: #f5a14a;
+
+  --color-on-primary: #04241f;
+  --color-on-ink: #121a1c;
+
+  /* The deeper teal, not the mint: a white knob on mint disappeared. */
+  --color-toggle-track-on: var(--color-accent-fill);
+  --color-toggle-track-off: #414d50;
+  --color-toggle-knob-on: #ffffff;
+
+  --color-background: var(--color-canvas);
+  --color-text: var(--color-ink);
+  --color-background-ui: var(--color-accent);
+  --color-logo-primary: var(--color-accent);
+  --color-logo-stroke: #d6dedf;
+  --color-mid-gray: #94a1a4;
+
+  /* Light-on-dark reads heavier, so every weight eases off a notch (Inter is
+   * variable, so these are real weights, not synthesized). */
+  --font-weight-medium: 470;
+  --font-weight-semibold: 570;
+  --font-weight-bold: 660;
+  font-weight: 380;
+
+  background-color: var(--color-canvas);
+}
+:root[data-theme="dark"] .font-display {
+  font-weight: 580;
+}
+
+/* Pre-JS fallback: honour the OS preference only until data-theme is set (it is
+ * set synchronously from the cached preference before render). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-canvas: #121a1c;
+    --color-canvas-soft: #0c1315;
+    --color-surface: #1a2326;
+    --color-surface-strong: #263134;
+    --color-surface-muted: #1e282b;
+    --color-ink: #e4ebeb;
+    --color-ink-soft: #d6dedf;
+    --color-body: #bfcacb;
+    --color-muted: #94a1a4;
+    --color-muted-soft: #5f6c6e;
+    --color-hairline: #273133;
+    --color-hairline-strong: #354144;
+    --color-accent: #5cd6be;
+    --color-accent-strong: #90e8d4;
+    --color-accent-fill: #1ea28f;
+    --color-on-primary: #04241f;
+    --color-on-ink: #121a1c;
+    --color-background: var(--color-canvas);
+    --color-text: var(--color-ink);
+  }
+}
+
+/* macOS — tint the native overlay scrollbar thumb */
+:root[data-platform="macos"] {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* Custom scrollbar — Windows/Linux only; macOS keeps native overlay bars */
+:root:not([data-platform="macos"]) ::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+:root:not([data-platform="macos"]) ::-webkit-scrollbar-track {
+  background: transparent;
+}
+:root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 20px;
+  border: 4px solid transparent;
+  background-clip: content-box;
+  min-height: 32px;
+}
+:root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 2px var(--color-text-stroke);
+  }
+}
+
+.logo-primary {
+  fill: var(--color-logo-primary);
+}
+
+.logo-stroke {
+  fill: var(--color-logo-stroke);
+  stroke: var(--color-logo-stroke);
+  stroke-width: 1;
+}
+
+/* ============================================================================
+ * Depth — hairlines first, shadow second
+ * ==========================================================================*/
+@layer components {
+  /* Cards carry their edge with a hairline; the shadow only lifts them a hair
+   * off the pane. */
+  .elev-card {
+    box-shadow: 0 1px 2px rgba(13, 24, 28, 0.035);
+  }
+
+  .elev-hover {
+    transition:
+      box-shadow 160ms cubic-bezier(0.25, 1, 0.5, 1),
+      border-color 160ms cubic-bezier(0.25, 1, 0.5, 1),
+      background-color 160ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .elev-hover:hover {
+    box-shadow:
+      0 1px 2px rgba(13, 24, 28, 0.04),
+      0 8px 24px -14px rgba(13, 24, 28, 0.18);
+  }
+
+  .elev-chip {
+    box-shadow:
+      0 1px 2px rgba(13, 24, 28, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* The content pane, lifted off the chrome toward the sidebar. */
+  .elev-pane {
+    box-shadow: -1px 0 0 rgba(13, 24, 28, 0.02);
+  }
+
+  /* Floating menus overlay real content, so they are opaque. */
+  .glass-menu {
+    background-color: var(--color-surface);
+  }
+
+  /* Popover / menu shadow, shared by every floating surface. */
+  .elev-float {
+    box-shadow:
+      0 18px 44px -16px rgba(13, 24, 28, 0.3),
+      0 2px 6px rgba(13, 24, 28, 0.06);
+  }
+}
+
+/* In the dark a card is lit from above: a hairline of light along its top
+ * edge does what a drop shadow does on paper. */
+:root[data-theme="dark"] .elev-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 1px 2px rgba(0, 0, 0, 0.35);
+}
+:root[data-theme="dark"] .elev-hover:hover {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 10px 28px -12px rgba(0, 0, 0, 0.7);
+}
+:root[data-theme="dark"] .elev-chip {
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+:root[data-theme="dark"] .elev-float {
+  box-shadow:
+    0 20px 48px -16px rgba(0, 0, 0, 0.75),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================================
+ * Feature banners — a stage with one picture on it
+ * ----------------------------------------------------------------------------
+ * Layers, back to front: the stage colour, the art (masked away toward the
+ * text so it never sits under a word), film grain (dark only), then the
+ * content. The art is rendered on the stage colour itself, one file per
+ * theme, so the mask has no seam to hide.
+ * ==========================================================================*/
+.hero-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--color-hero-ink);
+  background-color: var(--color-hero-surface);
+}
+/* On the dark pane the stage sits a step below it, edged by a hairline of
+ * light instead of a shadow that would not show. */
+:root[data-theme="dark"] .hero-stage {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+/* Film grain, so the dark reads as a material rather than a flat fill. */
+:root[data-theme="dark"] .hero-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.1;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* The light stage: a pale, faintly teal surface between the pane and a card,
+ * edged by a hairline, with the art drawn as ink on it. It was near-black in
+ * both themes until it proved to be the most distracting thing in the light
+ * window. Every hero token is redefined here, so the utilities and controls
+ * on the stage (`text-hero-muted`, a shortcut being recorded, the switch's
+ * `onHero` tone) follow without a light variant of their own. Scoped to the
+ * stage rather than :root because the onboarding tour draws hero keys on a
+ * faux desktop that stays dark. `--color-hero-surface` must match
+ * `STAGE_LIGHT` in scripts/hero-art.py. */
+:root:not([data-theme="dark"]) .hero-stage {
+  --color-hero-surface: #e7eeec;
+  --color-hero-ink: var(--color-ink);
+  --color-hero-muted: #57625f; /* 5.4:1 on the stage */
+  --color-hero-border: rgba(13, 24, 28, 0.14);
+  --color-hero-control: #ffffff;
+  --color-hero-hover: rgba(13, 24, 28, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(13, 24, 28, 0.06);
+}
+
+/* Narrow pages: the art fills the stage behind the text, faded well down. */
+.hero-art {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: right center;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 22%,
+    rgba(0, 0, 0, 0.3) 62%,
+    #000 96%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 22%,
+    rgba(0, 0, 0, 0.3) 62%,
+    #000 96%
+  );
+}
+/* Wide pages (Tailwind's @3xl): the art takes the right two thirds and
+ * fades out before the text column. */
+@container (min-width: 48rem) {
+  .hero-art {
+    width: 72%;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.55) 22%,
+      #000 40%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(0, 0, 0, 0.55) 22%,
+      #000 40%
+    );
+  }
+}
+/* Mirrored for right-to-left text; the mask mirrors with it. */
+[dir="rtl"] .hero-art {
+  transform: scaleX(-1);
+  transform-origin: left center;
+}
+/* The art's entrance: once per banner per session (see `Hero.tsx`, which
+ * removes `.hero-art-enter` when it is done), small, and shaped by what the
+ * picture is rather than one sweep for all of them. It used to hang off
+ * `.page-layer-active`, and a hidden page is suspended to display:none, so
+ * every return to a page restarted it. Individual `scale` / `translate` are
+ * used rather than `transform`, which the RTL mirror above already owns.
+ *
+ * A voice (Meetings): the bars rise from their centre line, as levels do
+ * when a recording starts. */
+@keyframes hero-art-levels {
+  from {
+    opacity: 0.4;
+    scale: 1 0.82;
+  }
+}
+/* The assistant: the orb grows into place. */
+@keyframes hero-art-orb {
+  from {
+    opacity: 0.5;
+    scale: 0.94;
+  }
+}
+.hero-art-enter[data-art="meetings"] {
+  animation: hero-art-levels 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Grow about the orb itself (rendered at 74% across, mid-height), not the
+ * image's edge. RTL keeps its mirror's origin: moving it would shift the
+ * flipped image while the animation runs. */
+.hero-art-enter[data-art="assistant"] {
+  transform-origin: 74% 50%;
+  animation: hero-art-orb 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[dir="rtl"] .hero-art-enter[data-art="assistant"] {
+  transform-origin: left center;
+}
+
+/* The headline. Instrument Serif has no italic weight to fake, so emphasis
+ * is the real italic. */
+.hero-title {
+  font-family: var(--font-hero);
+  font-weight: 400;
+  font-size: 2.375rem;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  color: var(--color-hero-ink);
+  text-wrap: balance;
+  font-synthesis: none;
+}
+.hero-title em {
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+/* Instrument Serif covers Latin only. Other scripts would fall back to
+ * whatever serif the system has, which rarely matches, so they get the UI
+ * face at display weight instead. */
+:root:is(
+    [lang|="ar"],
+    [lang|="bg"],
+    [lang|="he"],
+    [lang|="ja"],
+    [lang|="ko"],
+    [lang|="ru"],
+    [lang|="uk"],
+    [lang|="vi"],
+    [lang|="zh"]
+  )
+  .hero-title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+:root:is(
+    [lang|="ar"],
+    [lang|="bg"],
+    [lang|="he"],
+    [lang|="ja"],
+    [lang|="ko"],
+    [lang|="ru"],
+    [lang|="uk"],
+    [lang|="vi"],
+    [lang|="zh"]
+  )
+  .hero-title
+  em {
+  font-style: normal;
+}
+
+/* The one primary action on a stage: a warm white pill. */
+.hero-button {
+  background: var(--color-hero-ink);
+  color: #111315;
+  box-shadow:
+    0 10px 24px -14px rgba(0, 0, 0, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+.hero-button:hover:not(:disabled) {
+  background: #ffffff;
+}
+.hero-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.hero-ghost {
+  color: var(--color-hero-muted);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.hero-ghost:hover {
+  color: var(--color-hero-ink);
+  background: var(--color-hero-hover);
+}
+/* A second action beside the warm white one: glass, so the stage keeps a
+ * single primary. */
+.hero-glass {
+  color: var(--color-hero-ink);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+.hero-glass:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+.hero-glass:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ---------- The live meeting on the stage ----------
+ * The banner turns into the recorder while a meeting runs, so starting one
+ * does not swap the page's one dark object for an unrelated white card. */
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ff5a52;
+  box-shadow: 0 0 0 4px rgba(255, 90, 82, 0.16);
+}
+.rec-dot[data-paused="true"] {
+  background: var(--color-hero-muted);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rec-dot:not([data-paused="true"]) {
+    animation: rec-breathe 2s ease-in-out infinite;
+  }
+}
+@keyframes rec-breathe {
+  50% {
+    box-shadow: 0 0 0 7px rgba(255, 90, 82, 0.05);
+    opacity: 0.75;
+  }
+}
+.rec-clock {
+  font-family: var(--font-sans);
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 560;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-hero-ink);
+}
+.rec-clock[data-paused="true"] {
+  color: var(--color-hero-muted);
+}
+/* "You" / "Others", lit while that side is audible. Struck through and amber
+ * when the side is not being captured at all, because quiet and missing must
+ * not look alike. */
+.rec-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-hero-muted);
+  transition: color 140ms ease;
+}
+.rec-side-light {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.rec-side[data-active="true"] {
+  color: var(--color-hero-ink);
+}
+.rec-side[data-active="true"] .rec-side-light {
+  background: #5cd6be;
+  box-shadow: 0 0 0 3px rgba(92, 214, 190, 0.22);
+}
+.rec-side[data-captured="false"] {
+  color: #f5c46b;
+  border-color: rgba(245, 196, 107, 0.3);
+  text-decoration: line-through;
+  text-decoration-color: rgba(245, 196, 107, 0.6);
+}
+.rec-side[data-captured="false"] .rec-side-light {
+  background: #f5c46b;
+}
+/* Paused: the light goes grey. A filter rather than opacity, because the
+ * page-entry animation holds the art's opacity at its end value. */
+.hero-stage[data-paused="true"] .hero-art {
+  filter: saturate(0) brightness(0.55);
+  transition: filter 400ms ease;
+}
+/* The tips button in the corner. It can sit over the art, so it carries its
+ * own dark glass rather than relying on what is behind it. */
+.hero-corner {
+  color: var(--color-hero-muted);
+  background: rgba(11, 13, 14, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.hero-corner:hover {
+  color: var(--color-hero-ink);
+  background: rgba(255, 255, 255, 0.12);
+}
+/* Tips open: the bulb is lit. */
+.hero-corner[aria-pressed="true"] {
+  color: #ffd79a;
+  background: rgba(255, 190, 110, 0.14);
+  border-color: rgba(255, 200, 130, 0.28);
+}
+/* A corner toggle that is not the tips bulb (the recorder's indicator
+ * switch): on is plain light, because the amber glow means "tips are open". */
+.hero-corner.hero-corner-plain[aria-pressed="true"] {
+  color: var(--color-hero-ink);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.hero-corner.hero-corner-plain[aria-pressed="true"]:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ---------- The same controls on the light stage ----------
+ * The tokens carry most of it; these are the surfaces that were drawn in
+ * white-on-dark glass directly. The primary action becomes the app's own:
+ * ink-filled, like every other primary button on a light page. */
+:root:not([data-theme="dark"]) .hero-stage {
+  & .hero-button {
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+    box-shadow: 0 1px 2px rgba(13, 24, 28, 0.12);
+  }
+  & .hero-button:hover:not(:disabled) {
+    background: var(--color-ink-soft);
+  }
+  & .hero-glass {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(13, 24, 28, 0.12);
+  }
+  & .hero-glass:hover:not(:disabled) {
+    background: #ffffff;
+    border-color: rgba(13, 24, 28, 0.2);
+  }
+  & .hero-corner {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(13, 24, 28, 0.1);
+  }
+  & .hero-corner:hover {
+    background: #ffffff;
+  }
+  & .hero-corner[aria-pressed="true"] {
+    color: #8a4b00;
+    background: #fff1dc;
+    border-color: #f0cf9c;
+  }
+  & .hero-corner.hero-corner-plain[aria-pressed="true"],
+  & .hero-corner.hero-corner-plain[aria-pressed="true"]:hover {
+    color: var(--color-ink);
+    background: #ffffff;
+    border-color: rgba(13, 24, 28, 0.18);
+  }
+  & .rec-dot[data-paused="true"] {
+    box-shadow: 0 0 0 4px rgba(13, 24, 28, 0.06);
+  }
+  & .rec-side {
+    border-color: rgba(13, 24, 28, 0.1);
+    background: rgba(255, 255, 255, 0.6);
+  }
+  & .rec-side-light {
+    background: rgba(13, 24, 28, 0.2);
+  }
+  & .rec-side[data-active="true"] .rec-side-light {
+    background: var(--color-accent-fill);
+    box-shadow: 0 0 0 3px rgba(0, 150, 132, 0.18);
+  }
+  & .rec-side[data-captured="false"] {
+    color: var(--color-warning);
+    border-color: rgba(180, 83, 9, 0.3);
+    text-decoration-color: rgba(180, 83, 9, 0.55);
+  }
+  & .rec-side[data-captured="false"] .rec-side-light {
+    background: #d97706;
+  }
+  /* Paused fades the art toward the stage. Darkening it, as the dark stage
+   * does, or desaturating it would also shift the image's own background
+   * off the stage colour and show its edge as a faint rectangle. */
+  &[data-paused="true"] .hero-art {
+    filter: opacity(0.4);
+  }
+}
+
+/* Tips fold away: rows animate from their height to zero, content keeps its
+ * size (so nothing rewraps mid-fold) and fades a little ahead of the fold. */
+.hero-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-fold[data-open="false"] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+.hero-fold > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================================================================
+ * Keycaps
+ * ==========================================================================*/
+.keycap {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f5 100%);
+  border: 1px solid var(--color-hairline-strong);
+  box-shadow:
+    inset 0 -1.5px 0 rgba(13, 24, 28, 0.09),
+    0 1px 1.5px rgba(13, 24, 28, 0.05);
+}
+:root[data-theme="dark"] .keycap {
+  background: linear-gradient(180deg, #2c373a 0%, #222c2f 100%);
+  border-color: #3a474a;
+  box-shadow:
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+/* On a banner: glass keys with a lit top edge and a dark bottom lip. */
+.keycap-hero {
+  color: var(--color-hero-ink);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+    0 8px 18px -12px rgba(0, 0, 0, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+/* On the light stage the keys are the app's ordinary keycaps. */
+:root:not([data-theme="dark"]) .hero-stage .keycap-hero {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f5 100%);
+  border-color: var(--color-hairline-strong);
+  box-shadow:
+    inset 0 -1.5px 0 rgba(13, 24, 28, 0.09),
+    0 1px 1.5px rgba(13, 24, 28, 0.05);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ============================================================================
+ * Motion
+ * ==========================================================================*/
+
+/* Onboarding entrances (unchanged). */
+@keyframes rise-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.anim-rise {
+  animation: rise-fade 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-delay-1 {
+  animation-delay: 0.08s;
+}
+.anim-delay-2 {
+  animation-delay: 0.18s;
+}
+.anim-delay-3 {
+  animation-delay: 0.28s;
+}
+.anim-delay-4 {
+  animation-delay: 0.38s;
+}
+
+/* Dialogs: the scrim fades, the panel rises a few pixels and settles. */
+@keyframes dialog-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dialog-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.dialog-scrim {
+  animation: dialog-scrim-in 180ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+.dialog-panel {
+  animation: dialog-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Pages are kept alive (see shell/PageStack.tsx), so switching is a reveal of
+ * something already rendered. The reveal starts almost fully visible on purpose:
+ * an animation that starts from 0 leaves the page blank whenever the clock is
+ * paused (a hidden window, a headless renderer), and this window starts hidden
+ * in the tray. The rise ends on `translate: none`, not `0 0`: any non-none
+ * transform keeps making the element the containing block for fixed-position
+ * descendants, which is how a modal ends up trapped inside one column. */
+@keyframes page-reveal {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes page-rise {
+  from {
+    translate: 0 6px;
+  }
+  to {
+    translate: none;
+  }
+}
+.page-layer-active > .page-layer-content {
+  animation:
+    page-reveal 200ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    page-rise 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page-layer-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Every page scrolls in its own layer, and on Windows/Linux the scrollbar takes
+ * 14px of width (see the custom scrollbar above). Without a reserved gutter a
+ * short page has no bar and a long one does, so the centered column jumped
+ * sideways on every switch between them. macOS bars overlay the content, so
+ * this reserves nothing there. */
+.page-layer-active,
+.page-layer-hidden,
+.settings-scroll {
+  scrollbar-gutter: stable;
+}
+
+/* Tab panels inside a page get the same short settle. */
+.tab-reveal {
+  animation: page-reveal 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Legacy class some leaf components still apply. */
+@keyframes page-in {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.page-in {
+  animation: page-in 180ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* A page's own root for its menus and dialogs (see ui/portal.ts). It takes no
+ * space; everything in it is position: fixed. */
+.page-layer-portal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Floating menus settle in from a few pixels, like the dialogs. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.menu-in {
+  animation: menu-in 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top right;
+}
+
+/* Writing-style sample: the new sentence settles in when the style changes.
+ * It starts partly visible so a paused clock never leaves it blank. */
+@keyframes style-swap {
+  from {
+    opacity: 0.35;
+    translate: 0 3px;
+  }
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+.style-swap {
+  animation: style-swap 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Insights summary: the share cards' flowing ribbon in tones of the brand
+ * teal, pale on paper and deep on the dark theme, behind the page's one
+ * large figure. The figure is set in the share cards' typeface (the logo's),
+ * so the page and the cards it makes read as one thing. */
+.insights-summary {
+  background-color: color-mix(
+    in oklab,
+    var(--color-accent) 5%,
+    var(--color-surface)
+  );
+  --insights-flow-1: color-mix(
+    in oklab,
+    var(--color-accent) 10%,
+    var(--color-surface)
+  );
+  --insights-flow-2: color-mix(
+    in oklab,
+    var(--color-accent) 16%,
+    var(--color-surface)
+  );
+  --insights-flow-3: color-mix(
+    in oklab,
+    var(--color-accent) 23%,
+    var(--color-surface)
+  );
+}
+:root[data-theme="dark"] .insights-summary {
+  background-color: color-mix(
+    in oklab,
+    var(--color-accent-fill) 14%,
+    var(--color-surface)
+  );
+  --insights-flow-1: color-mix(
+    in oklab,
+    var(--color-accent-fill) 20%,
+    var(--color-surface)
+  );
+  --insights-flow-2: color-mix(
+    in oklab,
+    var(--color-accent-fill) 26%,
+    var(--color-surface)
+  );
+  --insights-flow-3: color-mix(
+    in oklab,
+    var(--color-accent-fill) 33%,
+    var(--color-surface)
+  );
+}
+.insights-figure {
+  font-family: "Plus Jakarta Sans Variable", var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+:root[data-theme="dark"] .insights-figure {
+  font-weight: 650;
+}
+
+/* Insights heatmap: the grid sweeps in left to right when the page opens. It
+ * starts partly visible, so a paused clock never leaves an empty grid. */
+@keyframes heat-in {
+  from {
+    opacity: 0.25;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.page-layer-active .heat-cell {
+  animation: heat-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--col, 0) * 18ms + var(--row, 0) * 12ms);
+}
+
+/* Segmented control: the selected pill slides between options. */
+.segmented-thumb {
+  transition:
+    left 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.segmented-pill {
+  background-color: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgba(13, 24, 28, 0.12),
+    0 0 0 0.5px rgba(13, 24, 28, 0.05);
+}
+:root[data-theme="dark"] .segmented-pill {
+  background-color: #334044;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Native range inputs pick up the brand accent. */
+input[type="range"] {
+  accent-color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise,
+  .dialog-scrim,
+  .dialog-panel,
+  .page-in,
+  .tab-reveal,
+  .menu-in,
+  .style-swap,
+  .page-layer-active > .page-layer-content,
+  .page-layer-active .heat-cell,
+  .hero-art-enter {
+    animation: none;
+  }
+  .hero-fold {
+    transition: none;
+  }
+  .elev-hover,
+  .segmented-thumb {
+    transition: none;
+  }
+}

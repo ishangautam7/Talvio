@@ -1,0 +1,73 @@
+---
+title: "Generate with Flow"
+description: "Start a dictation with Hey Flow and Zynveliq writes the finished text and pastes it instead of your words."
+icon: "wand-magic-sparkles"
+---
+
+Start a dictation with "Hey Flow" and describe what you want. Zynveliq writes the finished thing and pastes it, instead of typing your words.
+
+<Steps>
+  <Step title="Turn it on">
+    _Settings → Dictation → Generate with Flow_. It is off by default.
+  </Step>
+
+<Step title="Hold your Dictate shortcut and lead with the phrase">
+  "Hey Flow, write a polite email asking to reschedule Friday's call to Monday."
+</Step>
+
+  <Step title="Let go">
+    The finished email is pasted where your cursor is.
+  </Step>
+</Steps>
+
+The phrase only counts at the very start of a dictation. Say it anywhere else and the words paste as ordinary dictation, so Flow never fires by accident.
+
+Flow runs on your normal **Dictate** shortcut only. The [AI cleanup](/writing/ai-cleanup) shortcut keeps doing what it always does, and cleanup never runs over Flow output.
+
+## Settings
+
+Three settings appear in _Settings → Dictation_ once you turn Flow on:
+
+| Setting                 | Default  | What it does                                                                                                                                                             |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Generate with Flow**  | Off      | The feature itself.                                                                                                                                                      |
+| **Activation phrase**   | Hey Flow | The words that trigger it. Change it to anything you like. Clearing the field resets it to "Hey Flow".                                                                   |
+| **Allow screen access** | Off      | Lets Flow take one screenshot when a command clearly refers to your screen, like "look at this email and draft a reply". The model decides whether it needs the capture. |
+
+<Note>
+  Flow uses your assistant's model and provider. Without one, your words paste
+  as ordinary dictation and the overlay says why. Set one up on the
+  [Models](/models/transcription-models) page or under
+  [Providers](/assistant/providers).
+</Note>
+
+Generate with Flow survives the assistant master switch. Turning the assistant off does not disable Flow, because they share a provider, not a feature gate.
+
+## Screen access
+
+With **Allow screen access** on, Flow can take one screenshot when a command clearly refers to your screen, like "look at this and draft a reply". The model decides whether it needs the capture; for a command it can answer without looking, it writes directly.
+
+Flow captures the monitor your mouse pointer is on, so a multi-monitor setup gets the screen you are working on.
+
+This is permissioned separately from the assistant's screen access. Turning on screen vision for the assistant does not give Flow a camera, and vice versa. See [Screen vision](/assistant/screen-vision) for the assistant's controls.
+
+## Phrase matching
+
+Matching ignores case and punctuation, and it tolerates the spellings speech-to-text actually produces. "Hey Flo", "hey FLO", and "Hey, Flow:" all trigger it, because a wake word should match by sound rather than by whichever spelling the model picked.
+
+The tolerance is bounded. A candidate word has to share the first letter, a similar sound, and be close in length. So "Hey follow the instructions" and "Hey floor plans are ready" do not trigger Flow.
+
+Once the phrase is heard in the live overlay, it is rewritten to match your configured spelling as you speak, so "Hey Flo," shows up as "Hey Flow,".
+
+## If nothing gets pasted
+
+Flow is all or nothing. It pastes a complete result or it pastes nothing at all. You never get partial output, error text, or your raw spoken command.
+
+| What happened                                    | What you see                                             |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| No assistant model configured                    | Ordinary dictation, plus an overlay notice               |
+| You said the phrase with no command after it     | Nothing pasted                                           |
+| Generation failed, timed out, or came back empty | Nothing pasted, the overlay says Flow could not generate |
+| You cancelled                                    | Nothing pasted                                           |
+
+Every Flow recording is saved under the **Flow** filter in [History](/personalize/history), including failed and cancelled ones, so you never lose the thought.

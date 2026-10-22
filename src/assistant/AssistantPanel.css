@@ -1,0 +1,1602 @@
+/* The assistant's windows: the quick ask, the call, and the reminder popup.
+ *
+ * One dark visual language: graphite glass, cool off-white ink, hairline edges.
+ * The quick ask and the call are one family and are drawn from the same parts:
+ * the quick ask's waiting pill *is* the call's status bubble (same surface, same
+ * level bars and spinner, same few words), and the one primary action in either
+ * is an ink-filled button. There is no badge and no accent colour on the
+ * assistant's surfaces. A teal sparkle, a teal ring and a teal edge used to mark
+ * the quick ask as "the assistant"; beside the monochrome call they read as a
+ * different app, and the mark said nothing the words next to it did not.
+ * (`--as-accent*` survives only for thumbnail hover and a few focus rings.)
+ *
+ * Tokens live on `.assistant-scope` so the settings preview and the reminder
+ * popup render the exact same classes from the same stylesheet.
+ *
+ * Two knobs, both set from settings:
+ *   --as-msg-font   answer text size
+ *   --as-alpha      surface opacity (0.5–1; 1 = fully opaque)
+ */
+
+/* ---------- Theme tokens (dark only) ---------- */
+
+@import "./CallBar.css";
+
+.assistant-scope {
+  /* --as-alpha and --as-msg-font are only ever *read* here. The panel sets them
+   * on <html> and the settings preview inline on this element; declaring them
+   * here would shadow both. */
+
+  /* Graphite, tinted a hair toward the brand's own hue rather than toward warm.
+   * The previous brown-black is what made the whole surface read as yellowish. */
+  --as-surface: rgba(19, 22, 23, var(--as-alpha, 1));
+  --as-panel-surface: var(--as-surface);
+  --as-chip-surface: rgba(21, 24, 25, calc(0.96 * var(--as-alpha, 1)));
+  --as-menu-surface: #1c2123;
+  --as-ink: #eef2f2;
+  --as-body: #d2d8d8;
+  --as-muted: #9ba5a6;
+  --as-faint: #6e797a;
+  --as-placeholder: #86908f;
+  --as-hairline: rgba(255, 255, 255, 0.08);
+  --as-hairline-strong: rgba(255, 255, 255, 0.14);
+  --as-inner:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 0.5px rgba(0, 0, 0, 0.5);
+  --as-raise: rgba(255, 255, 255, 0.06);
+  --as-raise-strong: rgba(255, 255, 255, 0.11);
+  --as-inset-bg: rgba(0, 0, 0, 0.28);
+  --as-user-bg: rgba(255, 255, 255, 0.08);
+
+  /* The brand teal, as the app's dark theme defines it (App.css). */
+  --as-accent: #5cd6be;
+  --as-accent-strong: #90e8d4;
+  --as-accent-fill: #1ea28f;
+  /* Text on a teal fill: ~9.5:1 on --as-accent. */
+  --as-accent-ink: #04241f;
+  --as-accent-soft: rgba(92, 214, 190, 0.13);
+  --as-accent-line: rgba(92, 214, 190, 0.36);
+
+  --as-error: #fda4af;
+  --as-error-bg: rgba(244, 63, 94, 0.12);
+  /* An error on its own surface (the call's bubble, the quick ask's card): the
+     faint red tint already laid over the graphite, and opaque. Mixing the two
+     translucent tokens with `color-mix()` mixed their alpha too and gave a
+     surface about 37% opaque, so over a white window the message came out pink
+     on pale grey — unreadable, and lighter than everything around it. */
+  --as-error-surface: #2a1d21;
+  --as-error-line: rgba(253, 164, 175, 0.28);
+  --as-live: #e5484d;
+
+  /* Fast off the mark, unhurried settle, no overshoot. */
+  --as-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --as-font:
+    "Inter Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+
+  color: var(--as-ink);
+  font-family: var(--as-font);
+  color-scheme: dark;
+}
+
+/* ---------- Scrollbars ----------
+ * One scrollbar for everything in the assistant window: a slim, faint rounded
+ * thumb with no track and no arrow buttons, brightening under the pointer.
+ * Nothing here may set `scrollbar-width` or `scrollbar-color`: in Chromium
+ * either one switches these rules off and brings back Windows' native
+ * scrollbar, arrows and all — which is what the profile menu and the
+ * transcript were showing.
+ *
+ * The thumb is always drawn rather than revealed on hover of the list, because
+ * Chromium does not repaint a custom thumb when its scroller's `:hover` changes
+ * (measured: the rule matched and nothing was painted), so a hover-revealed
+ * thumb would only appear after the list had already been scrolled. */
+.assistant-scope ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.assistant-scope ::-webkit-scrollbar-track,
+.assistant-scope ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.assistant-scope ::-webkit-scrollbar-track {
+  margin-block: 6px;
+}
+
+.assistant-scope ::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.assistant-scope ::-webkit-scrollbar-thumb {
+  min-height: 28px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.13);
+  background-clip: padding-box;
+}
+
+.assistant-scope ::-webkit-scrollbar-thumb:hover,
+.assistant-scope ::-webkit-scrollbar-thumb:active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- Window shell ----------
+ * The webview root child is forced to 100%×100% (index.html); the shell
+ * centres the pill or hosts the full-bleed panel. No gutter and no outer
+ * drop shadows: semi-transparent shadow pixels render as a milky band on
+ * Windows transparent windows (same reason the STT overlay avoids them) —
+ * depth comes from the hairline + inner highlight instead. */
+
+.assistant-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Off screen, nothing is drawn. The window is only ever hidden, and a hidden
+ * window keeps the last frame its webview painted: the next show put that frame
+ * up before React had drawn the new surface, which is how a call's typing bar
+ * ("Message …") flashed at the start of the next ask or call. Rust leaves the
+ * window up long enough for this empty frame to land before it hides it
+ * (`PANEL_CLEAR_BEFORE_HIDE`), and the surface returns on `assistant-panel-shown`
+ * with its own entrance. */
+.assistant-shell.native-window-hidden {
+  visibility: hidden;
+}
+
+/* ---------- Resize grips ----------
+ * The panel window is borderless + transparent, so the OS gives it no resize
+ * border (most noticeably on Windows). These invisible edge/corner grips sit
+ * over the window edges and drive Tauri's native resize, so the panel is easy
+ * to drag-resize. They only set hit zones + cursors — no visuals. */
+
+.assistant-resize {
+  position: absolute;
+  z-index: 10;
+  touch-action: none;
+}
+
+.assistant-resize.n {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+.assistant-resize.s {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+.assistant-resize.e {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+.assistant-resize.w {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+.assistant-resize.nw {
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.assistant-resize.ne {
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+.assistant-resize.sw {
+  bottom: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+/* Bottom-right is the most-reached grip — make it a touch larger. */
+.assistant-resize.se {
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+}
+
+/* ---------- Character switcher ---------- */
+
+.assistant-character {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.assistant-character-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 190px;
+  padding: 3px 6px 3px 5px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--as-ink);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.assistant-character-switch:hover {
+  background: var(--as-raise);
+}
+
+.assistant-character-switch .as-chevron {
+  color: var(--as-muted);
+  flex-shrink: 0;
+}
+
+.assistant-character-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-character-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--as-raise);
+  color: var(--as-body);
+  font-weight: 600;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.assistant-character-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  min-width: 184px;
+  max-width: 244px;
+  max-height: 264px;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--as-menu-surface);
+  border: 1px solid var(--as-hairline);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+
+.assistant-character-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--as-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.assistant-character-item:hover {
+  background: var(--as-raise);
+  color: var(--as-ink);
+}
+
+.assistant-character-item.active {
+  color: var(--as-ink);
+}
+
+.assistant-character-item .as-check {
+  margin-left: auto;
+  color: var(--as-ink);
+  flex-shrink: 0;
+}
+
+/* ---------- Messages ---------- */
+
+.assistant-messages {
+  flex: 1;
+  /* min-height:0 lets this flex child shrink below its content height so it
+   * actually scrolls (and never pushes the input row off the panel) when the
+   * conversation is taller than the panel. overscroll-containment stops a
+   * bottomed-out scroll from chaining to / nudging the borderless window. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assistant-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--as-muted);
+  font-size: 12.5px;
+  line-height: 1.7;
+  white-space: pre-line;
+  padding: 0 24px;
+}
+
+.assistant-message {
+  position: relative;
+  max-width: 88%;
+  /* Let the bubble shrink below the intrinsic width of a long token so wrapping
+   * (below) can kick in instead of the bubble blowing past its max-width. */
+  min-width: 0;
+  font-size: var(--as-msg-font, 14.5px);
+  line-height: 1.62;
+  animation: as-bubble-in 0.18s ease-out;
+}
+
+@keyframes as-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User: a quiet raised bubble, same ink — no inverted block, no accent. */
+.assistant-message.user {
+  align-self: flex-end;
+  background: var(--as-user-bg);
+  border: 1px solid var(--as-hairline);
+  color: var(--as-ink);
+  border-radius: 14px;
+  border-bottom-right-radius: 5px;
+  padding: 7px 11px;
+}
+
+/* Assistant: plain ink on the surface — editorial, no bubble chrome. */
+.assistant-message.assistant {
+  align-self: flex-start;
+  color: var(--as-body);
+  padding: 0 2px;
+}
+
+.assistant-message.error {
+  align-self: stretch;
+  max-width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--as-error-bg);
+  border: 1px solid color-mix(in srgb, var(--as-error) 25%, transparent);
+  border-radius: 12px;
+  padding: 9px 11px;
+  color: var(--as-error);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.assistant-error-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.assistant-error-body {
+  min-width: 0;
+}
+
+.assistant-error-detail {
+  margin-top: 3px;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--as-error) 72%, var(--as-muted));
+  word-break: break-word;
+}
+
+/* Manual dismiss (×) for the expanded error card — mirrors the pill's × so the
+   user can clear a failure notice immediately instead of waiting out the
+   auto-dismiss timer. */
+.assistant-error-dismiss {
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-top: -1px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--as-error) 70%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.assistant-error-dismiss:hover {
+  background: color-mix(in srgb, var(--as-error) 14%, transparent);
+  color: var(--as-error);
+}
+
+/* Transient notice (e.g. web search failed, answering anyway). */
+.assistant-notice {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--as-muted);
+  padding: 0 2px;
+  animation: as-bubble-in 0.18s ease-out;
+}
+
+.assistant-message-content {
+  min-width: 0;
+  white-space: pre-wrap;
+  /* Break anywhere as a last resort so a long URL, hash, or unbroken token
+   * can never overflow the panel edge (word-break kept as an older-engine
+   * fallback for the same intent). */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.assistant-message.assistant .assistant-message-content {
+  white-space: normal;
+}
+
+.assistant-message-content > :first-child {
+  margin-top: 0;
+}
+
+.assistant-message-content > :last-child {
+  margin-bottom: 0;
+}
+
+/* Markdown typography, shared by the thread bubbles and the ask card.
+ *
+ * The ask card used to have none of this. It renders `react-markdown` straight
+ * into `.ask-answer-body` with no wrapper class, so its answers fell back to the
+ * user-agent stylesheet: 1em paragraph margins, a 40px list indent, unstyled
+ * code and links. That is the surface the hotkey actually opens — the one people
+ * read most — and it was the less legible of the two. Adding it here rather than
+ * duplicating the rules is deliberate: one place to change, and the two surfaces
+ * cannot drift. */
+.assistant-message-content p,
+.ask-answer-body p {
+  margin: 0 0 8px;
+}
+
+.assistant-message-content ul,
+.assistant-message-content ol,
+.ask-answer-body ul,
+.ask-answer-body ol {
+  margin: 4px 0 8px;
+  padding-inline-start: 20px;
+}
+
+.assistant-message-content li,
+.ask-answer-body li {
+  margin: 3px 0;
+}
+
+.assistant-message-content h1,
+.assistant-message-content h2,
+.assistant-message-content h3,
+.assistant-message-content h4,
+.ask-answer-body h1,
+.ask-answer-body h2,
+.ask-answer-body h3,
+.ask-answer-body h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--as-ink);
+  margin: 11px 0 6px;
+}
+
+/* Emphasis steps up to the brightest ink instead of the paragraph doing it, so
+   a bolded label still pops off body copy that is deliberately one step down. */
+.assistant-message-content strong,
+.ask-answer-body strong {
+  font-weight: 600;
+  color: var(--as-ink);
+}
+
+.assistant-message-content code,
+.ask-answer-body code {
+  font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--as-inset-bg);
+  border: 1px solid var(--as-hairline);
+  border-radius: 5px;
+  padding: 1px 5px;
+  /* Wrap a long inline-code token (e.g. a long path/hash in backticks). Inside
+   * a <pre> block white-space:pre disables wrapping, so code blocks keep their
+   * single-line layout and scroll horizontally via `pre { overflow-x: auto }`. */
+  overflow-wrap: anywhere;
+}
+
+.assistant-message-content pre,
+.ask-answer-body pre {
+  background: var(--as-inset-bg);
+  border: 1px solid var(--as-hairline);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 6px 0 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.assistant-message-content pre code,
+.ask-answer-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.assistant-message-content blockquote,
+.ask-answer-body blockquote {
+  margin: 6px 0 8px;
+  padding: 2px 0 2px 11px;
+  border-inline-start: 2px solid var(--as-hairline-strong);
+  color: var(--as-muted);
+}
+
+.assistant-message-content a,
+.ask-answer-body a {
+  color: var(--as-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--as-hairline-strong);
+}
+
+.assistant-message-content table,
+.ask-answer-body table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  margin: 6px 0 8px;
+  font-size: 0.95em;
+}
+
+.assistant-message-content th,
+.assistant-message-content td,
+.ask-answer-body th,
+.ask-answer-body td {
+  border: 1px solid var(--as-hairline);
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.assistant-message-content th,
+.ask-answer-body th {
+  background: var(--as-inset-bg);
+  font-weight: 600;
+}
+
+/* Per-code-block copy: quiet button in the block's top corner on hover. */
+.code-block {
+  position: relative;
+}
+
+.code-copy {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--as-hairline);
+  border-radius: 6px;
+  background: var(--as-panel-surface);
+  color: var(--as-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.code-block:hover .code-copy {
+  opacity: 1;
+}
+
+.code-copy:hover {
+  color: var(--as-ink);
+}
+
+/* Regenerate on the latest answer — a quiet icon that only shows itself when
+ * the pointer is on the message. */
+.assistant-last-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.assistant-message:hover .assistant-last-actions,
+.assistant-last-actions:focus-within {
+  opacity: 1;
+}
+
+.assistant-last-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--as-hairline);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--as-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.assistant-last-actions button:hover {
+  background: var(--as-raise);
+  color: var(--as-ink);
+}
+
+.screen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 7px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--as-muted);
+  background: var(--as-inset-bg);
+  border: 1px solid var(--as-hairline);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* Inline preview thumbnails of the image(s) sent with a message. */
+.msg-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.msg-thumb {
+  position: relative;
+  width: 64px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--as-hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--as-inset-bg);
+  cursor: zoom-in;
+  transition:
+    border-color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.msg-thumb:hover,
+.msg-thumb:focus-visible {
+  border-color: var(--as-accent, var(--as-muted));
+  transform: translateY(-1px);
+  outline: none;
+}
+
+/* A little press feedback when you click to pop the preview. */
+.msg-thumb:active {
+  transform: scale(0.95);
+}
+
+.msg-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.msg-thumb-badge {
+  position: absolute;
+  bottom: 2px;
+  inset-inline-end: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+}
+
+/* Invisible click-catcher behind the popped preview so a click anywhere
+   dismisses it. */
+.msg-thumb-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+}
+
+/* Enlarged preview popped on click — fixed to the viewport so the scrolling
+   message list can't clip it. Positioned by the component; `.above` anchors its
+   bottom edge to the thumbnail (grows upward). */
+.msg-thumb-preview {
+  position: fixed;
+  z-index: 50;
+  max-width: 320px;
+  padding: 4px;
+  border: 1px solid var(--as-hairline);
+  border-radius: 10px;
+  background: var(--as-panel-surface);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  cursor: zoom-out;
+}
+
+.msg-thumb-preview.above {
+  transform: translateY(-100%);
+}
+
+.msg-thumb-preview-img {
+  display: block;
+  max-width: 312px;
+  max-height: 58vh;
+  border-radius: 7px;
+  /* Pop in from the thumbnail. The outer element owns any translate (above),
+     so the scale lives here to avoid clobbering it. */
+  transform-origin: center bottom;
+  animation: msg-thumb-pop 0.14s ease-out;
+}
+
+.msg-thumb-preview:not(.above) .msg-thumb-preview-img {
+  transform-origin: center top;
+}
+
+@keyframes msg-thumb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bubble-copy {
+  position: absolute;
+  top: 0;
+  inset-inline-end: -30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--as-hairline);
+  border-radius: 7px;
+  background: var(--as-panel-surface);
+  color: var(--as-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Insert sits directly beneath Copy in the same gutter. Both are hover-revealed:
+   they're per-answer actions, so showing them permanently on every message in a
+   long thread is just visual noise. */
+.bubble-insert {
+  position: absolute;
+  top: 28px;
+  inset-inline-end: -30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--as-hairline);
+  border-radius: 7px;
+  background: var(--as-panel-surface);
+  color: var(--as-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.assistant-message:hover .bubble-copy,
+.assistant-message:hover .bubble-insert {
+  opacity: 1;
+}
+
+/* Keyboard users never hover, so the actions have to surface on focus too or
+   they are unreachable without a mouse. */
+.bubble-copy:focus-visible,
+.bubble-insert:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--as-accent, currentColor);
+  outline-offset: 1px;
+}
+
+.bubble-copy:hover,
+.bubble-insert:hover {
+  color: var(--as-ink);
+  background: var(--as-raise);
+}
+
+/* =========================================================================
+ * The quick ask — one surface in three shapes
+ *
+ * The window is a fixed, transparent frame placed at the dock zone the user
+ * chose (see `ask_placement` in assistant.rs), and it does not change size while
+ * an ask runs. The surface inside it is one element that is a pill while it
+ * waits, a bar while you type, and a card once there is something to read; it
+ * widens and unfolds in place rather than being swapped for another element.
+ * `hitRegion.ts` measures it so the empty part of the frame passes clicks
+ * through.
+ * ========================================================================= */
+
+/* The frame: empty space, pinned to whichever edge of the screen the surface is
+   docked to, so the pill lands there and the card grows away from it. */
+.qa-frame {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.qa-frame[data-align="bottom"] {
+  justify-content: flex-end;
+}
+
+.qa-frame[data-justify="start"] {
+  align-items: flex-start;
+}
+
+.qa-frame[data-justify="end"] {
+  align-items: flex-end;
+}
+
+.qa-surface {
+  /* Lets `width` animate between the pill's fit-content and the card's 100%. A
+     runtime without it simply snaps, which is still correct. */
+  interpolate-size: allow-keywords;
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--as-ink);
+  background: var(--as-surface);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--as-hairline);
+  border-radius: 18px;
+  box-shadow: var(--as-inner);
+  transform-origin: top center;
+  animation: qa-arrive 180ms var(--as-ease) both;
+  transition:
+    width 260ms var(--as-ease),
+    border-radius 260ms var(--as-ease),
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.qa-frame[data-align="bottom"] .qa-surface {
+  transform-origin: bottom center;
+  --qa-arrive-y: 6px;
+}
+
+/* Waiting: the call's status bubble, to the pixel — chip surface, faint
+   hairline that firms up under the pointer, 13px muted words. */
+.qa-surface[data-shape="pill"] {
+  background: var(--as-chip-surface);
+}
+
+.qa-surface[data-shape="pill"]:hover {
+  border-color: var(--as-hairline-strong);
+}
+
+/* Typing: the call's text bar. A one-line question does not need the width of
+   the answer card, so the bar stays a bar. */
+.qa-surface[data-shape="bar"] {
+  width: min(100%, 460px);
+  border-radius: 22px;
+  border-color: var(--as-hairline-strong);
+}
+
+.qa-surface[data-shape="card"] {
+  width: 100%;
+}
+
+/* A failure wears the call's error bubble: a faint red tint, not a badge. */
+.qa-surface[data-phase="error"] {
+  background: var(--as-error-surface);
+  border-color: var(--as-error-line);
+}
+
+@keyframes qa-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--qa-arrive-y, -4px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The one row every shape has: what is going on, and the way out. */
+.qa-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 6px 0 14px;
+  box-sizing: border-box;
+}
+
+.qa-surface[data-shape="bar"] .qa-row {
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 6px 0 16px;
+}
+
+.qa-surface[data-shape="card"] .qa-row {
+  min-height: 44px;
+  padding: 8px 8px 4px 16px;
+}
+
+/* ---------- Pill contents ---------- */
+
+/* The indicator is `.call-level` / `.call-spin` from CallBar.css. */
+.qa-row > .call-spin {
+  color: var(--as-muted);
+}
+
+.qa-status {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--as-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* What the answer was about, on the card only. The thread's `.screen-chip`. */
+.qa-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--as-hairline);
+  border-radius: 999px;
+  background: var(--as-inset-bg);
+  color: var(--as-muted);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ---------- Bar contents ---------- */
+
+.qa-input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--as-ink);
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.005em;
+}
+
+.qa-input::placeholder {
+  color: var(--as-placeholder);
+}
+
+/* ---------- Buttons ---------- */
+
+/* Round and borderless, like `.call-icon`. */
+.qa-icon-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--as-muted);
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.qa-icon-btn:hover {
+  background: var(--as-raise);
+  color: var(--as-ink);
+}
+
+.qa-icon-btn:active {
+  transform: scale(0.93);
+}
+
+/* The way out. Quiet in the pill — the call bubble's dismiss — so the words,
+   not the ×, are what the eye lands on. */
+.qa-close {
+  width: 28px;
+  height: 28px;
+  color: var(--as-faint);
+}
+
+.qa-surface[data-shape="pill"] .qa-close {
+  width: 22px;
+  height: 22px;
+}
+
+.qa-surface[data-phase="error"] .qa-close {
+  align-self: flex-start;
+}
+
+.qa-send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--as-ink);
+  color: #111415;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.qa-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.qa-send:disabled {
+  background: var(--as-raise-strong);
+  color: var(--as-faint);
+  cursor: default;
+}
+
+.qa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--as-hairline-strong);
+  border-radius: 9px;
+  background: var(--as-raise);
+  color: var(--as-body);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.qa-btn:hover {
+  background: var(--as-raise-strong);
+  color: var(--as-ink);
+}
+
+.qa-btn:active {
+  transform: scale(0.98);
+}
+
+/* The one action that writes back into the user's app: ink-filled, like the
+   call's send button. */
+.qa-btn.primary {
+  border-color: transparent;
+  background: var(--as-ink);
+  color: #111415;
+}
+
+.qa-btn.primary:hover {
+  background: #ffffff;
+  color: #111415;
+}
+
+.qa-surface :focus-visible {
+  outline: 2px solid var(--as-ink);
+  outline-offset: 2px;
+}
+
+.qa-input:focus-visible {
+  outline: none;
+}
+
+/* ---------- Card contents ---------- */
+
+/* What was asked: context for the answer, so one quiet line. An error takes
+   its place and may wrap, because it is the content. */
+.qa-question {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--as-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qa-surface[data-phase="error"] .qa-question {
+  padding-block: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--as-error);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.qa-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  animation: qa-unfold 240ms var(--as-ease) both;
+}
+
+@keyframes qa-unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.qa-answer.ask-answer-body {
+  padding: 4px 18px 10px;
+  /* Left-aligned with the row above rather than centred: in a wide banner a
+     centred column floats away from the question it answers. */
+  margin-inline: 0;
+}
+
+/* Keep the line breaks the model wrote. A quick ask is often a draft — an
+   email, a reply — and markdown's soft breaks would fold "Best,\nSam" into one
+   line on screen while Insert pastes it correctly. */
+.qa-answer p,
+.qa-answer li {
+  white-space: pre-line;
+}
+
+/* A caret at the end of the text while it is still being written, so a pause
+   between tokens reads as "still writing" rather than "finished". */
+.qa-surface[data-phase="answering"] .qa-answer > :last-child::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1.05em;
+  margin-inline-start: 3px;
+  vertical-align: -0.16em;
+  border-radius: 2px;
+  background: var(--as-body);
+  animation: qa-caret 1s steps(2, jump-none) infinite;
+}
+
+@keyframes qa-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.qa-notice {
+  margin: 0;
+  padding: 0 18px 8px;
+  font-size: 11.5px;
+  color: var(--as-muted);
+}
+
+.qa-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--as-hairline);
+}
+
+.qa-actions-gap {
+  flex: 1;
+}
+
+/* =========================================================================
+ * The static answer card — the reminder popup's card
+ *
+ * The reminder renders these classes directly, and the quick ask's answer body
+ * shares `.ask-answer-body`, so a reminder is the assistant's card rather than a
+ * look-alike that drifts from it.
+ * ========================================================================= */
+
+.ask-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--as-surface);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid var(--as-hairline-strong);
+  box-shadow: var(--as-inner);
+}
+
+.ask-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 8px 4px 16px;
+  cursor: grab;
+}
+
+.ask-head-icon {
+  flex-shrink: 0;
+  color: var(--as-accent);
+}
+
+.ask-question-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--as-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ask-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.ask-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--as-muted);
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
+}
+
+.ask-action:hover {
+  color: var(--as-ink);
+  background: var(--as-raise-strong);
+}
+
+.ask-action.labelled {
+  width: auto;
+  gap: 5px;
+  padding: 0 11px 0 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  color: var(--as-body);
+  background: var(--as-raise);
+  border: 1px solid var(--as-hairline-strong);
+}
+
+.ask-action.labelled:hover {
+  background: var(--as-raise-strong);
+  color: var(--as-ink);
+}
+
+.ask-action:focus-visible {
+  outline: 2px solid var(--as-accent);
+  outline-offset: 1px;
+}
+
+.ask-answer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 16px 12px;
+  font-size: var(--as-msg-font, 14.5px);
+  line-height: 1.65;
+  /* One step below the brightest ink: near-white on near-black blooms on an
+     LCD, and emphasis and headings step up to --as-ink instead. */
+  color: var(--as-body);
+  /* `anywhere` would split ordinary words mid-glyph; `break-word` only breaks a
+     token that genuinely cannot fit, which is all a URL needs. */
+  overflow-wrap: break-word;
+  /* So an answer that grows past the card does not re-wrap the moment its
+     scrollbar appears. */
+  scrollbar-gutter: stable;
+  /* Cap the measure at a readable line length, centred in a wide card. */
+  width: 100%;
+  max-width: calc(68ch + 36px);
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+.ask-answer-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ask-answer-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ask-answer-body::-webkit-scrollbar-thumb {
+  border: none;
+  border-radius: 4px;
+  background: var(--as-hairline-strong);
+}
+
+.ask-answer-body > :first-child {
+  margin-block-start: 0;
+}
+
+.ask-answer-body > :last-child {
+  margin-block-end: 0;
+}
+
+.as-spin {
+  animation: qa-spin 1s linear infinite;
+}
+
+@keyframes qa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* ---------- Tool chip ---------- */
+
+/* What the turn is doing right now: the tool and, for a search, its query.
+   Sits above the typing dots so the wait has a reason attached to it. */
+.assistant-tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 100%;
+  margin: 2px 0;
+  padding: 4px 9px;
+  border: 1px solid var(--as-hairline);
+  border-radius: 999px;
+  background: var(--as-raise);
+  color: var(--as-muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.assistant-tool-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-tool-elapsed {
+  flex-shrink: 0;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Typing dots ---------- */
+
+.assistant-message.typing {
+  display: flex;
+  gap: 4px;
+  padding: 8px 2px;
+}
+
+.typing-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--as-muted);
+  animation: as-typing 1.2s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes as-typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* ---------- Settings preview ----------
+ * The real quick-ask surface, rendered with sample content on a small
+ * faux-desktop so lowering the opacity reads as frosted glass over a wallpaper,
+ * as it does over the real desktop. */
+
+.assistant-preview {
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 18px;
+  background: radial-gradient(
+    130% 130% at 15% 12%,
+    #34444a 0%,
+    #222c30 48%,
+    #14191b 100%
+  );
+}
+
+/* The floating-panel preview on the Assistant page uses the same wallpaper. */
+.assistant-desktop {
+  background: radial-gradient(
+    130% 130% at 15% 12%,
+    #34444a 0%,
+    #222c30 48%,
+    #14191b 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* The two shapes in the order they happen: the pill a question opens in, and
+   the card the answer unfolds into. Inert — it is a picture of the surface. */
+.assistant-preview-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.assistant-preview-stack .qa-surface {
+  animation: none;
+  /* No live backdrop blur in the preview: nothing moves behind it, so blurring
+     the static gradient would only cost paint. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.assistant-preview-stack .ask-answer-body {
+  overflow-y: hidden;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-surface,
+  .qa-body,
+  .assistant-message,
+  .assistant-notice {
+    animation: none;
+    transition: none;
+  }
+
+  .as-spin,
+  .typing-dot {
+    animation: none;
+  }
+
+  .qa-surface[data-phase="answering"] .qa-answer > :last-child::after {
+    animation: none;
+  }
+}

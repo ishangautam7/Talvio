@@ -1,0 +1,422 @@
+pub mod assistant;
+pub mod audio;
+pub mod autolearn;
+pub mod history;
+pub mod local_llm;
+pub mod meetings;
+pub mod memory;
+pub mod models;
+pub mod stt_cloud;
+pub mod transcription;
+
+use crate::settings::{get_settings, write_settings, AppSettings, LogLevel};
+use crate::settings_file::{SettingsNotice, SettingsNoticeKind};
+use crate::utils::cancel_current_operation;
+use tauri::{AppHandle, Manager};
+use tauri_plugin_opener::OpenerExt;
+
+#[tauri::command]
+#[specta::specta]
+pub fn cancel_operation(app: AppHandle) {
+    cancel_current_operation(&app);
+}
+
+/// What the user has to know about the settings file: settings restored from
+/// the backup, settings that could not be recovered, or changes that are not
+/// being saved. The file is read before any window listens, so the main window
+/// asks once when it mounts; later notices arrive as `settings-notices`.
+#[tauri::command]
+#[specta::specta]
+pub fn get_settings_notices(app: AppHandle) -> Vec<SettingsNotice> {
+    crate::settings::settings_file(&app).notices()
+}
+
+/// The user closed a settings notice, so reloading the window does not show it
+/// again.
+#[tauri::command]
+#[specta::specta]
+pub fn dismiss_settings_notice(app: AppHandle, kind: SettingsNoticeKind) {
+    crate::settings::settings_file(&app).dismiss_notice(kind);
+}
+
+/// Copy from the non-activating overlay and acknowledge the actual OS write.
+#[tauri::command]
+#[specta::specta]
+pub fn copy_overlay_transcript(app: AppHandle, text: String) -> Result<(), String> {
+    if text.trim().is_empty() {
+        return Ok(());
+    }
+    crate::clipboard::write_clipboard_text(&app, &text)
+}
+
+/// The recording pill's Undo / Try again. `epoch` is the overlay lifetime the
+/// pill was shown in (from its `show-overlay` event), so a click on a pill that
+/// has since been replaced cannot act on another dictation. Returns whether
+/// there was still something to recover; when there was not, the stale pill is
+/// taken down.
+#[tauri::command]
+#[specta::specta]
+pub fn recover_dictation(app: AppHandle, epoch: u64) -> bool {
+    match crate::dictation_recovery::take(epoch) {
+        Some(offer) => {
+            crate::actions::start_recovery(&app, offer);
+            true
+        }
+        None => {
+            crate::utils::dismiss_recovery_overlay(&app, epoch);
+            false
+        }
+    }
+}
+
+/// Finish the current recording right now and run the normal transcribe /
+/// assistant pipeline on it. This is the "done" tick on the recording overlay
+/// and the finish button on the assistant panel — the keyboard-free way to end
+/// a hands-free (tap-to-lock or toggle) recording. Unlike `cancel_operation`,
+/// the captured audio is kept and transcribed. No-op when nothing is recording.
+#[tauri::command]
+#[specta::specta]
+pub fn commit_recording(app: AppHandle) {
+    if let Some(coordinator) = app.try_state::<crate::TranscriptionCoordinator>() {
+        coordinator.notify_commit();
+    }
+}
+
+/// Start/stop a plain dictation recording programmatically, for in-app
+/// "dictate into this field" mic buttons (e.g. the Create-with-AI persona
+/// description box). Hands-free toggle like the assistant pill mic: the first
+/// call starts recording, the second stops it. Because this recording uses the
+/// `"in-app"` source, its transcript is delivered to the webview via the
+/// `dictation-transcript` event (the field listens for it) instead of being
+/// pasted into the focused OS window — reliable and clipboard-free. No-op if the
+/// coordinator isn't ready yet.
+#[tauri::command]
+#[specta::specta]
+pub fn toggle_dictation(app: AppHandle) -> Result<(), String> {
+    let coordinator = app
+        .try_state::<crate::TranscriptionCoordinator>()
+        .ok_or_else(|| "Coordinator not initialized".to_string())?;
+    coordinator.send_input(
+        "transcribe",
+        "in-app",
+        true,
+        crate::transcription_coordinator::RecordingMode::Lock,
+    );
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn is_portable() -> bool {
+    crate::portable::is_portable()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_app_dir_path(app: AppHandle) -> Result<String, String> {
+    let app_data_dir = crate::portable::app_data_dir(&app)
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    Ok(app_data_dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_app_settings(app: AppHandle) -> Result<AppSettings, String> {
+    Ok(get_settings(&app))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_default_settings() -> Result<AppSettings, String> {
+    Ok(crate::settings::get_default_settings())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_log_dir_path(app: AppHandle) -> Result<String, String> {
+    let log_dir = crate::portable::app_log_dir(&app)
+        .map_err(|e| format!("Failed to get log directory: {}", e))?;
+
+    Ok(log_dir.to_string_lossy().to_string())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn set_log_level(app: AppHandle, level: LogLevel) -> Result<(), String> {
+    let tauri_log_level: tauri_plugin_log::LogLevel = level.into();
+    let log_level: log::Level = tauri_log_level.into();
+    // Update the file log level atomic so the filter picks up the new level
+    crate::FILE_LOG_LEVEL.store(
+        log_level.to_level_filter() as u8,
+        std::sync::atomic::Ordering::Relaxed,
+    );
+
+    let mut settings = get_settings(&app);
+    settings.log_level = level;
+    write_settings(&app, settings);
+
+    Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn open_recordings_folder(app: AppHandle) -> Result<(), String> {
+    let app_data_dir = crate::portable::app_data_dir(&app)
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let recordings_dir = app_data_dir.join("recordings");
+
+    let path = recordings_dir.to_string_lossy().as_ref().to_string();
+    app.opener()
+        .open_path(path, None::<String>)
+        .map_err(|e| format!("Failed to open recordings folder: {}", e))?;
+
+    Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn open_log_dir(app: AppHandle) -> Result<(), String> {
+    let log_dir = crate::portable::app_log_dir(&app)
+        .map_err(|e| format!("Failed to get log directory: {}", e))?;
+
+    let path = log_dir.to_string_lossy().as_ref().to_string();
+    app.opener()
+        .open_path(path, None::<String>)
+        .map_err(|e| format!("Failed to open log directory: {}", e))?;
+
+    Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn open_app_data_dir(app: AppHandle) -> Result<(), String> {
+    let app_data_dir = crate::portable::app_data_dir(&app)
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let path = app_data_dir.to_string_lossy().as_ref().to_string();
+    app.opener()
+        .open_path(path, None::<String>)
+        .map_err(|e| format!("Failed to open app data directory: {}", e))?;
+
+    Ok(())
+}
+
+/// Check if Apple Intelligence is available on this device.
+/// Called by the frontend when the user selects Apple Intelligence provider.
+#[specta::specta]
+#[tauri::command]
+pub fn check_apple_intelligence_available() -> bool {
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    {
+        crate::apple_intelligence::check_apple_intelligence_availability()
+    }
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+    {
+        false
+    }
+}
+
+/// Try to initialize Enigo (keyboard/mouse simulation).
+/// On macOS, this will return an error if accessibility permissions are not granted.
+#[specta::specta]
+#[tauri::command]
+pub fn initialize_enigo(app: AppHandle) -> Result<(), String> {
+    use crate::input::EnigoState;
+
+    // Check if already initialized
+    if app.try_state::<EnigoState>().is_some() {
+        log::debug!("Enigo already initialized");
+        return Ok(());
+    }
+
+    // Try to initialize
+    match EnigoState::new() {
+        Ok(enigo_state) => {
+            app.manage(enigo_state);
+            log::info!("Enigo initialized successfully after permission grant");
+            Ok(())
+        }
+        Err(e) => {
+            if cfg!(target_os = "macos") {
+                log::warn!(
+                    "Failed to initialize Enigo: {} (accessibility permissions may not be granted)",
+                    e
+                );
+            } else {
+                log::warn!("Failed to initialize Enigo: {}", e);
+            }
+            Err(format!("Failed to initialize input system: {}", e))
+        }
+    }
+}
+
+/// Marker state to track if shortcuts have been initialized.
+pub struct ShortcutsInitialized;
+
+/// Initialize keyboard shortcuts.
+/// On macOS, this should be called after accessibility permissions are granted.
+/// This is idempotent - calling it multiple times is safe.
+#[specta::specta]
+#[tauri::command]
+pub fn initialize_shortcuts(app: AppHandle) -> Result<(), String> {
+    // Check if already initialized
+    if app.try_state::<ShortcutsInitialized>().is_some() {
+        log::debug!("Shortcuts already initialized");
+        return Ok(());
+    }
+
+    // Initialize shortcuts
+    crate::shortcut::init_shortcuts(&app);
+
+    // Mark as initialized
+    app.manage(ShortcutsInitialized);
+
+    log::info!("Shortcuts initialized successfully");
+    Ok(())
+}
+
+/// Remove this app's own entry for one TCC service so macOS will ask again.
+///
+/// TCC stores a grant together with the code signature it was given to. A build
+/// without a stable signing identity has a different signature every release, so
+/// after an update System Settings still lists Zynveliq as switched on (that
+/// row is keyed by bundle identifier) while the OS answers no for the new
+/// binary. Requesting access again shows nothing, because an entry already
+/// exists; removing it is what lets the next request add a fresh one. The same
+/// reset is the only way back from an earlier "Don't Allow" for the microphone,
+/// which macOS otherwise never asks about again.
+///
+/// Scoped to our own identifier, taken from the app config: `tccutil reset
+/// <service>` without one would revoke every app's access on the machine.
+/// No `sudo` — without it the reset applies to the current user's decisions.
+#[cfg(target_os = "macos")]
+fn reset_macos_tcc_service(app: &AppHandle, service: &str) -> Result<(), String> {
+    let identifier = app.config().identifier.clone();
+    if identifier.trim().is_empty() {
+        return Err("The app has no bundle identifier to reset".to_string());
+    }
+    let output = std::process::Command::new("/usr/bin/tccutil")
+        .args(["reset", service, identifier.as_str()])
+        .output()
+        .map_err(|e| format!("Could not run tccutil: {}", e))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::warn!(
+            "tccutil reset {} {} failed ({}): {}",
+            service,
+            identifier,
+            output.status,
+            stderr.trim()
+        );
+        return Err(format!(
+            "tccutil could not reset {} for {}: {}",
+            service,
+            identifier,
+            stderr.trim()
+        ));
+    }
+    log::info!("Reset the {} permission for {}", service, identifier);
+    Ok(())
+}
+
+/// Open System Settings at one Privacy & Security pane, e.g. `Privacy_Microphone`.
+///
+/// `open` hands the URL to LaunchServices and exits, so waiting is brief and
+/// leaves no child process behind.
+#[cfg(target_os = "macos")]
+pub(crate) fn open_macos_privacy_pane(pane: &str) -> Result<(), String> {
+    let url = format!("x-apple.systempreferences:com.apple.preference.security?{pane}");
+    let status = std::process::Command::new("/usr/bin/open")
+        .arg(&url)
+        .status()
+        .map_err(|e| format!("Could not open System Settings ({pane}): {e}"))?;
+    if !status.success() {
+        return Err(format!("Could not open System Settings ({pane}): {status}"));
+    }
+    Ok(())
+}
+
+/// Remove this app's own Accessibility entry so macOS will ask again (issue #34).
+/// See [`reset_macos_tcc_service`].
+#[specta::specta]
+#[tauri::command]
+pub fn reset_macos_accessibility_permission(app: AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        reset_macos_tcc_service(&app, "Accessibility")
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        Err("Resetting the Accessibility permission is only supported on macOS".to_string())
+    }
+}
+
+/// Remove this app's own Microphone entry so the next request prompts again.
+///
+/// After one "Don't Allow", `requestAccessForMediaType` returns immediately and
+/// shows nothing, forever. Without this the permission step could only wait.
+#[specta::specta]
+#[tauri::command]
+pub fn reset_macos_microphone_permission(app: AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        reset_macos_tcc_service(&app, "Microphone")
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        Err("Resetting the Microphone permission is only supported on macOS".to_string())
+    }
+}
+
+/// Remove this app's own Screen Recording entry, for the same stale-signature
+/// case as Accessibility: the switch reads on, captures contain only the
+/// wallpaper, and requesting again shows nothing.
+#[specta::specta]
+#[tauri::command]
+pub fn reset_macos_screen_recording_permission(app: AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        reset_macos_tcc_service(&app, "ScreenCapture")
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        Err("Resetting the Screen Recording permission is only supported on macOS".to_string())
+    }
+}
+
+/// Open System Settings at Privacy & Security → Accessibility.
+#[specta::specta]
+#[tauri::command]
+pub fn open_macos_accessibility_settings() -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        open_macos_privacy_pane("Privacy_Accessibility")
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Err("Opening Accessibility settings is only supported on macOS".to_string())
+    }
+}
+
+/// Open System Settings at Privacy & Security → Screen Recording.
+///
+/// `CGRequestScreenCaptureAccess` only prompts the first time; after a denial, or
+/// for a grant an update made stale, it does nothing, so the settings pane is the
+/// only place the user can act.
+#[specta::specta]
+#[tauri::command]
+pub fn open_macos_screen_recording_settings() -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        open_macos_privacy_pane("Privacy_ScreenCapture")
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Err("Opening Screen Recording settings is only supported on macOS".to_string())
+    }
+}

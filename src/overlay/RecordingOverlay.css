@@ -1,0 +1,974 @@
+/* ── Recording overlay ──────────────────────────────────────────────────────
+ * Monochrome on purpose: a near-black card, soft white text, and greys for
+ * everything that only reports state. The overlay floats over whatever app is
+ * underneath, and any hue it carries clashes with some of them — the earlier
+ * warm brown read as muddy and its amber accents as a rendering fault.
+ *
+ * The text is deliberately not white. Near-white on near-black is ~16:1, and
+ * past about 12:1 light glyphs bloom on an LCD, so a paragraph reads as harsh
+ * rather than crisp. #d4d4d8 on this surface is ~11.5:1: far above any
+ * legibility threshold, and comfortable to read for the length of a dictation.
+ * The captions step down to Apple's secondary grey (5.2:1), which is still AA
+ * for small text. */
+@property --ov-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --ov-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+/* How much of the hands-free ring is drawn, from the top centre down each
+   side: 180deg is all of it. */
+@property --ov-ring-sweep {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 180deg;
+}
+
+.overlay-root {
+  --ov-surface: rgba(28, 28, 30, 0.97);
+  --ov-edge: rgba(255, 255, 255, 0.08);
+  --ov-ring: rgba(255, 255, 255, 0.34);
+  --ov-text: #d4d4d8;
+  --ov-muted: #8e8e93;
+  --ov-faint: #6e6e73;
+  /* One line of transcript. The body is exactly three of these tall, so the
+     newest line is never cut in half at the top edge. */
+  --ov-line: 22px;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px;
+  box-sizing: border-box;
+  font-family:
+    "Inter Variable",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--ov-text);
+  -webkit-font-smoothing: antialiased;
+  /* The app's own Inter settings (single-storey a, open digits), so the card
+     reads as the same product as the window it came from. */
+  font-feature-settings:
+    "cv11" 1,
+    "ss01" 1;
+  /* Only the transcript itself is selectable, and only when the card can take
+     the pointer. Labels, the indicator and the button never are. */
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* ── Shared surface ─────────────────────────────────────────────────────────
+ * The window itself is transparent and shadowless, so the sense of a small
+ * object floating over the desktop is built here: a hairline edge and an inner
+ * top highlight. Entering scales up from slightly small — that little settle is
+ * most of why the chip feels like it belongs on screen. */
+.overlay-pill,
+.overlay-card {
+  box-sizing: border-box;
+  background: var(--ov-surface);
+  border: 1px solid var(--ov-edge);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 0.5px rgba(0, 0, 0, 0.45);
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transform-origin: center;
+  transition:
+    opacity 240ms ease-out,
+    transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.overlay-root.native-window-hidden > * {
+  opacity: 0;
+  transform: scale(0.9) translateY(2px);
+  pointer-events: none;
+}
+
+/* In a corner the window sits against that side of the screen, so the pill
+ * hugs the same side of the window instead of floating in its middle. Auto
+ * margins rather than flex-start/end, which follow the UI language's `dir`:
+ * the window is on the left of the screen in Arabic too. The scale-in grows
+ * out of that side for the same reason. */
+.overlay-root[data-justify="left"] > * {
+  margin-right: auto;
+  transform-origin: left center;
+}
+.overlay-root[data-justify="right"] > * {
+  margin-left: auto;
+  transform-origin: right center;
+}
+
+/* ── Compact pill (default) ─────────────────────────────────────────────────
+ * Hugs its content and sits centered in the transparent frame, so the recording
+ * → transcribing → cleanup sequence never changes size: only what moves inside
+ * it changes. The labeled states get a wider frame from the backend. */
+.overlay-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  /* Never taller than the window: if a content zoom the backend didn't size for
+     (e.g. a text-size change mid-recording) exceeds the frame, the pill shrinks
+     instead of being clipped. 6px = the root's 3px padding on each side. */
+  max-height: calc(100vh - 6px);
+  min-width: 46px;
+  max-width: 100%;
+  padding: 0 10px;
+  border-radius: 999px;
+  /* The shared surface's, plus the width a hands-free pill gains and gives
+     back (below). Width only ever moves through padding, which can ease. */
+  transition:
+    opacity 240ms ease-out,
+    transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    padding 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.pill-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+}
+.pill-wave.compact {
+  width: 40px;
+}
+/* The hands-free key's hint (`handsFreeHint.ts`) takes the waveform's slot for
+   a few seconds, so the pill neither grows nor moves: the bars fade down and
+   a keycap with a lock fades up in their place. */
+.pill-wave {
+  position: relative;
+}
+.pill-wave > :first-child {
+  transition: opacity 180ms ease-out;
+}
+.pill-wave.is-hinting > :first-child {
+  opacity: 0;
+}
+.pill-hint-key {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--ov-muted);
+  animation: ov-hint-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.pill-hint-key kbd {
+  max-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 1px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+  color: var(--ov-text);
+}
+@keyframes ov-hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.pill-label,
+.card-label {
+  font-size: 11.5px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill-label {
+  color: var(--ov-text);
+}
+/* A written state explains itself or it is noise, so it wraps to a second line
+ * instead of ellipsizing the payload away. The backend gives these states a
+ * taller frame; the pill still hugs a short label. */
+.overlay-pill.labeled {
+  gap: 8px;
+  height: auto;
+  min-height: 34px;
+  padding: 8px 13px;
+  border-radius: 18px;
+}
+.overlay-pill.labeled .pill-label {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* ── "Speech model still downloading" ───────────────────────────────────────
+ * A voice shortcut pressed before first-run setup's download has landed. It
+ * says what is happening and how far along it is, and nothing else: the same
+ * surface and greys as every other state, a thin ring for the progress, and a
+ * muted second line saying dictation will simply start working. */
+.overlay-pill.downloading {
+  gap: 10px;
+  padding-inline: 12px 15px;
+}
+.pill-ring {
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+.pill-ring circle {
+  fill: none;
+  stroke-width: 2;
+}
+.pill-ring-track {
+  stroke: rgba(255, 255, 255, 0.14);
+}
+.pill-ring-fill {
+  stroke: var(--ov-text);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 300ms ease-out;
+}
+.pill-ring.is-waiting {
+  animation: pill-ring-spin 1s linear infinite;
+}
+@keyframes pill-ring-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+  to {
+    transform: rotate(270deg);
+  }
+}
+.pill-download-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.overlay-pill.downloading .pill-label {
+  white-space: nowrap;
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+.pill-hint {
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--ov-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── "<Model> needs an update" ──────────────────────────────────────────────
+ * A voice shortcut pressed while the selected speech model is one whose engine
+ * the app no longer includes. The downloading pill's two lines, with a quiet
+ * glyph where its ring would be: nothing is in progress yet, and the main
+ * window opening behind it is where the way forward is. */
+.overlay-pill.update {
+  gap: 10px;
+  padding-inline: 12px 15px;
+}
+.overlay-pill.update .pill-label {
+  white-space: nowrap;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill-update-icon {
+  flex-shrink: 0;
+  color: var(--ov-muted);
+}
+
+/* ── Recovery pill: "Dismissed · Undo", "Transcription failed · Try again" ──
+ * Left behind for a few seconds when a dictation is cancelled or fails, so a
+ * slip of the finger costs nothing. It should read as an afterthought, not an
+ * alarm: the same surface and greys as every other state, a muted line saying
+ * what happened, and one action in the ordinary text colour. No red, no icon
+ * badge — a failure is already explained by its words.
+ *
+ * This is the one pill that takes the pointer, so the backend sizes the window
+ * to it and it fills that frame: a transparent margin would sit in front of the
+ * user's app and swallow clicks meant for it. */
+.overlay-pill.recovery {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 0 14px;
+}
+.overlay-pill.recovery.has-notice {
+  border-radius: 18px;
+  padding: 6px 6px 6px 14px;
+}
+.recovery-label {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 450;
+  color: var(--ov-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.has-notice .recovery-label {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.recovery-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ov-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+  transition:
+    background-color 140ms,
+    color 140ms;
+}
+.recovery-action:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color: #f5f5f7;
+}
+.recovery-action:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+.recovery-action:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 1px;
+}
+/* Clicked: the working state replaces the pill a moment later. */
+.recovery-action:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* ── Hands-free ─────────────────────────────────────────────────────────────
+ * A dictation that keeps listening after its keys are let go (`hands_free.rs`):
+ * every one with Tap to toggle, and with Hold to talk one turned by the
+ * hands-free key. A held dictation is the plain pill; this one
+ * says without a word that nothing has to be held: it is a little longer, and
+ * it has a ring. The ring draws itself in from the top, down both sides, at
+ * the moment the dictation turns, so the change is seen happening instead of
+ * discovered later — while the keys are still down, which is what tells the
+ * user they can let go.
+ *
+ * Nothing on it is clickable until the pointer is over it. Then the bars close
+ * up and ✕ and ✓ come in at the ends, in room the longer pill already had, so
+ * nothing moves under the pointer and the window never resizes (the stretch
+ * stays inside the compact frame). Monochrome like the rest: ✓ is the one
+ * filled thing, ✕ a quiet disc. */
+.overlay-pill.hands-free:not(.has-text) {
+  padding-inline: 17px;
+}
+.overlay-pill.hands-free::after,
+.overlay-card.hands-free::after {
+  content: "";
+  position: absolute;
+  /* Over the surface's own hairline edge, which the ring replaces. */
+  inset: -1px;
+  border: 1.5px solid var(--ov-ring);
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask-image: conic-gradient(
+    #000 var(--ov-ring-sweep),
+    transparent var(--ov-ring-sweep) calc(360deg - var(--ov-ring-sweep)),
+    #000 calc(360deg - var(--ov-ring-sweep))
+  );
+  mask-image: conic-gradient(
+    #000 var(--ov-ring-sweep),
+    transparent var(--ov-ring-sweep) calc(360deg - var(--ov-ring-sweep)),
+    #000 calc(360deg - var(--ov-ring-sweep))
+  );
+  animation: ov-ring-draw 340ms cubic-bezier(0.33, 0, 0.2, 1) both;
+}
+.overlay-card.hands-free::after {
+  border-width: 1px;
+}
+@keyframes ov-ring-draw {
+  from {
+    --ov-ring-sweep: 0deg;
+  }
+  to {
+    --ov-ring-sweep: 180deg;
+  }
+}
+
+/* The waveform keeps its natural size and the window onto it narrows, rather
+   than the bars being squeezed: squeezed, fourteen bars ran into one blob. The
+   padding grows by exactly what the window loses, so the pill's width holds. */
+.overlay-pill.hands-free .pill-wave {
+  overflow: hidden;
+  transition: width 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.overlay-pill.hands-free .pill-wave .overlay-wave {
+  flex: 0 0 54px;
+}
+.overlay-pill.has-controls:hover {
+  padding-inline: 27px;
+}
+.overlay-pill.has-controls:hover .pill-wave {
+  width: 34px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 5px,
+    #000 calc(100% - 5px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 5px,
+    #000 calc(100% - 5px),
+    transparent
+  );
+}
+.pill-control {
+  position: absolute;
+  top: 50%;
+  margin-top: -10px;
+}
+.pill-control.is-cancel {
+  inset-inline-start: 5px;
+}
+.pill-control.is-finish {
+  inset-inline-end: 5px;
+}
+.hands-free-control {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 140ms ease-out,
+    transform 200ms cubic-bezier(0.34, 1.45, 0.64, 1),
+    background-color 140ms,
+    color 140ms;
+}
+.hands-free-control.is-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ov-text);
+}
+.hands-free-control.is-finish {
+  background: var(--ov-text);
+  color: #1c1c1e;
+}
+/* A short wait, so a cursor passing over on its way somewhere else does not
+   set them off. Leaving is immediate. */
+.overlay-pill.has-controls:hover .hands-free-control,
+.overlay-card.hands-free:hover .hands-free-control {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 70ms;
+}
+.overlay-root .hands-free-control.is-cancel:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #f5f5f7;
+}
+.overlay-root .hands-free-control.is-finish:hover {
+  background: #f5f5f7;
+}
+.overlay-root .hands-free-control:active {
+  transform: scale(0.9);
+}
+.hands-free-control:disabled {
+  cursor: default;
+}
+/* In the card the two sit with Copy, top right, and take no room until the
+   pointer is on the card. */
+.card-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 0;
+  overflow: hidden;
+  transition: max-width 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.overlay-card.hands-free:hover .card-controls {
+  max-width: 48px;
+}
+.card-controls .hands-free-control {
+  width: 22px;
+  height: 22px;
+}
+
+/* ── Live transcript, compact pill ──────────────────────────────────────────
+ * A ticker: pinned to the newest words, older ones scrolling out of the far
+ * edge. `text-align: end` cannot do this — alignment stops mattering once a
+ * nowrap line overflows, and the box then shows its *start*, clipping exactly
+ * the words the user just said. Flipping the box's direction moves the clip to
+ * the other edge; the line inside keeps its own reading order. */
+.overlay-pill.has-text {
+  width: 100%;
+}
+.stream-text-box {
+  flex: 1 1 0;
+  min-width: 0;
+  direction: rtl;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 20px;
+  /* Fade the overflowing head instead of clipping it mid-glyph. */
+  mask-image: linear-gradient(to right, transparent, #000 22px);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 22px);
+}
+.stream-text-box .transcript-line {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+[dir="rtl"] .stream-text-box {
+  direction: ltr;
+  mask-image: linear-gradient(to left, transparent, #000 22px);
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 22px);
+}
+[dir="rtl"] .stream-text-box .transcript-line {
+  direction: rtl;
+}
+/* Tentative words are the same colour as committed ones. Grey tentative text
+ * made whole lines sit grey and then flash white on a realtime engine, which
+ * commits only at pauses — it read as the text changing colour at random. */
+.transcript-tentative {
+  color: inherit;
+}
+/* Words the engine just committed fade in instead of popping. Only the newest
+ * run carries the class, so settled text never moves. */
+.transcript-arriving {
+  animation: transcript-in 180ms ease-out both;
+}
+@keyframes transcript-in {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Live-transcription card (opt-in, 400×120 window) ───────────────────────
+ * Vertical budget inside the 1px border (112px): 8 top + 24 header + 2 + 66
+ * body (three 22px lines) + 12 below. */
+.overlay-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 8px 8px 0 15px;
+  border-radius: 14px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 24px;
+  height: 24px;
+  margin-bottom: 2px;
+}
+.card-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+/* The bars (listening or working) and the check all start at the same left edge
+   as the transcript under them, so a change of state never shifts the label. */
+.card-wave {
+  flex: 0 0 23px;
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+/* Holds the waveform in every state but done, so React keeps the same bars
+   from listening into working. */
+.overlay-wave {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+}
+.card-label {
+  color: var(--ov-muted);
+  animation: card-label-in 200ms ease-out both;
+}
+@keyframes card-label-in {
+  from {
+    opacity: 0;
+    transform: translateX(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+[dir="rtl"] .card-label {
+  animation-name: card-label-in-rtl;
+}
+@keyframes card-label-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+/* Copying from a window that can never take the keyboard has to say it worked
+   in words: the icon swap alone was too small to notice. */
+.card-copied {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ov-muted);
+  animation: card-copied-in 160ms ease-out both;
+}
+@keyframes card-copied-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.overlay-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ov-faint);
+  cursor: pointer;
+  transition:
+    color 140ms,
+    background-color 140ms;
+}
+.overlay-card:hover .overlay-copy {
+  color: var(--ov-muted);
+}
+.overlay-card .overlay-copy:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ov-text);
+}
+.overlay-copy:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+.overlay-copy:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 1px;
+}
+.overlay-card .overlay-copy.is-done {
+  color: var(--ov-text);
+}
+.overlay-card .overlay-copy.is-error {
+  color: #f2a7a0;
+}
+
+/* ── Leaving ───────────────────────────────────────────────────────────────
+ * One decisive movement, not a long dissolve. Most of the opacity is gone
+ * inside ~90ms and the slight shrink-and-lift gives the eye a direction to
+ * follow, so the card reads as dismissed rather than as the app being slow.
+ * The card stays clickable for the whole exit — opacity does not block
+ * hit-testing — and a pointer entering it cancels the fade and restarts the
+ * full reading window (`OverlayLifecycle::wait_for_dismissal`), which is what
+ * makes a short exit safe: the copy button is never taken away mid-reach. */
+.overlay-root.is-fading > .overlay-card,
+.overlay-root.is-fading > .overlay-pill.recovery {
+  opacity: 0;
+  transform: scale(0.965) translateY(-3px);
+  transition:
+    opacity 220ms cubic-bezier(0.3, 0, 0.2, 1),
+    transform 220ms cubic-bezier(0.3, 0, 0.2, 1);
+}
+.overlay-root:not(.is-fading) > .overlay-card {
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ── Moving to another display ─────────────────────────────────────────────
+ * The window moves in one step, while nothing is drawn: the surface fades out
+ * in 60ms (`HOP_FADE_OUT` in overlay_follow.rs), the window jumps, and the
+ * surface comes back with the same small settle it first appears with. A move
+ * that is seen reads as a glitch; one that is not reads as the overlay simply
+ * being wherever you are working. */
+.overlay-root.is-hopping > .overlay-pill,
+.overlay-root.is-hopping > .overlay-card {
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 60ms ease-in,
+    transform 60ms ease-in;
+}
+
+/* ── About to stop on silence ──────────────────────────────────────────────
+ * A tap-started dictation that has gone quiet ends by itself
+ * (`dictation_silence_stop_secs`), and for its last moments a hairline along
+ * the bottom edge runs out with the time left. Absolutely placed, so the pill
+ * neither moves nor resizes; speaking again simply takes it away. It shrinks
+ * toward the middle, so it reads the same in a right-to-left language. */
+.silence-countdown {
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.42);
+  pointer-events: none;
+  animation: silence-countdown var(--ov-countdown, 2000ms) linear forwards;
+}
+.overlay-card .silence-countdown {
+  inset-inline: 15px;
+  bottom: 4px;
+}
+@keyframes silence-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.overlay-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Transcript body ────────────────────────────────────────────────────────
+ * Exactly three lines tall, and scrolled in whole lines, so the top edge never
+ * slices a line in half — that half-line, jumping up by a full line whenever a
+ * new one wrapped, is what made the old card look sloppy. New lines glide in
+ * (`scroll-behavior`), and the edge fades rather than cuts wherever there is
+ * more text past it: above as soon as the text outgrows the card, and below
+ * only while the user holds the view somewhere other than the newest words. */
+.card-body {
+  --ov-fade-top: 0px;
+  --ov-fade-bottom: 0px;
+  flex: 0 0 auto;
+  height: calc(var(--ov-line) * 3);
+  padding-inline-end: 7px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+  /* Non-auto standard values override the WebKit rules in Chromium and bring
+     back Windows' native arrow buttons. Keep the custom thumb in control. */
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--ov-fade-top),
+    #000 calc(100% - var(--ov-fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--ov-fade-top),
+    #000 calc(100% - var(--ov-fade-bottom)),
+    transparent 100%
+  );
+  transition:
+    --ov-fade-top 180ms ease-out,
+    --ov-fade-bottom 180ms ease-out;
+}
+.card-body[data-above] {
+  --ov-fade-top: 8px;
+}
+.card-body[data-below] {
+  --ov-fade-bottom: 8px;
+}
+.card-body.is-selectable {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+/* An explicit selection colour is what makes a selection visible at all: the
+ * overlay never takes focus, and Chromium paints an unfocused window's default
+ * selection in a grey that all but vanished on this card. Neutral, like the
+ * rest of it, and bright enough to see at a glance. */
+.card-body ::selection {
+  background: rgba(255, 255, 255, 0.24);
+  color: #f5f5f7;
+}
+.card-body::-webkit-scrollbar {
+  width: 3px;
+}
+.card-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.card-body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.card-body::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: transparent;
+}
+.overlay-card:hover .card-body::-webkit-scrollbar-thumb,
+.card-body:focus-visible::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+.card-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.card-body:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.25);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .card-body {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .overlay-card:hover .card-body,
+  .card-body:focus-visible {
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  }
+}
+.card-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: var(--ov-line);
+  color: var(--ov-text);
+  /* `anywhere` split ordinary words mid-glyph; only unbreakable runs wrap. */
+  overflow-wrap: break-word;
+}
+/* The final text replaces the live one when cleanup or the engine's last pass
+ * changed it. Fading it in says "this is the finished version" instead of the
+ * words jumping in place. */
+.card-text.is-revealed {
+  animation: card-text-in 260ms ease-out both;
+}
+@keyframes card-text-in {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.card-hint {
+  color: var(--ov-muted);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Indicators ─────────────────────────────────────────────────────────────
+ * Audio time runs left to right in every locale, like a media scrubber. The
+ * shared waveform is amber by default (the assistant still uses that); here it
+ * is plain grey, because state is not where colour belongs. */
+.audio-waveform {
+  direction: ltr;
+}
+.overlay-root .audio-waveform .wave-base {
+  stop-color: #a1a1a6;
+}
+.overlay-root .audio-waveform .wave-tip {
+  stop-color: #e0e0e4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-pill,
+  .overlay-card,
+  .overlay-copy,
+  .recovery-action,
+  .overlay-root.native-window-hidden > .overlay-card,
+  .overlay-root.is-fading > .overlay-card,
+  .overlay-root.is-fading > .overlay-pill.recovery,
+  .overlay-root:not(.is-fading) > .overlay-card,
+  .overlay-root.is-hopping > .overlay-pill,
+  .overlay-root.is-hopping > .overlay-card {
+    transition: none;
+  }
+  .overlay-root.native-window-hidden > *,
+  .overlay-root.is-hopping > * {
+    transform: none;
+  }
+  .overlay-root.is-fading > .overlay-card,
+  .overlay-root.is-fading > .overlay-pill.recovery {
+    transform: none;
+  }
+  .card-body {
+    scroll-behavior: auto;
+    transition: none;
+  }
+  .transcript-arriving,
+  .card-label,
+  .card-copied,
+  .card-text.is-revealed,
+  .pill-ring.is-waiting,
+  .pill-hint-key,
+  .overlay-pill.hands-free::after,
+  .overlay-card.hands-free::after {
+    animation: none;
+  }
+  /* Still there, just not running out: its appearing is the warning. */
+  .silence-countdown {
+    animation: none;
+  }
+  .overlay-pill.hands-free .pill-wave,
+  .pill-wave > :first-child,
+  .hands-free-control,
+  .card-controls {
+    transition: none;
+  }
+  .pill-ring-fill {
+    transition: none;
+  }
+}

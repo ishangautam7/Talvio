@@ -1,0 +1,951 @@
+import { afterEach, beforeEach, expect, jest, mock, test } from "bun:test";
+import React from "react";
+import { act, create, type ReactTestRenderer } from "react-test-renderer";
+type EventHandler = (event: { payload: unknown }) => void;
+const events = new Map<string, EventHandler>();
+const calls: { command: string; args: unknown }[] = [];
+let copyResult: Promise<void> = Promise.resolve();
+let finishLanguage: () => void = () => {};
+mock.module("@tauri-apps/api/event", () => ({
+  listen: async (name: string, handler: EventHandler) => {
+    events.set(name, handler);
+    return () => events.delete(name);
+  },
+  emit: async () => {},
+}));
+mock.module("@tauri-apps/api/core", () => ({
+  invoke: (command: string, args: unknown) => {
+    calls.push({ command, args });
+    return copyResult;
+  },
+  // Module mocks leak into later test files; localVoice.ts imports this.
+  isTauri: () => false,
+}));
+mock.module("@/i18n", () => ({
+  default: { language: "en" },
+  syncLanguageFromSettings: () =>
+    new Promise<void>((resolve) => {
+      finishLanguage = resolve;
+    }),
+}));
+mock.module("react-i18next", () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+const { default: RecordingOverlay } = await import("./RecordingOverlay");
+
+type NodeMock = (element: { props: Record<string, unknown> }) => unknown;
+const plainNode: NodeMock = () => ({
+  matches: () => false,
+  scrollTop: 0,
+  scrollHeight: 0,
+});
+let renderer: ReactTestRenderer;
+const mount = async (createNodeMock: NodeMock = plainNode) => {
+  await act(async () => {
+    renderer = create(<RecordingOverlay />, { createNodeMock });
+  });
+};
+const fire = async (name: string, payload: unknown = null) => {
+  await act(async () => {
+    events.get(name)?.({ payload });
+  });
+};
+const rootClass = () =>
+  renderer.root.findByProps({ dir: "ltr" }).props.className as string;
+/** The waveform(s) on screen. */
+const waves = () =>
+  renderer.root
+    .findAllByType("svg")
+    .filter((node) =>
+      String(node.props.className ?? "").includes("audio-waveform"),
+    );
+/** What announces a finished dictation to assistive tech. */
+const doneMarks = () =>
+  renderer.root.findAllByProps({ role: "img", "aria-label": "overlay.done" });
+/** The body, whichever of its two classes it has right now. */
+const cardBody = () =>
+  renderer.root.find(
+    (node) =>
+      typeof node.type === "string" &&
+      String(node.props.className ?? "").startsWith("card-body"),
+  );
+/** The transcript exactly as drawn: every chunk, then the tentative tail. */
+const shownText = () =>
+  renderer.root
+    .findByProps({ className: "transcript-line" })
+    .findAllByType("span")
+    .map((span) =>
+      typeof span.props.children === "string" ? span.props.children : "",
+    )
+    .join("");
+const press = async () => {
+  await act(async () => {
+    cardBody().props.onPointerDown({ button: 0, clientX: 0 });
+  });
+};
+const release = async () => {
+  await act(async () => {
+    cardBody().props.onPointerUp();
+  });
+};
+/** Stand in for the webview's selection while a test runs. */
+let selected = "";
+const withSelection = async (run: () => Promise<void>) => {
+  const original = (globalThis as { window?: unknown }).window;
+  (globalThis as { window?: unknown }).window = {
+    getSelection: () => ({ toString: () => selected }),
+  };
+  try {
+    await run();
+  } finally {
+    (globalThis as { window?: unknown }).window = original;
+    selected = "";
+  }
+};
+
+beforeEach(async () => {
+  calls.length = 0;
+  copyResult = Promise.resolve();
+  events.clear();
+  await mount();
+});
+afterEach(() => {
+  act(() => renderer.unmount());
+});
+
+test("a delayed language sync cannot resurrect a hidden recording", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  await fire("hide-overlay");
+  await act(async () => {
+    finishLanguage();
+  });
+  expect(rootClass()).toContain("native-window-hidden");
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+});
+
+/** The label a `downloading` pill is showing right now. */
+const downloadLabel = () =>
+  renderer.root.findByProps({ className: "pill-label" }).props
+    .children as string;
+
+test("a still-downloading speech model follows only its own progress", async () => {
+  await fire("show-overlay", {
+    state: "downloading",
+    streamingWindow: false,
+    download: "parakeet",
+  });
+  // Nothing has arrived yet: no number is claimed.
+  expect(downloadLabel()).toBe("overlay.downloading.title");
+  expect(
+    renderer.root.findAll(
+      (node) =>
+        node.type === "svg" &&
+        String(node.props.className).includes("is-waiting"),
+    ),
+  ).toHaveLength(1);
+
+  // Another model's download is not this pill's business.
+  await fire("model-download-progress", {
+    model_id: "gemma-4-e2b",
+    percentage: 90,
+  });
+  expect(downloadLabel()).toBe("overlay.downloading.title");
+
+  await fire("model-download-progress", {
+    model_id: "parakeet",
+    percentage: 41.6,
+  });
+  expect(downloadLabel()).toBe("overlay.downloading.percent");
+  expect(
+    renderer.root.findAll(
+      (node) =>
+        node.type === "svg" &&
+        String(node.props.className).includes("is-waiting"),
+    ),
+  ).toHaveLength(0);
+  // The pill is status only: nothing on it takes a click.
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+
+  // A hide forgets the download, so a late event cannot revive a number on
+  // the next pill.
+  await fire("hide-overlay");
+  await fire("show-overlay", {
+    state: "downloading",
+    streamingWindow: false,
+    download: "parakeet",
+  });
+  expect(downloadLabel()).toBe("overlay.downloading.title");
+});
+
+test("a speech model that needs its new version says so and offers nothing to click", async () => {
+  await fire("show-overlay", {
+    state: "update",
+    streamingWindow: false,
+    modelName: "Parakeet V3",
+  });
+  const pill = renderer.root.find(
+    (node) =>
+      typeof node.type === "string" &&
+      String(node.props.className ?? "").startsWith("overlay-pill update"),
+  );
+  expect(String(pill.props.className)).toContain("labeled");
+  expect(downloadLabel()).toBe("overlay.update.title");
+  expect(
+    renderer.root.findByProps({ className: "pill-hint" }).props.children,
+  ).toBe("overlay.update.hint");
+  // Status only, and not a recording: no waveform, nothing takes a click.
+  expect(waves()).toHaveLength(0);
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+});
+
+test("a hop to another display fades out, then back in, and is never left hidden", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  await fire("overlay-hop", "out");
+  expect(rootClass()).toContain("is-hopping");
+  await fire("overlay-hop", "in");
+  expect(rootClass()).not.toContain("is-hopping");
+
+  // Interrupted by the next state: the show placed the window itself.
+  await fire("overlay-hop", "out");
+  await fire("show-overlay", { state: "transcribing", streamingWindow: false });
+  expect(rootClass()).not.toContain("is-hopping");
+
+  // Interrupted by a hide.
+  await fire("overlay-hop", "out");
+  await fire("hide-overlay");
+  expect(rootClass()).not.toContain("is-hopping");
+
+  // A hidden overlay ignores a late hop entirely.
+  await fire("overlay-hop", "out");
+  expect(rootClass()).not.toContain("is-hopping");
+});
+
+test("completion preserves the final cleaned text during fade and copies that text", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("stream-text", {
+    committed: "um old words",
+    tentative: " tentative",
+  });
+  await fire("finish-overlay", { epoch: 7, text: "The final cleaned words." });
+  await fire("fade-overlay", 7);
+  expect(rootClass()).toContain("is-fading");
+  const buttons = renderer.root.findAllByType("button");
+  expect(buttons).toHaveLength(1);
+  await act(async () => {
+    await buttons[0].props.onClick();
+  });
+  expect(calls).toEqual([
+    {
+      command: "copy_overlay_transcript",
+      args: { text: "The final cleaned words." },
+    },
+  ]);
+  expect(buttons[0].props["aria-label"]).toBe("overlay.copied");
+  // A copy from a window that never takes the keyboard says so in words.
+  expect(
+    renderer.root.findByProps({ className: "card-copied" }).props.children,
+  ).toBe("overlay.copied");
+  await fire("restore-overlay", 7);
+  expect(rootClass()).not.toContain("is-fading");
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("fade-overlay", 7);
+  expect(rootClass()).not.toContain("is-fading");
+});
+
+test("only the newly committed tail animates, and a rewrite animates nothing", async () => {
+  const arriving = () =>
+    renderer.root
+      .findAllByProps({ className: "transcript-arriving" })
+      .map((node) => node.props.children as string);
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("stream-text", { committed: "Hello there", tentative: "" });
+  expect(arriving()).toEqual(["Hello there"]);
+  await fire("stream-text", { committed: "Hello there, world", tentative: "" });
+  expect(arriving()).toEqual([", world"]);
+  // A tentative-only update must not restart the animation on settled words.
+  await fire("stream-text", {
+    committed: "Hello there, world",
+    tentative: " and",
+  });
+  expect(arriving()).toEqual([", world"]);
+  expect(shownText()).toBe("Hello there, world and");
+  // A decoder revision replaces the line; animating it would read as a glitch.
+  await fire("stream-text", {
+    committed: "Completely revised.",
+    tentative: "",
+  });
+  expect(arriving()).toEqual([]);
+  expect(shownText()).toBe("Completely revised.");
+});
+
+test("committed words are appended as new runs, never rewritten in place", async () => {
+  // Rewriting a text node collapses any selection inside it, so words already
+  // on screen must keep their node while new ones arrive.
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("stream-text", { committed: "One.", tentative: "" });
+  const first = renderer.root.findByProps({ children: "One." });
+  await fire("stream-text", { committed: "One. Two.", tentative: "" });
+  await fire("stream-text", { committed: "One. Two. Three.", tentative: "" });
+  expect(renderer.root.findByProps({ children: "One." })).toBe(first);
+  expect(shownText()).toBe("One. Two. Three.");
+});
+
+test("the live card offers copy and selection only where it takes the pointer", async () => {
+  // Click-through (an X11 window mid-recording): a button or a selectable line
+  // here would be a control the window passes straight to the app underneath.
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("stream-text", { committed: "Words so far.", tentative: "" });
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+  expect(cardBody().props.className).toBe("card-body");
+  // Where the card cannot take focus it is live from the first word, through
+  // every working state.
+  for (const state of ["recording", "transcribing", "processing"]) {
+    await fire("show-overlay", {
+      state,
+      streamingWindow: true,
+      interactive: true,
+    });
+    if (state === "recording")
+      await fire("stream-text", { committed: "Words so far.", tentative: "" });
+    expect(renderer.root.findAllByType("button")).toHaveLength(1);
+    expect(cardBody().props.className).toBe("card-body is-selectable");
+  }
+});
+
+test("failed clipboard access offers retry without claiming success", async () => {
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: true,
+    interactive: true,
+  });
+  await fire("stream-text", { committed: "Words to copy.", tentative: "" });
+  copyResult = Promise.reject(new Error("Clipboard busy"));
+  const button = renderer.root.findByType("button");
+  await act(async () => {
+    await button.props.onClick();
+  });
+  expect(button.props["aria-label"]).toBe("overlay.copyFailed");
+  copyResult = Promise.resolve();
+  await act(async () => {
+    await button.props.onClick();
+  });
+  expect(button.props["aria-label"]).toBe("overlay.copied");
+});
+
+test("transcription and cleanup fill the same bars, and the end is those bars, full", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("stream-text", {
+    committed: "Keep these words visible.",
+    tentative: "",
+  });
+  expect(renderer.root.findAllByProps({ role: "progressbar" })).toHaveLength(0);
+  // Five bars while listening, not a barcode of fourteen.
+  expect(renderer.root.findAllByType("line")).toHaveLength(5);
+  const listening = renderer.root
+    .findAllByType("svg")
+    .find((node) => node.props.className?.includes("audio-waveform"));
+  expect(listening?.props.className).toContain("reactive");
+  for (const state of ["transcribing", "processing"]) {
+    await fire("show-overlay", { state, streamingWindow: true });
+    const working = renderer.root.findByProps({ role: "progressbar" });
+    expect(working.props["aria-valuenow"]).toBeUndefined();
+    expect(working.props["aria-label"]).toBe(`overlay.${state}`);
+    // The same five bars, now in working mode — no dots, no sweeping bar.
+    const shown = waves();
+    expect(shown).toHaveLength(1);
+    expect(shown[0].props.className).toContain("working");
+    // An estimated fill, not the looping ripple.
+    expect(shown[0].props.className).toContain("progress");
+    expect(renderer.root.findAllByType("line")).toHaveLength(5);
+    expect(
+      renderer.root.findAllByProps({ className: "overlay-working-dot" }),
+    ).toHaveLength(0);
+  }
+  await fire("finish-overlay", { epoch: 9, text: "Keep these words visible." });
+  expect(renderer.root.findAllByProps({ role: "progressbar" })).toHaveLength(0);
+  // Nothing replaces the bars: they run out to a full row, which is the
+  // ending. Screen readers still hear that it is done.
+  expect(waves()).toHaveLength(1);
+  expect(waves()[0].props.className).toContain("progress");
+  expect(renderer.root.findAllByType("line")).toHaveLength(5);
+  expect(doneMarks()).toHaveLength(1);
+  // No "Done" word beside the bars either.
+  expect(
+    renderer.root.findAllByProps({ className: "card-label" }),
+  ).toHaveLength(0);
+  expect(renderer.root.findAllByType("circle")).toHaveLength(0);
+  expect(renderer.root.findByType("button")).toBeDefined();
+  // The same words as the live text: nothing to fade in.
+  expect(
+    renderer.root.findAllByProps({ className: "card-text is-revealed" }),
+  ).toHaveLength(0);
+});
+
+test("a completion straight from recording ends the same way", async () => {
+  // Streaming engines can finish without ever showing a transcribing state.
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("stream-text", { committed: "Short one.", tentative: "" });
+  await fire("finish-overlay", { epoch: 11, text: "Short one." });
+  expect(doneMarks()).toHaveLength(1);
+  expect(waves()).toHaveLength(1);
+  expect(waves()[0].props.className).toContain("progress");
+});
+
+test("a quick compact result keeps its full row through the hide; cancellation never claims completion", async () => {
+  await fire("show-overlay", { state: "transcribing", streamingWindow: false });
+  await fire("hide-overlay");
+  expect(doneMarks()).toHaveLength(0);
+  expect(renderer.root.findAllByProps({ role: "progressbar" })).toHaveLength(1);
+  await fire("show-overlay", { state: "transcribing", streamingWindow: false });
+  await fire("finish-overlay", { epoch: 10, text: "" });
+  await fire("hide-overlay");
+  expect(rootClass()).toContain("native-window-hidden");
+  expect(doneMarks()).toHaveLength(1);
+  // Still drawn while the pill fades, rather than dropping to rest.
+  expect(waves()[0].props.className).not.toContain("is-idle");
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  expect(doneMarks()).toHaveLength(0);
+  expect(renderer.root.findAllByProps({ role: "progressbar" })).toHaveLength(0);
+  expect(waves()[0].props.className).toContain("reactive");
+});
+
+test("releasing a selection copies it, but only where the card takes the pointer", async () => {
+  await withSelection(async () => {
+    await fire("show-overlay", { state: "recording", streamingWindow: true });
+    await fire("stream-text", { committed: "Still speaking.", tentative: "" });
+    // Click-through: a press never reaches the card, so nothing is copied.
+    selected = "Still";
+    await press();
+    await release();
+    expect(calls).toHaveLength(0);
+    // A finished card takes the pointer everywhere.
+    await fire("finish-overlay", { epoch: 12, text: "Pick these words out." });
+    selected = "";
+    await press();
+    await release();
+    expect(calls).toHaveLength(0);
+    selected = " these words ";
+    await press();
+    await release();
+    expect(calls).toEqual([
+      { command: "copy_overlay_transcript", args: { text: "these words" } },
+    ]);
+    expect(renderer.root.findByType("button").props["aria-label"]).toBe(
+      "overlay.copied",
+    );
+  });
+});
+
+test("a drag holds live words still, copies on release, then catches up", async () => {
+  await withSelection(async () => {
+    await fire("show-overlay", {
+      state: "recording",
+      streamingWindow: true,
+      interactive: true,
+    });
+    await fire("stream-text", { committed: "First words.", tentative: "" });
+    await press();
+    await fire("stream-text", {
+      committed: "First words. More arrived.",
+      tentative: " still",
+    });
+    // Nothing moves under the pointer mid-selection.
+    expect(shownText()).toBe("First words.");
+    selected = " First ";
+    await release();
+    expect(calls).toEqual([
+      { command: "copy_overlay_transcript", args: { text: "First" } },
+    ]);
+    expect(shownText()).toBe("First words. More arrived. still");
+  });
+});
+
+test("the final text waits for the end of a drag, then fades in once", async () => {
+  await withSelection(async () => {
+    await fire("show-overlay", {
+      state: "recording",
+      streamingWindow: true,
+      interactive: true,
+    });
+    await fire("stream-text", { committed: "um raw words", tentative: "" });
+    await press();
+    await fire("finish-overlay", { epoch: 20, text: "Clean final words." });
+    expect(shownText()).toBe("um raw words");
+    await release();
+    expect(shownText()).toBe("Clean final words.");
+    expect(
+      renderer.root.findAllByProps({ className: "card-text is-revealed" }),
+    ).toHaveLength(1);
+    // A late live update cannot paint the raw transcript back over it.
+    await fire("stream-text", {
+      committed: "um raw words late",
+      tentative: "",
+    });
+    expect(shownText()).toBe("Clean final words.");
+  });
+});
+
+test("a new recording drops a drag the last one left behind", async () => {
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: true,
+    interactive: true,
+  });
+  await fire("stream-text", { committed: "Old words.", tentative: "" });
+  await press();
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: true,
+    interactive: true,
+  });
+  await fire("stream-text", { committed: "New words.", tentative: "" });
+  expect(shownText()).toBe("New words.");
+});
+
+test("the transcript follows new lines until the user scrolls back, then resumes at the end", async () => {
+  act(() => renderer.unmount());
+  const scrolls: { top: number; behavior: string }[] = [];
+  const body = {
+    scrollTop: 0,
+    scrollHeight: 66,
+    clientHeight: 66,
+    scrollTo({ top, behavior }: { top: number; behavior: string }) {
+      scrolls.push({ top, behavior });
+      body.scrollTop = top;
+    },
+  };
+  await mount((element) =>
+    String(element.props.className ?? "").startsWith("card-body")
+      ? body
+      : { matches: () => false },
+  );
+  // What the browser reports after any scroll, programmatic or not.
+  const scrolled = async (top: number) => {
+    body.scrollTop = top;
+    await act(async () => {
+      cardBody().props.onScroll();
+    });
+  };
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: true,
+    interactive: true,
+  });
+  body.scrollHeight = 88;
+  await fire("stream-text", {
+    committed: "Four lines of words.",
+    tentative: "",
+  });
+  expect(scrolls.at(-1)).toEqual({ top: 22, behavior: "smooth" });
+  await scrolled(22);
+  // Past the top edge: that edge fades instead of cutting a line in half.
+  expect(cardBody().props["data-above"]).toBe("");
+  expect(cardBody().props["data-below"]).toBeUndefined();
+
+  // The user scrolls back to reread. New words must not yank them down.
+  await scrolled(0);
+  expect(cardBody().props["data-below"]).toBe("");
+  const heldAt = scrolls.length;
+  body.scrollHeight = 110;
+  await fire("stream-text", {
+    committed: "Four lines of words. And a fifth.",
+    tentative: "",
+  });
+  expect(scrolls).toHaveLength(heldAt);
+
+  // Back at the newest words, the card follows them again.
+  await scrolled(44);
+  expect(cardBody().props["data-below"]).toBeUndefined();
+  body.scrollHeight = 132;
+  await fire("stream-text", {
+    committed: "Four lines of words. And a fifth. And a sixth.",
+    tentative: "",
+  });
+  expect(scrolls.at(-1)).toEqual({ top: 66, behavior: "smooth" });
+
+  // The final text is already where it belongs and fades in: no glide.
+  body.scrollHeight = 44;
+  await fire("finish-overlay", { epoch: 30, text: "Two tidy lines." });
+  expect(scrolls.at(-1)).toEqual({ top: 0, behavior: "instant" });
+});
+
+/** Every text node under `node`, joined, for asserting what a pill says. */
+const textOf = (node: ReturnType<typeof renderer.root.findByType>): string =>
+  node.children
+    .map((child) => (typeof child === "string" ? child : textOf(child)))
+    .join("");
+
+test("a dismissed dictation offers Undo, which sends back the pill's own epoch once", async () => {
+  await fire("show-overlay", {
+    state: "dismissed",
+    streamingWindow: false,
+    interactive: true,
+    epoch: 12,
+  });
+  const pill = renderer.root.findByProps({ role: "group" });
+  expect(textOf(pill)).toContain("overlay.recovery.dismissed");
+  const buttons = renderer.root.findAllByType("button");
+  expect(buttons).toHaveLength(1);
+  expect(textOf(buttons[0])).toContain("overlay.recovery.undo");
+
+  await act(async () => {
+    buttons[0].props.onClick();
+  });
+  expect(calls).toEqual([
+    { command: "recover_dictation", args: { epoch: 12 } },
+  ]);
+  // A second click while the first is being answered does nothing.
+  expect(renderer.root.findByType("button").props.disabled).toBe(true);
+  await act(async () => {
+    renderer.root.findByType("button").props.onClick();
+  });
+  expect(calls).toHaveLength(1);
+
+  // The working state that follows is an ordinary pill again.
+  await fire("show-overlay", {
+    state: "transcribing",
+    streamingWindow: false,
+    epoch: 13,
+  });
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+});
+
+test("a failure explains itself and offers to try again, even with the live card on", async () => {
+  await fire("show-overlay", {
+    state: "failed",
+    // The backend never sends the card for a recovery pill; the webview
+    // must not draw one if it did.
+    streamingWindow: true,
+    interactive: true,
+    notice: "cloudSttFailed",
+    epoch: 4,
+  });
+  const pill = renderer.root.findByProps({ role: "group" });
+  expect(String(pill.props.className)).toContain("has-notice");
+  expect(String(pill.props.className)).not.toContain("overlay-card");
+  expect(textOf(pill)).toContain("overlay.notices.cloudSttFailed");
+  expect(textOf(renderer.root.findByType("button"))).toContain(
+    "overlay.recovery.retry",
+  );
+});
+
+test("the recovery pill fades with its own epoch, and a hide clears it", async () => {
+  await fire("show-overlay", {
+    state: "dismissed",
+    streamingWindow: false,
+    interactive: true,
+    epoch: 20,
+  });
+  await fire("fade-overlay", 19);
+  expect(rootClass()).not.toContain("is-fading");
+  await fire("fade-overlay", 20);
+  expect(rootClass()).toContain("is-fading");
+  await fire("restore-overlay", 20);
+  expect(rootClass()).not.toContain("is-fading");
+
+  await fire("hide-overlay");
+  expect(rootClass()).toContain("native-window-hidden");
+  // A late click on a pill that has gone must not reach the backend.
+  const buttons = renderer.root.findAllByType("button");
+  if (buttons.length > 0) {
+    await act(async () => {
+      buttons[0].props.onClick();
+    });
+  }
+  expect(calls).toHaveLength(0);
+});
+
+/** The hairline a dictation shows just before it stops on silence. */
+const countdowns = () =>
+  renderer.root.findAll(
+    (node) =>
+      typeof node.type === "string" &&
+      node.props.className === "silence-countdown",
+  );
+
+test("a dictation counts down before a silence stop, and speech calls it off", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  expect(countdowns()).toHaveLength(0);
+
+  await fire("recording-silence-countdown", 2000);
+  expect(countdowns()).toHaveLength(1);
+  expect(countdowns()[0].props.style).toEqual({ "--ov-countdown": "2000ms" });
+  expect(countdowns()[0].props["aria-hidden"]).toBe("true");
+
+  // Speech resumed.
+  await fire("recording-silence-countdown", null);
+  expect(countdowns()).toHaveLength(0);
+
+  // The live card counts down the same way.
+  await fire("show-overlay", { state: "recording", streamingWindow: true });
+  await fire("recording-silence-countdown", 1500);
+  expect(countdowns()).toHaveLength(1);
+});
+
+test("a countdown never outlives its recording", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  await fire("recording-silence-countdown", 2000);
+  expect(countdowns()).toHaveLength(1);
+
+  // The silence ran out: the recording moved on to transcription.
+  await fire("show-overlay", { state: "transcribing", streamingWindow: false });
+  expect(countdowns()).toHaveLength(0);
+  // A late countdown cannot bring it back once nothing is recording.
+  await fire("recording-silence-countdown", 1000);
+  expect(countdowns()).toHaveLength(0);
+
+  // Nor does one survive a hide into the next recording.
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  await fire("recording-silence-countdown", 2000);
+  await fire("hide-overlay");
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  expect(countdowns()).toHaveLength(0);
+});
+
+/** The surface on screen, pill or card, and whether it has a class. */
+const surface = () => renderer.root.findByProps({ role: "group" });
+const hasClass = (name: string) =>
+  String(surface().props.className).split(" ").includes(name);
+const buttonLabels = () =>
+  renderer.root
+    .findAllByType("button")
+    .map((button) => button.props["aria-label"] as string);
+const handsFreePill = {
+  state: "recording",
+  streamingWindow: false,
+  interactive: true,
+  handsFree: true,
+  epoch: 30,
+};
+
+test("a hands-free dictation wears its ring and offers cancel and finish", async () => {
+  await fire("show-overlay", handsFreePill);
+  expect(hasClass("hands-free")).toBe(true);
+  expect(hasClass("has-controls")).toBe(true);
+  expect(buttonLabels()).toEqual(["overlay.cancel", "overlay.finish"]);
+  expect(surface().props["aria-label"]).toBe("overlay.locked");
+});
+
+test("a held dictation has neither, until it turns hands-free", async () => {
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: false,
+    epoch: 31,
+  });
+  expect(hasClass("hands-free")).toBe(false);
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+
+  // The keys plus Space, or a quick tap: the window now takes the pointer.
+  await fire("recording-hands-free", { interactive: true });
+  expect(hasClass("hands-free")).toBe(true);
+  expect(buttonLabels()).toEqual(["overlay.cancel", "overlay.finish"]);
+});
+
+test("where the window cannot take the pointer, there is a ring and no buttons", async () => {
+  await fire("show-overlay", { ...handsFreePill, interactive: false });
+  expect(hasClass("hands-free")).toBe(true);
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: false,
+    epoch: 32,
+  });
+  await fire("recording-hands-free", { interactive: false });
+  expect(hasClass("hands-free")).toBe(true);
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+});
+
+test("cancel and finish each reach the backend once", async () => {
+  await fire("show-overlay", handsFreePill);
+  const [cancel] = renderer.root.findAllByType("button");
+  await act(async () => {
+    cancel.props.onClick();
+  });
+  expect(calls).toEqual([{ command: "cancel_operation", args: undefined }]);
+  // Answered by the backend replacing the recording; until then, nothing more.
+  for (const button of renderer.root.findAllByType("button")) {
+    expect(button.props.disabled).toBe(true);
+    await act(async () => {
+      button.props.onClick();
+    });
+  }
+  expect(calls).toHaveLength(1);
+
+  // The next hands-free dictation starts with both back.
+  await fire("show-overlay", { ...handsFreePill, epoch: 33 });
+  const [, finish] = renderer.root.findAllByType("button");
+  expect(finish.props.disabled).toBe(false);
+  await act(async () => {
+    finish.props.onClick();
+  });
+  expect(calls.at(-1)).toEqual({
+    command: "commit_recording",
+    args: undefined,
+  });
+});
+
+test("the live card wears the ring, reads Recording, and keeps cancel and finish by copy", async () => {
+  await fire("show-overlay", { ...handsFreePill, streamingWindow: true });
+  await fire("mic-level", [0.4, 0.6, 0.5, 0.7]);
+  expect(hasClass("hands-free")).toBe(true);
+  expect(textOf(renderer.root.findByProps({ className: "card-label" }))).toBe(
+    "overlay.recording",
+  );
+  expect(buttonLabels()).toEqual(["overlay.cancel", "overlay.finish"]);
+
+  await fire("stream-text", {
+    committed: "Long enough to copy",
+    tentative: "",
+  });
+  expect(buttonLabels()).toEqual([
+    "overlay.copy",
+    "overlay.cancel",
+    "overlay.finish",
+  ]);
+});
+
+test("hands-free ends with its recording and never reaches the next one", async () => {
+  await fire("show-overlay", handsFreePill);
+  await fire("show-overlay", {
+    state: "transcribing",
+    streamingWindow: false,
+    epoch: 34,
+  });
+  expect(hasClass("hands-free")).toBe(false);
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+
+  // A late turn for a recording that is already over changes nothing.
+  await fire("recording-hands-free", { interactive: true });
+  expect(hasClass("hands-free")).toBe(false);
+  expect(renderer.root.findAllByType("button")).toHaveLength(0);
+
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: false,
+    epoch: 35,
+  });
+  expect(hasClass("hands-free")).toBe(false);
+});
+
+/** The hands-free key's keycap on the pill, if it is showing. */
+const hintKeys = () =>
+  renderer.root.findAll(
+    (node) =>
+      typeof node.type === "string" &&
+      String(node.props.className ?? "") === "pill-hint-key",
+  );
+const sleep = (ms: number) =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  });
+
+test("a held dictation shows its hands-free key after a moment, then the waveform again", async () => {
+  await fire("show-overlay", {
+    state: "recording",
+    streamingWindow: false,
+    handsFreeKey: "space",
+    finishKeys: "ctrl_left+super",
+    epoch: 40,
+  });
+  expect(hintKeys()).toHaveLength(0);
+  await sleep(1000);
+  expect(hintKeys()).toHaveLength(1);
+  expect(textOf(hintKeys()[0])).toBe("Space");
+
+  // Going hands-free is the hint taken: the pill wears its ring instead.
+  await fire("recording-hands-free", { interactive: true });
+  expect(hintKeys()).toHaveLength(0);
+  expect(hasClass("hands-free")).toBe(true);
+});
+
+test("no hint where there is no hands-free key, and none once hands-free", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  await fire("show-overlay", { ...handsFreePill, handsFreeKey: "space" });
+  await sleep(1000);
+  expect(hintKeys()).toHaveLength(0);
+});
+
+test("the hands-free card keeps its finish keys off the header", async () => {
+  await fire("show-overlay", {
+    ...handsFreePill,
+    streamingWindow: true,
+    finishKeys: "ctrl_left+super",
+  });
+  await fire("mic-level", [0.4, 0.6, 0.5, 0.7]);
+  expect(textOf(renderer.root.findByProps({ className: "card-label" }))).toBe(
+    "overlay.recording",
+  );
+  // Still told to a screen reader, and on ✓'s tooltip.
+  expect(surface().props["aria-label"]).toBe("overlay.lockedKeys");
+});
+
+/** The card's body hint while nothing has been transcribed yet. */
+const cardHint = () =>
+  renderer.root.findByProps({ className: "card-text card-hint" }).props
+    .children as string;
+
+test("a dictation waiting on its model says Loading model, not Transcribing", async () => {
+  await fire("show-overlay", { state: "recording", streamingWindow: false });
+  await fire("show-overlay", { state: "loading", streamingWindow: false });
+  const label = renderer.root.findByProps({ className: "pill-label" });
+  expect(label.props.children).toBe("overlay.loading");
+  // An open-ended wait: no estimated fill, which would park near its end for
+  // the whole load and then teach the estimate the load as transcription time.
+  const fills = () =>
+    renderer.root.findAll(
+      (node) =>
+        node.props.mode === "working" &&
+        typeof node.props.progress === "function",
+    );
+  expect(fills()).toHaveLength(0);
+  // Back to the usual transcription, and its fill, once the model is in.
+  await fire("show-overlay", { state: "transcribing", streamingWindow: false });
+  expect(
+    renderer.root.findAllByProps({ className: "pill-label" }),
+  ).toHaveLength(0);
+  expect(fills().length).toBeGreaterThan(0);
+});
+
+test("the live card names a slow model load only after it has been slow", async () => {
+  jest.useFakeTimers();
+  try {
+    await fire("show-overlay", {
+      state: "recording",
+      streamingWindow: true,
+      modelLoading: true,
+    });
+    expect(cardHint()).toBe("overlay.listening");
+    await act(async () => {
+      jest.advanceTimersByTime(1999);
+    });
+    expect(cardHint()).toBe("overlay.listening");
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(cardHint()).toBe("overlay.loading");
+    // The model is in: back to the usual invitation.
+    await fire("overlay-model-loading", false);
+    expect(cardHint()).toBe("overlay.listening");
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test("a quick model load during recording never shows a notice", async () => {
+  jest.useFakeTimers();
+  try {
+    await fire("show-overlay", { state: "recording", streamingWindow: true });
+    await fire("overlay-model-loading", true);
+    await act(async () => {
+      jest.advanceTimersByTime(800);
+    });
+    await fire("overlay-model-loading", false);
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+    expect(cardHint()).toBe("overlay.listening");
+  } finally {
+    jest.useRealTimers();
+  }
+});

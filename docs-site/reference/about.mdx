@@ -1,0 +1,60 @@
+---
+title: "About"
+description: "What Zynveliq is, its MIT license, credits, how updates and signing work, sending feedback, and contributing."
+icon: "circle-info"
+---
+
+Zynveliq is a free, open-source desktop voice assistant for Windows, macOS, and Linux. Talk and it types, in any app. Ask and it answers. Start a conversation and talk it through. It also writes up your meetings.
+
+Speech is transcribed on your own computer by default. The assistant uses whichever model you choose: the built-in offline engine, your own local server, or a cloud provider with your own API key.
+
+The project is on [GitHub](https://github.com/ishangautam7/zynveliq).
+
+## License
+
+MIT. The full text is in [`LICENSE`](https://github.com/ishangautam7/zynveliq/blob/main/LICENSE).
+
+## Credits
+
+The dictation core comes from [Handy](https://github.com/cjpais/Handy) by CJ Pais, used under the MIT license. The Whisper and Parakeet pipeline, voice-activity detection, overlay, and settings architecture trace back to that project.
+
+The assistant, conversations, meetings, screen vision, Generate with Flow, translation, spoken replies, memory, reminders, Insights, and cloud transcription are Zynveliq's own.
+
+Thanks also to:
+
+- [Tauri](https://tauri.app) (the app framework, Rust backend + React/TypeScript frontend)
+- [transcribe.cpp](https://github.com/handy-computer/transcribe.cpp) (the speech engine) and [llama.cpp](https://github.com/ggerganov/llama.cpp)
+- [ONNX Runtime](https://github.com/microsoft/onnxruntime) and [Silero VAD](https://github.com/snakers4/silero-vad)
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (native voice engine)
+- [Kokoro](https://github.com/hexgrad/kokoro) (local text-to-speech in the browser)
+- [WeSpeaker](https://github.com/wenet-e2e/wespeaker) (speaker embeddings for meeting diarization)
+- Kyutai's [Pocket TTS](https://github.com/kyutai-labs/moshi)
+
+## Updates and signing
+
+Zynveliq checks for new versions in the background (on by default; toggle in _Settings → About_). When an update is available, it shows in the sidebar and in _Settings → About_, where you can install or download it.
+
+Every update is verified against the project's own minisign signing key (public half in the Tauri config, key id `73D1FDFF87780381`). A tampered update will not install.
+
+The installers themselves are not code-signed with an Apple or Microsoft certificate yet. On macOS that means one Terminal command on first install (see [Install](/start/install)). On Windows, SmartScreen may warn the first time you run the installer. The release pipeline is wired for signing and needs only the paid certificates.
+
+The AUR package on Arch Linux updates through your package manager instead of the built-in updater.
+
+## Sending feedback
+
+Click the **?** beside the gear in the sidebar, or go to _Settings → About → Send feedback_, or use **Send feedback** in the tray menu.
+
+The dialog sends exactly what it shows you:
+
+- Your message.
+- Your email, only if you type one.
+- Up to three screenshots (pasted or picked, shrunk to about 100-400 KB each).
+- A system info line, only if you tick the box.
+
+No logs, no transcripts. The report goes to the developer's feedback service, which files it as an issue in a private GitHub repository only the developer can read. The draft is saved as you type, so closing the dialog or a failed send loses nothing. [Privacy](/reference/privacy#feedback-you-send) covers how reports are kept and how to have one deleted.
+
+## Reporting issues and contributing
+
+For bugs not covered in [Troubleshooting](/reference/troubleshooting), [open an issue](https://github.com/ishangautam7/zynveliq/issues). Raise your log level to Debug or Trace first (see [Debug & advanced](/settings/debug)) and attach the log file.
+
+Contributions are welcome. [`CONTRIBUTING.md`](https://github.com/ishangautam7/zynveliq/blob/main/CONTRIBUTING.md) explains how to get started, and [`CONTRIBUTING_TRANSLATIONS.md`](https://github.com/ishangautam7/zynveliq/blob/main/CONTRIBUTING_TRANSLATIONS.md) covers translating the app.

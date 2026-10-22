@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Zynveliq listens to the microphone while you dictate or talk to the assistant, so it can turn your speech into text.</string>
+  <!--
+    macOS 15+ local network privacy. It applies to connections to a server on
+    the user's LAN (Ollama, LM Studio, a self-hosted Whisper or OpenAI-compatible
+    endpoint on another machine); without this key the system has no text to
+    explain its prompt, and those connections can be refused. Loopback,
+    including the bundled llama.cpp engine on 127.0.0.1, is exempt.
+  -->
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Zynveliq connects to AI and speech servers you run on your local network, such as Ollama or LM Studio.</string>
+</dict>
+</plist>

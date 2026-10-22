@@ -1,0 +1,2917 @@
+//! Built-in local LLM engine.
+//!
+//! Manages a bundled `llama.cpp` server (`llama-server`) as a child process so
+//! the "Built-in (Local)" assistant/post-processing provider works with zero
+//! setup: no separate Ollama/LM Studio install and no API key. The user simply
+//! downloads a GGUF model from the Models tab; this manager starts the engine
+//! against that file on a loopback port and the existing OpenAI-compatible
+//! `llm_client` talks to it like any other provider.
+//!
+//! The engine binary is resolved (in order) from:
+//!   1. the `HANDY_LLAMA_SERVER` environment variable,
+//!   2. a bundled resource at `resources/bin/llama-server[.exe]`,
+//!   3. `<app-data>/models/engine/` (auto-downloaded on first use),
+//!   4. the system `PATH`.
+//!
+//! If none is present, the manager downloads the pinned official llama.cpp
+//! build ([`PINNED_ENGINE_TAG`]) for this platform into the app-data engine
+//! directory on first use, so the feature works with zero manual setup.
+
+#[cfg(target_os = "linux")]
+use crate::helpers::appimage::scrub_appimage_library_path;
+use crate::managers::model::{EngineType, ModelManager};
+use crate::managers::transcription::GpuDeviceOption;
+use anyhow::Result;
+use log::{debug, error, info, warn};
+use serde::Serialize;
+use specta::Type;
+use std::net::{SocketAddr, TcpStream};
+use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant, SystemTime};
+use tauri::{AppHandle, Emitter, Manager};
+
+/// Loopback port the bundled engine listens on. Deliberately different from
+/// Ollama's default (11434) so a user's existing Ollama install is untouched.
+const ENGINE_PORT: u16 = 11435;
+
+/// Loopback port for the dedicated AI-cleanup engine (see [`LlmRole`]).
+const CLEANUP_ENGINE_PORT: u16 = 11436;
+
+/// Context window for the cleanup engine. Cleanup sees one system prompt plus
+/// one transcript — measured at ~1050 tokens with every feature on (misheard
+/// vocabulary, cleanup strength, style preset) — so a large window only wastes
+/// KV-cache memory. Prefill at that size costs ~0.15s on GPU and ~0.6s on CPU,
+/// which is why the prompt does NOT need trimming for speed.
+pub const CLEANUP_CONTEXT_SIZE: u32 = 4096;
+
+/// Offload every layer the backend can take. CPU-only builds ignore it.
+///
+/// Cleanup used to pass 0 (CPU) for models at or below 2 GiB, on the grounds
+/// that a cold load is ~2x faster on CPU and skips the one-time 13-20s GPU
+/// shader compile. That optimised the wrong half: the same measurement showed
+/// inference at 0.33s on CPU against 0.05s on the GPU, so it traded a one-time
+/// startup cost for a ~6x penalty on every single cleanup afterwards. Now that
+/// the engine is prewarmed in the background and stays resident (15 minutes by
+/// default), the load and the shader compile happen once, out of sight — so both
+/// roles take the GPU when one exists.
+const ALL_GPU_LAYERS: u32 = 999;
+
+/// Repetition penalty for the assistant engine.
+const ASSISTANT_REPEAT_PENALTY: f32 = 1.1;
+
+/// llama.cpp's "no repetition penalty" value. Used by the cleanup engine.
+const REPEAT_PENALTY_OFF: f32 = 1.0;
+
+/// The llama.cpp build the built-in engine downloads. It is the only build the
+/// app ever installs: there is no "newest release" lookup.
+///
+/// There used to be one, against `releases/latest`, and it never worked for
+/// long. llama.cpp marks every real `bNNNNN` build as a prerelease, so GitHub's
+/// "latest" is a semver stub (`v0.6.0`) whose only asset is `nightly-tag.txt`;
+/// the lookup found no archive and every install silently fell back to the pin.
+/// A build we have not run is also a build we have not tested, so the engine
+/// version is now a deliberate choice that ships with the app.
+///
+/// b11429 is the build upstream's own `v0.6.0` stub points to. It is the first
+/// pin with ggml-org/llama.cpp#22789 (in since b10247), which replaced the
+/// scheduler's fixed 30-entry split-input arrays: the previous pin, b10075,
+/// aborted on `GGML_ASSERT(n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS)` whenever a
+/// Gemma 4 E2B/E4B graph was split across backends (two GPUs, or a model only
+/// partly offloaded), because those models pass a per-layer embedding tensor
+/// across the boundary for every layer.
+///
+/// To bump it: check that every archive in [`pinned_asset_names_for`] exists in
+/// the new release, then re-test chat, vision (`--mmproj`), tool calls,
+/// JSON-schema output, `LLAMA_ARG_THINK_BUDGET=0`, and the `--list-devices`
+/// format [`parse_engine_devices`] reads. Every existing install re-downloads
+/// once, since its stamp no longer matches. `HANDY_LLAMA_RELEASE_TAG` overrides
+/// it at runtime, without a rebuild.
+const PINNED_ENGINE_TAG: &str = "b11429";
+
+/// Default context window if the user hasn't chosen one. 8192 leaves room for
+/// the system prompt, chat history, a screenshot (vision models can spend
+/// ~1k+ tokens on one image), and the reply — a 4096 window overflows on a
+/// screenshot + web-search turn. Users can raise it (16384 is a good target on
+/// machines with RAM to spare) or lower it to save memory.
+pub const DEFAULT_CONTEXT_SIZE: u32 = 8192;
+
+/// Lower bound for the user-configurable context window (tokens). Below this a
+/// model can't hold a useful prompt.
+pub const MIN_CONTEXT_SIZE: u32 = 512;
+
+/// Upper bound for the user-configurable context window (tokens). Caps memory
+/// use on low-end / CPU-only machines while leaving headroom for capable GPUs.
+pub const MAX_CONTEXT_SIZE: u32 = 32_768;
+
+/// Max time to wait for the engine to load a model and start serving. Large
+/// models, slow disks, and first-run GPU shader compilation can take a while.
+const READY_TIMEOUT: Duration = Duration::from_secs(180);
+
+/// How long a warm-up stays good. Within this window a prewarm on a running
+/// engine is skipped; after it, the next one re-faults the weights in, which
+/// only matters for an engine the user keeps loaded ("Never" unload).
+const WARM_UP_REFRESH: Duration = Duration::from_secs(10 * 60);
+
+/// Max time to wait for the engine's `--list-devices` probe (measured at ~210ms
+/// on a warm two-GPU Windows box).
+///
+/// Bounded on purpose: this runs on the path that *starts* the engine, so a
+/// wedged Vulkan driver has to cost us the device hint rather than the whole
+/// feature. [`READY_TIMEOUT`] cannot cover it — that clock only starts once the
+/// server process is already spawned.
+const LIST_DEVICES_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// One compute device as the **engine itself** names it, parsed out of
+/// `llama-server --list-devices`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct EngineDevice {
+    /// ggml's device identifier — the token `--device` accepts (e.g. `Vulkan0`).
+    name: String,
+    /// Human-readable adapter description (e.g. `NVIDIA GeForce RTX 4070 Ti SUPER`).
+    description: String,
+}
+
+/// `--list-devices` output, probed at most once per app run.
+static ENGINE_DEVICES: std::sync::OnceLock<Vec<EngineDevice>> = std::sync::OnceLock::new();
+
+/// Tokens that vendors sprinkle into adapter strings inconsistently across
+/// backends and drivers ("AMD Radeon(TM) Graphics" vs "AMD Radeon Graphics"), so
+/// they must not decide whether two names refer to the same card.
+const ADAPTER_NOISE_TOKENS: [&str; 3] = ["tm", "r", "c"];
+
+/// Reduce an adapter string to comparable words: lowercase, alphanumeric only,
+/// vendor decorations dropped.
+fn normalized_adapter_name(raw: &str) -> String {
+    raw.split(|c: char| !c.is_alphanumeric())
+        .filter(|token| !token.is_empty())
+        .map(|token| token.to_ascii_lowercase())
+        .filter(|token| !ADAPTER_NOISE_TOKENS.contains(&token.as_str()))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// Parse `llama-server --list-devices`, whose stdout looks like:
+///
+/// ```text
+/// Available devices:
+///   Vulkan0: NVIDIA GeForce RTX 4070 Ti SUPER (16063 MiB, 15295 MiB free)
+///   Vulkan1: AMD Radeon(TM) Graphics (16180 MiB, 15371 MiB free)
+/// ```
+///
+/// Parsing is scoped to the contiguous block after the header, and a row must
+/// carry the trailing memory summary. Both guards exist because `<word>: <text>`
+/// also describes an ordinary engine log line (`load_backend: loaded Vulkan
+/// backend from ...`), and mistaking one for a device would hand `--device` a
+/// name the engine then refuses to start with.
+fn parse_engine_devices(stdout: &str) -> Vec<EngineDevice> {
+    let mut devices = Vec::new();
+    let mut in_listing = false;
+
+    for line in stdout.lines() {
+        let line = line.trim();
+        if !in_listing {
+            in_listing = line.eq_ignore_ascii_case("available devices:");
+            continue;
+        }
+        if line.is_empty() {
+            break;
+        }
+        let Some((name, rest)) = line.split_once(':') else {
+            break;
+        };
+        let name = name.trim();
+        let rest = rest.trim();
+        // Drop the trailing "(16063 MiB, 15295 MiB free)" memory summary, and
+        // treat its absence as "this is not a device row".
+        let Some(memory_start) = rest.rfind('(') else {
+            break;
+        };
+        let description = rest[..memory_start].trim();
+        // A device id never contains whitespace.
+        if name.is_empty() || name.contains(char::is_whitespace) || description.is_empty() {
+            break;
+        }
+        devices.push(EngineDevice {
+            name: name.to_string(),
+            description: description.to_string(),
+        });
+    }
+
+    devices
+}
+
+/// Whether this machine's device mix is one where an explicit `--device` is
+/// needed — i.e. it has a dedicated GPU *and* an integrated one that inference
+/// could land on by accident.
+///
+/// Everywhere else (one GPU, several dedicated GPUs, no GPU at all) the engine's
+/// own choice is already right, and staying out of the way keeps multi-GPU layer
+/// splitting working exactly as before.
+fn needs_device_pinning(probed: &[GpuDeviceOption]) -> bool {
+    let integrated = |device: &GpuDeviceOption| device.kind.eq_ignore_ascii_case("integrated");
+    probed.iter().any(integrated) && probed.iter().any(|device| !integrated(device))
+}
+
+/// Build the `--device` value that pins inference to the dedicated GPU(s),
+/// biggest first, by matching our probe against the engine's own device list.
+///
+/// The two enumerations are separate and their order need not agree, so the
+/// match is on the adapter *description* rather than on an index.
+fn select_engine_device_arg(
+    engine_devices: &[EngineDevice],
+    probed: &[GpuDeviceOption],
+) -> Option<String> {
+    if !needs_device_pinning(probed) {
+        return None;
+    }
+
+    let mut dedicated: Vec<&GpuDeviceOption> = probed
+        .iter()
+        .filter(|device| !device.kind.eq_ignore_ascii_case("integrated"))
+        .collect();
+    // Biggest dedicated card first, so it becomes the engine's device 0.
+    dedicated.sort_by_key(|device| std::cmp::Reverse(device.total_vram_mb));
+
+    let mut names: Vec<String> = Vec::new();
+    for device in dedicated {
+        let wanted = normalized_adapter_name(&device.name);
+        if wanted.is_empty() {
+            continue;
+        }
+        // Exact first; containment only as a fallback, so a short name can't
+        // steal a match from the card that actually spells it out.
+        let matched = engine_devices
+            .iter()
+            .find(|candidate| normalized_adapter_name(&candidate.description) == wanted)
+            .or_else(|| {
+                engine_devices.iter().find(|candidate| {
+                    let have = normalized_adapter_name(&candidate.description);
+                    !have.is_empty() && (have.contains(&wanted) || wanted.contains(&have))
+                })
+            });
+        if let Some(matched) = matched {
+            if !names.contains(&matched.name) {
+                names.push(matched.name.clone());
+            }
+        }
+    }
+
+    if names.is_empty() {
+        None
+    } else {
+        Some(names.join(","))
+    }
+}
+
+/// Ask the engine binary which devices it can see, once per app run.
+fn engine_devices(engine: &Path) -> &'static [EngineDevice] {
+    ENGINE_DEVICES.get_or_init(|| {
+        let mut command = Command::new(engine);
+        command
+            .arg("--list-devices")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null());
+        #[cfg(target_os = "linux")]
+        scrub_appimage_library_path(&mut command);
+        // llama-server is a console program: without this, a terminal window
+        // flashes up on screen while it lists devices, the same as the server
+        // spawn below guards against.
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+            command.creation_flags(CREATE_NO_WINDOW);
+        }
+        let mut child = match command.spawn() {
+            Ok(child) => child,
+            Err(error) => {
+                warn!("llama.cpp --list-devices failed to start ({error}) — continuing without a GPU device hint");
+                return Vec::new();
+            }
+        };
+
+        let deadline = Instant::now() + LIST_DEVICES_TIMEOUT;
+        loop {
+            match child.try_wait() {
+                Ok(Some(_)) => break,
+                Ok(None) => {
+                    if Instant::now() >= deadline {
+                        warn!("llama.cpp --list-devices timed out — continuing without a GPU device hint");
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        return Vec::new();
+                    }
+                    std::thread::sleep(Duration::from_millis(25));
+                }
+                Err(error) => {
+                    warn!("llama.cpp --list-devices could not be awaited ({error}) — continuing without a GPU device hint");
+                    return Vec::new();
+                }
+            }
+        }
+
+        // The listing is a couple of hundred bytes, so it cannot fill the pipe
+        // buffer while we wait for exit — reading after the wait is safe here.
+        let mut stdout = String::new();
+        if let Some(mut pipe) = child.stdout.take() {
+            use std::io::Read;
+            let _ = pipe.read_to_string(&mut stdout);
+        }
+        let devices = parse_engine_devices(&stdout);
+        debug!("llama.cpp reports {} device(s): {:?}", devices.len(), devices);
+        devices
+    })
+}
+
+/// The engine tag to install: a non-blank `HANDY_LLAMA_RELEASE_TAG` value, or
+/// [`PINNED_ENGINE_TAG`]. Pure so the override is testable without touching the
+/// process environment.
+fn engine_tag_from_override(value: Option<&str>) -> String {
+    value
+        .map(str::trim)
+        .filter(|tag| !tag.is_empty())
+        .unwrap_or(PINNED_ENGINE_TAG)
+        .to_string()
+}
+
+/// Serializes installing or replacing the managed engine across both roles.
+///
+/// Each [`LocalLlmManager`] has its own start lock, but the assistant and
+/// cleanup engines share one engine directory, so the install step needs a
+/// lock of its own that both see.
+fn engine_install_lock() -> &'static tokio::sync::Mutex<()> {
+    static LOCK: std::sync::OnceLock<tokio::sync::Mutex<()>> = std::sync::OnceLock::new();
+    LOCK.get_or_init(|| tokio::sync::Mutex::new(()))
+}
+
+/// The file in the managed engine directory that names the llama.cpp build
+/// unpacked there.
+const ENGINE_STAMP_FILENAME: &str = "engine.tag";
+
+/// The build the managed engine directory holds, as its stamp records it.
+fn read_engine_stamp(engine_dir: &Path) -> Option<String> {
+    std::fs::read_to_string(engine_dir.join(ENGINE_STAMP_FILENAME))
+        .ok()
+        .map(|stamp| stamp.trim().to_string())
+        .filter(|stamp| !stamp.is_empty())
+}
+
+/// Record `tag` as the build unpacked in `engine_dir`. Callers pass the tag of
+/// the archive they just extracted, never the pin: the previous code wrote the
+/// pin, so installs that had really come from the old "latest" lookup were
+/// labelled with a build they did not hold.
+fn write_engine_stamp(engine_dir: &Path, tag: &str) -> std::io::Result<()> {
+    std::fs::write(engine_dir.join(ENGINE_STAMP_FILENAME), tag)
+}
+
+/// Where a new engine build is unpacked before it takes the place of `engine/`,
+/// and where the current build waits while it does. Both sit beside `engine/`
+/// in the models directory, with hidden names so nothing that scans that
+/// directory takes them for models.
+const ENGINE_STAGING_DIRNAME: &str = ".engine-new";
+const ENGINE_RETIRED_DIRNAME: &str = ".engine-old";
+
+/// Remove `dir` and everything in it. A directory that is not there is success.
+fn remove_dir_if_present(dir: &Path) -> std::io::Result<()> {
+    match std::fs::remove_dir_all(dir) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        other => other,
+    }
+}
+
+/// Put the complete engine build in `staging` in place of `engine_dir`.
+///
+/// The current build is moved aside first rather than deleted, and moved back
+/// if the new one cannot be moved in, so a failure at any step leaves one whole
+/// build in `engine_dir`, never a mix of two. Deleting the old build afterwards
+/// is best effort: a leftover is cleared before the next swap.
+///
+/// Moving a directory is a rename within one volume, so on Windows it fails
+/// cleanly, before anything changes, when a file inside is held open.
+fn swap_in_engine(staging: &Path, engine_dir: &Path, retired: &Path) -> std::io::Result<()> {
+    remove_dir_if_present(retired)?;
+    let had_engine = engine_dir.exists();
+    if had_engine {
+        std::fs::rename(engine_dir, retired)?;
+    }
+    if let Err(e) = std::fs::rename(staging, engine_dir) {
+        if had_engine {
+            if let Err(restore) = std::fs::rename(retired, engine_dir) {
+                warn!(
+                    "Couldn't move the previous engine back from {}: {restore}",
+                    retired.display()
+                );
+            }
+        }
+        return Err(e);
+    }
+    if let Err(e) = remove_dir_if_present(retired) {
+        debug!(
+            "Couldn't remove the previous engine build at {}: {e}",
+            retired.display()
+        );
+    }
+    Ok(())
+}
+
+/// Undo a swap a crash interrupted after the current build was moved aside and
+/// before the new one was moved in. With no `engine_dir` but a retired build
+/// beside it, that build is the last engine that worked, so it goes back.
+fn recover_interrupted_swap(engine_dir: &Path, retired: &Path) {
+    if engine_dir.exists() || !retired.is_dir() {
+        return;
+    }
+    match std::fs::rename(retired, engine_dir) {
+        Ok(()) => info!("Restored the previous built-in engine after an interrupted update"),
+        Err(e) => warn!(
+            "Couldn't restore the previous built-in engine from {}: {e}",
+            retired.display()
+        ),
+    }
+}
+
+/// What [`LocalLlmManager::ensure_engine_installed`] does with what it found.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum EngineInstallStep {
+    /// Use the binary found: one the app did not download, or a managed engine
+    /// whose stamp matches.
+    Reuse,
+    /// A managed engine without a matching stamp, which the other role is
+    /// running right now, so it cannot be replaced; see the call site.
+    ReuseWhileInUse,
+    /// Delete the managed engine and download the expected build.
+    Replace,
+    /// Nothing found anywhere: download the expected build.
+    Download,
+}
+
+/// Decide what to do about the engine binary.
+///
+/// `found_managed` is `None` when no binary was found, otherwise whether it is
+/// in the managed engine directory. A binary from `HANDY_LLAMA_SERVER`, the
+/// installer, or `PATH` is never replaced. A managed one is replaced whenever
+/// its stamp is missing or names another build, so a pin bump reaches every
+/// install exactly once.
+fn engine_install_step(
+    found_managed: Option<bool>,
+    stamp: Option<&str>,
+    expected: &str,
+    in_use_by_other_role: bool,
+) -> EngineInstallStep {
+    match found_managed {
+        None => EngineInstallStep::Download,
+        Some(false) => EngineInstallStep::Reuse,
+        Some(true) if stamp.map(str::trim) == Some(expected) => EngineInstallStep::Reuse,
+        Some(true) if in_use_by_other_role => EngineInstallStep::ReuseWhileInUse,
+        Some(true) => EngineInstallStep::Replace,
+    }
+}
+
+/// One prebuilt llama.cpp archive on the release-download host.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct EngineAsset {
+    /// The release tag the archive belongs to, which is what gets stamped.
+    tag: String,
+    /// The archive's file name in that release.
+    name: String,
+}
+
+impl EngineAsset {
+    /// The archive's URL on the release-download host, which unlike
+    /// `api.github.com` has no 60-requests-an-hour limit for anonymous clients.
+    fn url(&self) -> String {
+        format!(
+            "https://github.com/ggml-org/llama.cpp/releases/download/{}/{}",
+            self.tag, self.name
+        )
+    }
+}
+
+/// The archives to try for `tag` on this OS/arch, in order.
+fn engine_assets_for(tag: &str, os: &str, arch: &str) -> Vec<EngineAsset> {
+    pinned_asset_names_for(tag, os, arch)
+        .into_iter()
+        .map(|name| EngineAsset {
+            tag: tag.to_string(),
+            name,
+        })
+        .collect()
+}
+
+/// Exact archive names for `tag` on an OS/arch pair (as reported by
+/// `std::env::consts`), in the order they are tried. llama.cpp names them
+/// `llama-<tag>-bin-<platform>.<ext>`: `.zip` on Windows, `.tar.gz` elsewhere.
+///
+/// The Vulkan build comes first (the app already uses Vulkan for Whisper) and
+/// the CPU build, which runs anywhere, is the fallback; macOS ships one build
+/// per arch, with Metal built in on Apple silicon. The fallback only covers a
+/// missing or failed download: nothing retries with the CPU build if the
+/// Vulkan one crashes at run time.
+///
+/// Windows on ARM stays on the CPU build even though upstream now publishes
+/// `win-vulkan-arm64`. Those machines carry Qualcomm Adreno GPUs, whose
+/// llama.cpp acceleration upstream builds separately on OpenCL
+/// (`win-opencl-adreno-arm64`), and the Vulkan build has never been run on one
+/// here. A Vulkan engine that dies inside the driver would leave the feature
+/// broken with no way back to the CPU, and the CPU build is what Windows on
+/// ARM has used all along.
+fn pinned_asset_names_for(tag: &str, os: &str, arch: &str) -> Vec<String> {
+    let arm = arch == "aarch64";
+    match os {
+        "windows" if arm => vec![format!("llama-{tag}-bin-win-cpu-arm64.zip")],
+        "windows" => vec![
+            format!("llama-{tag}-bin-win-vulkan-x64.zip"),
+            format!("llama-{tag}-bin-win-cpu-x64.zip"),
+        ],
+        "macos" if arm => vec![format!("llama-{tag}-bin-macos-arm64.tar.gz")],
+        "macos" => vec![format!("llama-{tag}-bin-macos-x64.tar.gz")],
+        "linux" if arm => vec![
+            format!("llama-{tag}-bin-ubuntu-vulkan-arm64.tar.gz"),
+            format!("llama-{tag}-bin-ubuntu-arm64.tar.gz"),
+        ],
+        "linux" => vec![
+            format!("llama-{tag}-bin-ubuntu-vulkan-x64.tar.gz"),
+            format!("llama-{tag}-bin-ubuntu-x64.tar.gz"),
+        ],
+        _ => Vec::new(),
+    }
+}
+
+/// The last `max_lines` lines of `content`, or `None` if they are all blank.
+fn log_tail(content: &str, max_lines: usize) -> Option<String> {
+    let lines: Vec<&str> = content.lines().collect();
+    let start = lines.len().saturating_sub(max_lines);
+    let tail = lines[start..].join("\n");
+    if tail.trim().is_empty() {
+        None
+    } else {
+        Some(tail)
+    }
+}
+
+/// The last `max_lines` non-blank lines of `log` that do not appear anywhere in
+/// `other`, or `None` if `other` already has them all.
+fn lines_missing_from(log: &str, other: &str, max_lines: usize) -> Option<String> {
+    let seen: std::collections::HashSet<&str> = other.lines().map(str::trim_end).collect();
+    let missing: Vec<&str> = log
+        .lines()
+        .map(str::trim_end)
+        .filter(|line| !line.trim().is_empty() && !seen.contains(line))
+        .collect();
+    let start = missing.len().saturating_sub(max_lines);
+    if missing.is_empty() {
+        None
+    } else {
+        Some(missing[start..].join("\n"))
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct LocalLlmStatus {
+    /// Whether the engine process is currently running.
+    pub running: bool,
+    /// The model id the engine is currently serving (if any).
+    pub model_id: Option<String>,
+    /// Whether an engine binary could be located on this machine.
+    pub engine_present: bool,
+    /// Loopback port the engine serves on.
+    pub port: u16,
+    /// The last start error, if the most recent start attempt failed.
+    pub error: Option<String>,
+}
+
+struct ServerState {
+    child: Option<Child>,
+    /// The binary `child` was started from, so the other role can tell whether
+    /// this engine has the managed engine directory's files open.
+    engine: Option<PathBuf>,
+    model_id: Option<String>,
+    last_error: Option<String>,
+}
+
+/// Which workload an engine instance serves.
+///
+/// The assistant and AI cleanup run as **separate engine processes on separate
+/// ports**. They used to share one: whenever the two were configured with
+/// different models, every cleanup pass killed the assistant's engine (and vice
+/// versa), so each dictation paid a full model load — measured at 4–6s for a
+/// 3.2GB model, on top of ~1.4s of vision-projector load that cleanup never
+/// uses. Splitting them also lets cleanup run leaner than a chat engine:
+/// projector skipped, thinking forced off, small context, and CPU-first for
+/// small models (which loads ~2x faster than GPU and skips the one-time
+/// first-run GPU shader compilation entirely).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LlmRole {
+    /// The floating assistant panel: chat, vision, tools, long context.
+    Assistant,
+    /// Dictation AI cleanup: one short, deterministic rewrite per recording.
+    Cleanup,
+}
+
+impl LlmRole {
+    fn port(self) -> u16 {
+        match self {
+            LlmRole::Assistant => ENGINE_PORT,
+            LlmRole::Cleanup => CLEANUP_ENGINE_PORT,
+        }
+    }
+
+    fn log_filename(self) -> &'static str {
+        match self {
+            LlmRole::Assistant => "llama-server.log",
+            LlmRole::Cleanup => "llama-server-cleanup.log",
+        }
+    }
+
+    /// The log the engine writes itself (`LLAMA_ARG_LOG_FILE`), beside the
+    /// console capture above.
+    fn debug_log_filename(self) -> &'static str {
+        match self {
+            LlmRole::Assistant => "llama-server-debug.log",
+            LlmRole::Cleanup => "llama-server-cleanup-debug.log",
+        }
+    }
+}
+
+/// Wrapper so the cleanup engine can live in Tauri state alongside the
+/// assistant one (managed state is keyed by type, so two `Arc<LocalLlmManager>`
+/// entries would collide).
+pub struct CleanupLlm(pub Arc<LocalLlmManager>);
+
+/// Stop both built-in engines once neither brain slot points at the built-in
+/// provider any more.
+///
+/// The two slots are the whole routing surface: the assistant, Flow and memory
+/// read `assistant_provider_id`; dictation cleanup reads `post_process_provider_id`
+/// and falls back to the assistant's; meetings try both. So with neither on
+/// `builtin`, nothing can reach either engine, and holding a loaded model until
+/// the idle timeout (or indefinitely, with "Never") only costs memory. With one
+/// still on `builtin` both are left alone — the idle watcher handles them.
+pub fn stop_engines_if_unused(app: &AppHandle) {
+    let settings = crate::settings::get_settings(app);
+    let builtin = crate::settings::BUILTIN_POST_PROCESS_PROVIDER_ID;
+    if settings.assistant_provider_id == builtin || settings.post_process_provider_id == builtin {
+        return;
+    }
+    let assistant = app
+        .try_state::<Arc<LocalLlmManager>>()
+        .map(|m| m.inner().clone());
+    let cleanup = app.try_state::<CleanupLlm>().map(|c| c.0.clone());
+    // Off the caller's thread: provider setters are synchronous commands, and
+    // stopping waits for the child process to exit.
+    std::thread::spawn(move || {
+        for manager in assistant.into_iter().chain(cleanup) {
+            manager.stop_if_idle();
+        }
+    });
+}
+
+/// Context window to launch with, per role. Pure so it is testable without an
+/// `AppHandle`.
+fn context_size_for(role: LlmRole, configured: u32) -> u32 {
+    match role {
+        LlmRole::Assistant => configured,
+        LlmRole::Cleanup => configured.min(CLEANUP_CONTEXT_SIZE),
+    }
+}
+
+/// Repetition penalty to launch with, per role. Pure so it is testable without
+/// an `AppHandle`; see [`LocalLlmManager::repeat_penalty`] for why they differ.
+fn repeat_penalty_for(role: LlmRole) -> f32 {
+    match role {
+        LlmRole::Assistant => ASSISTANT_REPEAT_PENALTY,
+        LlmRole::Cleanup => REPEAT_PENALTY_OFF,
+    }
+}
+
+pub struct LocalLlmManager {
+    app_handle: AppHandle,
+    models_dir: PathBuf,
+    port: u16,
+    role: LlmRole,
+    state: Arc<Mutex<ServerState>>,
+    /// Serializes concurrent `ensure_running` calls (e.g. two assistant turns
+    /// fired in quick succession) so only one start happens at a time.
+    start_lock: tokio::sync::Mutex<()>,
+    /// Last time the engine was used (ms since the Unix epoch); drives the
+    /// idle-unload watcher.
+    last_activity: Arc<AtomicU64>,
+    /// Number of in-flight LLM requests. The idle watcher never unloads while
+    /// this is greater than zero, so a long generation can't be cut off.
+    in_flight: Arc<AtomicUsize>,
+    /// When `warm_up` last ran against the current engine process (ms since the
+    /// Unix epoch, 0 = not yet). Reset whenever a new process is spawned.
+    warmed_at: AtomicU64,
+}
+
+impl LocalLlmManager {
+    /// The assistant engine (the historical behaviour of this manager).
+    pub fn new(app_handle: &AppHandle) -> Result<Self> {
+        Self::new_for_role(app_handle, LlmRole::Assistant)
+    }
+
+    pub fn new_for_role(app_handle: &AppHandle, role: LlmRole) -> Result<Self> {
+        let models_dir = crate::portable::app_data_dir(app_handle)
+            .map_err(|e| anyhow::anyhow!("Failed to get app data dir: {}", e))?
+            .join("models");
+
+        let manager = Self {
+            app_handle: app_handle.clone(),
+            models_dir,
+            port: role.port(),
+            role,
+            state: Arc::new(Mutex::new(ServerState {
+                child: None,
+                engine: None,
+                model_id: None,
+                last_error: None,
+            })),
+            start_lock: tokio::sync::Mutex::new(()),
+            last_activity: Arc::new(AtomicU64::new(Self::now_ms())),
+            in_flight: Arc::new(AtomicUsize::new(0)),
+            warmed_at: AtomicU64::new(0),
+        };
+        // Here rather than before the first spawn: an orphan holds gigabytes of
+        // memory whether or not this session ever uses the built-in engine.
+        #[cfg(unix)]
+        manager.reap_orphaned_engine();
+        Ok(manager)
+    }
+
+    /// OpenAI-compatible base URL for this engine instance. Callers must use
+    /// this rather than a hardcoded port, so the cleanup engine's requests
+    /// reach the cleanup process and not the assistant's.
+    pub fn base_url(&self) -> String {
+        format!("http://127.0.0.1:{}/v1", self.port)
+    }
+
+    /// Platform-specific engine binary filename.
+    fn engine_filename() -> &'static str {
+        if cfg!(windows) {
+            "llama-server.exe"
+        } else {
+            "llama-server"
+        }
+    }
+
+    /// Path to the engine's captured stdout/stderr log.
+    fn engine_log_path(&self) -> PathBuf {
+        self.models_dir
+            .join("engine")
+            .join(self.role.log_filename())
+    }
+
+    /// Path to the log the engine writes itself (`LLAMA_ARG_LOG_FILE`).
+    fn engine_debug_log_path(&self) -> PathBuf {
+        self.models_dir
+            .join("engine")
+            .join(self.role.debug_log_filename())
+    }
+
+    /// The engine's own output, for surfacing the real failure reason (bad arg,
+    /// missing DLL, model load error, ...) in the error the user sees.
+    ///
+    /// The console capture comes first, since an abort message is written
+    /// straight to stderr and only ever lands there. The engine's own log file
+    /// is added only for lines the capture lacks, so a build that loses console
+    /// output when it dies still has its last steps reported.
+    fn engine_log_report(&self, max_lines: usize) -> Option<String> {
+        let console_path = self.engine_log_path();
+        let debug_path = self.engine_debug_log_path();
+        let console = std::fs::read_to_string(&console_path).unwrap_or_default();
+        let debug = std::fs::read_to_string(&debug_path).unwrap_or_default();
+
+        let mut sections = Vec::new();
+        if let Some(tail) = log_tail(&console, max_lines) {
+            sections.push(format!(
+                "Engine log ({}):\n{}",
+                console_path.display(),
+                tail
+            ));
+        }
+        if let Some(extra) = lines_missing_from(&debug, &console, max_lines) {
+            sections.push(format!(
+                "Engine debug log ({}):\n{}",
+                debug_path.display(),
+                extra
+            ));
+        }
+        if sections.is_empty() {
+            None
+        } else {
+            Some(sections.join("\n\n"))
+        }
+    }
+
+    /// Where this role's running engine is recorded, so the next launch can
+    /// find it if this process dies without stopping it. Windows needs no file:
+    /// its kill-on-close Job Object takes the engine down with us.
+    ///
+    /// Beside `engine/` rather than in it: refreshing a stale engine deletes
+    /// that directory, possibly while the other role's engine is running.
+    #[cfg(unix)]
+    fn engine_pid_path(&self) -> PathBuf {
+        let name = match self.role {
+            LlmRole::Assistant => ".llama-server.pid",
+            LlmRole::Cleanup => ".llama-server-cleanup.pid",
+        };
+        self.models_dir.join(name)
+    }
+
+    /// Record a freshly spawned engine. The path is canonicalized because it is
+    /// compared against what the kernel reports for the pid, which is always
+    /// the resolved path.
+    #[cfg(unix)]
+    fn record_engine_pid(&self, child: &Child, engine: &Path) {
+        let exe = std::fs::canonicalize(engine).unwrap_or_else(|_| engine.to_path_buf());
+        // Only an engine this app installed or ships is ever reaped. One found
+        // on PATH (or named by HANDY_LLAMA_SERVER) is the user's own binary, and
+        // after a crash its pid can be reused by a llama-server they started
+        // themselves, with the same path, which the reaper must never kill.
+        let ours = |dir: Option<PathBuf>| {
+            dir.and_then(|d| std::fs::canonicalize(d).ok())
+                .is_some_and(|d| exe.starts_with(d))
+        };
+        let app_root = std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().and_then(Path::parent).map(Path::to_path_buf));
+        if !ours(Some(self.models_dir.clone())) && !ours(app_root) {
+            debug!(
+                "Engine {} is not one this app installed; not recording it for orphan cleanup",
+                exe.display()
+            );
+            return;
+        }
+        let Some(record) = format_engine_pid_record(child.id(), &exe) else {
+            warn!(
+                "Engine path {} can't be recorded; an orphan after a crash won't be reaped",
+                exe.display()
+            );
+            return;
+        };
+        if let Err(e) = std::fs::write(self.engine_pid_path(), record) {
+            warn!("Failed to record the engine pid (orphan cleanup disabled): {e}");
+        }
+    }
+
+    /// Drop the record once our engine is gone, so a later launch never acts on
+    /// a pid the OS may since have handed to something else.
+    fn forget_engine_pid(&self) {
+        #[cfg(unix)]
+        {
+            if let Err(e) = std::fs::remove_file(self.engine_pid_path()) {
+                if e.kind() != std::io::ErrorKind::NotFound {
+                    debug!("Failed to remove the engine pid file: {e}");
+                }
+            }
+        }
+    }
+
+    /// Kill an engine a previous run left behind (a crash, a force-quit, or the
+    /// OS reaping us under memory pressure), which would otherwise keep its
+    /// model in memory and its port bound, so this run's engine could never
+    /// start. Only a process whose executable is the recorded engine is touched.
+    #[cfg(unix)]
+    fn reap_orphaned_engine(&self) {
+        let path = self.engine_pid_path();
+        let content = match std::fs::read_to_string(&path) {
+            Ok(content) => content,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return,
+            Err(e) => {
+                warn!("Failed to read the engine pid file {}: {e}", path.display());
+                return;
+            }
+        };
+        match parse_engine_pid_record(&content) {
+            Some(record) => {
+                if orphan_engine::kill(&record) {
+                    info!(
+                        "Killed an orphaned built-in LLM engine (pid {}) left by a previous run",
+                        record.pid
+                    );
+                }
+            }
+            None => warn!("Ignoring a malformed engine pid file {}", path.display()),
+        }
+        let _ = std::fs::remove_file(&path);
+    }
+
+    /// Locate the engine binary, or `None` if it isn't installed/bundled.
+    pub fn resolve_engine_binary(&self) -> Option<PathBuf> {
+        // 1. Explicit override via environment variable.
+        if let Some(path) = std::env::var_os("HANDY_LLAMA_SERVER") {
+            let pb = PathBuf::from(path);
+            if pb.is_file() {
+                return Some(pb);
+            }
+        }
+
+        // 2. Bundled resource (shipped with the app installer).
+        if let Ok(pb) = self.app_handle.path().resolve(
+            format!("resources/bin/{}", Self::engine_filename()),
+            tauri::path::BaseDirectory::Resource,
+        ) {
+            if pb.is_file() {
+                return Some(pb);
+            }
+        }
+
+        // 3. In the app-data engine directory (auto-downloaded on first use).
+        //    Search recursively because release archives may nest the binary
+        //    inside a subfolder; its DLLs sit alongside it either way.
+        if let Some(found) =
+            Self::find_binary_in(&self.models_dir.join("engine"), Self::engine_filename())
+        {
+            return Some(found);
+        }
+
+        // 4. On the system PATH.
+        Self::find_in_path(Self::engine_filename())
+    }
+
+    /// The engine version this app build expects on disk: the
+    /// `HANDY_LLAMA_RELEASE_TAG` override if set, otherwise
+    /// [`PINNED_ENGINE_TAG`]. It is also the only tag ever downloaded, so
+    /// bumping the pin changes what "current" means, which is what makes an
+    /// older cached engine read as stale and get replaced on next use.
+    fn expected_engine_tag() -> String {
+        engine_tag_from_override(std::env::var("HANDY_LLAMA_RELEASE_TAG").ok().as_deref())
+    }
+
+    /// The managed engine directory, where the auto-downloaded engine, its
+    /// version stamp, and both roles' logs live.
+    fn engine_dir(&self) -> PathBuf {
+        self.models_dir.join("engine")
+    }
+
+    /// Whether `path` lives inside the app-managed engine directory — i.e. it is
+    /// the engine WE auto-downloaded, as opposed to a user-provided
+    /// `HANDY_LLAMA_SERVER` override, a bundled resource, or a binary found on
+    /// `PATH`. Only managed binaries are subject to version-stamp invalidation
+    /// and deletion; we never touch an engine the user or installer supplied.
+    fn is_managed_engine(&self, path: &Path) -> bool {
+        let engine_dir = self.engine_dir();
+        match (path.canonicalize(), engine_dir.canonicalize()) {
+            (Ok(p), Ok(dir)) => p.starts_with(&dir),
+            // If canonicalization fails, fall back to a lexical prefix check.
+            _ => path.starts_with(&engine_dir),
+        }
+    }
+
+    /// The other role's manager, if it is registered. The two roles are
+    /// separate managed-state entries (see [`CleanupLlm`]).
+    fn sibling(&self) -> Option<Arc<LocalLlmManager>> {
+        match self.role {
+            LlmRole::Assistant => self
+                .app_handle
+                .try_state::<CleanupLlm>()
+                .map(|cleanup| cleanup.0.clone()),
+            LlmRole::Cleanup => self
+                .app_handle
+                .try_state::<Arc<LocalLlmManager>>()
+                .map(|assistant| assistant.inner().clone()),
+        }
+    }
+
+    /// The binary this role's engine is running from, if it is running.
+    fn running_engine(&self) -> Option<PathBuf> {
+        let mut st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        let alive = st
+            .child
+            .as_mut()
+            .is_some_and(|child| matches!(child.try_wait(), Ok(None)));
+        if alive {
+            st.engine.clone()
+        } else {
+            None
+        }
+    }
+
+    /// Whether the other role has an engine running out of the managed engine
+    /// directory right now.
+    fn sibling_runs_managed_engine(&self) -> bool {
+        self.sibling()
+            .and_then(|sibling| sibling.running_engine())
+            .is_some_and(|path| self.is_managed_engine(&path))
+    }
+
+    fn find_in_path(name: &str) -> Option<PathBuf> {
+        let paths = std::env::var_os("PATH")?;
+        std::env::split_paths(&paths)
+            .map(|dir| dir.join(name))
+            .find(|candidate| candidate.is_file())
+    }
+
+    /// Recursively search `dir` (bounded, breadth-first) for a file named
+    /// `name`, returning its full path.
+    fn find_binary_in(dir: &Path, name: &str) -> Option<PathBuf> {
+        let mut stack = vec![dir.to_path_buf()];
+        while let Some(d) = stack.pop() {
+            let entries = match std::fs::read_dir(&d) {
+                Ok(e) => e,
+                Err(_) => continue,
+            };
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    stack.push(path);
+                } else if path.file_name().and_then(|n| n.to_str()) == Some(name) {
+                    return Some(path);
+                }
+            }
+        }
+        None
+    }
+
+    /// Ensure an engine binary is available, downloading the pinned llama.cpp
+    /// build for this platform into `<models>/engine/` when none is found
+    /// anywhere, or when the one downloaded earlier is not the expected build.
+    /// Returns the path to the binary.
+    ///
+    /// A replacement never costs the user a working engine: the new build is
+    /// unpacked beside the old one and swapped in only once it is complete
+    /// (see [`swap_in_engine`]). If it cannot be downloaded, because the user
+    /// is offline when the first start after an update checks, the old engine
+    /// keeps running and the next start tries again.
+    ///
+    /// The archive URLs are built from the tag, so nothing here asks
+    /// `api.github.com`, whose unauthenticated limit shared school and office
+    /// networks exhaust. On total failure with nothing to fall back on it
+    /// returns a clear, actionable message instead of a raw HTTP error.
+    async fn ensure_engine_installed(&self) -> Result<PathBuf, String> {
+        // Both roles share the managed engine directory but each has its own
+        // start lock, so without this they could delete and extract into it at
+        // the same moment: the first use after an update prewarms both from one
+        // recording. The "is it current?" check runs under the lock too, so the
+        // second role to arrive finds the engine the first one just installed
+        // instead of replacing it again.
+        let _install = engine_install_lock().lock().await;
+
+        let expected = Self::expected_engine_tag();
+        let engine_dir = self.engine_dir();
+        let staging = self.models_dir.join(ENGINE_STAGING_DIRNAME);
+        let retired = self.models_dir.join(ENGINE_RETIRED_DIRNAME);
+        recover_interrupted_swap(&engine_dir, &retired);
+
+        let found = self.resolve_engine_binary();
+        let step = engine_install_step(
+            found.as_deref().map(|path| self.is_managed_engine(path)),
+            read_engine_stamp(&engine_dir).as_deref(),
+            &expected,
+            self.sibling_runs_managed_engine(),
+        );
+
+        // The engine already on disk, kept if the expected build cannot be
+        // installed in its place.
+        let current = match (found, step) {
+            (Some(path), EngineInstallStep::Reuse) => return Ok(path),
+            (Some(path), EngineInstallStep::ReuseWhileInUse) => {
+                // The other role's engine is running out of this directory.
+                // On Windows its llama-server.exe and ggml DLLs are open and
+                // cannot be moved, so a refresh would fail; elsewhere it would
+                // pull the files out from under a live process. Stopping that
+                // engine would drop whatever it is generating. Neither is
+                // needed: every managed engine this process starts passes this
+                // check under this lock first, and the expected tag cannot
+                // change while the app runs, so a running one was either current
+                // or installed moments ago. A stale verdict beside it means the
+                // stamp could not be written, not that the binary is old. The
+                // next start with nothing running checks again.
+                warn!(
+                    "Built-in engine at {} has no current version stamp (expected {}), \
+                     but the other engine is running from it; reusing it",
+                    path.display(),
+                    expected
+                );
+                return Ok(path);
+            }
+            (Some(path), EngineInstallStep::Replace) => {
+                info!(
+                    "Cached built-in engine is not llama.cpp {} (stamp: {}); replacing it",
+                    expected,
+                    read_engine_stamp(&engine_dir).as_deref().unwrap_or("none")
+                );
+                Some(path)
+            }
+            _ => None,
+        };
+
+        match self
+            .install_engine_build(&expected, &engine_dir, &staging, &retired)
+            .await
+        {
+            Ok(path) => Ok(path),
+            Err(e) => match current {
+                Some(path) => {
+                    warn!(
+                        "Keeping the current built-in engine at {} for now; llama.cpp {} will be \
+                         tried again on the next start. {}",
+                        path.display(),
+                        expected,
+                        e
+                    );
+                    // Clear the download banner: the engine the user had is
+                    // starting as before.
+                    let _ = self.app_handle.emit("local-llm-engine-status", "ready");
+                    Ok(path)
+                }
+                None => {
+                    let _ = self.app_handle.emit("local-llm-engine-status", "error");
+                    Err(e)
+                }
+            },
+        }
+    }
+
+    /// Download `expected` into `staging`, then swap it in as `engine_dir`.
+    /// Nothing in `engine_dir` is touched until the new build is complete, so a
+    /// failure here leaves whatever engine was there in place.
+    async fn install_engine_build(
+        &self,
+        expected: &str,
+        engine_dir: &Path,
+        staging: &Path,
+        retired: &Path,
+    ) -> Result<PathBuf, String> {
+        info!(
+            "Downloading llama.cpp {} as the built-in LLM engine...",
+            expected
+        );
+        let _ = self
+            .app_handle
+            .emit("local-llm-engine-status", "downloading");
+
+        let assets = engine_assets_for(expected, std::env::consts::OS, std::env::consts::ARCH);
+        if assets.is_empty() {
+            return Err(
+                "No compatible llama.cpp prebuilt binary is available for this platform."
+                    .to_string(),
+            );
+        }
+
+        let mut last_error = String::from("unknown error");
+        for asset in assets {
+            // Every attempt starts from an empty folder, so a fallback build is
+            // never unpacked over what an earlier attempt left behind.
+            remove_dir_if_present(staging)
+                .and_then(|()| std::fs::create_dir_all(staging))
+                .map_err(|e| format!("Failed to create engine directory: {}", e))?;
+            let url = asset.url();
+            match self.download_and_extract_engine(&url, staging).await {
+                Ok(()) => {
+                    if Self::find_binary_in(staging, Self::engine_filename()).is_none() {
+                        last_error =
+                            "engine archive downloaded but no llama-server binary was inside"
+                                .to_string();
+                        warn!("{} (source: {})", last_error, url);
+                        continue;
+                    }
+                    // Stamp with the tag of the archive just unpacked, so the
+                    // stamp always names the build that is on disk.
+                    if let Err(e) = write_engine_stamp(staging, &asset.tag) {
+                        warn!(
+                            "Failed to write the engine version stamp in {}: {}",
+                            staging.display(),
+                            e
+                        );
+                    }
+                    if let Err(e) = swap_in_engine(staging, engine_dir, retired) {
+                        let _ = remove_dir_if_present(staging);
+                        return Err(format!(
+                            "Couldn't move the new built-in engine into {}: {}",
+                            engine_dir.display(),
+                            e
+                        ));
+                    }
+                    let resolved = Self::find_binary_in(engine_dir, Self::engine_filename())
+                        .ok_or_else(|| {
+                            format!(
+                                "the new built-in engine was moved into {} but its llama-server \
+                                 binary is missing",
+                                engine_dir.display()
+                            )
+                        })?;
+                    let _ = self.app_handle.emit("local-llm-engine-status", "ready");
+                    info!(
+                        "Built-in LLM engine llama.cpp {} installed at {}",
+                        asset.tag,
+                        resolved.display()
+                    );
+                    return Ok(resolved);
+                }
+                Err(e) => {
+                    warn!("Engine download attempt failed ({}): {}", url, e);
+                    last_error = e;
+                }
+            }
+        }
+
+        let _ = remove_dir_if_present(staging);
+        Err(format!(
+            "Couldn't set up the built-in engine (llama.cpp {}). This is usually a network \
+             problem: some school and office networks block or throttle downloads from \
+             GitHub. Try again in a few minutes, switch networks, or pick a cloud or local \
+             (Ollama / LM Studio) provider in Settings → Assistant. Last error: {}",
+            expected, last_error
+        ))
+    }
+
+    /// Download one engine archive `url` into `engine_dir` and extract it.
+    /// The extractor is chosen from the URL's extension: Windows assets are
+    /// `.zip`, macOS/Linux assets are `.tar.gz`.
+    async fn download_and_extract_engine(
+        &self,
+        url: &str,
+        engine_dir: &Path,
+    ) -> Result<(), String> {
+        let lower = url.to_ascii_lowercase();
+        let is_tar_gz = lower.ends_with(".tar.gz") || lower.ends_with(".tgz");
+        let archive_name = if is_tar_gz {
+            "llama-engine.tar.gz"
+        } else {
+            "llama-engine.zip"
+        };
+        let archive_path = engine_dir.join(archive_name);
+
+        let _ = self
+            .app_handle
+            .emit("local-llm-engine-status", "downloading");
+        self.download_to_file(url, &archive_path).await?;
+
+        let _ = self
+            .app_handle
+            .emit("local-llm-engine-status", "extracting");
+        let result = if is_tar_gz {
+            Self::extract_tar_gz(&archive_path, engine_dir)
+        } else {
+            Self::extract_zip(&archive_path, engine_dir)
+        };
+        // Always clean up the archive, success or failure, so a partial/corrupt
+        // download can't wedge the next attempt.
+        let _ = std::fs::remove_file(&archive_path);
+        result
+    }
+
+    /// Stream a URL to a file, emitting coarse progress events.
+    async fn download_to_file(&self, url: &str, dest: &Path) -> Result<(), String> {
+        use futures_util::StreamExt;
+        use std::io::Write;
+
+        let client = crate::managers::model::download_client()
+            .map_err(|e| format!("Engine download client setup failed: {}", e))?;
+        let resp = client
+            .get(url)
+            .header("User-Agent", "zynveliq")
+            .send()
+            .await
+            .map_err(|e| format!("Engine download request failed: {}", e))?;
+        if !resp.status().is_success() {
+            return Err(format!("Engine download failed: HTTP {}", resp.status()));
+        }
+
+        let total = resp.content_length().unwrap_or(0);
+        let mut downloaded: u64 = 0;
+        let mut file =
+            std::fs::File::create(dest).map_err(|e| format!("Failed to create file: {}", e))?;
+        let mut stream = resp.bytes_stream();
+        let mut last_emit = Instant::now();
+
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk.map_err(|e| format!("Engine download error: {}", e))?;
+            file.write_all(&chunk)
+                .map_err(|e| format!("Failed to write engine file: {}", e))?;
+            downloaded += chunk.len() as u64;
+            if last_emit.elapsed() >= Duration::from_millis(250) {
+                let _ = self.app_handle.emit(
+                    "local-llm-engine-progress",
+                    serde_json::json!({ "downloaded": downloaded, "total": total }),
+                );
+                last_emit = Instant::now();
+            }
+        }
+        file.flush()
+            .map_err(|e| format!("Failed to flush engine file: {}", e))?;
+        Ok(())
+    }
+
+    /// Extract a `.zip` archive into `dest`, preserving the executable bit on
+    /// Unix so `llama-server` stays runnable.
+    fn extract_zip(zip_path: &Path, dest: &Path) -> Result<(), String> {
+        let file =
+            std::fs::File::open(zip_path).map_err(|e| format!("Failed to open archive: {}", e))?;
+        let mut archive =
+            zip::ZipArchive::new(file).map_err(|e| format!("Failed to read archive: {}", e))?;
+
+        for i in 0..archive.len() {
+            let mut entry = archive
+                .by_index(i)
+                .map_err(|e| format!("Failed to read archive entry: {}", e))?;
+            let outpath = match entry.enclosed_name() {
+                Some(p) => dest.join(p),
+                None => continue,
+            };
+
+            if entry.is_dir() {
+                std::fs::create_dir_all(&outpath)
+                    .map_err(|e| format!("Failed to create dir: {}", e))?;
+            } else {
+                if let Some(parent) = outpath.parent() {
+                    std::fs::create_dir_all(parent)
+                        .map_err(|e| format!("Failed to create dir: {}", e))?;
+                }
+                let mut out = std::fs::File::create(&outpath)
+                    .map_err(|e| format!("Failed to create file: {}", e))?;
+                std::io::copy(&mut entry, &mut out)
+                    .map_err(|e| format!("Failed to extract file: {}", e))?;
+
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    if let Some(mode) = entry.unix_mode() {
+                        let _ = std::fs::set_permissions(
+                            &outpath,
+                            std::fs::Permissions::from_mode(mode),
+                        );
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Extract a `.tar.gz` archive into `dest`. The `tar` crate restores the
+    /// executable bit stored in the archive, so `llama-server` stays runnable.
+    /// Used for the macOS/Linux release assets (which ship as `.tar.gz`);
+    /// Windows assets are `.zip` and go through `extract_zip`.
+    fn extract_tar_gz(archive_path: &Path, dest: &Path) -> Result<(), String> {
+        let file = std::fs::File::open(archive_path)
+            .map_err(|e| format!("Failed to open archive: {}", e))?;
+        let decoder = flate2::read::GzDecoder::new(file);
+        let mut archive = tar::Archive::new(decoder);
+        archive
+            .unpack(dest)
+            .map_err(|e| format!("Failed to extract archive: {}", e))?;
+        Ok(())
+    }
+
+    /// Resolve the on-disk GGUF path for a local-LLM model id.
+    ///
+    /// Uses the model manager's resolution so a model the user registered from
+    /// their own disk works exactly like a downloaded one — its weights are
+    /// wherever they keep them, not in the app's models directory.
+    fn gguf_path_for(&self, model_id: &str) -> Result<PathBuf, String> {
+        let model_manager = self.app_handle.state::<Arc<ModelManager>>();
+        let info = model_manager
+            .get_model_info(model_id)
+            .ok_or_else(|| format!("Unknown model: {}", model_id))?;
+
+        if info.engine_type != EngineType::LlamaCpp {
+            return Err(format!("Model '{}' is not a local LLM", model_id));
+        }
+
+        if let Some(local_path) = &info.local_path {
+            let path = PathBuf::from(local_path);
+            if !path.is_file() {
+                return Err(format!(
+                    "This model's file is no longer at {}. It may have been moved, or be on a drive that isn't connected.",
+                    local_path
+                ));
+            }
+            return Ok(path);
+        }
+
+        let path = self.models_dir.join(&info.filename);
+        if !path.is_file() {
+            return Err(format!(
+                "Model '{}' is not downloaded yet. Download it from the Models tab.",
+                model_id
+            ));
+        }
+        Ok(path)
+    }
+
+    /// Ensure the engine is running and serving `model_id`, starting (or
+    /// restarting with a different model) as needed. Returns once the server is
+    /// accepting connections, or an error describing why it could not start.
+    pub async fn ensure_running(&self, model_id: &str) -> Result<(), String> {
+        // Count the start itself as a request. A cold load can take longer than
+        // one 10 s watcher tick (and longer than the whole timeout when that is
+        // "Immediately"), and the callers only take their own request guard
+        // after this returns — so without it the idle watcher could stop the
+        // engine it was still waiting on. Dropping it also refreshes the timer.
+        // Taken before the start lock so a caller queued behind another start
+        // already counts as a pending request.
+        let _activity = self.begin_request();
+
+        // Only one start sequence at a time.
+        let _start_guard = self.start_lock.lock().await;
+
+        // Fast path: already serving this model and the process is alive.
+        {
+            let mut st = self.state.lock().unwrap();
+            let already = st.model_id.as_deref() == Some(model_id)
+                && match st.child.as_mut() {
+                    Some(child) => matches!(child.try_wait(), Ok(None)),
+                    None => false,
+                };
+            if already {
+                return Ok(());
+            }
+            // Stop any process serving a different (or dead) model.
+            if let Some(mut child) = st.child.take() {
+                debug!("Stopping local LLM engine before switching models");
+                let _ = child.kill();
+                let _ = child.wait();
+                self.forget_engine_pid();
+            }
+            st.model_id = None;
+        }
+
+        // The engine listens on a single fixed port. A just-killed engine's
+        // listening socket lingers for a short window (and a crashed previous
+        // run can leave an orphan still holding it); spawning the replacement
+        // before the port is free makes the new llama-server fail to bind and
+        // exit — the root cause of rapid model switches "not switching". Wait
+        // for the port to clear first (returns immediately when it's already
+        // free) so the new engine binds reliably, and so a later /health 200
+        // can only come from the newly started model.
+        self.wait_for_port_release().await;
+
+        // Ensure the engine binary exists, downloading the official llama.cpp
+        // build for this platform on first use (zero manual setup).
+        let engine = self.ensure_engine_installed().await.map_err(|e| {
+            self.set_error(Some(e.clone()));
+            self.emit_status();
+            e
+        })?;
+        let gguf = self.gguf_path_for(model_id)?;
+        let mmproj = self.mmproj_path_for(model_id);
+
+        info!(
+            "Starting built-in LLM engine '{}' with model '{}' on port {}",
+            engine.display(),
+            model_id,
+            self.port
+        );
+
+        let child = self
+            .spawn_server(&engine, &gguf, mmproj.as_deref())
+            .map_err(|e| {
+                let msg = format!("Failed to start local LLM engine: {}", e);
+                self.set_error(Some(msg.clone()));
+                msg
+            })?;
+
+        {
+            let mut st = self.state.lock().unwrap();
+            st.child = Some(child);
+            st.engine = Some(engine.clone());
+            st.model_id = Some(model_id.to_string());
+            st.last_error = None;
+        }
+        // A fresh process has nothing paged in or compiled yet.
+        self.warmed_at.store(0, Ordering::SeqCst);
+        self.emit_status();
+
+        match self.wait_until_ready().await {
+            Ok(()) => {
+                info!("Built-in LLM engine ready (model '{}')", model_id);
+                self.emit_status();
+                Ok(())
+            }
+            Err(e) => {
+                // Surface the engine's real output so the failure is actionable
+                // (e.g. unsupported flag, missing GPU runtime, model load error).
+                let detail = match self.engine_log_report(20) {
+                    Some(report) => format!("{}\n\n{}", e, report),
+                    None => e.clone(),
+                };
+                error!("Built-in LLM engine failed to become ready: {}", detail);
+                self.stop();
+                self.set_error(Some(detail.clone()));
+                self.emit_status();
+                Err(detail)
+            }
+        }
+    }
+
+    /// On-disk path to the model's vision projector, if it's a multimodal
+    /// model and the projector is actually present.
+    ///
+    /// Resolution is delegated to the model manager because a projector can live
+    /// in either place: beside the managed weights for a downloaded model, or
+    /// next to the user's own file for a local one.
+    fn mmproj_path_for(&self, model_id: &str) -> Option<PathBuf> {
+        let model_manager = self.app_handle.state::<Arc<ModelManager>>();
+        let path = model_manager.resolve_mmproj_path(model_id)?;
+        if path.is_file() {
+            Some(path)
+        } else {
+            None
+        }
+    }
+
+    /// The context window to launch the engine with: the user's configured
+    /// value clamped to a safe range, or the default if settings can't be read.
+    /// The cleanup engine is additionally capped at [`CLEANUP_CONTEXT_SIZE`] —
+    /// it only ever sees one prompt plus one transcript, so a chat-sized window
+    /// would just reserve KV cache it never uses.
+    fn configured_context_size(&self) -> u32 {
+        let configured = crate::settings::get_settings(&self.app_handle)
+            .local_llm_context_size
+            .clamp(MIN_CONTEXT_SIZE, MAX_CONTEXT_SIZE);
+        context_size_for(self.role, configured)
+    }
+
+    /// Number of layers to offload to the GPU. Both roles take everything the
+    /// backend will accept; see [`ALL_GPU_LAYERS`].
+    fn gpu_layers(&self) -> u32 {
+        ALL_GPU_LAYERS
+    }
+
+    /// Repetition penalty for this role's engine.
+    ///
+    /// The assistant keeps a penalty to discourage the short repetition loops
+    /// small chat models fall into (e.g. printing "Repeat: ..." and re-emitting
+    /// the same sentence).
+    ///
+    /// Cleanup turns it off. Both roles used to share 1.1, which was reasoned
+    /// about as a chat setting and never re-examined for a copy task — and
+    /// cleanup is a copy task: the correct output is mostly the input reproduced
+    /// verbatim, so penalising tokens already in the window penalises being
+    /// correct.
+    ///
+    /// Measured, at greedy so sampling noise could not mask it, on a transcript
+    /// with heavy legitimate repetition ("So the plan is the plan we agreed on.
+    /// The team said the team is ready. I think I think we should ship the thing
+    /// and then ship the next thing."):
+    ///
+    /// - 1.0 returned it correctly, collapsing only the "I think I think"
+    ///   stutter and preserving both sentences.
+    /// - 1.1 returned "The plan we agreed on is the plan we should ship the thing
+    ///   and then ship the next thing." — the entire "team" sentence deleted and
+    ///   the remainder fused into ungrammatical text.
+    ///
+    /// Silent sentence loss is the worst failure this feature has, since the user
+    /// only sees well-formed output and has no reason to suspect a sentence is
+    /// missing. That is what a repetition penalty buys on a task whose input is
+    /// repetitive by nature: dictation restates things.
+    fn repeat_penalty(&self) -> f32 {
+        repeat_penalty_for(self.role)
+    }
+
+    /// The `--device` value for this machine, or `None` to let the engine decide.
+    ///
+    /// The cheap check comes first on purpose: the engine probe costs a process
+    /// spawn plus a Vulkan driver load, and only a mixed dedicated + integrated
+    /// machine needs the answer.
+    fn pinned_device_arg(&self, engine: &Path) -> Option<String> {
+        let probed = crate::managers::transcription::gpu_devices();
+        if !needs_device_pinning(&probed) {
+            return None;
+        }
+        select_engine_device_arg(engine_devices(engine), &probed)
+    }
+
+    fn spawn_server(
+        &self,
+        engine: &Path,
+        gguf: &Path,
+        mmproj: Option<&Path>,
+    ) -> std::io::Result<Child> {
+        let context_size = self.configured_context_size();
+        let gpu_layers = self.gpu_layers();
+
+        let mut cmd = Command::new(engine);
+        cmd.arg("-m")
+            .arg(gguf)
+            .arg("--host")
+            .arg("127.0.0.1")
+            .arg("--port")
+            .arg(self.port.to_string())
+            .arg("-c")
+            .arg(context_size.to_string())
+            // ONE generation slot. Without this, llama-server defaults to
+            // several parallel slots (observed: n_slots = 4) and SPLITS the
+            // context window across them — so each turn gets only a fraction of
+            // the tokens (e.g. n_ctx_slot = 1792 out of ~7168). A single desktop
+            // conversation then overflows its slot almost immediately, and a
+            // vision turn overflows instantly (one screenshot alone costs
+            // ~1000-2000 tokens). That surfaces in the engine log as
+            // `decode: failed to find free space in the KV cache` plus
+            // `truncated = 1`, and to the user as replies that "work for a while
+            // then break." This app is single-user, so one slot owning the FULL
+            // context window is both correct and far more reliable; overlapping
+            // requests (assistant + post-processing) simply queue instead of
+            // fighting over a fragmented KV cache.
+            .arg("--parallel")
+            .arg("1")
+            // Offload as many layers to the GPU as fit; CPU-only builds ignore
+            // this. See `ALL_GPU_LAYERS` for why cleanup no longer demotes small
+            // models to the CPU.
+            .arg("-ngl")
+            .arg(gpu_layers.to_string())
+            // Use the model's embedded Jinja chat template — needed for correct
+            // prompting, tool calls, and reasoning separation on modern models.
+            .arg("--jinja")
+            // Repetition penalty, per role — see `repeat_penalty()`.
+            .arg("--repeat-penalty")
+            .arg(format!("{:.2}", self.repeat_penalty()));
+
+        // Cleanup is a rewrite, not a conversation: thinking is pure cost here.
+        // Left to their defaults, current small chat models spend the whole
+        // budget on a "Thinking Process: 1. Analyze the request..." monologue
+        // and return EMPTY content (verified on Gemma 4 E2B and Qwen3.5-0.8B:
+        // finish_reason=length, content empty, ~1100 chars of reasoning), which
+        // the cleanup path can only treat as a failure and fall back to the raw
+        // transcript. The request already asks templates for
+        // `enable_thinking: false`, but models whose template lacks that flag
+        // ignore it — this budget closes the thinking block immediately
+        // regardless of template.
+        //
+        // Passed via the env var rather than `--reasoning-budget` so that an
+        // older cached engine build (which predates the flag) ignores it instead
+        // of refusing to start, exactly like `LLAMA_ARG_FLASH_ATTN` below.
+        // Interactive answers need the same immediate output as cleanup.
+        cmd.env("LLAMA_ARG_THINK_BUDGET", "0");
+
+        // Keep local chat on the same dedicated-first GPU policy used by the
+        // rest of the app — but with the flag that actually enforces it.
+        //
+        // `--main-gpu` does NOT select which device runs the model, which is why
+        // it used to be the only flag here. Measured on a 4070 Ti SUPER + Ryzen
+        // iGPU machine with this exact engine build: `--main-gpu 1` (the iGPU)
+        // still generated at 213 tok/s, identical to the dedicated card, because
+        // under the default `--split-mode layer` that index only picks where
+        // small tensors and KV live among the devices ALREADY in use, and a model
+        // that fits on device 0 stays entirely on device 0. `--device` is the
+        // flag that chooses the device set: `--device Vulkan1` on the same
+        // machine measured 7 tok/s — 30x slower, and 3x slower than the CPU's
+        // 21.8 tok/s. So on any machine whose ggml device 0 happens to be the
+        // integrated GPU, the engine silently ran there and the dedicated-first
+        // policy was never enforced for llama.cpp at all.
+        //
+        // The value is resolved from the engine's OWN `--list-devices` output,
+        // not from our device index: the two enumerations are independent and
+        // their order need not agree.
+        match self.pinned_device_arg(engine) {
+            Some(devices) => {
+                info!("Pinning llama.cpp to dedicated GPU device(s): {devices}");
+                cmd.arg("--device").arg(&devices);
+            }
+            None => {
+                // Nothing to correct on this machine's device mix, so leave
+                // selection to the engine and keep the historical hint (which
+                // still matters for `--split-mode none`/`row`). The hint is the
+                // device's position among the GPUs, the count the old whisper.cpp
+                // list used for its ids; the device key is not a number.
+                let gpus = crate::managers::transcription::gpu_devices();
+                let preferred = crate::managers::transcription::preferred_gpu_device();
+                let ordinal = preferred
+                    .as_ref()
+                    .and_then(|device| gpus.iter().position(|gpu| gpu.id == device.id));
+                if let Some((ordinal, device)) = ordinal.zip(preferred) {
+                    info!(
+                        "llama.cpp main-GPU hint {}: {} ({}, {} MiB)",
+                        ordinal, device.name, device.kind, device.total_vram_mb
+                    );
+                    cmd.arg("--main-gpu").arg(ordinal.to_string());
+                }
+            }
+        }
+
+        // Flash Attention in "auto" mode: the engine enables it only on backends
+        // that support it and silently falls back to standard attention
+        // otherwise — safe on CPU-only machines and every GPU type, while cutting
+        // KV-cache memory and speeding up attention where available. Passed via
+        // the env var rather than the `-fa` CLI flag so that older cached engine
+        // builds (which predate the `-fa on|off|auto` syntax) ignore it instead
+        // of failing to start. `auto` is already llama.cpp's default; this just
+        // pins the intent against any future default change.
+        cmd.env("LLAMA_ARG_FLASH_ATTN", "auto");
+
+        // Cap the host-RAM prompt cache. Current llama-server keeps up to
+        // 8192 MiB of saved prompt states by default (`--cache-ram`), and each
+        // new assistant conversation or screenshot turn adds one, so engine RSS
+        // ratcheted up for the whole session. Cleanup is one short rewrite per
+        // dictation and reuses the shared system prompt in its single slot via
+        // `cache_prompt`, so it needs none; the assistant keeps a small cache
+        // for switching back to a recent conversation. Env var for the same
+        // older-build reason as above.
+        cmd.env(
+            "LLAMA_ARG_CACHE_RAM",
+            match self.role {
+                LlmRole::Cleanup => "0",
+                LlmRole::Assistant => "1024",
+            },
+        );
+
+        // Multimodal models need their vision projector to "see" images
+        // (the assistant's screenshot feature). Cleanup never sends an image, so
+        // it skips the projector: loading `gemma-4-E2B-it-mmproj.gguf` cost a
+        // measured ~1.4s of engine start and ~940MB of memory for nothing.
+        if let Some(mmproj) = mmproj.filter(|_| self.role == LlmRole::Assistant) {
+            cmd.arg("--mmproj").arg(mmproj);
+        }
+
+        // Capture the engine's output to a log file so failures (bad argument,
+        // missing DLL, model load error) are diagnosable instead of silent.
+        let log_path = self.engine_log_path();
+        if let Some(parent) = log_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+
+        // Log at trace level, and have the engine keep its own log file beside
+        // the capture. At the default level (3) the engine logs 14 lines for a
+        // whole model load, none of them the step it died on; trace (4) adds
+        // how many layers went to which device, buffer sizes, and the
+        // scheduler's split count, which is the context the split-inputs abort
+        // needed and did not have. It costs about 30 lines per request (slot,
+        // cache and timing lines, never prompt text), and both files are
+        // truncated on every start. On b11429 the file holds the same lines as
+        // the capture minus raw stderr writes; it is there so the record does
+        // not depend on how a given build writes its console, and the failure
+        // report quotes it only for lines the capture lacks.
+        //
+        // Env vars rather than `--log-file` / `-lv`, the same as above:
+        // `HANDY_LLAMA_SERVER` can name any build, and one that predates an
+        // option ignores an unknown variable but refuses to start on an unknown
+        // flag. The previous run's file goes first, so a build that ignores the
+        // variable cannot leave a stale log to be read as this run's.
+        let debug_log_path = self.engine_debug_log_path();
+        if let Err(e) = std::fs::remove_file(&debug_log_path) {
+            if e.kind() != std::io::ErrorKind::NotFound {
+                debug!("Failed to remove the previous engine debug log: {e}");
+            }
+        }
+        cmd.env("LLAMA_ARG_LOG_FILE", &debug_log_path);
+        cmd.env("LLAMA_ARG_LOG_VERBOSITY", "4");
+
+        let (stdout, stderr) = match std::fs::File::create(&log_path) {
+            Ok(f) => match f.try_clone() {
+                Ok(f2) => (Stdio::from(f), Stdio::from(f2)),
+                Err(_) => (Stdio::from(f), Stdio::null()),
+            },
+            Err(_) => (Stdio::null(), Stdio::null()),
+        };
+        cmd.stdout(stdout).stderr(stderr);
+
+        // Inside an AppImage, don't let its bundled libggml shadow the engine's own.
+        #[cfg(target_os = "linux")]
+        scrub_appimage_library_path(&mut cmd);
+
+        // Don't pop up a console window on Windows.
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+
+        let child = cmd.spawn()?;
+
+        // Tie the engine's lifetime to ours. On Windows we place it in a
+        // kill-on-close Job Object so it is terminated even if we crash, panic,
+        // or are force-killed by the OS during a memory-pressure freeze — the
+        // paths where `Drop` / exit handlers never run and an orphaned multi-GB
+        // `llama-server.exe` would otherwise survive and keep exhausting RAM.
+        // The graceful quit path additionally calls `stop()` via `RunEvent::Exit`
+        // in `lib.rs`.
+        #[cfg(windows)]
+        crate::utils::assign_child_to_kill_on_close_job(&child);
+        // macOS and Linux have no equivalent that survives a hard kill of this
+        // process (PR_SET_PDEATHSIG tracks the spawning *thread*, and this runs
+        // on runtime threads that come and go), so the engine is recorded
+        // instead and a later launch reaps it; see `reap_orphaned_engine`.
+        #[cfg(unix)]
+        self.record_engine_pid(&child, engine);
+
+        Ok(child)
+    }
+
+    /// True if something is currently accepting TCP connections on the engine
+    /// port (our engine, or a just-killed one whose socket the OS hasn't freed
+    /// yet).
+    fn port_in_use(&self) -> bool {
+        let addr = SocketAddr::from(([127, 0, 0, 1], self.port));
+        TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_ok()
+    }
+
+    /// Wait (bounded) for the engine port to be released after stopping a
+    /// model, before starting the replacement.
+    ///
+    /// The engine listens on a single fixed port. When switching models we kill
+    /// the running `llama-server` and immediately spawn a new one — but the OS
+    /// keeps the killed process's listening socket for a short window, so the
+    /// replacement can lose the race to `bind()` that same port, fail to start,
+    /// and exit. That is the root cause of "switching models quickly doesn't
+    /// work": slow, deliberate switches leave enough time for the socket to
+    /// free up, while rapid ones don't. Polling until the port is free both
+    /// lets the new engine bind reliably AND guarantees the next `/health` 200
+    /// can only come from the newly started model, never a half-dead
+    /// predecessor still holding the port.
+    async fn wait_for_port_release(&self) {
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while self.port_in_use() {
+            if Instant::now() >= deadline {
+                warn!(
+                    "Engine port {} still busy after stopping the previous model; \
+                     starting the new engine anyway (it may report a bind error)",
+                    self.port
+                );
+                return;
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+    }
+
+    /// Probe the engine's `/health` endpoint with a minimal raw HTTP request
+    /// (no async/blocking-client deps needed). Returns true only on HTTP 200,
+    /// which llama-server reports once the model is fully loaded. While loading
+    /// it returns 503, so we keep waiting.
+    fn check_health(addr: &SocketAddr) -> bool {
+        use std::io::{Read, Write};
+
+        let mut stream = match TcpStream::connect_timeout(addr, Duration::from_millis(800)) {
+            Ok(s) => s,
+            Err(_) => return false,
+        };
+        let _ = stream.set_read_timeout(Some(Duration::from_millis(1500)));
+        let _ = stream.set_write_timeout(Some(Duration::from_millis(1500)));
+
+        let request = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+        if stream.write_all(request.as_bytes()).is_err() {
+            return false;
+        }
+
+        let mut buf = [0u8; 256];
+        match stream.read(&mut buf) {
+            Ok(n) if n > 0 => {
+                let resp = String::from_utf8_lossy(&buf[..n]);
+                // Status line looks like "HTTP/1.1 200 OK" when ready.
+                resp.lines()
+                    .next()
+                    .and_then(|line| line.split_whitespace().nth(1))
+                    .map(|code| code == "200")
+                    .unwrap_or(false)
+            }
+            _ => false,
+        }
+    }
+
+    /// Wait until the engine has fully loaded the model and `/health` returns
+    /// 200, or time out. Runs on a blocking thread so the async runtime is
+    /// never stalled.
+    async fn wait_until_ready(&self) -> Result<(), String> {
+        let addr = SocketAddr::from(([127, 0, 0, 1], self.port));
+        let state = self.state.clone();
+
+        let join = tauri::async_runtime::spawn_blocking(move || -> Result<(), String> {
+            let start = Instant::now();
+            loop {
+                // Detect an engine that exited immediately (e.g. bad model).
+                {
+                    let mut st = state.lock().unwrap();
+                    match st.child.as_mut() {
+                        Some(child) => {
+                            if let Ok(Some(status)) = child.try_wait() {
+                                return Err(format!(
+                                    "Local LLM engine exited unexpectedly (status: {})",
+                                    status
+                                ));
+                            }
+                        }
+                        None => return Err("Local LLM engine was stopped".to_string()),
+                    }
+                }
+
+                // The engine accepts TCP connections before the model is
+                // loaded, so a bare connect check fires too early (causes a
+                // 503 "Loading model" on the first request). Poll /health and
+                // only proceed once it reports the model is ready (HTTP 200).
+                if Self::check_health(&addr) {
+                    return Ok(());
+                }
+                if start.elapsed() > READY_TIMEOUT {
+                    return Err("Local LLM engine did not become ready in time".to_string());
+                }
+                std::thread::sleep(Duration::from_millis(500));
+            }
+        })
+        .await;
+
+        match join {
+            Ok(result) => result,
+            Err(e) => Err(format!("Local LLM readiness task failed: {}", e)),
+        }
+    }
+
+    /// Stop the engine if running. Safe to call when already stopped.
+    pub fn stop(&self) {
+        // Called from `Drop` on app quit, so recover from a poisoned mutex
+        // instead of panicking — a panic inside Drop calls abort() (extends the
+        // intent of Handy #1354 to this Zynveliq-added manager). Recovering
+        // the guard still lets us kill the child process during shutdown.
+        let mut st = match self.state.lock() {
+            Ok(g) => g,
+            Err(e) => e.into_inner(),
+        };
+        if let Some(mut child) = st.child.take() {
+            debug!("Stopping built-in LLM engine");
+            let _ = child.kill();
+            let _ = child.wait();
+            self.forget_engine_pid();
+        }
+        st.model_id = None;
+    }
+
+    /// Stop the engine unless it is starting or serving a request. Used when the
+    /// user moves a feature to a cloud provider, where waiting for the idle
+    /// timeout (or forever, with "Never") would hold gigabytes for nothing.
+    pub fn stop_if_idle(&self) {
+        // Holding the start lock means no `ensure_running` can be mid-spawn.
+        let Ok(_start_guard) = self.start_lock.try_lock() else {
+            return;
+        };
+        if self.in_flight.load(Ordering::SeqCst) > 0 {
+            return;
+        }
+        let running = {
+            let mut st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+            match st.child.as_mut() {
+                Some(child) => matches!(child.try_wait(), Ok(None)),
+                None => false,
+            }
+        };
+        if running {
+            info!("Stopping the built-in LLM engine: no feature uses it any more");
+            self.stop();
+            self.emit_status();
+        }
+    }
+
+    fn set_error(&self, error: Option<String>) {
+        if let Ok(mut st) = self.state.lock() {
+            st.last_error = error;
+        }
+    }
+
+    /// Current engine status for the UI.
+    pub fn status(&self) -> LocalLlmStatus {
+        let engine_present = self.resolve_engine_binary().is_some();
+        let mut st = self.state.lock().unwrap();
+        // Reap a process that died since the last check so `running` is accurate.
+        let running = match st.child.as_mut() {
+            Some(child) => match child.try_wait() {
+                Ok(Some(_)) => {
+                    st.child = None;
+                    st.model_id = None;
+                    self.forget_engine_pid();
+                    false
+                }
+                Ok(None) => true,
+                Err(_) => false,
+            },
+            None => false,
+        };
+        LocalLlmStatus {
+            running,
+            model_id: st.model_id.clone(),
+            engine_present,
+            port: self.port,
+            error: st.last_error.clone(),
+        }
+    }
+
+    fn emit_status(&self) {
+        let status = self.status();
+        if let Err(e) = self.app_handle.emit("local-llm-status", &status) {
+            warn!("Failed to emit local-llm-status event: {}", e);
+        }
+    }
+
+    /// Current time in milliseconds since the Unix epoch.
+    fn now_ms() -> u64 {
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as u64
+    }
+
+    /// Force the expensive one-time work to happen NOW, off the user's hot path.
+    ///
+    /// `ensure_running` returning only means the engine bound its port. Two
+    /// costs are still outstanding at that moment:
+    ///
+    /// 1. Weights are memory-mapped, so their pages are faulted in lazily by the
+    ///    FIRST real inference (llama.cpp's built-in warmup is an empty run and
+    ///    does not cover a batched prefill).
+    /// 2. On a GPU, the driver compiles compute pipelines for this
+    ///    model + quantization on its first large prefill. Measured on an
+    ///    RTX 4070 Ti Super via Vulkan: 13–20s the first time a given
+    ///    model/quant/driver combination runs, then ~0.14s on every later run
+    ///    once the driver has cached it.
+    ///
+    /// Sending a synthetic prefill here pays both while the user is still
+    /// speaking, which is the difference between a 20s first cleanup and an
+    /// invisible one. Failures are ignored: this is best-effort warming, and the
+    /// real request path reports errors.
+    pub async fn warm_up(&self) {
+        // Prewarm fires on every recording start and assistant press, but the
+        // engine stays up between them. Re-warming an already warm engine
+        // bought nothing and cost a full ~600-token prefill each time (seconds
+        // of all-core CPU without a GPU); with one slot it also queued the real
+        // cleanup behind it and evicted the cached system prompt. So warm once
+        // per process, and again only after a long quiet spell, when the OS may
+        // have paged the mapped weights back out.
+        let now = Self::now_ms();
+        let last = self.warmed_at.load(Ordering::SeqCst);
+        if last != 0 && now.saturating_sub(last) < WARM_UP_REFRESH.as_millis() as u64 {
+            return;
+        }
+        self.warmed_at.store(now, Ordering::SeqCst);
+
+        let _guard = self.begin_request();
+        let started = Instant::now();
+        // ~600 tokens of filler: enough to take the same batched-prefill path a
+        // real cleanup prompt takes, small enough to finish quickly.
+        let body = serde_json::json!({
+            "prompt": "warm ".repeat(600),
+            "n_predict": 1,
+            "temperature": 0.0,
+            "cache_prompt": false,
+        });
+
+        let client = match reqwest::Client::builder()
+            .timeout(Duration::from_secs(READY_TIMEOUT.as_secs()))
+            .build()
+        {
+            Ok(client) => client,
+            Err(e) => {
+                debug!("LLM warm-up client build failed: {}", e);
+                self.warmed_at.store(0, Ordering::SeqCst);
+                return;
+            }
+        };
+
+        match client
+            .post(format!("http://127.0.0.1:{}/completion", self.port))
+            .json(&body)
+            .send()
+            .await
+        {
+            Ok(response) => debug!(
+                "Built-in LLM warm-up finished in {:?} (status {})",
+                started.elapsed(),
+                response.status()
+            ),
+            Err(e) => {
+                // Not warmed after all; let the next press try again.
+                self.warmed_at.store(0, Ordering::SeqCst);
+                debug!("Built-in LLM warm-up skipped: {}", e)
+            }
+        }
+    }
+
+    /// Reset the idle timer to "now". Called on every engine use (prewarm,
+    /// `ensure_running`, and at the start/end of each request) so the watcher
+    /// only unloads after a genuine idle period.
+    pub fn touch_activity(&self) {
+        self.last_activity.store(Self::now_ms(), Ordering::Relaxed);
+    }
+
+    /// Mark the start of an LLM request. Increments the in-flight counter (so
+    /// the idle watcher won't unload mid-request) and refreshes the idle timer.
+    /// The returned guard decrements the counter and refreshes the timer again
+    /// on drop, so the idle countdown restarts from the end of the request.
+    pub fn begin_request(&self) -> LlmActivityGuard {
+        self.in_flight.fetch_add(1, Ordering::SeqCst);
+        self.touch_activity();
+        LlmActivityGuard {
+            in_flight: self.in_flight.clone(),
+            last_activity: self.last_activity.clone(),
+        }
+    }
+
+    /// Spawn the background watcher that unloads the engine once it has been
+    /// idle for longer than `local_llm_unload_timeout`. Holds only a weak ref,
+    /// so it exits automatically when the manager is dropped (app shutdown).
+    /// Mirrors the transcription manager's idle watcher.
+    pub fn spawn_idle_watcher(manager: &Arc<Self>) {
+        let weak = Arc::downgrade(manager);
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(10));
+            match weak.upgrade() {
+                Some(manager) => manager.idle_check_and_maybe_stop(),
+                None => break,
+            }
+        });
+    }
+
+    /// Stop the engine if it has been idle longer than the configured timeout.
+    /// Never unloads while a request is in flight, or when the timeout is set to
+    /// `Never`.
+    fn idle_check_and_maybe_stop(&self) {
+        // Most cloud users never start either local engine. Check the cheap
+        // process state before loading the entire settings/history snapshot.
+        {
+            let mut st = self.state.lock().unwrap();
+            let running = match st.child.as_mut() {
+                Some(child) => matches!(child.try_wait(), Ok(None)),
+                None => false,
+            };
+            if !running {
+                return;
+            }
+        }
+
+        let settings = crate::settings::get_settings(&self.app_handle);
+        // Each role has its own residency policy: the assistant's model is large
+        // and rarely used, cleanup's is small and used on every dictation.
+        let timeout = match self.role {
+            LlmRole::Assistant => settings.local_llm_unload_timeout,
+            LlmRole::Cleanup => settings.post_process_unload_timeout,
+        };
+        let Some(limit_seconds) = timeout.to_seconds() else {
+            return; // `Never` — keep the engine resident.
+        };
+
+        // Keep the engine alive while a request is in flight, and keep the idle
+        // timer fresh so a long generation can't be unloaded out from under us.
+        if self.in_flight.load(Ordering::SeqCst) > 0 {
+            self.touch_activity();
+            return;
+        }
+
+        let idle_ms = Self::now_ms().saturating_sub(self.last_activity.load(Ordering::Relaxed));
+        if idle_ms >= limit_seconds.saturating_mul(1000) {
+            info!(
+                "Built-in LLM idle for {}s (limit {}s); unloading to free memory",
+                idle_ms / 1000,
+                limit_seconds
+            );
+            self.stop();
+            self.emit_status();
+        }
+    }
+}
+
+/// RAII guard returned by [`LocalLlmManager::begin_request`]. Decrements the
+/// in-flight counter and refreshes the idle timer when dropped, so the idle
+/// countdown starts from the moment the request finishes.
+pub struct LlmActivityGuard {
+    in_flight: Arc<AtomicUsize>,
+    last_activity: Arc<AtomicU64>,
+}
+
+impl Drop for LlmActivityGuard {
+    fn drop(&mut self) {
+        self.in_flight.fetch_sub(1, Ordering::SeqCst);
+        self.last_activity
+            .store(LocalLlmManager::now_ms(), Ordering::Relaxed);
+    }
+}
+
+impl Drop for LocalLlmManager {
+    fn drop(&mut self) {
+        self.stop();
+    }
+}
+
+/// What a role's pid file says about the engine it was written for.
+#[cfg_attr(not(unix), allow(dead_code))]
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct EnginePidRecord {
+    pid: u32,
+    /// Canonical path of the executable that was spawned.
+    exe: PathBuf,
+}
+
+/// Pid file contents: the pid, then the executable path, one per line.
+/// `None` for a path that would not read back intact.
+#[cfg_attr(not(unix), allow(dead_code))]
+fn format_engine_pid_record(pid: u32, exe: &Path) -> Option<String> {
+    let exe = exe.to_str()?;
+    if exe.is_empty() || exe.contains('\n') {
+        return None;
+    }
+    Some(format!("{pid}\n{exe}\n"))
+}
+
+/// Parse a pid file written by [`format_engine_pid_record`]. Pure so it is
+/// testable on every platform.
+#[cfg_attr(not(unix), allow(dead_code))]
+fn parse_engine_pid_record(content: &str) -> Option<EnginePidRecord> {
+    let (pid, exe) = content.split_once('\n')?;
+    let pid: u32 = pid.trim().parse().ok()?;
+    // kill(2) reads 0 and negative pids as process groups and pid 1 is init;
+    // none of them can be an engine we spawned.
+    if pid <= 1 || pid > i32::MAX as u32 {
+        return None;
+    }
+    let exe = exe.strip_suffix('\n').unwrap_or(exe);
+    if exe.is_empty() || exe.contains('\n') {
+        return None;
+    }
+    Some(EnginePidRecord {
+        pid,
+        exe: PathBuf::from(exe),
+    })
+}
+
+/// Whether the executable the kernel reports for a pid is the recorded engine.
+/// Linux reports a binary that was deleted or replaced on disk as
+/// `<path> (deleted)`, and that process is still the engine we spawned.
+#[cfg_attr(not(unix), allow(dead_code))]
+fn executable_matches(live: &Path, recorded: &Path) -> bool {
+    if live == recorded {
+        return true;
+    }
+    let mut deleted = recorded.as_os_str().to_owned();
+    deleted.push(" (deleted)");
+    live.as_os_str() == deleted
+}
+
+#[cfg(unix)]
+mod orphan_engine {
+    use super::{executable_matches, EnginePidRecord};
+    use log::warn;
+    use std::path::PathBuf;
+    use std::time::{Duration, Instant};
+
+    /// How long to wait for a killed engine to disappear. SIGKILL cannot be
+    /// caught, so this only covers the kernel tearing down a large mapping.
+    const EXIT_WAIT: Duration = Duration::from_secs(2);
+
+    #[cfg(target_os = "linux")]
+    fn running_executable(pid: u32) -> Option<PathBuf> {
+        // Fails for a pid that is gone or a zombie, which is what ends the wait.
+        std::fs::read_link(format!("/proc/{pid}/exe")).ok()
+    }
+
+    #[cfg(target_os = "macos")]
+    fn running_executable(pid: u32) -> Option<PathBuf> {
+        use std::ffi::OsString;
+        use std::os::unix::ffi::OsStringExt;
+
+        let mut buf = vec![0u8; libc::PROC_PIDPATHINFO_MAXSIZE as usize];
+        // SAFETY: `buf` is writable for exactly the length passed, and
+        // proc_pidpath writes at most that many bytes.
+        let len = unsafe {
+            libc::proc_pidpath(
+                pid as libc::c_int,
+                buf.as_mut_ptr().cast::<libc::c_void>(),
+                buf.len() as u32,
+            )
+        };
+        if len <= 0 {
+            return None;
+        }
+        buf.truncate(len as usize);
+        Some(PathBuf::from(OsString::from_vec(buf)))
+    }
+
+    /// No way to confirm what a pid is running here, so never kill anything.
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    fn running_executable(_pid: u32) -> Option<PathBuf> {
+        None
+    }
+
+    fn is_recorded_engine(record: &EnginePidRecord) -> bool {
+        running_executable(record.pid).is_some_and(|live| {
+            let live = std::fs::canonicalize(&live).unwrap_or(live);
+            executable_matches(&live, &record.exe)
+        })
+    }
+
+    /// SIGKILL the recorded engine if that pid is still running it, then wait
+    /// briefly for it to go. Returns whether a signal was sent.
+    pub(super) fn kill(record: &EnginePidRecord) -> bool {
+        if !is_recorded_engine(record) {
+            return false;
+        }
+        // SAFETY: a plain syscall; the parser only yields pids in 2..=i32::MAX.
+        if unsafe { libc::kill(record.pid as libc::pid_t, libc::SIGKILL) } != 0 {
+            warn!(
+                "Failed to kill the orphaned engine (pid {}): {}",
+                record.pid,
+                std::io::Error::last_os_error()
+            );
+            return false;
+        }
+        let deadline = Instant::now() + EXIT_WAIT;
+        while is_recorded_engine(record) {
+            if Instant::now() >= deadline {
+                warn!(
+                    "Orphaned engine (pid {}) still running after SIGKILL",
+                    record.pid
+                );
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn engine_pid_record_round_trips() {
+        let exe = Path::new("/home/me/.local/share/zynveliq/models/engine/llama-server");
+        let written = format_engine_pid_record(4242, exe).unwrap();
+        assert_eq!(
+            parse_engine_pid_record(&written),
+            Some(EnginePidRecord {
+                pid: 4242,
+                exe: exe.to_path_buf(),
+            })
+        );
+    }
+
+    /// Spaces are legal in a path (macOS "Application Support") and must not be
+    /// trimmed or split on.
+    #[test]
+    fn engine_pid_record_keeps_spaces_in_the_path() {
+        let exe = "/Users/me/Library/Application Support/com.zynveliq/models/engine/llama-server";
+        let parsed = parse_engine_pid_record(&format!("77\n{exe}\n")).unwrap();
+        assert_eq!(parsed.exe, PathBuf::from(exe));
+    }
+
+    #[test]
+    fn engine_pid_record_accepts_a_missing_trailing_newline() {
+        let parsed = parse_engine_pid_record("77\n/opt/llama-server").unwrap();
+        assert_eq!(parsed.pid, 77);
+        assert_eq!(parsed.exe, PathBuf::from("/opt/llama-server"));
+    }
+
+    /// A pid of 0 or 1 would signal our process group or init, and a truncated
+    /// file (crash mid-write) must not be read as a pid with no executable.
+    #[test]
+    fn engine_pid_record_rejects_what_could_hit_the_wrong_process() {
+        for content in [
+            "",
+            "4242",
+            "4242\n",
+            "4242\n\n",
+            "0\n/opt/llama-server\n",
+            "1\n/opt/llama-server\n",
+            "-5\n/opt/llama-server\n",
+            "2147483648\n/opt/llama-server\n",
+            "abc\n/opt/llama-server\n",
+            "4242\n/opt/llama-server\nextra\n",
+        ] {
+            assert_eq!(parse_engine_pid_record(content), None, "{content:?}");
+        }
+    }
+
+    #[test]
+    fn engine_pid_record_refuses_a_path_that_would_not_read_back() {
+        assert_eq!(format_engine_pid_record(7, Path::new("")), None);
+        assert_eq!(format_engine_pid_record(7, Path::new("/a\nb")), None);
+    }
+
+    #[test]
+    fn only_the_recorded_executable_matches() {
+        let recorded = Path::new("/opt/zynveliq/llama-server");
+        assert!(executable_matches(recorded, recorded));
+        // The engine binary was replaced on disk while the orphan kept running.
+        assert!(executable_matches(
+            Path::new("/opt/zynveliq/llama-server (deleted)"),
+            recorded
+        ));
+        assert!(!executable_matches(
+            Path::new("/usr/bin/llama-server"),
+            recorded
+        ));
+        assert!(!executable_matches(Path::new("/usr/bin/bash"), recorded));
+        assert!(!executable_matches(
+            Path::new("/opt/zynveliq/llama-server-old"),
+            recorded
+        ));
+    }
+    // The assistant and cleanup engines must never share a port, or the second
+    // one to start fails to bind and the feature silently falls back to raw
+    // transcripts.
+    #[test]
+    fn roles_use_distinct_ports_and_logs() {
+        assert_ne!(LlmRole::Assistant.port(), LlmRole::Cleanup.port());
+        let logs = [
+            LlmRole::Assistant.log_filename(),
+            LlmRole::Cleanup.log_filename(),
+            LlmRole::Assistant.debug_log_filename(),
+            LlmRole::Cleanup.debug_log_filename(),
+        ];
+        let distinct: std::collections::HashSet<_> = logs.iter().collect();
+        assert_eq!(
+            distinct.len(),
+            logs.len(),
+            "two writers on one log file: {logs:?}"
+        );
+    }
+
+    // Cleanup sees one prompt plus one transcript, so its window is capped
+    // regardless of the (assistant-oriented) configured size — while never
+    // exceeding what the user asked for.
+    #[test]
+    fn cleanup_context_is_capped_but_never_raised() {
+        assert_eq!(
+            context_size_for(LlmRole::Assistant, 32_768),
+            32_768,
+            "the assistant keeps the configured window"
+        );
+        assert_eq!(
+            context_size_for(LlmRole::Cleanup, 32_768),
+            CLEANUP_CONTEXT_SIZE
+        );
+        assert_eq!(
+            context_size_for(LlmRole::Cleanup, 1024),
+            1024,
+            "a smaller configured window is respected, not padded up"
+        );
+    }
+
+    // Cleanup reproduces most of its input verbatim, so a penalty on tokens
+    // already in the window is a penalty on being correct. The assistant keeps
+    // one to break the repetition loops small chat models fall into.
+    #[test]
+    fn cleanup_runs_without_a_repetition_penalty() {
+        assert_eq!(
+            repeat_penalty_for(LlmRole::Cleanup),
+            1.0,
+            "1.0 is llama.cpp's 'penalty off'"
+        );
+        assert!(
+            repeat_penalty_for(LlmRole::Assistant) > 1.0,
+            "the assistant still needs a repetition penalty"
+        );
+    }
+
+    #[test]
+    fn every_role_offloads_to_the_gpu() {
+        // Regression guard for the reverted CPU-only cleanup policy: a small
+        // cleanup model must NOT be demoted to `-ngl 0`. Loading was faster on
+        // CPU, but generation was ~6x slower, and generation is what runs on
+        // every dictation.
+        assert_eq!(ALL_GPU_LAYERS, 999);
+    }
+
+    fn gpu(id: i32, name: &str, kind: &str, vram_mb: usize) -> GpuDeviceOption {
+        GpuDeviceOption {
+            id: id.to_string(),
+            name: name.to_string(),
+            kind: kind.to_string(),
+            total_vram_mb: vram_mb,
+        }
+    }
+
+    // Verified against the real output of `llama-server --list-devices` on the
+    // pinned engine build (b11429's Vulkan build on a 4070 Ti SUPER + Ryzen iGPU
+    // machine; b10075 printed the same).
+    #[test]
+    fn engine_device_listing_is_parsed_and_headers_ignored() {
+        let listing = "Available devices:\n  \
+             Vulkan0: NVIDIA GeForce RTX 4070 Ti SUPER (16063 MiB, 15295 MiB free)\n  \
+             Vulkan1: AMD Radeon(TM) Graphics (16180 MiB, 15371 MiB free)\n";
+
+        let devices = parse_engine_devices(listing);
+
+        assert_eq!(
+            devices,
+            vec![
+                EngineDevice {
+                    name: "Vulkan0".into(),
+                    description: "NVIDIA GeForce RTX 4070 Ti SUPER".into(),
+                },
+                EngineDevice {
+                    name: "Vulkan1".into(),
+                    description: "AMD Radeon(TM) Graphics".into(),
+                },
+            ],
+            "the 'Available devices:' header must not parse as a device"
+        );
+    }
+
+    // Real output of b11429's CPU-only build: a build that sees no GPU now says
+    // so with a `(none)` row instead of an empty listing. That row is not a
+    // device, and must not become a `--device (none)` the engine would refuse.
+    #[test]
+    fn engine_listing_without_a_gpu_yields_no_devices() {
+        assert!(parse_engine_devices("Available devices:\n  (none)\n").is_empty());
+        assert!(parse_engine_devices("Available devices:\n").is_empty());
+    }
+
+    // A log line can also read `<word>: <text>`; only rows inside the listing
+    // block, carrying a memory summary, count as devices.
+    #[test]
+    fn engine_device_parsing_rejects_log_noise() {
+        let noise = "0.00.171.291 E gguf_init_from_file: failed to open GGUF file\n\
+             load_backend: loaded Vulkan backend from ggml-vulkan.dll\n";
+        assert!(parse_engine_devices(noise).is_empty());
+
+        let trailing_noise = "Available devices:\n  \
+             Vulkan0: NVIDIA GeForce RTX 4070 Ti SUPER (16063 MiB, 15295 MiB free)\n\
+             load_backend: loaded CPU backend from ggml-cpu-zen4.dll\n";
+        assert_eq!(
+            parse_engine_devices(trailing_noise),
+            vec![EngineDevice {
+                name: "Vulkan0".into(),
+                description: "NVIDIA GeForce RTX 4070 Ti SUPER".into(),
+            }],
+            "a log line after the listing must not become a device"
+        );
+    }
+
+    // The bug this whole path exists for: on a dedicated + integrated machine the
+    // engine must be pinned to the dedicated card. `--main-gpu` could not do it
+    // (measured: `--main-gpu 1` still ran on the dedicated GPU at 213 tok/s),
+    // while landing on the iGPU costs 7 tok/s against 212.
+    #[test]
+    fn dedicated_gpu_is_pinned_when_an_igpu_could_be_chosen() {
+        let engine = parse_engine_devices(
+            "Available devices:\n  \
+             Vulkan0: AMD Radeon(TM) Graphics (16180 MiB, 15371 MiB free)\n  \
+             Vulkan1: NVIDIA GeForce RTX 4070 Ti SUPER (16063 MiB, 15295 MiB free)\n",
+        );
+        let probed = vec![
+            gpu(0, "AMD Radeon Graphics", "integrated", 16180),
+            gpu(1, "NVIDIA GeForce RTX 4070 Ti SUPER", "dedicated", 16063),
+        ];
+
+        assert_eq!(
+            select_engine_device_arg(&engine, &probed).as_deref(),
+            Some("Vulkan1"),
+            "the iGPU must be excluded even though the engine lists it first"
+        );
+    }
+
+    // Several dedicated cards stay available so layer splitting keeps working for
+    // a model too large for one of them; only the iGPU is dropped.
+    #[test]
+    fn multiple_dedicated_gpus_are_kept_biggest_first() {
+        let engine = parse_engine_devices(
+            "Available devices:\n  \
+             Vulkan0: Intel(R) UHD Graphics (8192 MiB, 8000 MiB free)\n  \
+             Vulkan1: NVIDIA GeForce RTX 3060 (12288 MiB, 12000 MiB free)\n  \
+             Vulkan2: NVIDIA GeForce RTX 4090 (24576 MiB, 24000 MiB free)\n",
+        );
+        let probed = vec![
+            gpu(0, "Intel(R) UHD Graphics", "integrated", 8192),
+            gpu(1, "NVIDIA GeForce RTX 3060", "dedicated", 12288),
+            gpu(2, "NVIDIA GeForce RTX 4090", "dedicated", 24576),
+        ];
+
+        assert_eq!(
+            select_engine_device_arg(&engine, &probed).as_deref(),
+            Some("Vulkan2,Vulkan1"),
+            "the biggest dedicated card must lead so it becomes the engine's device 0"
+        );
+    }
+
+    // Staying out of the way is the default: with nothing to exclude, the engine
+    // keeps its own (already correct) device choice and the historical
+    // `--main-gpu` hint.
+    #[test]
+    fn unmixed_machines_are_left_to_the_engine() {
+        let single_dedicated = vec![gpu(
+            0,
+            "NVIDIA GeForce RTX 4070 Ti SUPER",
+            "dedicated",
+            16063,
+        )];
+        let only_integrated = vec![gpu(0, "AMD Radeon Graphics", "integrated", 16180)];
+
+        assert!(!needs_device_pinning(&single_dedicated));
+        assert!(!needs_device_pinning(&only_integrated));
+        assert!(
+            !needs_device_pinning(&[]),
+            "a CPU-only machine must not probe"
+        );
+        assert_eq!(select_engine_device_arg(&[], &single_dedicated), None);
+    }
+
+    // Our probe and the engine's listing are independent enumerations, so the
+    // match is on the adapter description — and vendor decorations like "(TM)"
+    // appear in one string and not the other.
+    #[test]
+    fn adapter_names_match_across_vendor_decorations() {
+        assert_eq!(
+            normalized_adapter_name("AMD Radeon(TM) Graphics"),
+            normalized_adapter_name("AMD Radeon Graphics")
+        );
+        assert_eq!(
+            normalized_adapter_name("Intel(R)  Arc(TM)  A770"),
+            "intel arc a770"
+        );
+    }
+
+    // A description the engine spells differently must not silently fall back to
+    // some other card — no match means no flag, not the wrong flag.
+    #[test]
+    fn unmatched_dedicated_gpu_yields_no_device_flag() {
+        let engine = parse_engine_devices(
+            "Available devices:\n  Vulkan0: AMD Radeon(TM) Graphics (16180 MiB, 15371 MiB free)\n",
+        );
+        let probed = vec![
+            gpu(0, "AMD Radeon Graphics", "integrated", 16180),
+            gpu(1, "Some Unlisted Accelerator", "dedicated", 8192),
+        ];
+
+        assert_eq!(select_engine_device_arg(&engine, &probed), None);
+    }
+
+    // Every name was checked against the asset list of the pinned release. They
+    // are built rather than discovered, so a wrong one would only surface as a
+    // failed download on users' machines.
+    #[test]
+    fn pinned_assets_are_the_exact_release_archives() {
+        let tag = PINNED_ENGINE_TAG;
+        let names = |os: &str, arch: &str| pinned_asset_names_for(tag, os, arch);
+
+        assert_eq!(
+            names("windows", "x86_64"),
+            vec![
+                format!("llama-{tag}-bin-win-vulkan-x64.zip"),
+                format!("llama-{tag}-bin-win-cpu-x64.zip"),
+            ],
+            "Vulkan first, CPU as the fallback"
+        );
+        assert_eq!(
+            names("windows", "aarch64"),
+            vec![format!("llama-{tag}-bin-win-cpu-arm64.zip")]
+        );
+        assert_eq!(
+            names("macos", "aarch64"),
+            vec![format!("llama-{tag}-bin-macos-arm64.tar.gz")]
+        );
+        assert_eq!(
+            names("macos", "x86_64"),
+            vec![format!("llama-{tag}-bin-macos-x64.tar.gz")]
+        );
+        assert_eq!(
+            names("linux", "x86_64"),
+            vec![
+                format!("llama-{tag}-bin-ubuntu-vulkan-x64.tar.gz"),
+                format!("llama-{tag}-bin-ubuntu-x64.tar.gz"),
+            ]
+        );
+        assert_eq!(
+            names("linux", "aarch64"),
+            vec![
+                format!("llama-{tag}-bin-ubuntu-vulkan-arm64.tar.gz"),
+                format!("llama-{tag}-bin-ubuntu-arm64.tar.gz"),
+            ]
+        );
+        assert!(
+            names("freebsd", "x86_64").is_empty(),
+            "a platform upstream does not build for has nothing to download"
+        );
+    }
+
+    #[test]
+    fn this_platform_has_an_engine_to_download() {
+        assert!(!engine_assets_for(
+            PINNED_ENGINE_TAG,
+            std::env::consts::OS,
+            std::env::consts::ARCH
+        )
+        .is_empty());
+    }
+
+    // The release-download host has no anonymous rate limit; `api.github.com`
+    // does, and shared networks exhaust it.
+    #[test]
+    fn asset_urls_point_at_the_release_download_host() {
+        let assets = engine_assets_for("b12345", "windows", "x86_64");
+        assert!(!assets.is_empty());
+        for asset in &assets {
+            assert_eq!(asset.tag, "b12345");
+            assert_eq!(
+                asset.url(),
+                format!(
+                    "https://github.com/ggml-org/llama.cpp/releases/download/b12345/{}",
+                    asset.name
+                )
+            );
+            assert!(!asset.url().contains("api.github.com"));
+        }
+    }
+
+    #[test]
+    fn release_tag_override_replaces_the_pin_only_when_set() {
+        assert_eq!(engine_tag_from_override(None), PINNED_ENGINE_TAG);
+        assert_eq!(engine_tag_from_override(Some("")), PINNED_ENGINE_TAG);
+        assert_eq!(engine_tag_from_override(Some("  \n")), PINNED_ENGINE_TAG);
+        assert_eq!(engine_tag_from_override(Some(" b12000\n")), "b12000");
+
+        // The override decides what is downloaded, and so what is stamped.
+        let assets =
+            engine_assets_for(&engine_tag_from_override(Some("b12000")), "linux", "x86_64");
+        assert!(!assets.is_empty());
+        assert!(assets
+            .iter()
+            .all(|asset| asset.tag == "b12000" && asset.name.starts_with("llama-b12000-bin-")));
+    }
+
+    // The stamp used to be written from the pin, so installs that had really
+    // come from the old "latest" lookup were labelled with a build they did not
+    // hold. It now records the tag of the archive that was unpacked.
+    #[test]
+    fn stamp_records_the_installed_tag() {
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(read_engine_stamp(dir.path()), None);
+
+        let installed = engine_assets_for("b12000", "windows", "x86_64").remove(0);
+        write_engine_stamp(dir.path(), &installed.tag).unwrap();
+        assert_eq!(read_engine_stamp(dir.path()).as_deref(), Some("b12000"));
+
+        // A stamp edited by hand keeps working.
+        std::fs::write(dir.path().join(ENGINE_STAMP_FILENAME), "b12000\r\n").unwrap();
+        assert_eq!(read_engine_stamp(dir.path()).as_deref(), Some("b12000"));
+    }
+
+    /// An engine directory holding one build: a binary, a backend library
+    /// named after the build, and a stamp.
+    fn fake_engine_build(dir: &Path, tag: &str) {
+        std::fs::create_dir_all(dir.join("bin")).unwrap();
+        std::fs::write(dir.join("bin").join("llama-server"), tag).unwrap();
+        std::fs::write(dir.join(format!("ggml-{tag}.so")), tag).unwrap();
+        write_engine_stamp(dir, tag).unwrap();
+    }
+
+    // The update replaces a working engine, so it must never leave the user with
+    // none: the old build is deleted only after the new one is in place.
+    #[test]
+    fn a_swap_replaces_the_whole_engine_and_removes_the_old_build() {
+        let models = tempfile::tempdir().unwrap();
+        let engine = models.path().join("engine");
+        let staging = models.path().join(ENGINE_STAGING_DIRNAME);
+        let retired = models.path().join(ENGINE_RETIRED_DIRNAME);
+        fake_engine_build(&engine, "b10075");
+        fake_engine_build(&staging, "b11429");
+
+        swap_in_engine(&staging, &engine, &retired).unwrap();
+
+        assert_eq!(read_engine_stamp(&engine).as_deref(), Some("b11429"));
+        assert!(engine.join("ggml-b11429.so").exists());
+        assert!(
+            !engine.join("ggml-b10075.so").exists(),
+            "no file of the old build may sit beside the new one"
+        );
+        assert!(!staging.exists());
+        assert!(!retired.exists());
+    }
+
+    #[test]
+    fn a_swap_with_no_engine_yet_moves_the_new_build_in() {
+        let models = tempfile::tempdir().unwrap();
+        let engine = models.path().join("engine");
+        let staging = models.path().join(ENGINE_STAGING_DIRNAME);
+        let retired = models.path().join(ENGINE_RETIRED_DIRNAME);
+        fake_engine_build(&staging, "b11429");
+
+        swap_in_engine(&staging, &engine, &retired).unwrap();
+
+        assert_eq!(read_engine_stamp(&engine).as_deref(), Some("b11429"));
+        assert!(!staging.exists());
+    }
+
+    #[test]
+    fn a_failed_swap_puts_the_old_engine_back() {
+        let models = tempfile::tempdir().unwrap();
+        let engine = models.path().join("engine");
+        let retired = models.path().join(ENGINE_RETIRED_DIRNAME);
+        fake_engine_build(&engine, "b10075");
+        // Nothing staged, so moving the new build in fails.
+        let missing = models.path().join(ENGINE_STAGING_DIRNAME);
+
+        assert!(swap_in_engine(&missing, &engine, &retired).is_err());
+
+        assert_eq!(read_engine_stamp(&engine).as_deref(), Some("b10075"));
+        assert!(engine.join("bin").join("llama-server").exists());
+        assert!(!retired.exists());
+    }
+
+    #[test]
+    fn a_leftover_from_an_earlier_swap_does_not_block_the_next() {
+        let models = tempfile::tempdir().unwrap();
+        let engine = models.path().join("engine");
+        let staging = models.path().join(ENGINE_STAGING_DIRNAME);
+        let retired = models.path().join(ENGINE_RETIRED_DIRNAME);
+        fake_engine_build(&engine, "b10075");
+        fake_engine_build(&retired, "b9000");
+        fake_engine_build(&staging, "b11429");
+
+        swap_in_engine(&staging, &engine, &retired).unwrap();
+
+        assert_eq!(read_engine_stamp(&engine).as_deref(), Some("b11429"));
+        assert!(!retired.exists());
+    }
+
+    // A crash between moving the old build aside and moving the new one in
+    // leaves no `engine/`. The old build is still whole, so it comes back
+    // rather than the next start having to download with nothing to fall back on.
+    #[test]
+    fn an_interrupted_swap_restores_the_previous_engine() {
+        let models = tempfile::tempdir().unwrap();
+        let engine = models.path().join("engine");
+        let retired = models.path().join(ENGINE_RETIRED_DIRNAME);
+        fake_engine_build(&retired, "b10075");
+
+        recover_interrupted_swap(&engine, &retired);
+
+        assert_eq!(read_engine_stamp(&engine).as_deref(), Some("b10075"));
+        assert!(!retired.exists());
+
+        // With an engine in place, a leftover is left for the next swap to
+        // clear, never moved over it.
+        fake_engine_build(&retired, "b9000");
+        recover_interrupted_swap(&engine, &retired);
+        assert_eq!(read_engine_stamp(&engine).as_deref(), Some("b10075"));
+    }
+
+    #[test]
+    fn a_managed_engine_is_replaced_when_its_stamp_differs() {
+        use EngineInstallStep::*;
+        let pin = PINNED_ENGINE_TAG;
+
+        assert_eq!(
+            engine_install_step(Some(true), Some(pin), pin, false),
+            Reuse
+        );
+        // Every install from an earlier pin, mislabelled or not, upgrades once.
+        assert_eq!(
+            engine_install_step(Some(true), Some("b10075"), pin, false),
+            Replace
+        );
+        assert_eq!(
+            engine_install_step(Some(true), None, pin, false),
+            Replace,
+            "a missing stamp is not a current one"
+        );
+        assert_eq!(engine_install_step(None, Some(pin), pin, false), Download);
+    }
+
+    // `HANDY_LLAMA_SERVER`, the installer's copy, and `PATH` are the user's.
+    #[test]
+    fn an_engine_the_app_did_not_download_is_never_replaced() {
+        use EngineInstallStep::*;
+        let pin = PINNED_ENGINE_TAG;
+        assert_eq!(
+            engine_install_step(Some(false), Some("b10075"), pin, false),
+            Reuse
+        );
+        assert_eq!(engine_install_step(Some(false), None, pin, true), Reuse);
+    }
+
+    // On Windows a running engine's executable and DLLs cannot be deleted, so a
+    // stale verdict while the other role runs from the directory must not try.
+    #[test]
+    fn a_stale_engine_the_other_role_is_running_is_kept() {
+        use EngineInstallStep::*;
+        let pin = PINNED_ENGINE_TAG;
+        assert_eq!(
+            engine_install_step(Some(true), None, pin, true),
+            ReuseWhileInUse
+        );
+        assert_eq!(engine_install_step(Some(true), Some(pin), pin, true), Reuse);
+    }
+
+    #[test]
+    fn debug_log_adds_only_lines_the_console_lacks() {
+        let console = "I srv load_model: loading model 'm.gguf'\n\
+             ggml-backend.cpp:1367: GGML_ASSERT(n_inputs < GGML_SCHED_MAX_SPLIT_INPUTS) failed\n";
+        let debug = "I srv load_model: loading model 'm.gguf'\n\
+             D graph_reserve: reserving a graph\n\
+             \n\
+             D sched_reserve: splits = 31\n";
+        assert_eq!(
+            lines_missing_from(debug, console, 20).as_deref(),
+            Some("D graph_reserve: reserving a graph\nD sched_reserve: splits = 31")
+        );
+        assert_eq!(
+            lines_missing_from(console, console, 20),
+            None,
+            "nothing is repeated"
+        );
+        assert_eq!(lines_missing_from("", console, 20), None);
+        assert_eq!(
+            lines_missing_from("a\nb\nc\n", "", 2).as_deref(),
+            Some("b\nc"),
+            "the most recent lines are the ones kept"
+        );
+    }
+
+    #[test]
+    fn log_tail_keeps_the_last_lines_and_skips_a_blank_log() {
+        assert_eq!(log_tail("a\nb\nc\n", 2).as_deref(), Some("b\nc"));
+        assert_eq!(log_tail("\n  \n", 5), None);
+        assert_eq!(log_tail("", 5), None);
+    }
+}
