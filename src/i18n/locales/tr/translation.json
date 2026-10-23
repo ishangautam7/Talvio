@@ -1579,6 +1579,24 @@
           "description": "Komutların e-posta gönderebileceği adlar, düzenlediğiniz bir JSON dosyasındadır. İlk seferde tek bir örnekle oluşturulur.",
           "open": "Kişiler dosyasını aç",
           "openFailed": "Kişiler dosyası açılamadı: {{error}}"
+        },
+        "stop": "Durdur",
+        "autoEscalate": {
+          "title": "Gerektiğinde ekranı kontrol et",
+          "description": "Bir komuta uyan araç olmadığında bir ajan uygulamanın denetimlerini okur ve sizin yerinize kullanır; gönderen, satın alan veya silen her şeyden önce sorar. Şimdilik yalnızca Windows'ta."
+        },
+        "agentModel": {
+          "title": "Ajan modeli",
+          "description": "Ekranı kontrol eden model, yönlendiricinin sağlayıcısında. Yönlendiricininkinden daha güçlü bir model daha iyi çalışır. Boş bırakılırsa varsayılan kullanılır.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Ajan adım sınırı",
+          "description": "Bir görevin kullanabileceği en fazla model çağrısı sayısı, 1 ile 60 arası. Ajan orada durur ve ekranı olduğu gibi bırakır."
+        },
+        "agentMaxCost": {
+          "title": "Ajan maliyet sınırı (US$)",
+          "description": "Bir görev yaklaşık bu kadara mal olduğunda onu durdurur. Yalnızca bilinen Claude modellerinin fiyatı vardır; diğer modeller yalnızca adım sınırına tabidir."
         }
       }
     },
@@ -3764,6 +3782,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Durdum. Her şeyi olduğu gibi bıraktım.",
+      "agentConfirm": "{{window}} içindeki “{{name}}” bir şey gönderebilir, satın alabilir veya silebilir. Devam etmek için evet deyin ya da iptal edin.",
+      "agentConfirmed": "Tamamlandı: “{{name}}”.",
+      "agentCostLimit": "Bu, ${{limit}} tutarından fazlasına mal olmak üzereydi, bu yüzden durdum ve her şeyi olduğu gibi bıraktım.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Ekranı kontrol edemedim: {{reason}}",
+      "agentGaveUp": "Bunu bitiremedim: {{reason}}",
+      "agentNotConfigured": "Bunun için ekranı kontrol etmem gerekiyor, ancak ajan ayarlanmamış: {{why}}",
+      "agentOff": "Araçlarımdan hiçbiri bunu yapamıyor. Uygulamayı sizin yerinize kullanabilmem için “Gerektiğinde ekranı kontrol et” seçeneğini açın.",
+      "agentStepLimit": "Bu, {{steps}} adımdan fazla sürdü, bu yüzden durdum ve her şeyi olduğu gibi bıraktım.",
+      "agentWorking": "{{app}} içinde üzerinde çalışıyorum…",
+      "agentWorkingNoApp": "Üzerinde çalışıyorum…",
       "calendarDraft": "“{{title}}” takvim etkinliği kaydedilmeye hazır.",
       "calendarDraftMissingGuests": "“{{title}}” takvim etkinliği kaydedilmeye hazır. {{guests}} eklenmedi: e-posta adresleri bende yok, bu yüzden onları formda ekleyin.",
       "cancelled": "İptal edildi. Hiçbir şey gönderilmedi.",

@@ -1588,6 +1588,24 @@
           "description": "Los nombres a los que los comandos pueden enviar correos, en un archivo JSON que editas tú. Se crea con un ejemplo la primera vez.",
           "open": "Abrir archivo de contactos",
           "openFailed": "No se pudo abrir el archivo de contactos: {{error}}"
+        },
+        "stop": "Detener",
+        "autoEscalate": {
+          "title": "Controlar la pantalla cuando haga falta",
+          "description": "Cuando ninguna herramienta encaja con un comando, un agente lee los controles de la aplicación y los usa por ti, y pregunta antes de cualquier cosa que envíe, compre o elimine. Por ahora solo en Windows."
+        },
+        "agentModel": {
+          "title": "Modelo del agente",
+          "description": "El modelo que controla la pantalla, en el proveedor del enrutador. Un modelo más potente que el del enrutador funciona mejor. Vacío vuelve al predeterminado.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Límite de pasos del agente",
+          "description": "El máximo de llamadas al modelo que puede usar una tarea, de 1 a 60. Ahí el agente se detiene y deja la pantalla como está."
+        },
+        "agentMaxCost": {
+          "title": "Límite de coste del agente (US$)",
+          "description": "Detiene una tarea cuando ha costado aproximadamente esta cantidad. Solo los modelos Claude conocidos tienen precio; cualquier otro modelo se rige solo por el límite de pasos."
         }
       }
     },
@@ -3818,6 +3836,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Me he detenido. Lo he dejado todo como estaba.",
+      "agentConfirm": "«{{name}}» en {{window}} podría enviar, comprar o eliminar algo. Di sí para continuar, o cancela.",
+      "agentConfirmed": "Hecho: «{{name}}».",
+      "agentCostLimit": "Eso iba a costar más de ${{limit}}, así que me detuve y lo dejé todo como estaba.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "No pude controlar la pantalla: {{reason}}",
+      "agentGaveUp": "No pude terminarlo: {{reason}}",
+      "agentNotConfigured": "Para eso tengo que controlar la pantalla, pero el agente no está configurado: {{why}}",
+      "agentOff": "Ninguna de mis herramientas puede hacer eso. Activa «Controlar la pantalla cuando haga falta» para que pueda usar la aplicación por ti.",
+      "agentStepLimit": "Eso llevó más de {{steps}} pasos, así que me detuve y lo dejé todo como estaba.",
+      "agentWorking": "Trabajando en ello en {{app}}…",
+      "agentWorkingNoApp": "Trabajando en ello…",
       "calendarDraft": "El evento «{{title}}» está listo para guardar.",
       "calendarDraftMissingGuests": "El evento «{{title}}» está listo para guardar. No incluí a {{guests}}: no tengo su dirección de correo, así que añádelos en el formulario.",
       "cancelled": "Cancelado. No se envió nada.",

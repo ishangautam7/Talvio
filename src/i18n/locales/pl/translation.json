@@ -1597,6 +1597,24 @@
           "description": "Osoby, do których polecenia mogą wysyłać e-maile, w edytowanym przez Ciebie pliku JSON. Przy pierwszym użyciu jest tworzony z jednym przykładem.",
           "open": "Otwórz plik kontaktów",
           "openFailed": "Nie udało się otworzyć pliku kontaktów: {{error}}"
+        },
+        "stop": "Zatrzymaj",
+        "autoEscalate": {
+          "title": "Steruj ekranem w razie potrzeby",
+          "description": "Gdy żadne narzędzie nie pasuje do polecenia, agent odczytuje elementy sterujące aplikacji i obsługuje je za Ciebie, a przed wszystkim, co coś wysyła, kupuje lub usuwa, pyta o zgodę. Na razie tylko w systemie Windows."
+        },
+        "agentModel": {
+          "title": "Model agenta",
+          "description": "Model, który steruje ekranem, u dostawcy routera. Model mocniejszy niż model routera działa lepiej. Puste pole przywraca domyślny.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Limit kroków agenta",
+          "description": "Największa liczba wywołań modelu, jaką może wykorzystać jedno zadanie, od 1 do 60. Wtedy agent się zatrzymuje i zostawia ekran bez zmian."
+        },
+        "agentMaxCost": {
+          "title": "Limit kosztu agenta (US$)",
+          "description": "Zatrzymuje zadanie, gdy kosztowało mniej więcej tyle. Ceny znane są tylko dla znanych modeli Claude; każdy inny model ogranicza wyłącznie limit kroków."
         }
       }
     },
@@ -3872,6 +3890,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Zatrzymałem się. Zostawiłem wszystko bez zmian.",
+      "agentConfirm": "„{{name}}” w {{window}} może coś wysłać, kupić lub usunąć. Powiedz „tak”, aby kontynuować, albo anuluj.",
+      "agentConfirmed": "Gotowe: „{{name}}”.",
+      "agentCostLimit": "To miało kosztować więcej niż ${{limit}}, więc się zatrzymałem i zostawiłem wszystko bez zmian.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Nie udało mi się sterować ekranem: {{reason}}",
+      "agentGaveUp": "Nie udało mi się tego dokończyć: {{reason}}",
+      "agentNotConfigured": "Do tego muszę sterować ekranem, ale agent nie jest skonfigurowany: {{why}}",
+      "agentOff": "Żadne z moich narzędzi tego nie potrafi. Włącz „Steruj ekranem w razie potrzeby”, abym mógł obsłużyć aplikację za Ciebie.",
+      "agentStepLimit": "To zajęło więcej niż {{steps}} kroków, więc się zatrzymałem i zostawiłem wszystko bez zmian.",
+      "agentWorking": "Pracuję nad tym w {{app}}…",
+      "agentWorkingNoApp": "Pracuję nad tym…",
       "calendarDraft": "Wydarzenie „{{title}}” jest gotowe do zapisania.",
       "calendarDraftMissingGuests": "Wydarzenie „{{title}}” jest gotowe do zapisania. Pominąłem: {{guests}}, bo nie mam ich adresów e-mail, więc dodaj ich w formularzu.",
       "cancelled": "Anulowano. Nic nie zostało wysłane.",

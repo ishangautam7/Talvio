@@ -19,7 +19,8 @@ use tauri_plugin_opener::OpenerExt;
 use crate::command_mode::contacts::ContactBook;
 use crate::command_mode::{CommandOrigin, CommandReport};
 use crate::settings::{
-    get_settings, write_settings, COMMAND_SEARCH_QUERY_PLACEHOLDER, DEFAULT_COMMAND_ROUTER_MODEL,
+    clamp_command_agent_max_cost_usd, clamp_command_agent_max_steps, get_settings, write_settings,
+    COMMAND_SEARCH_QUERY_PLACEHOLDER, DEFAULT_COMMAND_AGENT_MODEL, DEFAULT_COMMAND_ROUTER_MODEL,
     DEFAULT_COMMAND_ROUTER_PROVIDER_ID, DEFAULT_COMMAND_SEARCH_URL,
 };
 
@@ -67,6 +68,15 @@ pub async fn command_confirm(app: AppHandle, id: u32, accept: bool) -> CommandRe
     crate::command_mode::confirm_command(&app, id, accept).await
 }
 
+/// Stop the command that is running, if any: an agent task stops before its
+/// next request or action and leaves the screen as it is. Esc and `--cancel`
+/// do the same through `utils::cancel_current_operation`.
+#[tauri::command]
+#[specta::specta]
+pub async fn command_cancel() {
+    crate::command_mode::cancel_running();
+}
+
 /// Open the contacts file in the user's editor, creating it with one example
 /// contact first if there is none. A file that exists is never touched, even
 /// an empty or broken one: it is the user's, and the loader already says
@@ -82,7 +92,10 @@ pub async fn command_open_contacts_file(app: AppHandle) -> Result<(), String> {
         }
         std::fs::write(&path, CONTACTS_TEMPLATE)
             .map_err(|e| format!("Could not create {}: {e}", path.display()))?;
-        info!("command mode: created the contacts file at {}", path.display());
+        info!(
+            "command mode: created the contacts file at {}",
+            path.display()
+        );
     }
 
     let shown = path.to_string_lossy().to_string();
@@ -174,6 +187,58 @@ pub async fn change_command_search_url_setting(app: AppHandle, url: String) -> R
     Ok(())
 }
 
+/// Whether a command no tool fits is handed to the screen agent.
+#[tauri::command]
+#[specta::specta]
+pub async fn change_command_auto_escalate_setting(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.command_auto_escalate = enabled;
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// The model the screen agent runs on. Empty goes back to the default.
+#[tauri::command]
+#[specta::specta]
+pub async fn change_command_agent_model_setting(
+    app: AppHandle,
+    model: String,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.command_agent_model = non_empty_or(&model, DEFAULT_COMMAND_AGENT_MODEL);
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// The most LLM rounds one agent task may use, kept within 1–60.
+#[tauri::command]
+#[specta::specta]
+pub async fn change_command_agent_max_steps_setting(
+    app: AppHandle,
+    steps: u32,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.command_agent_max_steps = clamp_command_agent_max_steps(steps);
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// What one agent task may cost, in US dollars, kept within $0.01–$20.
+#[tauri::command]
+#[specta::specta]
+pub async fn change_command_agent_max_cost_usd_setting(
+    app: AppHandle,
+    usd: f64,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.command_agent_max_cost_usd = clamp_command_agent_max_cost_usd(usd);
+    write_settings(&app, settings);
+    Ok(())
+}
+
 /// Trimmed; empty means the default provider.
 fn normalize_router_provider_id(value: &str) -> String {
     non_empty_or(value, DEFAULT_COMMAND_ROUTER_PROVIDER_ID)
@@ -225,6 +290,20 @@ mod tests {
         assert_eq!(normalize_router_provider_id("   "), "anthropic");
         assert_eq!(normalize_router_model(""), "claude-haiku-5-5");
         assert_eq!(normalize_router_model(" \t\n"), "claude-haiku-5-5");
+    }
+
+    /// An emptied agent model goes back to the default rather than leaving
+    /// the agent nothing to run on.
+    #[test]
+    fn an_empty_agent_model_goes_back_to_the_default() {
+        assert_eq!(
+            non_empty_or("  ", DEFAULT_COMMAND_AGENT_MODEL),
+            "claude-sonnet-5-5"
+        );
+        assert_eq!(
+            non_empty_or(" claude-opus-5-5 ", DEFAULT_COMMAND_AGENT_MODEL),
+            "claude-opus-5-5"
+        );
     }
 
     /// A pasted id with spaces around it is the id, not an unknown provider.

@@ -82,7 +82,11 @@ pub(crate) fn run_command_from_argv(args: &[String]) -> Option<(String, bool)> {
     let known = known_long_flags();
     let is_flag = |arg: &str| {
         arg.strip_prefix("--")
-            .map(|name| known.iter().any(|k| k == name.split('=').next().unwrap_or(name)))
+            .map(|name| {
+                known
+                    .iter()
+                    .any(|k| k == name.split('=').next().unwrap_or(name))
+            })
             .unwrap_or(false)
     };
     // argv[0] is the executable, never an argument.
@@ -187,11 +191,8 @@ mod tests {
         ]));
         assert_eq!(found, Some(("type a|b".to_string(), true)));
 
-        let equals = super::run_command_from_argv(&argv(&[
-            "zynveliq.exe",
-            "--run-command=type a",
-            "b",
-        ]));
+        let equals =
+            super::run_command_from_argv(&argv(&["zynveliq.exe", "--run-command=type a", "b"]));
         assert_eq!(equals, Some(("type a|b".to_string(), false)));
     }
 

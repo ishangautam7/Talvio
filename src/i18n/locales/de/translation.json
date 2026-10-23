@@ -1579,6 +1579,24 @@
           "description": "Die Namen, denen Befehle E-Mails schicken können, in einer JSON-Datei, die du bearbeitest. Sie wird beim ersten Mal mit einem Beispiel angelegt.",
           "open": "Kontaktdatei öffnen",
           "openFailed": "Die Kontaktdatei konnte nicht geöffnet werden: {{error}}"
+        },
+        "stop": "Stopp",
+        "autoEscalate": {
+          "title": "Bei Bedarf den Bildschirm steuern",
+          "description": "Wenn kein Werkzeug zu einem Befehl passt, liest ein Agent die Bedienelemente der App und bedient sie für dich. Vor allem, was etwas sendet, kauft oder löscht, fragt er nach. Vorerst nur unter Windows."
+        },
+        "agentModel": {
+          "title": "Agent-Modell",
+          "description": "Das Modell, das den Bildschirm steuert, beim Anbieter des Routers. Ein stärkeres Modell als das des Routers funktioniert besser. Leer bedeutet Standard.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Schrittlimit des Agenten",
+          "description": "Die meisten Modellaufrufe, die eine Aufgabe nutzen darf, von 1 bis 60. Dort hält der Agent an und lässt den Bildschirm, wie er ist."
+        },
+        "agentMaxCost": {
+          "title": "Kostenlimit des Agenten (US$)",
+          "description": "Stoppt eine Aufgabe, sobald sie ungefähr so viel gekostet hat. Nur bekannte Claude-Modelle haben einen Preis; für jedes andere Modell gilt allein das Schrittlimit."
         }
       }
     },
@@ -3764,6 +3782,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Gestoppt. Ich habe alles so gelassen, wie es ist.",
+      "agentConfirm": "„{{name}}“ in {{window}} könnte etwas senden, kaufen oder löschen. Sag Ja, um fortzufahren, oder brich ab.",
+      "agentConfirmed": "Erledigt: „{{name}}“.",
+      "agentCostLimit": "Das hätte gleich mehr als ${{limit}} gekostet, deshalb habe ich angehalten und alles so gelassen, wie es ist.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Ich konnte den Bildschirm nicht steuern: {{reason}}",
+      "agentGaveUp": "Ich konnte das nicht abschließen: {{reason}}",
+      "agentNotConfigured": "Dafür muss ich den Bildschirm steuern, aber der Agent ist nicht eingerichtet: {{why}}",
+      "agentOff": "Keines meiner Werkzeuge kann das. Schalte „Bei Bedarf den Bildschirm steuern“ ein, damit ich die App für dich bedienen kann.",
+      "agentStepLimit": "Das hat mehr als {{steps}} Schritte gebraucht, deshalb habe ich angehalten und alles so gelassen, wie es ist.",
+      "agentWorking": "Ich arbeite daran in {{app}}…",
+      "agentWorkingNoApp": "Ich arbeite daran…",
       "calendarDraft": "Kalendertermin „{{title}}“ ist bereit zum Speichern.",
       "calendarDraftMissingGuests": "Kalendertermin „{{title}}“ ist bereit zum Speichern. {{guests}} habe ich weggelassen: Ich habe keine E-Mail-Adresse dafür, also füge sie im Formular hinzu.",
       "cancelled": "Abgebrochen. Es wurde nichts gesendet.",

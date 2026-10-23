@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
-import { FileText, Play } from "lucide-react";
+import { FileText, Play, Square } from "lucide-react";
 import { commands, type CommandReport } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/Button";
@@ -35,7 +35,10 @@ type TextSettingKey =
   | "command_router_provider_id"
   | "command_router_model"
   | "command_google_account"
-  | "command_search_url";
+  | "command_search_url"
+  | "command_agent_model";
+
+type NumberSettingKey = "command_agent_max_steps" | "command_agent_max_cost_usd";
 
 /**
  * A text setting saved when the field is left or Enter is pressed, not on
@@ -71,6 +74,57 @@ const CommandTextSetting: React.FC<{
         value={value}
         placeholder={placeholder}
         spellCheck={false}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={() => void commit()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") void commit();
+        }}
+      />
+    </SettingContainer>
+  );
+};
+
+/**
+ * A number setting, saved like `CommandTextSetting` when the field is left
+ * or Enter is pressed. The backend clamps it, so the field shows what was
+ * actually saved once it is read back.
+ */
+const CommandNumberSetting: React.FC<{
+  settingKey: NumberSettingKey;
+  title: string;
+  description: string;
+  min: number;
+  max: number;
+  step: number;
+}> = ({ settingKey, title, description, min, max, step }) => {
+  const { settings, updateSetting, refreshSettings } = useSettings();
+  const stored = settings?.[settingKey];
+  const shown = stored === undefined ? "" : String(stored);
+  const [value, setValue] = useState(shown);
+
+  useEffect(() => setValue(shown), [shown]);
+
+  const commit = async () => {
+    const parsed = Number(value);
+    if (value.trim() === "" || !Number.isFinite(parsed)) {
+      setValue(shown);
+      return;
+    }
+    if (parsed === stored) return;
+    await updateSetting(settingKey, parsed);
+    void refreshSettings();
+  };
+
+  return (
+    <SettingContainer title={title} description={description} grouped={true}>
+      <Input
+        type="number"
+        variant="compact"
+        className="w-[120px]"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
         onChange={(e) => setValue(e.target.value)}
         onBlur={() => void commit()}
         onKeyDown={(e) => {
@@ -455,6 +509,16 @@ export const CommandModeTester: React.FC = () => {
               seconds: RUN_DELAY_SECONDS,
             })}
           </label>
+          {busy && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void commands.commandCancel()}
+            >
+              <Square className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("settings.debug.commandMode.stop")}
+            </Button>
+          )}
           {countdown !== null ? (
             <Button variant="secondary" size="sm" onClick={stopCountdown}>
               {t("settings.debug.commandMode.delay.cancel", {
@@ -502,6 +566,38 @@ export const CommandModeTester: React.FC = () => {
         title={t("settings.debug.commandMode.model.title")}
         description={t("settings.debug.commandMode.model.description")}
         placeholder={t("settings.debug.commandMode.model.placeholder")}
+      />
+      <ToggleSwitch
+        checked={settings?.command_auto_escalate ?? true}
+        onChange={(enabled) =>
+          void updateSetting("command_auto_escalate", enabled)
+        }
+        isUpdating={isUpdating("command_auto_escalate")}
+        label={t("settings.debug.commandMode.autoEscalate.title")}
+        description={t("settings.debug.commandMode.autoEscalate.description")}
+        grouped={true}
+      />
+      <CommandTextSetting
+        settingKey="command_agent_model"
+        title={t("settings.debug.commandMode.agentModel.title")}
+        description={t("settings.debug.commandMode.agentModel.description")}
+        placeholder={t("settings.debug.commandMode.agentModel.placeholder")}
+      />
+      <CommandNumberSetting
+        settingKey="command_agent_max_steps"
+        title={t("settings.debug.commandMode.agentMaxSteps.title")}
+        description={t("settings.debug.commandMode.agentMaxSteps.description")}
+        min={1}
+        max={60}
+        step={1}
+      />
+      <CommandNumberSetting
+        settingKey="command_agent_max_cost_usd"
+        title={t("settings.debug.commandMode.agentMaxCost.title")}
+        description={t("settings.debug.commandMode.agentMaxCost.description")}
+        min={0.01}
+        max={20}
+        step={0.05}
       />
       <CommandTextSetting
         settingKey="command_google_account"

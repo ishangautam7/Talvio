@@ -1130,42 +1130,35 @@ mod tests {
     }
 
     // Made with `tauri signer sign` and the real Zynveliq key over the 16
-    // bytes "hello zynveliq"; the same vector `updater-manifest.test.ts`
+    // bytes "hello speakoflow"; the same vector `updater-manifest.test.ts`
     // checks the CI verifier with.
-    const SIGNED_PAYLOAD: &[u8] = b"hello zynveliq";
+    const SIGNED_PAYLOAD: &[u8] = b"hello speakoflow";
     const SIGNATURE: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQkEzaUgvLzNSYzJ0dVM1emFGdGtKaGEzUVpHRU9YY253VWtmR0dyUUtQUFc2eDhsQzZCRGs1czVvTXY3NnAxdlVVeTdVSUZDd3BzbldpM2RLYkhLbHVwQzlZRVJVdEF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTkxMjU5CWZpbGU6c2Ytc2lnbi10ZXN0LmJpbgpnQlRzTm9HZGtFcjVvNEVKay9WUlJKVWpVSUxBSktZRklQMGRzeDJwSUhlWEFydUNGODJzRlVpYVkyNDYvT3BlcTQ1SEU0R0R3eUFpZ2RHMTJmbDNBQT09Cg==";
 
-    fn configured_pubkey() -> String {
-        let conf: serde_json::Value =
-            serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
-        conf["plugins"]["updater"]["pubkey"]
-            .as_str()
-            .unwrap()
-            .to_string()
-    }
+    /// The public half of the key `SIGNATURE` was made with (key id
+    /// 73D1FDFF87780381, the original project's updater key). Pinned here
+    /// because these tests check the verifier, not the build: a private build
+    /// ships no updater key at all (`tauri.conf.json`'s pubkey is empty), and
+    /// a vector can only be checked against the key that signed it.
+    const VECTOR_PUBKEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDczRDFGREZGODc3ODAzODEKUldTQkEzaUgvLzNSYzRMakMrcU5PNGRWOHZZTFJzZUx1dWE0Wi9kNjViRUZheWhSU2pOcnRIeVMK";
 
     #[test]
     fn a_download_signed_with_our_key_is_accepted() {
         assert_eq!(
-            verify_update_signature(SIGNED_PAYLOAD, SIGNATURE, &configured_pubkey()),
+            verify_update_signature(SIGNED_PAYLOAD, SIGNATURE, VECTOR_PUBKEY),
             Ok(())
         );
     }
 
     #[test]
     fn a_download_that_changed_is_refused() {
-        assert!(
-            verify_update_signature(b"hello speakoflox", SIGNATURE, &configured_pubkey()).is_err()
-        );
-        assert!(
-            verify_update_signature(SIGNED_PAYLOAD, "not a signature", &configured_pubkey())
-                .is_err()
-        );
+        assert!(verify_update_signature(b"hello speakoflox", SIGNATURE, VECTOR_PUBKEY).is_err());
+        assert!(verify_update_signature(SIGNED_PAYLOAD, "not a signature", VECTOR_PUBKEY).is_err());
     }
 
     #[test]
     fn a_parallel_download_is_kept_only_if_it_verifies() {
-        let key = configured_pubkey();
+        let key = VECTOR_PUBKEY.to_string();
         assert_eq!(
             keep_if_verified(SIGNED_PAYLOAD.to_vec(), SIGNATURE, Some(&key)),
             Some(SIGNED_PAYLOAD.to_vec())
@@ -1453,7 +1446,7 @@ mod tests {
                 .await
                 .expect("the parallel path fell back");
             let secs = started.elapsed().as_secs_f64();
-            verify_update_signature(&bytes, signature, &configured_pubkey()).unwrap();
+            verify_update_signature(&bytes, signature, VECTOR_PUBKEY).unwrap();
             println!(
                 "{url}\n  one connection: {single_mbps:.1} Mbit/s (≈{:.0}s for the file)\n  parallel:       {:.1} MB in {secs:.1}s = {:.1} Mbit/s, signature OK",
                 bytes.len() as f64 * 8.0 / 1e6 / single_mbps,
