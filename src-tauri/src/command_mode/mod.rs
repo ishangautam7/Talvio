@@ -63,7 +63,7 @@ pub mod tools;
 pub mod voice;
 
 #[cfg(test)]
-mod live_tests;
+pub(crate) mod live_tests;
 
 use log::{debug, info, warn};
 use serde::Serialize;
@@ -136,24 +136,31 @@ pub enum CommandOrigin {
     Cli,
     /// The command-mode hotkey (Phase 2).
     Voice,
+    /// The assistant's `do_on_computer` tool, from the quick ask or a call.
+    Assistant,
+    /// A phone: its `command` request, or its assistant's `do_on_computer`.
+    Phone,
 }
 
 impl CommandOrigin {
     /// Whether this command may paste into the window a dictation remembered
-    /// (`input::remember_paste_target`). Only a spoken command, which will
-    /// remember its own target at recording start (Phase 2), may. A typed or
-    /// CLI command must not: the target is left over from the last dictation,
-    /// possibly hours ago, and `type_text` would bring that window forward
-    /// and paste into it.
+    /// (`input::remember_paste_target`). A spoken command and an ask remember
+    /// their own target when they start (the ask does, for its Insert), so they
+    /// may. A typed, CLI or phone command must not: the target is left over
+    /// from the last dictation, possibly hours ago, and `type_text` would bring
+    /// that window forward and paste into it.
     fn keeps_dictation_target(self) -> bool {
-        self == CommandOrigin::Voice
+        matches!(self, CommandOrigin::Voice | CommandOrigin::Assistant)
     }
 
     /// How long a confirmation from this origin stays valid.
     fn confirm_ttl(self) -> Duration {
         match self {
             CommandOrigin::Voice => VOICE_CONFIRM_TTL,
-            CommandOrigin::Typed | CommandOrigin::Cli => CONFIRM_TTL,
+            CommandOrigin::Typed
+            | CommandOrigin::Cli
+            | CommandOrigin::Assistant
+            | CommandOrigin::Phone => CONFIRM_TTL,
         }
     }
 }
@@ -1589,10 +1596,12 @@ mod tests {
 
     /// Only a spoken command may use the window a dictation remembered.
     #[test]
-    fn only_a_voice_command_keeps_the_dictation_target() {
+    fn only_a_command_that_remembered_its_own_target_keeps_it() {
         assert!(CommandOrigin::Voice.keeps_dictation_target());
+        assert!(CommandOrigin::Assistant.keeps_dictation_target());
         assert!(!CommandOrigin::Typed.keeps_dictation_target());
         assert!(!CommandOrigin::Cli.keeps_dictation_target());
+        assert!(!CommandOrigin::Phone.keeps_dictation_target());
     }
 
     #[test]
@@ -1600,6 +1609,11 @@ mod tests {
         assert_eq!(CommandOrigin::Typed.confirm_ttl(), Duration::from_secs(120));
         assert_eq!(CommandOrigin::Cli.confirm_ttl(), Duration::from_secs(120));
         assert_eq!(CommandOrigin::Voice.confirm_ttl(), Duration::from_secs(30));
+        assert_eq!(
+            CommandOrigin::Assistant.confirm_ttl(),
+            Duration::from_secs(120)
+        );
+        assert_eq!(CommandOrigin::Phone.confirm_ttl(), Duration::from_secs(120));
     }
 
     /// "Send" long after the draft opened runs nothing: the draft and the

@@ -11,8 +11,8 @@ use tauri::{AppHandle, Manager};
 
 /// Send a typed message to the assistant (keyboard alternative to voice).
 ///
-/// A typed quick ask is one job, exactly like a spoken one, so it starts from an
-/// empty conversation (a no-op during a call, which owns the conversation).
+/// A typed quick ask starts like a spoken one: empty, or as a follow-up while the
+/// last one is remembered (a no-op during a call, which owns the conversation).
 #[tauri::command]
 #[specta::specta]
 pub async fn assistant_send_text(app: AppHandle, text: String) -> Result<(), String> {
@@ -225,6 +225,7 @@ fn ensure_saved_session_is_available(app: &AppHandle, id: i64) -> Result<(), Str
 #[specta::specta]
 pub fn assistant_clear_conversation(app: AppHandle) -> Result<(), String> {
     crate::voice_conversation::end(&app);
+    assistant::set_quick_ask_answered(None);
     let conversation = app.state::<AssistantConversation>();
     // Same guard as `reset_conversation_for_new_exchange`: a reply still
     // streaming would otherwise be pushed into the emptied list and saved as a
@@ -1293,6 +1294,32 @@ pub fn set_assistant_search_depth(
     write_settings(&app, settings);
     emit_settings_changed(&app);
     Ok(())
+}
+
+/// Set how long a quick ask remembers the one before it. Off forgets the kept
+/// conversation now (unless a call owns it), so the next ask starts empty.
+#[tauri::command]
+#[specta::specta]
+pub fn set_assistant_quick_ask_memory(
+    app: AppHandle,
+    memory: crate::settings::QuickAskMemory,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.assistant_quick_ask_memory = memory;
+    write_settings(&app, settings);
+    emit_settings_changed(&app);
+    Ok(())
+}
+
+/// Start the quick ask over: forget the conversation it would continue. A
+/// no-op during a call, which owns the conversation.
+#[tauri::command]
+#[specta::specta]
+pub fn assistant_new_quick_ask(app: AppHandle) {
+    if crate::voice_conversation::is_active(&app) {
+        return;
+    }
+    assistant::reset_conversation_for_new_exchange(&app);
 }
 
 /// Set how much a reasoning model may think before answering an ask or a call.

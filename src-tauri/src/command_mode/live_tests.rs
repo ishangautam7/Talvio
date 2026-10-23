@@ -16,7 +16,7 @@ use super::router::{self, Followup};
 use crate::settings::AppSettings;
 
 /// The settings the installed app would load, with its keys from the keychain.
-fn installed_settings() -> AppSettings {
+pub(crate) fn installed_settings() -> AppSettings {
     let dir = std::env::var("APPDATA").expect("APPDATA");
     let path = std::path::Path::new(&dir).join("com.talvio.desktop/settings_store.json");
     let text = std::fs::read_to_string(&path).expect("the installed app's settings");
