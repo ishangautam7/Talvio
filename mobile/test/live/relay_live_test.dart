@@ -106,10 +106,10 @@ void main() {
     'sign up, see the computer, request and reply, offline and revoked',
     () async {
       final server = _server!;
-      SharedPreferences.setMockInitialValues({'server_url': server});
+      SharedPreferences.setMockInitialValues({});
       FlutterSecureStorage.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      final session = SessionStore(prefs, ServerFinder(prefs));
+      final session = SessionStore(prefs, ServerFinder(prefs), pinned: server);
       await session.load();
       final api = ApiClient(session);
       final random = Random.secure();

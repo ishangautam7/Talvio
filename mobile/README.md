@@ -26,45 +26,42 @@ Start an account server first (see `server/`). Until the discovery address
 development machine at port 8787: `http://10.0.2.2:8787` from the Android
 emulator, `http://localhost:8787` from the iOS simulator.
 
-## Choosing the server
+## Finding the server
 
-The server's address changes from time to time, so it is not built in
-([`PROTOCOL.md`](../server/PROTOCOL.md), "Finding the server"):
+The app has no server setting: the account server's address only ever comes
+from discovery ([`PROTOCOL.md`](../server/PROTOCOL.md), "Finding the
+server"). The app asks `discoveryUrl` in `lib/src/core/config.dart`
+(`https://domain.gautamishan.com.np`) at launch, and again when the server
+does not answer (at most once a minute), and keeps the last answer. The answer
+is JSON such as `{"apiBaseUrl":"http://192.168.101.69:8787"}` (`apiBaseUrl`
+first, then the older `domain`, then the answer's only string field); the app
+uses its origin. A signed-in session follows the server to a new address with
+the same token.
 
-- **Automatic** (the default): the app asks `discoveryUrl` in
-  `lib/src/core/config.dart` at launch, and again when the server does not
-  answer (at most once a minute), and keeps the last answer. A signed-in
-  session follows the server to its new address with the same token.
-- **Custom**: **Change** at the bottom of the sign-in screen takes an address;
-  **Use automatic** there goes back. A session signed in this way stays on
-  that address. It can only change while signed out.
-- At build time: `flutter run --dart-define=TALVIO_SERVER_URL=https://sync.example.com`
-  (also works with `flutter build`) pins the server; the sign-in screen then
-  offers no Change.
+Plain `http://` is accepted from discovery in every build, because the
+production server is an http address on the local network. Only the
+discovery answer, itself fetched over https and following redirects on its
+own host only, can name a server; a release build refuses a loopback host.
+Android allows cleartext (`android:usesCleartextTraffic` in
+`AndroidManifest.xml`) and iOS allows local-network http
+(`NSAllowsLocalNetworking` in `Info.plist`); the app's own traffic goes
+through `dart:io`, which consults neither, but platform networking does.
 
-The discovery address does not answer yet. That is a normal state: the app
-logs it once and keeps trying, and meanwhile uses its last answer or, in
-development, the machine above.
+An install from an older version that saved a server typed by hand
+(`server_url`) forgets it at launch, and a session signed in on such a server
+is signed out unless it is the server discovery names.
 
-### A real phone on your network
-
-The phone cannot reach `localhost` on your computer. Start the server so it
-listens on your LAN address, then either build with
-`--dart-define=TALVIO_SERVER_URL=http://192.168.1.20:8787` or enter that
-address under **Change**.
-
-Plain `http://` only works in debug and profile builds. Release builds take
-`https://` addresses only, and the app enforces that itself: its traffic goes
-through `dart:io`, which ignores Android's cleartext setting and iOS App
-Transport Security.
+Until discovery has answered once, a debug or profile build uses the
+development machine (above). For development only, `flutter run
+--dart-define=TALVIO_SERVER_URL=http://192.168.1.20:8787` pins the server and
+turns discovery off; release builds ignore it.
 
 ## Release builds
 
-- No server address is needed: release builds use Automatic. Until
-  discovery first answers, the sign-in screen says it can't find the server
-  and keeps trying (it never falls back to the development machine). A
-  `TALVIO_SERVER_URL` that is not a valid `https://` address stops the app
-  at launch.
+- No server address is needed or possible: release builds only use
+  discovery. Until it first answers, the sign-in screen says it can't find
+  the server and keeps trying (it never falls back to the development
+  machine).
 - Android signs with the key named in `android/key.properties` (`storeFile`,
   `storePassword`, `keyAlias`, `keyPassword`; never committed). Without that
   file the debug key signs it, which Play refuses.

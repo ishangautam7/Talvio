@@ -10,8 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 
 /// The server URL a discovery answer names (PROTOCOL.md, "Finding the
-/// server"): `https://<host[:port]>`, or outside a [release] build also an
-/// explicit `http://` one. Null when it names none.
+/// server"): `apiBaseUrl`, else the legacy `domain`, else the answer's only
+/// string field, as an origin (`http(s)://host[:port]`). Null when it names
+/// none.
 String? serverFromDiscovery(String body, {bool release = kReleaseMode}) {
   final Object? json;
   try {
@@ -21,16 +22,31 @@ String? serverFromDiscovery(String body, {bool release = kReleaseMode}) {
   }
   if (json is! Map<String, Object?>) return null;
   final strings = json.values.whereType<String>();
-  final value = json.containsKey('domain')
+  final value = json.containsKey('apiBaseUrl')
+      ? json['apiBaseUrl']
+      : json.containsKey('domain')
       ? json['domain']
       : strings.length == 1
       ? strings.single
       : null;
   if (value is! String) return null;
+  return serverOrigin(value, release: release);
+}
+
+/// The origin of a server address: an `http://` or `https://` URL, or a bare
+/// `host[:port]` (taken as https), reduced to `scheme://host[:port]`. Null
+/// for a user part, another scheme, an invalid host or port, and in a
+/// [release] build a loopback host.
+///
+/// Plain http is accepted in every build: the production server is an http
+/// address on the local network. The discovery request itself is always
+/// https (and follows redirects on its own host only), so only that trusted
+/// answer can name an http server; nothing the user types ever does.
+String? serverOrigin(String value, {bool release = kReleaseMode}) {
   final text = value.trim();
   final uri = Uri.tryParse(text.contains('://') ? text : 'https://$text');
   if (uri == null ||
-      (uri.scheme != 'https' && (release || uri.scheme != 'http')) ||
+      (uri.scheme != 'https' && uri.scheme != 'http') ||
       uri.userInfo.isNotEmpty ||
       !(RegExp(r'^[a-z0-9.-]+$').hasMatch(uri.host) ||
           io.InternetAddress.tryParse(uri.host) != null) ||
@@ -50,8 +66,9 @@ bool _isLoopback(String host) =>
     host.endsWith('.localhost') ||
     (io.InternetAddress.tryParse(host)?.isLoopback ?? false);
 
-/// Finds the account server in Automatic mode: asks [discoveryUrl] when
-/// turned on (at launch, or on switching back to Automatic) and again when the
+/// Finds the account server, the only way the app learns it: asks
+/// [discoveryUrl] when turned on (at launch, unless a development build pins
+/// the server) and again when the
 /// server cannot be reached, at most once per [interval], and keeps the last
 /// good answer across launches. The address is not live everywhere yet, so a
 /// failed lookup is normal: it is logged once per run of failures and retried.
@@ -74,8 +91,7 @@ class ServerFinder extends ChangeNotifier {
   final http.Client _http;
   final DateTime Function() _now;
 
-  /// Whether this is a release build, which takes https only and no loopback
-  /// host.
+  /// Whether this is a release build, which takes no loopback host.
   final bool release;
 
   var _enabled = false;
@@ -90,7 +106,8 @@ class ServerFinder extends ChangeNotifier {
   /// Whether a lookup is under way.
   bool get looking => _looking;
 
-  /// On only in Automatic mode. Turning it on looks the server up at once.
+  /// Off only while a development build pins the server. Turning it on
+  /// looks the server up at once.
   set enabled(bool enabled) {
     if (enabled == _enabled) return;
     _enabled = enabled;

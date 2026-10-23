@@ -26,11 +26,17 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- The account server discovery names is a plain http address on the
+	     local network (e.g. http://192.168.101.69:8787): allow http to local
+	     addresses only. dart:io does not apply ATS itself, but platform
+	     networking does. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Talvio connects to its account server on your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Talvio records what you say and sends it to your computer to turn into text.</string>
 	<key>UIApplicationSceneManifest</key>

@@ -11,7 +11,6 @@ import '../../core/strings.dart';
 import '../../core/widgets.dart';
 import 'google_mark.dart';
 import 'google_sign_in.dart';
-import 'server_dialog.dart';
 import 'strings.dart';
 
 enum _Mode { signIn, create }
@@ -146,20 +145,10 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  Future<void> _changeServer() async {
-    final session = _services.session;
-    final custom = session.serverChoice == ServerChoice.custom;
-    final setting = await showDialog<ServerSetting>(
-      context: context,
-      builder: (_) => ServerDialog(current: custom ? session.serverUrl : null),
-    );
-    if (setting == null || !mounted) return;
-    await session.setServerUrl(setting.custom);
-  }
-
-  /// The server in use and how it was chosen, or that it is still being
-  /// looked for (a release build whose discovery has never answered).
-  Widget _serverControl(ThemeData theme, bool busy) {
+  /// The server discovery named, or that it is still being looked for (a
+  /// release build whose discovery has never answered). There is nothing to
+  /// change here: the server only ever comes from discovery.
+  Widget _serverControl(ThemeData theme) {
     final session = _services.session;
     final finder = session.finder;
     final url = session.serverUrl;
@@ -182,11 +171,6 @@ class _SignInScreenState extends State<SignInScreen> {
           TextButton(
             onPressed: finder.lookUp,
             child: const Text(AuthStrings.tryAgain),
-          ),
-        if (choice != ServerChoice.pinned)
-          TextButton(
-            onPressed: busy ? null : _changeServer,
-            child: const Text(AuthStrings.change),
           ),
       ],
     );
@@ -404,7 +388,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ],
                       const SizedBox(height: 32),
-                      _serverControl(theme, busy),
+                      _serverControl(theme),
                     ],
                   ),
                 ),

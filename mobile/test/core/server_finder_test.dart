@@ -29,7 +29,20 @@ Future<ServerFinder> finder(
 }
 
 void main() {
-  test('reads domain, else the only string field', () {
+  test('reads apiBaseUrl, else the legacy domain, else the only string '
+      'field', () {
+    // What the discovery address answers today.
+    expect(
+      parse({'apiBaseUrl': 'http://192.168.101.69:8787'}),
+      'http://192.168.101.69:8787',
+    );
+    expect(
+      parse({
+        'apiBaseUrl': 'https://sync.example.com',
+        'domain': 'old.example',
+      }),
+      'https://sync.example.com',
+    );
     expect(parse({'domain': 'sync.example.com'}), 'https://sync.example.com');
     expect(
       parse({'domain': 'sync.example.com', 'note': 'moved'}),
@@ -41,9 +54,11 @@ void main() {
     );
     expect(parse({'a': 'one.example.com', 'b': 'two.example.com'}), isNull);
     expect(parse({'domain': 42, 'host': 'sync.example.com'}), isNull);
+    expect(parse({'apiBaseUrl': 42, 'domain': 'sync.example.com'}), isNull);
   });
 
-  test('takes a bare host, host:port, or an https URL of one', () {
+  test('takes a bare host, host:port, or an http(s) URL of one, as its '
+      'origin', () {
     expect(parse({'domain': ' Sync.Example.com '}), 'https://sync.example.com');
     expect(
       parse({'domain': 'sync.example.com:8443'}),
@@ -53,13 +68,21 @@ void main() {
       parse({'domain': 'https://sync.example.com:8443/some/path?q=1#top'}),
       'https://sync.example.com:8443',
     );
+    expect(
+      parse({'apiBaseUrl': 'http://192.168.101.69:8787/v1/'}),
+      'http://192.168.101.69:8787',
+    );
     expect(parse({'domain': '203.0.113.7'}), 'https://203.0.113.7');
   });
 
-  test('takes an http URL only in development builds', () {
-    const lan = {'domain': 'http://192.168.1.5:8787'};
+  test('takes http in every build: the server is on the local network', () {
+    const lan = {'apiBaseUrl': 'http://192.168.1.5:8787'};
+    expect(parse(lan), 'http://192.168.1.5:8787');
     expect(parse(lan, release: false), 'http://192.168.1.5:8787');
-    expect(parse(lan), isNull);
+    expect(
+      parse({'apiBaseUrl': 'https://sync.example.com'}),
+      'https://sync.example.com',
+    );
   });
 
   test('takes a loopback host only in development builds', () {
@@ -67,19 +90,25 @@ void main() {
       'localhost:8787',
       'api.localhost',
       '127.0.0.1',
+      'http://127.0.0.1:8787',
       'https://[::1]:8787',
     ]) {
-      expect(parse({'domain': host}), isNull, reason: host);
+      expect(parse({'apiBaseUrl': host}), isNull, reason: host);
     }
     expect(
       parse({'domain': 'localhost:8787'}, release: false),
       'https://localhost:8787',
+    );
+    expect(
+      parse({'apiBaseUrl': 'http://10.0.2.2:8787'}, release: false),
+      'http://10.0.2.2:8787',
     );
   });
 
   test('rejects a user part, other schemes, and garbage', () {
     for (final value in [
       'https://user:pw@sync.example.com',
+      'http://user@192.168.1.5:8787',
       'user@sync.example.com',
       'ftp://sync.example.com',
       'wss://sync.example.com',
@@ -88,11 +117,18 @@ void main() {
       'https://',
       'not a host',
       'sync.example.com:99999',
+      'http://192.168.1.5:0',
     ]) {
-      expect(parse({'domain': value}, release: false), isNull, reason: value);
+      for (final release in [true, false]) {
+        expect(
+          parse({'apiBaseUrl': value}, release: release),
+          isNull,
+          reason: value,
+        );
+      }
     }
     for (final body in ['not json', '', '[]', '"sync.example.com"', '{}']) {
-      expect(serverFromDiscovery(body, release: false), isNull, reason: body);
+      expect(serverFromDiscovery(body, release: true), isNull, reason: body);
     }
   });
 
@@ -140,7 +176,8 @@ void main() {
   test('a failed or unusable answer keeps the last good server', () async {
     for (final response in [
       http.Response('', 503),
-      answer('http://sync.example.com'),
+      answer('ftp://sync.example.com'),
+      answer('127.0.0.1:8787'),
       http.Response('<html>', 200),
     ]) {
       final f = await finder(
@@ -194,7 +231,7 @@ void main() {
     await tester.pump(const Duration(seconds: 30));
     expect(lookups, 5);
 
-    // Off (Custom mode): nothing at all.
+    // Off (a development build's pinned server): nothing at all.
     f.enabled = false;
     f.unreachable();
     await f.lookUp();

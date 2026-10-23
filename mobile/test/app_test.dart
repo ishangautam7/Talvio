@@ -608,7 +608,7 @@ void main() {
     expect(find.text('This phone'), findsOneWidget);
     expect(find.text('Ishan'), findsOneWidget);
     expect(find.textContaining('Last seen'), findsOneWidget);
-    expect(find.text('Custom · sync.test:8787'), findsOneWidget);
+    expect(find.text('Development server · sync.test:8787'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Remove ISHAN-PC'));
     await tester.pumpAndSettle();
