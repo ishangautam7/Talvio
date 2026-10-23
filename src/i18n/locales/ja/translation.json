@@ -3161,7 +3161,7 @@
       "provider": "プロバイダー",
       "model": "モデル",
       "using": "コマンドは {{model}} · {{provider}} で実行されます。",
-      "borrowed": "{{chosen}} にキーがないため、アシスタントのモデル（{{provider}} · {{model}}）を使用しています。",
+      "borrowed": "{{chosen}} にキーがないため、{{provider}} · {{model}} を使用しています。",
       "needsKey": "コマンドを実行するには {{provider}} のキーが必要です。",
       "setUp": "モデルを設定",
       "key": "{{provider}} のAPIキー",

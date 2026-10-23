@@ -3209,7 +3209,7 @@
       "provider": "ספק",
       "model": "מודל",
       "using": "הפקודות רצות על {{model}} · {{provider}}.",
-      "borrowed": "משתמש במודל של העוזר שלך ({{provider}} · {{model}}), כי ל-{{chosen}} אין מפתח.",
+      "borrowed": "נעשה שימוש ב־{{provider}} · {{model}}, כי ל־{{chosen}} אין מפתח.",
       "needsKey": "{{provider}} צריך מפתח לפני שפקודות יוכלו לרוץ.",
       "setUp": "הגדר מודל",
       "key": "מפתח API של {{provider}}",

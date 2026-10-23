@@ -3161,7 +3161,7 @@
       "provider": "Nhà cung cấp",
       "model": "Mô hình",
       "using": "Lệnh chạy bằng {{model}} · {{provider}}.",
-      "borrowed": "Đang dùng mô hình của trợ lý ({{provider}} · {{model}}), vì {{chosen}} chưa có khóa.",
+      "borrowed": "Đang dùng {{provider}} · {{model}}, vì {{chosen}} chưa có khóa.",
       "needsKey": "{{provider}} cần khóa trước khi có thể chạy lệnh.",
       "setUp": "Thiết lập mô hình",
       "key": "Khóa API {{provider}}",

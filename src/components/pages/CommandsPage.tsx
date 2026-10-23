@@ -28,8 +28,10 @@ import { RowAction, ShortcutRow } from "@/components/settings/ShortcutRow";
 import { shortcutInfo } from "@/components/settings/shortcutInfo";
 import { CommandTestBox } from "@/components/settings/debug/CommandTestBox";
 import {
+  keyedFirst,
   modelBelongsElsewhere,
   modelInUseLine,
+  providerWithSavedKey,
   routerProviders,
   suggestedRouterModel,
 } from "./commands/commandModel";
@@ -39,7 +41,7 @@ const EXAMPLES = ["youtube", "song", "volume", "switch"] as const;
 
 /**
  * Which provider and model route a command, and which one really does: the
- * chosen provider without a key hands commands to the assistant's model
+ * chosen provider without a key hands commands to a provider set up elsewhere (the assistant's, then AI cleanup's), and the page moves to it
  * (`command_mode::llm::effective`), and the line under the row says so.
  * Under it, the provider's key when it needs one (shared with AI cleanup and
  * the assistant, so entering it here sets it up there too) and the model,
@@ -83,7 +85,10 @@ const CommandModelRow: React.FC = () => {
     };
   }, [settings]);
 
-  const providers = useMemo(() => routerProviders(settings), [settings]);
+  const providers = useMemo(
+    () => keyedFirst(settings, routerProviders(settings)),
+    [settings],
+  );
   const options = useMemo<LogoSelectOption[]>(
     () =>
       providers.map((provider) => ({
@@ -140,6 +145,16 @@ const CommandModelRow: React.FC = () => {
     if (suggested) await updateSetting("command_router_model", suggested);
     void refreshSettings();
   };
+
+  // A provider nobody gave a key (the shipped Anthropic default, say) moves to
+  // one set up elsewhere, the assistant's first, so commands run on a key
+  // already entered instead of asking for another.
+  const adopt = providerWithSavedKey(settings, (id) =>
+    LLM_REQUIRES_KEY.has(id),
+  );
+  useEffect(() => {
+    if (adopt) void chooseProvider(adopt);
+  }, [adopt]);
 
   const choices: Choice[] = models.map((item) => ({
     value: item.id,

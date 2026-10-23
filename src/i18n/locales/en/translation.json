@@ -3185,7 +3185,7 @@
       "provider": "Provider",
       "model": "Model",
       "using": "Commands run on {{model}} · {{provider}}.",
-      "borrowed": "Using your assistant's model ({{provider}} · {{model}}), since {{chosen}} has no key.",
+      "borrowed": "Using {{provider}} · {{model}}, since {{chosen}} has no key.",
       "needsKey": "{{provider}} needs a key before commands can run.",
       "setUp": "Set up a model",
       "key": "{{provider}} API key",

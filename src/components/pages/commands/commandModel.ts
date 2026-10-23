@@ -83,3 +83,51 @@ export function modelInUseLine(
   if (inUse.borrowed) return { key: "commandsPage.model.borrowed", values };
   return { key: "commandsPage.model.using", values };
 }
+
+/** Whether a key is saved for `providerId` (in AI cleanup, the assistant or
+ *  here: the three share one set of keys). */
+export function hasSavedKey(
+  settings: AppSettings | null | undefined,
+  providerId: string,
+): boolean {
+  return Boolean(settings?.post_process_api_keys?.[providerId]?.trim());
+}
+
+/**
+ * A provider to move commands to when the chosen one needs a key nobody
+ * entered: the assistant's provider, else AI cleanup's, else any other with a
+ * saved key, as long as there is a model to run on it. `null` when the chosen
+ * provider is fine as it is, or nothing better is set up, so a person is
+ * never moved off a provider they gave a key.
+ */
+export function providerWithSavedKey(
+  settings: AppSettings | null | undefined,
+  requiresKey: (providerId: string) => boolean,
+): string | null {
+  const chosen = settings?.command_router_provider_id ?? "";
+  if (chosen && (!requiresKey(chosen) || hasSavedKey(settings, chosen))) {
+    return null;
+  }
+  const ids = routerProviders(settings).map((provider) => provider.id);
+  const candidates = [
+    settings?.assistant_provider_id,
+    settings?.post_process_provider_id,
+    ...ids,
+  ];
+  for (const id of candidates) {
+    if (!id || id === chosen || !ids.includes(id)) continue;
+    if (!hasSavedKey(settings, id)) continue;
+    if (suggestedRouterModel(settings, id)) return id;
+  }
+  return null;
+}
+
+/** The picker's order: providers with a saved key first, the rest as listed. */
+export function keyedFirst<T extends { id: string }>(
+  settings: AppSettings | null | undefined,
+  providers: T[],
+): T[] {
+  const keyed = providers.filter((p) => hasSavedKey(settings, p.id));
+  const rest = providers.filter((p) => !hasSavedKey(settings, p.id));
+  return [...keyed, ...rest];
+}

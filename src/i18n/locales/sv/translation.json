@@ -3185,7 +3185,7 @@
       "provider": "Leverantör",
       "model": "Modell",
       "using": "Kommandon körs på {{model}} · {{provider}}.",
-      "borrowed": "Använder assistentens modell ({{provider}} · {{model}}), eftersom {{chosen}} saknar nyckel.",
+      "borrowed": "Använder {{provider}} · {{model}}, eftersom {{chosen}} saknar nyckel.",
       "needsKey": "{{provider}} behöver en nyckel innan kommandon kan köras.",
       "setUp": "Konfigurera en modell",
       "key": "API-nyckel för {{provider}}",

@@ -3161,7 +3161,7 @@
       "provider": "제공자",
       "model": "모델",
       "using": "명령은 {{model}} · {{provider}}에서 실행됩니다.",
-      "borrowed": "{{chosen}}에 키가 없어 어시스턴트의 모델({{provider}} · {{model}})을 사용합니다.",
+      "borrowed": "{{chosen}}에 키가 없어 {{provider}} · {{model}}을(를) 사용합니다.",
       "needsKey": "명령을 실행하려면 {{provider}} 키가 필요합니다.",
       "setUp": "모델 설정",
       "key": "{{provider}} API 키",

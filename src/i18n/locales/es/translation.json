@@ -3209,7 +3209,7 @@
       "provider": "Proveedor",
       "model": "Modelo",
       "using": "Los comandos se ejecutan con {{model}} · {{provider}}.",
-      "borrowed": "Usando el modelo de tu asistente ({{provider}} · {{model}}), porque {{chosen}} no tiene clave.",
+      "borrowed": "Usando {{provider}} · {{model}}, porque {{chosen}} no tiene clave.",
       "needsKey": "{{provider}} necesita una clave para poder ejecutar comandos.",
       "setUp": "Configurar un modelo",
       "key": "Clave API de {{provider}}",

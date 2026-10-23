@@ -3161,7 +3161,7 @@
       "provider": "提供商",
       "model": "模型",
       "using": "命令在 {{model}} · {{provider}} 上运行。",
-      "borrowed": "由于 {{chosen}} 没有密钥，正在使用助手的模型（{{provider}} · {{model}}）。",
+      "borrowed": "由于 {{chosen}} 没有密钥，正在使用 {{provider}} · {{model}}。",
       "needsKey": "{{provider}} 需要密钥才能运行命令。",
       "setUp": "设置模型",
       "key": "{{provider}} API 密钥",

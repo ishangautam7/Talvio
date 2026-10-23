@@ -3233,7 +3233,7 @@
       "provider": "Poskytovatel",
       "model": "Model",
       "using": "Příkazy běží na {{model}} · {{provider}}.",
-      "borrowed": "Používá se model vašeho asistenta ({{provider}} · {{model}}), protože {{chosen}} nemá klíč.",
+      "borrowed": "Používá se {{provider}} · {{model}}, protože {{chosen}} nemá klíč.",
       "needsKey": "{{provider}} potřebuje klíč, aby příkazy mohly běžet.",
       "setUp": "Nastavit model",
       "key": "API klíč pro {{provider}}",
