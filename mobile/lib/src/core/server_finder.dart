@@ -78,18 +78,29 @@ class ServerFinder extends ChangeNotifier {
     http.Client? httpClient,
     DateTime Function()? now,
     this.release = kReleaseMode,
+    Future<List<String>> Function(String host)? resolveFallback,
+    http.Client Function(String host, String ip)? pinnedClient,
   }) : _http =
            httpClient ??
            IOClient(io.HttpClient()..connectionTimeout = _timeout),
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now,
+       _resolveFallback = resolveFallback ?? resolveViaDnsOverHttps,
+       _pinnedClient = pinnedClient ?? _ipPinnedClient;
 
   static const interval = Duration(minutes: 1);
-  static const _timeout = Duration(seconds: 10);
+  static const _timeout = Duration(seconds: 20);
   static const _key = 'server_found';
 
   final SharedPreferences _prefs;
   final http.Client _http;
   final DateTime Function() _now;
+
+  /// Looks a host up without the phone's own DNS (see [_fetch]).
+  final Future<List<String>> Function(String host) _resolveFallback;
+
+  /// A client that reaches the discovery host at one address while still
+  /// checking its certificate against the host name.
+  final http.Client Function(String host, String ip) _pinnedClient;
 
   /// Whether this is a release build, which takes no loopback host.
   final bool release;
@@ -97,6 +108,7 @@ class ServerFinder extends ChangeNotifier {
   var _enabled = false;
   var _looking = false;
   var _failing = false;
+  String? _lastError;
   DateTime? _lastLookUp;
   Timer? _next;
 
@@ -105,6 +117,13 @@ class ServerFinder extends ChangeNotifier {
 
   /// Whether a lookup is under way.
   bool get looking => _looking;
+
+  /// Why the last lookup found nothing, in plain technical words
+  /// ("SocketException: …", "HTTP 403", "the answer named no usable
+  /// server"); null after a lookup that worked. Shown under "Can't find
+  /// the server" so a failure on a real phone can be told apart from the
+  /// others without a debugger attached.
+  String? get lastError => _lastError;
 
   /// Off only while a development build pins the server. Turning it on
   /// looks the server up at once.
@@ -124,10 +143,17 @@ class ServerFinder extends ChangeNotifier {
     _looking = true;
     _lastLookUp = _now();
     notifyListeners();
-    final found = await _fetch().timeout(_timeout, onTimeout: () => null);
+    final found = await _fetch().timeout(
+      _timeout,
+      onTimeout: () {
+        _lastError = 'no answer within ${_timeout.inSeconds} s';
+        return null;
+      },
+    );
     _looking = false;
     if (found != null) {
       _failing = false;
+      _lastError = null;
       await _prefs.setString(_key, found);
     } else if (!_failing) {
       _failing = true;
@@ -154,10 +180,58 @@ class ServerFinder extends ChangeNotifier {
     });
   }
 
-  /// The server [discoveryUrl] names, following redirects on its own host
-  /// only (the answer decides where sign-ins and tokens go). Sends nothing
-  /// but the request itself. Null on any failure.
+  /// The server [discoveryUrl] names. Null on any failure, with the reason in
+  /// [lastError].
+  ///
+  /// When the phone's own DNS cannot find the discovery host, the host is
+  /// looked up over DNS-over-HTTPS instead and the request goes to that
+  /// address, with TLS still checked against the host name. Phones on
+  /// Private DNS or a resolver that does not know the name yet answered
+  /// "No address associated with hostname" here, while the browser, which
+  /// does its own secure DNS, loaded the same address fine.
   Future<String?> _fetch() async {
+    _hostLookupFailed = false;
+    final found = await _fetchWith(_http);
+    if (found != null || !_hostLookupFailed) return found;
+
+    final host = Uri.parse(discoveryUrl).host;
+    final firstError = _lastError;
+    List<String> addresses;
+    try {
+      addresses = await _resolveFallback(host);
+    } on Exception catch (e) {
+      _lastError = _clip('$firstError; secure DNS failed too: $e');
+      return null;
+    }
+    if (addresses.isEmpty) {
+      _lastError = _clip('$firstError; secure DNS found no address either');
+      return null;
+    }
+    for (final ip in addresses.take(2)) {
+      final client = _pinnedClient(host, ip);
+      try {
+        final viaFallback = await _fetchWith(client);
+        if (viaFallback != null) {
+          debugPrint('Talvio: found the server through secure DNS ($ip)');
+          return viaFallback;
+        }
+      } finally {
+        client.close();
+      }
+    }
+    _lastError = _clip('$firstError; through secure DNS: $_lastError');
+    return null;
+  }
+
+  var _hostLookupFailed = false;
+
+  static String _clip(String text) =>
+      text.length > 240 ? '${text.substring(0, 240)}…' : text;
+
+  /// One discovery request through [client], following redirects on its own
+  /// host only (the answer decides where sign-ins and tokens go). Sends
+  /// nothing but the request itself.
+  Future<String?> _fetchWith(http.Client client) async {
     var url = Uri.parse(discoveryUrl);
     try {
       for (var hop = 0; hop < 5; hop++) {
@@ -165,26 +239,122 @@ class ServerFinder extends ChangeNotifier {
           ..followRedirects = false
           ..headers['Accept'] = 'application/json';
         final response = await http.Response.fromStream(
-          await _http.send(request),
+          await client.send(request),
         );
         final location = response.headers['location'];
         if (response.statusCode ~/ 100 == 3 && location != null) {
           final next = url.resolve(location);
           if (next.scheme != 'https' || next.authority != url.authority) {
+            _lastError = 'redirected to another address (${next.authority})';
             return null;
           }
           url = next;
           continue;
         }
-        if (response.statusCode != 200) return null;
-        return serverFromDiscovery(
-          utf8.decode(response.bodyBytes, allowMalformed: true),
-          release: release,
-        );
+        if (response.statusCode != 200) {
+          _lastError = 'HTTP ${response.statusCode}';
+          return null;
+        }
+        final body = utf8.decode(response.bodyBytes, allowMalformed: true);
+        final found = serverFromDiscovery(body, release: release);
+        if (found == null) {
+          final shown = body.length > 80 ? '${body.substring(0, 80)}…' : body;
+          _lastError = 'the answer named no usable server: $shown';
+        }
+        return found;
       }
-    } on Exception {
+      _lastError = 'too many redirects';
+    } on Exception catch (e) {
       // Offline, DNS (the address does not resolve yet), refused, TLS.
+      final text = '$e';
+      _hostLookupFailed = isHostLookupFailure(text);
+      _lastError = text.length > 160 ? '${text.substring(0, 160)}…' : text;
     }
     return null;
   }
+
+  /// An HttpClient that connects to [ip] for [host], doing TLS with [host]
+  /// as the server name so the certificate is checked exactly as usual.
+  static http.Client _ipPinnedClient(String host, String ip) {
+    final client = io.HttpClient()
+      ..connectionTimeout = _timeout
+      ..findProxy = (_) => 'DIRECT';
+    client.connectionFactory = (uri, proxyHost, proxyPort) async {
+      Future<io.Socket> connect() async {
+        // Only the discovery host is pinned; anything else connects as usual.
+        final target = uri.host == host ? ip : uri.host;
+        final plain = await io.Socket.connect(
+          target,
+          uri.port,
+          timeout: _timeout,
+        );
+        if (uri.scheme != 'https') return plain;
+        return io.SecureSocket.secure(plain, host: uri.host);
+      }
+
+      return io.ConnectionTask.fromSocket(connect(), () {});
+    };
+    return IOClient(client);
+  }
+}
+
+/// Whether an error is the phone's DNS not finding a host (Android:
+/// "Failed host lookup" / "No address associated with hostname").
+bool isHostLookupFailure(String error) {
+  final text = error.toLowerCase();
+  return text.contains('host lookup') ||
+      text.contains('no address associated') ||
+      text.contains('nodename nor servname');
+}
+
+/// The IPv4 addresses in a DNS-over-HTTPS JSON answer (the format both
+/// Cloudflare's and Google's resolvers use): `Answer` records of type 1 (A).
+List<String> parseDnsJsonAnswer(String body) {
+  final Object? json;
+  try {
+    json = jsonDecode(body);
+  } on FormatException {
+    return const [];
+  }
+  if (json is! Map<String, Object?>) return const [];
+  final answers = json['Answer'];
+  if (answers is! List) return const [];
+  return [
+    for (final record in answers)
+      if (record is Map<String, Object?> &&
+          record['type'] == 1 &&
+          record['data'] is String &&
+          io.InternetAddress.tryParse(record['data'] as String)?.type ==
+              io.InternetAddressType.IPv4)
+        record['data'] as String,
+  ];
+}
+
+/// Looks [host] up over DNS-over-HTTPS: Cloudflare (1.1.1.1), then Google
+/// (8.8.8.8). Both are addressed by IP, so this needs no DNS of its own, and
+/// both are https, so the answer cannot be altered on the way.
+Future<List<String>> resolveViaDnsOverHttps(String host) async {
+  final client = IOClient(
+    io.HttpClient()..connectionTimeout = const Duration(seconds: 8),
+  );
+  try {
+    for (final endpoint in [
+      Uri.https('1.1.1.1', '/dns-query', {'name': host, 'type': 'A'}),
+      Uri.https('8.8.8.8', '/resolve', {'name': host, 'type': 'A'}),
+    ]) {
+      try {
+        final response = await client
+            .get(endpoint, headers: {'Accept': 'application/dns-json'})
+            .timeout(const Duration(seconds: 8));
+        if (response.statusCode != 200) continue;
+        final addresses = parseDnsJsonAnswer(response.body);
+        if (addresses.isNotEmpty) return addresses;
+      } on Exception {
+        continue;
+      }
+    }
+  } finally {
+    client.close();
+  }
+  return const [];
 }
