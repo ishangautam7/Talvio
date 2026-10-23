@@ -27,6 +27,7 @@ mod google;
 mod remote;
 mod secrets_sync;
 mod socket;
+pub mod viewing;
 
 #[cfg(test)]
 mod account_live_tests;
@@ -35,7 +36,7 @@ use std::collections::HashSet;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
-use log::{info, warn};
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::async_runtime::JoinHandle;
@@ -168,6 +169,33 @@ fn server_url(app: &AppHandle) -> Option<String> {
 /// A client for the server in use (`no_server` while there is none).
 fn server_api(app: &AppHandle) -> Result<Api, String> {
     Api::new(&server_url(app).ok_or_else(|| "no_server".to_string())?)
+}
+
+/// The ICE servers for a live view: the account server's (STUN, and TURN when
+/// it has one), or public STUN alone when it cannot be asked, which still
+/// connects a phone on the same network or behind most home routers.
+pub(crate) async fn ice_servers(app: &AppHandle) -> Vec<api::IceServer> {
+    let fallback = || {
+        vec![api::IceServer {
+            urls: vec!["stun:stun.cloudflare.com:3478".into()],
+            username: None,
+            credential: None,
+        }]
+    };
+    let Some((session, _)) = manager(app).session() else {
+        return fallback();
+    };
+    let Ok(api) = server_api(app) else {
+        return fallback();
+    };
+    match api.ice_servers(&session.token).await {
+        Ok(servers) if !servers.is_empty() => servers,
+        Ok(_) => fallback(),
+        Err(code) => {
+            debug!("No ICE servers from the account server ({code}); public STUN only");
+            fallback()
+        }
+    }
 }
 
 /// The server discovery last found, if this build may use it; else, in
@@ -858,6 +886,22 @@ pub async fn account_answer_approval(app: AppHandle, device_id: String, allow: b
     answer_from_popup(&app, vec![device_id], allow).await;
 }
 
+/// "Phone is viewing": who is watching what, for the popup that just loaded.
+#[tauri::command]
+#[specta::specta]
+pub fn account_viewing() -> Option<approval::ViewingCard> {
+    approval::viewing()
+}
+
+/// Stop on "Phone is viewing": the live view ends with `stopped`.
+#[tauri::command]
+#[specta::specta]
+pub fn account_stop_viewing(app: AppHandle) {
+    if let Some(router) = manager(&app).router() {
+        router.stop_watching();
+    }
+}
+
 /// An answer given on the popup (a button, Esc, closing it): the cards go,
 /// activation goes back to the user's app whatever the answer, so the next
 /// paste lands there, and then the requests waiting on them hear it.
@@ -888,7 +932,7 @@ pub fn set_remote_input_enabled(app: AppHandle, enabled: bool) -> Result<(), Str
     Ok(())
 }
 
-/// Settings → Account → Let phones choose windows.
+/// Settings → Account → Let phones see and use windows.
 #[tauri::command]
 #[specta::specta]
 pub fn set_remote_windows_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {

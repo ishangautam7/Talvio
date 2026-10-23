@@ -12,6 +12,12 @@ use tokio::sync::oneshot;
 use super::{AccountPhone, APPROVAL_TIMEOUT};
 use crate::clipboard::PasteBehavior;
 use crate::command_mode::effects::{Effects as _, KeyCombo, SystemEffects, WindowEntry};
+
+use super::screen::audio::{AudioStream, OpusPacket};
+use super::screen::input::{self, Button, ControlInfo, Rect};
+use super::screen::rtc::IceServer;
+use super::screen::session::Viewing;
+use super::screen::video::{CaptureTarget, EncodedFrame, ScreenInfo, VideoSettings, VideoStream};
 use crate::managers::history::HistoryManager;
 use crate::managers::transcription::TranscriptionManager;
 use crate::settings::{get_settings, PasteMethod};
@@ -69,7 +75,7 @@ pub trait Host: Send + Sync + 'static {
     fn approval_timeout(&self) -> Duration {
         APPROVAL_TIMEOUT
     }
-    /// The "Let phones choose windows" switch.
+    /// The "Let phones see and use windows" switch.
     fn windows_enabled(&self) -> bool;
     /// Top-level windows a phone may aim at, front to back, never ours.
     fn open_windows(&self) -> Vec<WindowEntry>;
@@ -79,7 +85,51 @@ pub trait Host: Send + Sync + 'static {
     fn focus_window(&self, window: WindowEntry) -> BoxFuture<'static, Result<(), String>>;
     /// Press each combo, in order, in the window that has the keyboard.
     fn press_keys(&self, combos: Vec<KeyCombo>) -> BoxFuture<'static, Result<(), String>>;
+
+    // ── Live view (`screen/`) ──────────────────────────────────────────────
+
+    /// The screens a live view can watch.
+    fn screens(&self) -> Vec<ScreenInfo>;
+    /// Start capturing and encoding a window or screen.
+    fn start_video(&self, target: CaptureTarget, settings: VideoSettings) -> VideoStart;
+    /// Start capturing what the computer plays, disabled until switched on.
+    fn start_audio(&self) -> AudioStart;
+    /// The STUN and TURN servers to connect through.
+    fn ice_servers(&self) -> BoxFuture<'static, Vec<IceServer>>;
+    /// Click at a physical screen point.
+    fn click(
+        &self,
+        x: i32,
+        y: i32,
+        button: Button,
+        count: u8,
+    ) -> BoxFuture<'static, Result<(), String>>;
+    /// Turn the wheel over a physical screen point.
+    fn scroll(&self, x: i32, y: i32, dx: i32, dy: i32) -> BoxFuture<'static, Result<(), String>>;
+    /// The control at a physical screen point.
+    fn control_at(&self, x: i32, y: i32) -> BoxFuture<'static, Option<ControlInfo>>;
+    /// Whether the control with the keyboard is a password field.
+    fn focused_is_password(&self) -> BoxFuture<'static, bool>;
+    /// The text cursor of the window in front, in physical screen pixels.
+    fn caret(&self) -> BoxFuture<'static, Option<Rect>>;
+    /// Show that a phone is watching (with Stop), or take that down.
+    fn viewing(&self, notice: Option<Viewing>);
 }
+
+pub type VideoStart = Result<
+    (
+        Box<dyn VideoStream>,
+        tokio::sync::mpsc::Receiver<EncodedFrame>,
+    ),
+    super::screen::video::StartError,
+>;
+pub type AudioStart = Result<
+    (
+        Box<dyn AudioStream>,
+        tokio::sync::mpsc::Receiver<OpusPacket>,
+    ),
+    super::screen::audio::StartError,
+>;
 
 /// The app itself.
 pub struct AppHost(pub AppHandle);
@@ -226,9 +276,74 @@ impl Host for AppHost {
             .map_err(|e| e.to_string())?
         })
     }
+
+    fn screens(&self) -> Vec<ScreenInfo> {
+        super::screen::video::list_screens()
+    }
+
+    fn start_video(&self, target: CaptureTarget, settings: VideoSettings) -> VideoStart {
+        super::screen::video::start(target, settings)
+    }
+
+    fn start_audio(&self) -> AudioStart {
+        super::screen::audio::start()
+    }
+
+    fn ice_servers(&self) -> BoxFuture<'static, Vec<IceServer>> {
+        let app = self.0.clone();
+        Box::pin(async move { crate::account::ice_servers(&app).await })
+    }
+
+    fn click(
+        &self,
+        x: i32,
+        y: i32,
+        button: Button,
+        count: u8,
+    ) -> BoxFuture<'static, Result<(), String>> {
+        Self::blocking(
+            move || input::click(x, y, button, count),
+            Err("the click did not run".into()),
+        )
+    }
+
+    fn scroll(&self, x: i32, y: i32, dx: i32, dy: i32) -> BoxFuture<'static, Result<(), String>> {
+        Self::blocking(
+            move || input::scroll(x, y, dx, dy),
+            Err("the scroll did not run".into()),
+        )
+    }
+
+    fn control_at(&self, x: i32, y: i32) -> BoxFuture<'static, Option<ControlInfo>> {
+        Self::blocking(move || input::control_at(x, y), None)
+    }
+
+    fn focused_is_password(&self) -> BoxFuture<'static, bool> {
+        Self::blocking(input::focused_is_password, false)
+    }
+
+    fn caret(&self) -> BoxFuture<'static, Option<Rect>> {
+        Self::blocking(input::caret, None)
+    }
+
+    fn viewing(&self, notice: Option<Viewing>) {
+        crate::account::viewing::show(&self.0, notice);
+    }
 }
 
 impl AppHost {
+    /// A blocking call off the async runtime.
+    fn blocking<T: Send + 'static>(
+        f: impl FnOnce() -> T + Send + 'static,
+        fallback: T,
+    ) -> BoxFuture<'static, T> {
+        Box::pin(async move {
+            tauri::async_runtime::spawn_blocking(f)
+                .await
+                .unwrap_or(fallback)
+        })
+    }
+
     /// Command mode's side effects, which already know how to list, raise
     /// and type into windows on each platform.
     fn effects(&self) -> SystemEffects {

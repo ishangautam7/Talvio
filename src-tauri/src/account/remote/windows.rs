@@ -30,6 +30,12 @@ use crate::command_mode::effects::{KeyCombo, WindowEntry};
 use crate::command_mode::registry::Platform;
 use crate::command_mode::tools::press_keys::{deny_reason, parse_combo};
 
+use super::screen::session::Watched;
+use super::screen::video::ScreenInfo;
+
+/// Whether this build can stream a window to a phone (`screen`).
+pub(super) const CAN_WATCH: bool = cfg!(target_os = "windows");
+
 /// The most windows one `windows.list` offers.
 const MAX_LISTED: usize = 60;
 /// How long the ids of one `windows.list` stay good.
@@ -51,6 +57,8 @@ static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 pub(super) struct Offered {
     issued: Instant,
     windows: HashMap<String, WindowEntry>,
+    /// Screens a live view can watch (`screen`), by id.
+    screens: HashMap<String, ScreenInfo>,
 }
 
 /// Where a request's input goes.
@@ -58,6 +66,13 @@ pub(super) struct Target {
     window: WindowEntry,
     /// Leave it in front afterwards.
     stay: bool,
+}
+
+impl Target {
+    /// Input for a window being watched, which stays in front.
+    pub(super) fn staying(window: WindowEntry) -> Self {
+        Self { window, stay: true }
+    }
 }
 
 /// `windows.list`: the open windows, the one in front first.
@@ -71,6 +86,11 @@ pub(super) async fn list(router: Arc<Router>, _body: Value, reply: Reply) {
     // Stable, so the rest keep the platform's front-to-back order.
     windows.sort_by_key(|w| Some(w.id) != front);
     windows.truncate(MAX_LISTED);
+    let screens = if CAN_WATCH {
+        host.screens()
+    } else {
+        Vec::new()
+    };
 
     let mut table = router.offered();
     let earlier = table.remove(&reply.to);
@@ -99,15 +119,46 @@ pub(super) async fn list(router: Arc<Router>, _body: Value, reply: Reply) {
             item
         })
         .collect();
+    // A screen keeps its id for as long as it stays attached, as a window does.
+    let mut offered_screens = HashMap::new();
+    let listed_screens: Vec<Value> = screens
+        .into_iter()
+        .map(|screen| {
+            let id = earlier
+                .as_ref()
+                .and_then(|earlier| {
+                    earlier
+                        .screens
+                        .iter()
+                        .find(|(_, seen)| seen.id == screen.id)
+                })
+                .map(|(id, _)| id.clone())
+                .unwrap_or_else(|| format!("s{}", NEXT_ID.fetch_add(1, Ordering::Relaxed)));
+            let item = json!({
+                "id": id,
+                "name": screen.name,
+                "width": screen.width,
+                "height": screen.height,
+                "primary": screen.primary,
+            });
+            offered_screens.insert(id, screen);
+            item
+        })
+        .collect();
     table.insert(
         reply.to.clone(),
         Offered {
             issued: Instant::now(),
             windows: offered,
+            screens: offered_screens,
         },
     );
     drop(table);
-    reply.ok(json!({ "windows": listed }))
+    if CAN_WATCH {
+        reply.ok(json!({ "windows": listed, "screens": listed_screens }))
+    } else {
+        reply.ok(json!({ "windows": listed }))
+    }
 }
 
 /// `windows.keys`: press combos in the target, or in the window in front.
@@ -141,8 +192,8 @@ pub(super) async fn keys(router: Arc<Router>, body: Value, mut reply: Reply) {
     }
 }
 
-/// Phone input is on, and so is "Let phones choose windows".
-fn allowed(router: &Router) -> Result<(), &'static str> {
+/// Phone input is on, and so is "Let phones see and use windows".
+pub(super) fn allowed(router: &Router) -> Result<(), &'static str> {
     if !router.input_allowed() {
         return Err("remote_input_off");
     }
@@ -161,6 +212,12 @@ fn combos(body: &Value) -> Result<Vec<KeyCombo>, &'static str> {
         .and_then(Value::as_array)
         .filter(|keys| (1..=MAX_KEYS).contains(&keys.len()))
         .ok_or("unsupported")?;
+    parse_keys(keys)
+}
+
+/// Each key string read as a combo, or the code the whole list is refused
+/// with. Shared with a live view's `keys` messages.
+pub(super) fn parse_keys(keys: &[Value]) -> Result<Vec<KeyCombo>, &'static str> {
     let platform = Platform::current();
     keys.iter()
         .map(|key| {
@@ -181,7 +238,7 @@ fn combos(body: &Value) -> Result<Vec<KeyCombo>, &'static str> {
 }
 
 /// The window a request names in `target`, if it names one. Naming one needs
-/// "Let phones choose windows" on, and an id this phone was offered that has
+/// "Let phones see and use windows" on, and an id this phone was offered that has
 /// not expired.
 pub(super) fn target(
     router: &Router,
@@ -211,6 +268,45 @@ pub(super) fn target(
         window: window.clone(),
         stay,
     }))
+}
+
+/// What a `screen.watch` names in `target`: a window or a screen this phone
+/// was offered, its id not expired, the window still open.
+pub(super) fn watch_target(
+    router: &Router,
+    reply: &Reply,
+    body: &Value,
+) -> Result<Watched, &'static str> {
+    let id = body
+        .get("target")
+        .and_then(Value::as_str)
+        .ok_or("unsupported")?;
+    // The table's lock is let go before the windows are enumerated.
+    let found = {
+        let table = router.offered();
+        let offered = table
+            .get(&reply.to)
+            .filter(|offered| offered.issued.elapsed() < ID_LIFETIME)
+            .ok_or("target_gone")?;
+        match offered.windows.get(id) {
+            Some(window) => Ok(window.clone()),
+            None => Err(offered.screens.get(id).cloned()),
+        }
+    };
+    let window = match found {
+        Ok(window) => window,
+        Err(screen) => return screen.map(Watched::Screen).ok_or("target_gone"),
+    };
+    let open = router
+        .host()
+        .open_windows()
+        .iter()
+        .any(|open| open.id == window.id && open.app == window.app);
+    if open {
+        Ok(Watched::Window(window))
+    } else {
+        Err("target_gone")
+    }
 }
 
 /// Start `deliver` once `target` is in front, then give the foreground back to the

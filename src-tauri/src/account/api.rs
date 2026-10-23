@@ -236,6 +236,22 @@ pub enum SecretWrite {
     Stale(SecretRecord),
 }
 
+/// An ICE server as `GET /v1/turn` hands it out.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct IceServer {
+    pub urls: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub username: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credential: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct IceServers {
+    ice_servers: Vec<IceServer>,
+}
+
 pub struct Api {
     base: String,
     client: reqwest::Client,
@@ -346,6 +362,14 @@ impl Api {
     pub async fn delete_account(&self, token: &str) -> Result<(), String> {
         let request = self.client.delete(self.url("/v1/me")).bearer_auth(token);
         self.send(request).await.map(|_| ())
+    }
+
+    /// The STUN and TURN servers a live view connects through (`GET /v1/turn`).
+    pub async fn ice_servers(&self, token: &str) -> Result<Vec<IceServer>, String> {
+        let request = self.client.get(self.url("/v1/turn")).bearer_auth(token);
+        self.json::<IceServers>(request)
+            .await
+            .map(|l| l.ice_servers)
     }
 
     pub async fn devices(&self, token: &str) -> Result<Vec<Device>, String> {
