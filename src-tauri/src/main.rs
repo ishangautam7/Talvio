@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
-use zynveliq_app_lib::CliArgs;
+use talvio_app_lib::CliArgs;
 
 fn main() {
     // Must run before anything initializes a GPU backend — including the
@@ -13,14 +13,14 @@ fn main() {
     // which changes nothing when it inherited them.
     apply_gpu_environment_defaults();
 
-    // The transcription worker: zynveliq re-launched by the app's
+    // The transcription worker: talvio re-launched by the app's
     // `engine_supervisor` to run transcribe.cpp in isolation. It must never
     // reach CLI parsing (its arguments are not the app's), Tauri, the
     // single-instance plugin (which would hand its arguments to the running
     // app and exit), portable mode, autostart or the log plugin, so it is
     // decided on the raw first argument before any of them.
-    if zynveliq_app_lib::engine_supervisor::is_worker_invocation() {
-        std::process::exit(zynveliq_app_lib::engine_supervisor::run_worker());
+    if talvio_app_lib::engine_supervisor::is_worker_invocation() {
+        std::process::exit(talvio_app_lib::engine_supervisor::run_worker());
     }
 
     let cli_args = CliArgs::parse();
@@ -30,7 +30,7 @@ fn main() {
     // Handled here (before any window/single-instance setup) so it stays a
     // fast, side-effect-free CLI. See CI's packaged-build audit (Session 7).
     if cli_args.list_devices {
-        zynveliq_app_lib::list_transcribe_devices();
+        talvio_app_lib::list_transcribe_devices();
         return;
     }
 
@@ -38,7 +38,7 @@ fn main() {
     // one JSON line on stdout, then exit. Must also stay ahead of any
     // window/single-instance setup.
     if cli_args.probe_devices {
-        zynveliq_app_lib::print_device_probe_json();
+        talvio_app_lib::print_device_probe_json();
         return;
     }
 
@@ -57,7 +57,7 @@ fn main() {
     // on GNOME/Wayland. Must run before any GTK/GDK initialization.
     prefer_xwayland_for_overlay_on_gnome_wayland();
 
-    zynveliq_app_lib::run(cli_args)
+    talvio_app_lib::run(cli_args)
 }
 
 /// Process-wide GPU runtime defaults that protect the speech and LLM engines
@@ -69,10 +69,10 @@ fn apply_gpu_environment_defaults() {
     // them crash inside a compute-only ggml context, taking the app down at
     // model load or GPU enumeration (Handy #2049). Explicit layers still load.
     // An existing VK_LOADER_LAYERS_DISABLE wins, and
-    // ZYNVELIQ_KEEP_VULKAN_IMPLICIT_LAYERS=1 opts out. Backport of Handy #2053.
+    // TALVIO_KEEP_VULKAN_IMPLICIT_LAYERS=1 opts out. Backport of Handy #2053.
     #[cfg(target_os = "windows")]
     {
-        let keep_layers = std::env::var("ZYNVELIQ_KEEP_VULKAN_IMPLICIT_LAYERS")
+        let keep_layers = talvio_app_lib::rebrand::user_env_var("KEEP_VULKAN_IMPLICIT_LAYERS")
             .map(|v| matches!(v.trim(), "1" | "true" | "yes" | "on"))
             .unwrap_or(false);
         if std::env::var_os("VK_LOADER_LAYERS_DISABLE").is_none() && !keep_layers {
@@ -83,11 +83,11 @@ fn apply_gpu_environment_defaults() {
     // macOS: turn off ggml-metal residency sets. Their teardown asserts when a
     // native engine outlives Tauri's shutdown sequence, which produced a crash
     // report on quit (Handy #1902). ggml treats the variable as
-    // presence-based, so opting back in (ZYNVELIQ_METAL_RESIDENCY=1) removes
+    // presence-based, so opting back in (TALVIO_METAL_RESIDENCY=1) removes
     // an inherited value too. Backport of Handy 98a4d80c.
     #[cfg(target_os = "macos")]
     {
-        if std::env::var("ZYNVELIQ_METAL_RESIDENCY").as_deref() == Ok("1") {
+        if talvio_app_lib::rebrand::user_env_var("METAL_RESIDENCY").as_deref() == Some("1") {
             std::env::remove_var("GGML_METAL_NO_RESIDENCY");
         } else {
             std::env::set_var("GGML_METAL_NO_RESIDENCY", "1");
@@ -116,7 +116,7 @@ fn apply_gpu_environment_defaults() {
 /// their native Wayland session (where `gtk-layer-shell` works and is better),
 /// and X11 sessions are untouched. It is a no-op when:
 ///   * the user already set `GDK_BACKEND` (their choice wins),
-///   * `ZYNVELIQ_ALLOW_WAYLAND` is set (explicit opt-out), or
+///   * `TALVIO_ALLOW_WAYLAND` is set (explicit opt-out), or
 ///   * the session is not detectably GNOME-on-Wayland (e.g. non-Linux, X11,
 ///     KDE, wlroots).
 ///
@@ -130,7 +130,7 @@ fn prefer_xwayland_for_overlay_on_gnome_wayland() {
     }
     // Explicit opt-out for users who prefer native Wayland (and accept that the
     // overlay won't float on GNOME).
-    if std::env::var_os("ZYNVELIQ_ALLOW_WAYLAND").is_some() {
+    if talvio_app_lib::rebrand::user_env_var_os("ALLOW_WAYLAND").is_some() {
         return;
     }
 
@@ -152,9 +152,9 @@ fn prefer_xwayland_for_overlay_on_gnome_wayland() {
         // Log init hasn't run yet, so print directly. Visible for terminal
         // launches; harmless otherwise.
         eprintln!(
-            "Zynveliq: GNOME/Wayland detected — running under XWayland so the \
+            "Talvio: GNOME/Wayland detected — running under XWayland so the \
              recording overlay can float above other apps. Set \
-             ZYNVELIQ_ALLOW_WAYLAND=1 to keep native Wayland (the overlay may \
+             TALVIO_ALLOW_WAYLAND=1 to keep native Wayland (the overlay may \
              not stay on top there)."
         );
     }

@@ -2,17 +2,20 @@ use std::path::PathBuf;
 use std::sync::OnceLock;
 use tauri::Manager;
 
-/// Portable mode support for Zynveliq.
+/// Portable mode support for Talvio.
 ///
 /// When a file named `portable` exists next to the executable, all user data
 /// (settings, models, recordings, database, logs) is stored in a `Data/`
 /// directory alongside the executable instead of `%APPDATA%`.
 
 /// Magic string written into new portable marker files. Reading also accepts
-/// the legacy `"Handy Portable Mode"` string (see `is_valid_portable_marker`)
-/// so portable installs created under the old "Handy" branding keep working
-/// after an update to Zynveliq.
-const PORTABLE_MARKER_MAGIC: &str = "Zynveliq Portable Mode";
+/// the markers of the app's earlier names (see `is_valid_portable_marker`),
+/// so a portable install created as Zynveliq or as Handy keeps working after
+/// an update to Talvio.
+const PORTABLE_MARKER_MAGIC: &str = "Talvio Portable Mode";
+
+/// Markers written by earlier names of the app, still accepted on read.
+const LEGACY_PORTABLE_MARKERS: [&str; 2] = ["Zynveliq Portable Mode", "Handy Portable Mode"];
 
 static PORTABLE_DATA_DIR: OnceLock<Option<PathBuf>> = OnceLock::new();
 
@@ -87,16 +90,17 @@ pub fn resolve_app_data(app: &tauri::AppHandle, relative: &str) -> Result<PathBu
 }
 
 /// Check if a marker file path contains the portable magic string. Accepts
-/// both the current `Zynveliq Portable Mode` string and the legacy
-/// `Handy Portable Mode` string written by portable installs created before
-/// the Zynveliq rebrand, so existing portable installs are not broken by
-/// an update.
+/// the current `Talvio Portable Mode` string and the `Zynveliq Portable Mode`
+/// and `Handy Portable Mode` strings written under the app's earlier names,
+/// so existing portable installs are not broken by an update.
 /// Extracted for testability.
 fn is_valid_portable_marker(path: &std::path::Path) -> bool {
     std::fs::read_to_string(path)
         .map(|s| {
             let trimmed = s.trim();
-            trimmed.starts_with(PORTABLE_MARKER_MAGIC) || trimmed.starts_with("Handy Portable Mode")
+            std::iter::once(PORTABLE_MARKER_MAGIC)
+                .chain(LEGACY_PORTABLE_MARKERS)
+                .any(|magic| trimmed.starts_with(magic))
         })
         .unwrap_or(false)
 }
@@ -108,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_valid_magic_string_enables_portable() {
-        let dir = std::env::temp_dir().join("zynveliq_test_valid");
+        let dir = std::env::temp_dir().join("talvio_test_valid");
         std::fs::create_dir_all(&dir).unwrap();
         let marker = dir.join("portable");
         let mut f = std::fs::File::create(&marker).unwrap();
@@ -119,9 +123,9 @@ mod tests {
 
     #[test]
     fn test_legacy_handy_magic_string_still_enables_portable() {
-        // Portable installs created before the Zynveliq rebrand wrote the
+        // Portable installs created before the first rebrand wrote the
         // old "Handy Portable Mode" string — must keep working after update.
-        let dir = std::env::temp_dir().join("zynveliq_test_legacy_handy");
+        let dir = std::env::temp_dir().join("talvio_test_legacy_handy");
         std::fs::create_dir_all(&dir).unwrap();
         let marker = dir.join("portable");
         let mut f = std::fs::File::create(&marker).unwrap();
@@ -131,8 +135,26 @@ mod tests {
     }
 
     #[test]
+    fn test_zynveliq_magic_string_still_enables_portable() {
+        // Portable installs created before the Talvio rename wrote
+        // "Zynveliq Portable Mode"; they must keep working after the update.
+        let dir = std::env::temp_dir().join("talvio_test_legacy_zynveliq");
+        std::fs::create_dir_all(&dir).unwrap();
+        let marker = dir.join("portable");
+        let mut f = std::fs::File::create(&marker).unwrap();
+        write!(f, "Zynveliq Portable Mode").unwrap();
+        assert!(is_valid_portable_marker(&marker));
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn new_markers_are_written_with_the_talvio_name() {
+        assert_eq!(PORTABLE_MARKER_MAGIC, "Talvio Portable Mode");
+    }
+
+    #[test]
     fn test_empty_file_does_not_enable_portable() {
-        let dir = std::env::temp_dir().join("zynveliq_test_empty");
+        let dir = std::env::temp_dir().join("talvio_test_empty");
         std::fs::create_dir_all(&dir).unwrap();
         let marker = dir.join("portable");
         std::fs::File::create(&marker).unwrap();
@@ -142,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_wrong_content_does_not_enable_portable() {
-        let dir = std::env::temp_dir().join("zynveliq_test_wrong");
+        let dir = std::env::temp_dir().join("talvio_test_wrong");
         std::fs::create_dir_all(&dir).unwrap();
         let marker = dir.join("portable");
         let mut f = std::fs::File::create(&marker).unwrap();
@@ -160,7 +182,7 @@ mod tests {
     #[test]
     fn test_legacy_empty_marker_without_data_dir_does_not_enable_portable() {
         // Empty marker alone (scoop scenario) — no Data/ dir → not portable
-        let dir = std::env::temp_dir().join("zynveliq_test_legacy_no_data");
+        let dir = std::env::temp_dir().join("talvio_test_legacy_no_data");
         std::fs::create_dir_all(&dir).unwrap();
         let marker = dir.join("portable");
         std::fs::File::create(&marker).unwrap();
@@ -170,7 +192,7 @@ mod tests {
 
     #[test]
     fn test_magic_string_with_whitespace_enables_portable() {
-        let dir = std::env::temp_dir().join("zynveliq_test_ws");
+        let dir = std::env::temp_dir().join("talvio_test_ws");
         std::fs::create_dir_all(&dir).unwrap();
         let marker = dir.join("portable");
         let mut f = std::fs::File::create(&marker).unwrap();
