@@ -265,8 +265,7 @@ fn wait_for_draft_window(ctx: &ToolCtx, before: Option<&WindowEntry>) -> Option<
     let deadline = Instant::now() + DRAFT_WAIT;
     loop {
         if let Some(front) = ctx.effects.foreground_window() {
-            let already_there =
-                before.is_some_and(|b| b.id == front.id && b.title == front.title);
+            let already_there = before.is_some_and(|b| b.id == front.id && b.title == front.title);
             if is_gmail_title(&front.title) && !already_there {
                 return Some(front);
             }
@@ -311,8 +310,15 @@ fn stored_window(payload: &Value) -> Option<WindowEntry> {
 
 /// Whether `front`, read just before the key press, is still the draft
 /// [`run`] recorded: the same window showing the same title, or the same
-/// window with a Gmail title that names the subject (Gmail retitles a draft
-/// once it has one).
+/// window with a Gmail title that is the compose page's own ("Compose Mail -
+/// … - Gmail") or names the subject (Gmail retitles a draft once it has one).
+///
+/// The title [`run`] records is often only the page loading ("Gmail"),
+/// because the window comes forward before Gmail has drawn the draft; by the
+/// time the user says send it reads "Compose Mail - <account> - Gmail". The
+/// compose page never shows the subject, so requiring an unchanged title or
+/// the subject refused every real draft opened that way. "Compose" alone is
+/// still not trusted: it has to be the same window and a Gmail title.
 fn still_the_draft(front: &WindowEntry, draft: &WindowEntry, subject: &str) -> bool {
     if front.id != draft.id {
         return false;
@@ -320,10 +326,19 @@ fn still_the_draft(front: &WindowEntry, draft: &WindowEntry, subject: &str) -> b
     if front.title == draft.title {
         return true;
     }
-    let subject = subject.trim().to_lowercase();
     let title = front.title.to_lowercase();
-    !subject.is_empty() && title.contains(GMAIL_MARK) && title.contains(&subject)
+    if !title.contains(GMAIL_MARK) {
+        return false;
+    }
+    if title.starts_with(COMPOSE_TITLE) {
+        return true;
+    }
+    let subject = subject.trim().to_lowercase();
+    !subject.is_empty() && title.contains(&subject)
 }
+
+/// How the title of Gmail's compose page starts (`view=cm`), lowercase.
+const COMPOSE_TITLE: &str = "compose mail";
 
 /// Send the draft [`run`] opened: focus its window, check it is still the one
 /// in front, and press the send shortcut.
@@ -334,10 +349,7 @@ fn still_the_draft(front: &WindowEntry, draft: &WindowEntry, subject: &str) -> b
 /// moment of the press, because Ctrl+Enter in any other app can submit
 /// anything.
 fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
-    let subject = payload
-        .get("subject")
-        .and_then(Value::as_str)
-        .unwrap_or("");
+    let subject = payload.get("subject").and_then(Value::as_str).unwrap_or("");
     let name = payload
         .get("to_name")
         .and_then(Value::as_str)
@@ -388,9 +400,16 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
         Some(front)
             if still_the_draft(&front, &draft, subject)
                 && ctx.effects.foreground_is_exactly(draft.id) => {}
-        _ => {
+        front => {
+            // Why, without the titles themselves (they name the email).
+            let front_title = front.as_ref().map(|f| f.title.to_lowercase());
             warn!(
-                "command mode: compose_email's draft was not in front at send time; not sending"
+                "command mode: compose_email's draft was not in front at send time; not sending                  (front window: {}, same window: {}, gmail title: {}, compose title: {},                  exactly that window: {})",
+                front.is_some(),
+                front.as_ref().is_some_and(|f| f.id == draft.id),
+                front_title.as_deref().is_some_and(|t| t.contains(GMAIL_MARK)),
+                front_title.as_deref().is_some_and(|t| t.starts_with(COMPOSE_TITLE)),
+                ctx.effects.foreground_is_exactly(draft.id),
             );
             return ToolOutcome::failed(
                 "The Gmail draft wasn't in front when I went to send, so nothing was sent. \
@@ -410,7 +429,10 @@ fn press_send(ctx: &ToolCtx, combo: &KeyCombo, name: &str) -> ToolOutcome {
             "command mode: compose_email could not press {}: {e}",
             combo.label()
         );
-        return ToolOutcome::failed(format!("I couldn't press send in the Gmail draft. {e}"), false);
+        return ToolOutcome::failed(
+            format!("I couldn't press send in the Gmail draft. {e}"),
+            false,
+        );
     }
     info!(
         "command mode: compose_email pressed {} in the draft",
@@ -709,7 +731,10 @@ mod tests {
     }
 
     fn pair(url: &str, key: &str) -> Option<String> {
-        pairs(url).into_iter().find(|(k, _)| k == key).map(|(_, v)| v)
+        pairs(url)
+            .into_iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v)
     }
 
     /// The draft carries exactly what the model wrote: spaces, line breaks,
@@ -723,10 +748,16 @@ mod tests {
             &ctx,
             json!({"to": "Ron", "subject": "Meeting at 9:00", "body": body}),
         );
-        assert!(matches!(outcome, ToolOutcome::NeedsConfirmation { .. }), "{outcome:?}");
+        assert!(
+            matches!(outcome, ToolOutcome::NeedsConfirmation { .. }),
+            "{outcome:?}"
+        );
 
         let url = opened_url(&fake);
-        assert!(url.starts_with("https://mail.google.com/mail/?view=cm&fs=1&"), "{url}");
+        assert!(
+            url.starts_with("https://mail.google.com/mail/?view=cm&fs=1&"),
+            "{url}"
+        );
         assert!(url.contains("su=Meeting+at+9%3A00"), "{url}");
         assert!(url.contains("%0A%0A"), "newlines must be %0A: {url}");
         assert_eq!(
@@ -775,7 +806,11 @@ mod tests {
 
         let url = opened_url(&fake);
         assert!(url.len() <= MAX_URL_LEN, "url is {} bytes", url.len());
-        assert!(url.len() > MAX_URL_LEN - 100, "cut far too much: {}", url.len());
+        assert!(
+            url.len() > MAX_URL_LEN - 100,
+            "cut far too much: {}",
+            url.len()
+        );
         let sent = pair(&url, "body").unwrap();
         let kept = sent.strip_suffix(TRUNCATION_MARK).expect("marked as cut");
         assert!(body.starts_with(kept));
@@ -827,8 +862,14 @@ mod tests {
             panic!("expected a question");
         };
         assert_eq!(question, "Which Weasley?");
-        assert!(choices.contains(&"Ron Weasley <ron@example.com>".to_string()), "{choices:?}");
-        assert!(choices.contains(&"Ginny Weasley <ginny@example.com>".to_string()), "{choices:?}");
+        assert!(
+            choices.contains(&"Ron Weasley <ron@example.com>".to_string()),
+            "{choices:?}"
+        );
+        assert!(
+            choices.contains(&"Ginny Weasley <ginny@example.com>".to_string()),
+            "{choices:?}"
+        );
         assert!(fake.actions().is_empty());
     }
 
@@ -846,7 +887,10 @@ mod tests {
             panic!("expected a draft");
         };
         assert_eq!(pending.payload["to_name"], "Ginny Weasley");
-        assert_eq!(pair(&opened_url(&fake), "to").as_deref(), Some("GINNY@example.com"));
+        assert_eq!(
+            pair(&opened_url(&fake), "to").as_deref(),
+            Some("GINNY@example.com")
+        );
     }
 
     fn resolved(ctx: &ToolCtx, query: &str) -> Result<Recipient, ToolOutcome> {
@@ -880,7 +924,10 @@ mod tests {
         // Nobody by that name: the address, named after itself.
         assert_eq!(
             resolved(&ctx, "Albus Dumbledore <albus@hogwarts.example>"),
-            Ok(recipient("albus@hogwarts.example", "albus@hogwarts.example"))
+            Ok(recipient(
+                "albus@hogwarts.example",
+                "albus@hogwarts.example"
+            ))
         );
         // An address alone, bracketed or bare, is the user's own.
         assert_eq!(
@@ -912,9 +959,9 @@ mod tests {
             panic!("expected a draft");
         };
         assert!(
-            pending
-                .summary
-                .starts_with("Send email to Ron Weasley <ron@example.com>, albus@hogwarts.example · Hi"),
+            pending.summary.starts_with(
+                "Send email to Ron Weasley <ron@example.com>, albus@hogwarts.example · Hi"
+            ),
             "{}",
             pending.summary
         );
@@ -925,17 +972,24 @@ mod tests {
         let fake = Arc::new(FakeEffects::default());
         let ctx = ctx(&fake, book(), Platform::Windows);
         assert_eq!(
-            run(&ctx, json!({"to": "Dumbledore", "subject": "x", "body": "y"})),
+            run(
+                &ctx,
+                json!({"to": "Dumbledore", "subject": "x", "body": "y"})
+            ),
             ToolOutcome::ask("Who is Dumbledore? Say their email address.", vec![])
         );
 
         let ctx = super::tests::ctx(&fake, ContactBook::parse("[{"), Platform::Windows);
-        let ToolOutcome::AskUser { question, .. } =
-            run(&ctx, json!({"to": "Dumbledore", "subject": "x", "body": "y"}))
-        else {
+        let ToolOutcome::AskUser { question, .. } = run(
+            &ctx,
+            json!({"to": "Dumbledore", "subject": "x", "body": "y"}),
+        ) else {
             panic!("expected a question");
         };
-        assert!(question.contains("couldn't read your contacts file"), "{question}");
+        assert!(
+            question.contains("couldn't read your contacts file"),
+            "{question}"
+        );
         assert!(fake.actions().is_empty());
     }
 
@@ -953,7 +1007,10 @@ mod tests {
                 "cc": ["Hermione", "Ron"]
             }),
         );
-        assert!(matches!(outcome, ToolOutcome::NeedsConfirmation { .. }), "{outcome:?}");
+        assert!(
+            matches!(outcome, ToolOutcome::NeedsConfirmation { .. }),
+            "{outcome:?}"
+        );
         let url = opened_url(&fake);
         assert_eq!(pair(&url, "to").as_deref(), Some("luna@quibbler.example"));
         assert_eq!(
@@ -971,7 +1028,10 @@ mod tests {
             &ctx,
             json!({"to": "Ron", "subject": "x", "body": "y", "cc": ["Weasley"]}),
         );
-        assert!(matches!(outcome, ToolOutcome::AskUser { .. }), "{outcome:?}");
+        assert!(
+            matches!(outcome, ToolOutcome::AskUser { .. }),
+            "{outcome:?}"
+        );
         assert!(fake.actions().is_empty());
     }
 
@@ -980,7 +1040,11 @@ mod tests {
     #[test]
     fn the_pending_send_names_the_recipient_its_address_and_the_subject() {
         let fake = Arc::new(FakeEffects::default());
-        let draft = window(2, "Compose Mail - me@example.com - Gmail - Google Chrome", "chrome");
+        let draft = window(
+            2,
+            "Compose Mail - me@example.com - Gmail - Google Chrome",
+            "chrome",
+        );
         let ctx = ctx_over(browser(&fake, Some(draft)), book(), Platform::Windows);
         let ToolOutcome::NeedsConfirmation { pending, feedback } = run(
             &ctx,
@@ -1168,7 +1232,16 @@ mod tests {
         });
         let ctx = ctx_over(fake.clone(), book(), Platform::Windows);
         let outcome = send(&ctx, payload());
-        assert!(matches!(outcome, ToolOutcome::Failed { escalate: false, .. }), "{outcome:?}");
+        assert!(
+            matches!(
+                outcome,
+                ToolOutcome::Failed {
+                    escalate: false,
+                    ..
+                }
+            ),
+            "{outcome:?}"
+        );
         assert!(
             !fake.actions().iter().any(|a| a.starts_with("press_keys")),
             "{:?}",
@@ -1214,7 +1287,13 @@ mod tests {
             ..Default::default()
         });
         let ctx = ctx(&fake, book(), Platform::Windows);
-        assert!(matches!(send(&ctx, payload()), ToolOutcome::Failed { escalate: false, .. }));
+        assert!(matches!(
+            send(&ctx, payload()),
+            ToolOutcome::Failed {
+                escalate: false,
+                ..
+            }
+        ));
         assert!(
             !fake.actions().contains(&ctrl_enter()),
             "{:?}",
@@ -1226,14 +1305,47 @@ mod tests {
     #[test]
     fn the_draft_retitled_with_its_subject_is_still_the_draft() {
         let retitled = window(2, "Meeting at 9:00 - me@example.com - Gmail", "chrome");
-        assert!(still_the_draft(&retitled, &window(2, DRAFT_TITLE, "chrome"), "Meeting at 9:00"));
+        assert!(still_the_draft(
+            &retitled,
+            &window(2, DRAFT_TITLE, "chrome"),
+            "Meeting at 9:00"
+        ));
         // Without a subject there is nothing to recognise it by.
-        assert!(!still_the_draft(&retitled, &window(2, DRAFT_TITLE, "chrome"), ""));
+        assert!(!still_the_draft(
+            &retitled,
+            &window(2, DRAFT_TITLE, "chrome"),
+            ""
+        ));
         // A subject in a non-Gmail title, or in another window, is not enough.
         let teams = window(2, "Meeting at 9:00 | Microsoft Teams", "Teams");
-        assert!(!still_the_draft(&teams, &window(2, DRAFT_TITLE, "chrome"), "Meeting at 9:00"));
+        assert!(!still_the_draft(
+            &teams,
+            &window(2, DRAFT_TITLE, "chrome"),
+            "Meeting at 9:00"
+        ));
         let other = window(3, DRAFT_TITLE, "chrome");
-        assert!(!still_the_draft(&other, &window(2, DRAFT_TITLE, "chrome"), "Meeting at 9:00"));
+        assert!(!still_the_draft(
+            &other,
+            &window(2, DRAFT_TITLE, "chrome"),
+            "Meeting at 9:00"
+        ));
+    }
+
+    /// The window came forward while Gmail was still loading, so the title
+    /// recorded was "Gmail"; at send time it is the compose page's own title,
+    /// which never names the subject. That is the draft (a real refusal on
+    /// Brave: "Compose Mail - … - Gmail - Brave").
+    #[test]
+    fn the_compose_page_title_after_loading_is_still_the_draft() {
+        let loading = window(2, "Gmail - Brave", "brave");
+        let loaded = window(2, "Compose Mail - me@example.com - Gmail - Brave", "brave");
+        assert!(still_the_draft(&loaded, &loading, "Feature update"));
+        assert!(still_the_draft(&loaded, &loading, ""));
+        // Not in another window, and not a non-Gmail "Compose" window.
+        let elsewhere = window(3, "Compose Mail - me@example.com - Gmail - Brave", "brave");
+        assert!(!still_the_draft(&elsewhere, &loading, "Feature update"));
+        let outlook = window(2, "Compose mail - Outlook", "brave");
+        assert!(!still_the_draft(&outlook, &loading, "Feature update"));
     }
 
     /// The draft's window was closed before the confirmation: nothing is
@@ -1283,7 +1395,9 @@ mod tests {
         };
         assert_eq!(pending.payload["window"], Value::Null);
         assert!(
-            pending.summary.contains("couldn't identify the draft window"),
+            pending
+                .summary
+                .contains("couldn't identify the draft window"),
             "{}",
             pending.summary
         );
@@ -1311,9 +1425,16 @@ mod tests {
             panic!("expected a draft");
         };
         assert_eq!(pending.payload["window"], Value::Null);
-        assert!(!pending.summary.contains("couldn't identify"), "{}", pending.summary);
+        assert!(
+            !pending.summary.contains("couldn't identify"),
+            "{}",
+            pending.summary
+        );
 
-        assert!(matches!(send(&ctx, pending.payload), ToolOutcome::Done { .. }));
+        assert!(matches!(
+            send(&ctx, pending.payload),
+            ToolOutcome::Done { .. }
+        ));
         let actions = fake.actions();
         assert_eq!(actions.len(), 2, "{actions:?}");
         assert_eq!(actions[1], ctrl_enter());
