@@ -175,6 +175,8 @@ const settingUpdaters: {
   push_to_talk: (value) => commands.changePttSetting(value as boolean),
   assistant_push_to_talk: (value) =>
     commands.changeAssistantPttSetting(value as boolean),
+  command_push_to_talk: (value) =>
+    commands.changeCommandPttSetting(value as boolean),
   dictation_silence_stop_secs: (value) =>
     commands.changeDictationSilenceStopSetting(value as number),
   selected_microphone: (value) =>

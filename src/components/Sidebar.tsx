@@ -14,6 +14,7 @@ import {
   Settings,
   Users,
   Wand2,
+  Zap,
 } from "lucide-react";
 import DownloadIndicator from "./model-selector/DownloadIndicator";
 import { useFeedbackDialog } from "./feedback/feedbackStore";
@@ -48,6 +49,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "home", labelKey: "nav.home", icon: House },
   { id: "history", labelKey: "nav.history", icon: History },
   { id: "assistant", labelKey: "nav.assistant", icon: MessageCircle },
+  { id: "commands", labelKey: "nav.commands", icon: Zap },
   { id: "meetings", labelKey: "nav.meetings", icon: Users },
   { id: "cleanup", labelKey: "nav.cleanup", icon: Wand2 },
   { id: "dictionary", labelKey: "nav.dictionary", icon: BookA },

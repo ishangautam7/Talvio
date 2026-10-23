@@ -50,6 +50,7 @@ type OverlayState =
   | "processing"
   | "generating"
   | "vision"
+  | "command"
   | "notice"
   | "downloading"
   | "update"
@@ -219,10 +220,12 @@ const HOLD_LIMIT_MS = 10_000;
  * backend widens the window for exactly these (see OVERLAY_LABEL_WIDTH).
  * `loading` is the wait for the speech model after a dictation ended before it
  * had loaded (`show_transcribing_overlay`): an open-ended wait, so it gets the
- * looping ripple rather than an estimated fill. */
+ * looping ripple rather than an estimated fill. So does `command`, a spoken
+ * command being carried out (`show_command_overlay`). */
 const LABELED: readonly OverlayState[] = [
   "generating",
   "vision",
+  "command",
   "notice",
   "downloading",
   "update",

@@ -53,6 +53,17 @@
   padding: 2px 16px 14px;
 }
 
+/* A question's choices can be several and long: they wrap. */
+.command-choices {
+  flex-wrap: wrap;
+}
+
+/* What Send will do (a draft's recipient and subject), kept as written. */
+.command-summary {
+  color: var(--as-ink);
+  white-space: pre-wrap;
+}
+
 .approval-scope .qa-btn:focus-visible {
   outline: 2px solid var(--as-ink);
   outline-offset: 2px;

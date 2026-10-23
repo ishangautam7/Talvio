@@ -69,6 +69,18 @@ async changeAssistantPttSetting(enabled: boolean) : Promise<Result<null, string>
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Hold to talk or Tap to toggle for the command shortcut, its own setting
+ * like the ask's (`settings::holds_to_record`).
+ */
+async changeCommandPttSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_ptt_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeAudioFeedbackSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_audio_feedback_setting", { enabled }) };
@@ -3999,6 +4011,34 @@ async changeCommandAgentMaxCostUsdSetting(usd: number) : Promise<Result<null, st
 async commandCancel() : Promise<void> {
     await TAURI_INVOKE("command_cancel");
 },
+async commandModelInUse() : Promise<CommandModelInUse> {
+    return await TAURI_INVOKE("command_model_in_use");
+},
+/**
+ * The spoken command's card in the corner, for a window that just loaded.
+ */
+async commandCard() : Promise<CommandCard | null> {
+    return await TAURI_INVOKE("command_card");
+},
+/**
+ * Send (`true`) or Cancel on a command card that waits for confirmation.
+ */
+async commandCardConfirm(seq: number, accept: boolean) : Promise<void> {
+    await TAURI_INVOKE("command_card_confirm", { seq, accept });
+},
+/**
+ * One of a command card's choices, as the answer to its question.
+ */
+async commandCardAnswer(seq: number, answer: string) : Promise<void> {
+    await TAURI_INVOKE("command_card_answer", { seq, answer });
+},
+/**
+ * Close a command card: its own timer ran out, or Cancel on a question. A
+ * confirmation it held is declined.
+ */
+async commandCardDismiss(seq: number) : Promise<void> {
+    await TAURI_INVOKE("command_card_dismiss", { seq });
+},
 async accountGetStatus() : Promise<AccountStatus> {
     return await TAURI_INVOKE("account_get_status");
 },
@@ -4795,6 +4835,12 @@ main_window_width?: number | null; main_window_height?: number | null;
  */
 command_mode_enabled?: boolean;
 /**
+ * Hold to talk (true) or Tap to toggle (false) for the command shortcut
+ * ([`COMMAND_BINDING_ID`]), its own setting like the ask's. See
+ * [`holds_to_record`].
+ */
+command_push_to_talk?: boolean;
+/**
  * The provider (an id from `post_process_providers`) that routes a
  * command to a tool. Its key is the one already saved for that provider.
  */
@@ -5380,6 +5426,29 @@ export type CloudSttUnavailableReason = "not_enabled" | "selected_provider_missi
 /**
  * Where a command came from.
  */
+/**
+ * One command's report, as the corner card shows it. `seq` changes every
+ * time the card does, so an answer or a timer for an earlier card is ignored.
+ */
+export type CommandCard = { seq: number; report: CommandReport }
+/**
+ * The model commands run on right now, for the Commands page: the one chosen
+ * for command mode, or the assistant's when the chosen provider has no key
+ * (`command_mode::llm::effective`).
+ */
+export type CommandModelInUse = { provider_id: string; 
+/**
+ * The provider's name as the app shows it; the id when it is unknown.
+ */
+provider_label: string; model: string; 
+/**
+ * The assistant's provider and model stand in for the chosen ones.
+ */
+borrowed: boolean; 
+/**
+ * The provider in use can take a request: it has a key or needs none.
+ */
+ready: boolean }
 export type CommandOrigin =
 /**
  * Settings → Debug text box.

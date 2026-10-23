@@ -15,6 +15,7 @@ export const shortcutInfo = (
 ): string | undefined => {
   const dictationHeld = settings?.push_to_talk ?? true;
   const askHeld = settings?.assistant_push_to_talk ?? true;
+  const commandHeld = settings?.command_push_to_talk ?? true;
   const cleanupOnDictation =
     !!settings?.post_process_enabled && !!settings?.post_process_on_dictation;
   switch (shortcutId) {
@@ -31,6 +32,10 @@ export const shortcutInfo = (
         : t("home.shortcuts.ask.whatTap");
     case "assistant_call":
       return t("home.shortcuts.call.what");
+    case "command":
+      return commandHeld
+        ? t("commandsPage.shortcut.whatHold")
+        : t("commandsPage.shortcut.whatTap");
     case "cancel":
       return t("home.shortcuts.cancel.what");
     default:
