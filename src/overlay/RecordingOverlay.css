@@ -1,15 +1,16 @@
 /* ── Recording overlay ──────────────────────────────────────────────────────
- * Monochrome on purpose: a near-black card, soft white text, and greys for
- * everything that only reports state. The overlay floats over whatever app is
+ * Monochrome on purpose: Talvio's dark card (#17192F, a near-black blue-violet),
+ * soft white text, and the brand's cool greys for everything that only reports
+ * state. No coral: the accent belongs to the app's own windows. The overlay floats over whatever app is
  * underneath, and any hue it carries clashes with some of them — the earlier
  * warm brown read as muddy and its amber accents as a rendering fault.
  *
  * The text is deliberately not white. Near-white on near-black is ~16:1, and
  * past about 12:1 light glyphs bloom on an LCD, so a paragraph reads as harsh
- * rather than crisp. #d4d4d8 on this surface is ~11.5:1: far above any
+ * rather than crisp. #d6d5e2 on this surface is ~12:1: far above any
  * legibility threshold, and comfortable to read for the length of a dictation.
- * The captions step down to Apple's secondary grey (5.2:1), which is still AA
- * for small text. */
+ * The captions step down to the brand's muted grey #a3a5bf (7:1), still well
+ * past AA for small text. */
 @property --ov-fade-top {
   syntax: "<length>";
   inherits: false;
@@ -29,12 +30,12 @@
 }
 
 .overlay-root {
-  --ov-surface: rgba(28, 28, 30, 0.97);
+  --ov-surface: rgba(23, 25, 47, 0.97);
   --ov-edge: rgba(255, 255, 255, 0.08);
   --ov-ring: rgba(255, 255, 255, 0.34);
-  --ov-text: #d4d4d8;
-  --ov-muted: #8e8e93;
-  --ov-faint: #6e6e73;
+  --ov-text: #d6d5e2;
+  --ov-muted: #a3a5bf;
+  --ov-faint: #8083a2;
   /* One line of transcript. The body is exactly three of these tall, so the
      newest line is never cut in half at the top edge. */
   --ov-line: 22px;
@@ -355,7 +356,7 @@
 }
 .recovery-action:hover {
   background: rgba(255, 255, 255, 0.13);
-  color: #f5f5f7;
+  color: #f2f1f7;
 }
 .recovery-action:active {
   background: rgba(255, 255, 255, 0.18);
@@ -487,7 +488,7 @@
 }
 .hands-free-control.is-finish {
   background: var(--ov-text);
-  color: #1c1c1e;
+  color: #101122;
 }
 /* A short wait, so a cursor passing over on its way somewhere else does not
    set them off. Leaving is immediate. */
@@ -499,10 +500,10 @@
 }
 .overlay-root .hands-free-control.is-cancel:hover {
   background: rgba(255, 255, 255, 0.18);
-  color: #f5f5f7;
+  color: #f2f1f7;
 }
 .overlay-root .hands-free-control.is-finish:hover {
-  background: #f5f5f7;
+  background: #f2f1f7;
 }
 .overlay-root .hands-free-control:active {
   transform: scale(0.9);
@@ -841,7 +842,7 @@
  * rest of it, and bright enough to see at a glance. */
 .card-body ::selection {
   background: rgba(255, 255, 255, 0.24);
-  color: #f5f5f7;
+  color: #f2f1f7;
 }
 .card-body::-webkit-scrollbar {
   width: 3px;
@@ -917,10 +918,10 @@
   direction: ltr;
 }
 .overlay-root .audio-waveform .wave-base {
-  stop-color: #a1a1a6;
+  stop-color: #9496b3;
 }
 .overlay-root .audio-waveform .wave-tip {
-  stop-color: #e0e0e4;
+  stop-color: #e2e1ec;
 }
 
 @media (prefers-reduced-motion: reduce) {
