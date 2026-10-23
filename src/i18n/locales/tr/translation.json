@@ -2106,6 +2106,8 @@
         "title": "Telefon",
         "remoteInput": "Telefondan dikte",
         "remoteInputHint": "Telefonunuzun bu bilgisayarda dikte etmesine ve yazmasına izin verir.",
+        "remoteWindows": "Telefonların pencere seçmesine izin ver",
+        "remoteWindowsHint": "Telefonunuz açık pencerelerin başlıklarını görebilir, seçtiğiniz pencereye dikte ve metin gönderebilir ve orada Enter gibi tuşlara basabilir.",
         "install": "Telefonunuza Talvio uygulamasını yükleyin ve {{email}} ile oturum açın."
       },
       "keys": {

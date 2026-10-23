@@ -2124,6 +2124,8 @@
         "title": "Telefon",
         "remoteInput": "Dyktowanie z telefonu",
         "remoteInputHint": "Pozwala telefonowi dyktować i pisać na tym komputerze.",
+        "remoteWindows": "Pozwól telefonom wybierać okna",
+        "remoteWindowsHint": "Telefon widzi tytuły otwartych okien, może wysyłać dyktowanie i tekst do wybranego okna i naciskać w nim klawisze takie jak Enter.",
         "install": "Zainstaluj aplikację Talvio na telefonie i zaloguj się jako {{email}}."
       },
       "keys": {

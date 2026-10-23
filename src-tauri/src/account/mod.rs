@@ -888,6 +888,16 @@ pub fn set_remote_input_enabled(app: AppHandle, enabled: bool) -> Result<(), Str
     Ok(())
 }
 
+/// Settings → Account → Let phones choose windows.
+#[tauri::command]
+#[specta::specta]
+pub fn set_remote_windows_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.remote_windows_enabled = enabled;
+    write_settings(&app, settings);
+    Ok(())
+}
+
 /// Settings → Account → Sync API keys. Turning it on syncs at once; turning
 /// it off stops syncing and leaves every key on this computer.
 #[tauri::command]

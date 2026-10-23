@@ -2124,6 +2124,8 @@
         "title": "Telefon",
         "remoteInput": "Diktování z telefonu",
         "remoteInputHint": "Umožní telefonu diktovat a psát na tomto počítači.",
+        "remoteWindows": "Povolit telefonům vybírat okna",
+        "remoteWindowsHint": "Telefon uvidí názvy otevřených oken, může posílat diktování a text do okna, které vyberete, a mačkat v něm klávesy jako Enter.",
         "install": "Nainstalujte si do telefonu aplikaci Talvio a přihlaste se jako {{email}}."
       },
       "keys": {

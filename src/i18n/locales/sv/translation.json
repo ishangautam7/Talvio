@@ -2106,6 +2106,8 @@
         "title": "Telefon",
         "remoteInput": "Diktering från telefonen",
         "remoteInputHint": "Låter telefonen diktera och skriva på den här datorn.",
+        "remoteWindows": "Låt telefoner välja fönster",
+        "remoteWindowsHint": "Telefonen kan se titlarna på öppna fönster, skicka diktering och text till det du väljer och trycka på tangenter som Enter där.",
         "install": "Installera Talvio-appen på telefonen och logga in som {{email}}."
       },
       "keys": {

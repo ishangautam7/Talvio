@@ -2115,6 +2115,8 @@
         "title": "Telefono",
         "remoteInput": "Dettatura dal telefono",
         "remoteInputHint": "Permette al telefono di dettare e scrivere su questo computer.",
+        "remoteWindows": "Lascia scegliere le finestre ai telefoni",
+        "remoteWindowsHint": "Il telefono può vedere i titoli delle finestre aperte, inviare dettatura e testo a quella che scegli e premere lì tasti come Invio.",
         "install": "Installa l'app Talvio sul telefono e accedi come {{email}}."
       },
       "keys": {

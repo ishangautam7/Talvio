@@ -2106,6 +2106,8 @@
         "title": "Phone",
         "remoteInput": "Phone dictation",
         "remoteInputHint": "Lets your phone dictate and type on this computer.",
+        "remoteWindows": "Let phones choose windows",
+        "remoteWindowsHint": "Your phone can see the titles of open windows, send dictation and text to the one you pick, and press keys like Enter there.",
         "install": "Get the Talvio app on your phone and sign in as {{email}}."
       },
       "keys": {

@@ -2097,6 +2097,8 @@
         "title": "手機",
         "remoteInput": "手機語音輸入",
         "remoteInputHint": "讓您的手機能在這台電腦上語音輸入和打字。",
+        "remoteWindows": "允許手機選擇視窗",
+        "remoteWindowsHint": "您的手機可以看到已開啟視窗的標題，將語音輸入和文字傳送到您選擇的視窗，並在其中按下 Enter 等按鍵。",
         "install": "在手機上安裝 Talvio App，並以 {{email}} 登入。"
       },
       "keys": {

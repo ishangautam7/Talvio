@@ -2115,6 +2115,8 @@
         "title": "Téléphone",
         "remoteInput": "Dictée depuis le téléphone",
         "remoteInputHint": "Permet à votre téléphone de dicter et de saisir du texte sur cet ordinateur.",
+        "remoteWindows": "Laisser les téléphones choisir les fenêtres",
+        "remoteWindowsHint": "Votre téléphone peut voir les titres des fenêtres ouvertes, envoyer la dictée et du texte à celle que vous choisissez, et y appuyer sur des touches comme Entrée.",
         "install": "Installez l'application Talvio sur votre téléphone et connectez-vous avec {{email}}."
       },
       "keys": {
