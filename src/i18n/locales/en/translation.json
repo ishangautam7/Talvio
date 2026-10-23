@@ -2715,6 +2715,7 @@
       "screen": "Looking at your screen…",
       "meetingSearch": "Searching the meeting",
       "meetingRead": "Reading the meeting",
+      "computer": "Doing it on your computer…",
       "working": "Working on it",
       "elapsed": "{{seconds}}s"
     },
@@ -2776,7 +2777,8 @@
     },
     "quick": {
       "selection": "Selection",
-      "copied": "Copied"
+      "copied": "Copied",
+      "newConversation": "New conversation"
     }
   },
   "nav": {
@@ -3185,7 +3187,9 @@
       "using": "Commands run on {{model}} · {{provider}}.",
       "borrowed": "Using your assistant's model ({{provider}} · {{model}}), since {{chosen}} has no key.",
       "needsKey": "{{provider}} needs a key before commands can run.",
-      "setUp": "Set up a model"
+      "setUp": "Set up a model",
+      "key": "{{provider}} API key",
+      "keyShared": "Shared with AI cleanup and the assistant."
     },
     "dryRun": {
       "title": "Dry run",
@@ -3354,6 +3358,17 @@
       "screen": {
         "ask": "Screen vision for questions",
         "call": "Screen vision in conversations"
+      },
+      "quickAskMemory": {
+        "title": "Remember the conversation",
+        "cleared": "The next question starts a new conversation",
+        "options": {
+          "off": "Off",
+          "five_minutes": "5 minutes",
+          "ten_minutes": "10 minutes",
+          "thirty_minutes": "30 minutes",
+          "until_cleared": "Until I clear it"
+        }
       }
     },
     "tips": {
@@ -3371,6 +3386,7 @@
       "profiles": "Personas with their own name, instructions, and reply style.",
       "replyLength": "How long answers usually are.",
       "history": "How many recent messages it keeps in mind.",
+      "quickAskMemory": "How long a quick ask remembers the one before it, so you can ask a follow-up. Conversations keep their own history.",
       "summarize": "Condenses long chats so it doesn't forget the start.",
       "opacity": "Lower lets your desktop show through.",
       "position": "Click a spot on the screen.",

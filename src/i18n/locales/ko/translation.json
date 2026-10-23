@@ -2697,6 +2697,7 @@
       "screen": "화면을 보는 중…",
       "meetingSearch": "회의 검색 중",
       "meetingRead": "회의 읽는 중",
+      "computer": "컴퓨터에서 실행하는 중…",
       "working": "처리하는 중",
       "elapsed": "{{seconds}}초"
     },
@@ -2758,7 +2759,8 @@
     },
     "quick": {
       "selection": "선택 영역",
-      "copied": "복사됨"
+      "copied": "복사됨",
+      "newConversation": "새 대화"
     }
   },
   "nav": {
@@ -3161,7 +3163,9 @@
       "using": "명령은 {{model}} · {{provider}}에서 실행됩니다.",
       "borrowed": "{{chosen}}에 키가 없어 어시스턴트의 모델({{provider}} · {{model}})을 사용합니다.",
       "needsKey": "명령을 실행하려면 {{provider}} 키가 필요합니다.",
-      "setUp": "모델 설정"
+      "setUp": "모델 설정",
+      "key": "{{provider}} API 키",
+      "keyShared": "AI 정리 및 어시스턴트와 함께 사용됩니다."
     },
     "dryRun": {
       "title": "모의 실행",
@@ -3327,6 +3331,17 @@
       "screen": {
         "ask": "질문 시 화면 인식",
         "call": "대화 중 화면 인식"
+      },
+      "quickAskMemory": {
+        "title": "대화 기억하기",
+        "cleared": "다음 질문부터 새 대화가 시작됩니다",
+        "options": {
+          "off": "끄기",
+          "five_minutes": "5분",
+          "ten_minutes": "10분",
+          "thirty_minutes": "30분",
+          "until_cleared": "직접 지울 때까지"
+        }
       }
     },
     "tips": {
@@ -3344,6 +3359,7 @@
       "profiles": "고유한 이름, 지침, 답변 스타일을 가진 페르소나입니다.",
       "replyLength": "평소 답변의 길이입니다.",
       "history": "최근 메시지를 몇 개까지 기억할지 정합니다.",
+      "quickAskMemory": "빠른 질문이 바로 앞의 질문을 얼마 동안 기억할지 정합니다. 이어서 질문할 수 있습니다. 대화는 각자의 기록을 따로 유지합니다.",
       "summarize": "긴 대화를 요약해 앞부분을 잊지 않도록 합니다.",
       "opacity": "낮출수록 바탕 화면이 비쳐 보입니다.",
       "position": "화면에서 위치를 클릭하세요.",

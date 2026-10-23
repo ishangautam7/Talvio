@@ -2733,6 +2733,7 @@
       "screen": "Mirando tu pantalla…",
       "meetingSearch": "Buscando en la reunión",
       "meetingRead": "Leyendo la reunión",
+      "computer": "Haciéndolo en tu ordenador…",
       "working": "Trabajando en ello",
       "elapsed": "{{seconds}} s"
     },
@@ -2794,7 +2795,8 @@
     },
     "quick": {
       "selection": "Selección",
-      "copied": "Copiado"
+      "copied": "Copiado",
+      "newConversation": "Nueva conversación"
     }
   },
   "nav": {
@@ -3209,7 +3211,9 @@
       "using": "Los comandos se ejecutan con {{model}} · {{provider}}.",
       "borrowed": "Usando el modelo de tu asistente ({{provider}} · {{model}}), porque {{chosen}} no tiene clave.",
       "needsKey": "{{provider}} necesita una clave para poder ejecutar comandos.",
-      "setUp": "Configurar un modelo"
+      "setUp": "Configurar un modelo",
+      "key": "Clave API de {{provider}}",
+      "keyShared": "Se comparte con la limpieza con IA y el asistente."
     },
     "dryRun": {
       "title": "Simulación",
@@ -3381,6 +3385,17 @@
       "screen": {
         "ask": "Visión de pantalla en preguntas",
         "call": "Visión de pantalla en conversaciones"
+      },
+      "quickAskMemory": {
+        "title": "Recordar la conversación",
+        "cleared": "La próxima pregunta empieza una conversación nueva",
+        "options": {
+          "off": "Desactivado",
+          "five_minutes": "5 minutos",
+          "ten_minutes": "10 minutos",
+          "thirty_minutes": "30 minutos",
+          "until_cleared": "Hasta que la borre"
+        }
       }
     },
     "tips": {
@@ -3398,6 +3413,7 @@
       "profiles": "Personalidades con su propio nombre, instrucciones y estilo de respuesta.",
       "replyLength": "La extensión habitual de las respuestas.",
       "history": "Cuántos mensajes recientes tiene en cuenta.",
+      "quickAskMemory": "Cuánto tiempo recuerda una pregunta rápida la anterior, para que puedas hacer una pregunta de seguimiento. Las conversaciones guardan su propio historial.",
       "summarize": "Resume los chats largos para no olvidar el principio.",
       "opacity": "Un valor más bajo deja ver tu escritorio a través del panel.",
       "position": "Haz clic en un punto de la pantalla.",

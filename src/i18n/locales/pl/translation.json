@@ -2751,6 +2751,7 @@
       "screen": "Patrzę na Twój ekran…",
       "meetingSearch": "Przeszukuję spotkanie",
       "meetingRead": "Czytam spotkanie",
+      "computer": "Wykonuję to na Twoim komputerze…",
       "working": "Pracuję nad tym",
       "elapsed": "{{seconds}} s"
     },
@@ -2812,7 +2813,8 @@
     },
     "quick": {
       "selection": "Zaznaczenie",
-      "copied": "Skopiowano"
+      "copied": "Skopiowano",
+      "newConversation": "Nowa rozmowa"
     }
   },
   "nav": {
@@ -3233,7 +3235,9 @@
       "using": "Polecenia działają na {{model}} · {{provider}}.",
       "borrowed": "Używany jest model asystenta ({{provider}} · {{model}}), ponieważ {{chosen}} nie ma klucza.",
       "needsKey": "{{provider}} potrzebuje klucza, zanim polecenia będą mogły działać.",
-      "setUp": "Skonfiguruj model"
+      "setUp": "Skonfiguruj model",
+      "key": "Klucz API {{provider}}",
+      "keyShared": "Wspólny z czyszczeniem AI i asystentem."
     },
     "dryRun": {
       "title": "Przebieg próbny",
@@ -3408,6 +3412,17 @@
       "screen": {
         "ask": "Podgląd ekranu przy pytaniach",
         "call": "Podgląd ekranu podczas rozmów"
+      },
+      "quickAskMemory": {
+        "title": "Pamiętaj rozmowę",
+        "cleared": "Następne pytanie rozpocznie nową rozmowę",
+        "options": {
+          "off": "Wyłączone",
+          "five_minutes": "5 minut",
+          "ten_minutes": "10 minut",
+          "thirty_minutes": "30 minut",
+          "until_cleared": "Dopóki jej nie wyczyszczę"
+        }
       }
     },
     "tips": {
@@ -3425,6 +3440,7 @@
       "profiles": "Persony z własną nazwą, instrukcjami i stylem odpowiedzi.",
       "replyLength": "Jak długie są zwykle odpowiedzi.",
       "history": "Ile ostatnich wiadomości asystent pamięta.",
+      "quickAskMemory": "Jak długo szybkie pytanie pamięta poprzednie, żeby można było dopytać. Rozmowy mają własną historię.",
       "summarize": "Streszcza długie rozmowy, aby nie zapominać ich początku.",
       "opacity": "Niższa wartość pozwala prześwitywać pulpitowi.",
       "position": "Kliknij miejsce na ekranie.",

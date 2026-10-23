@@ -2715,6 +2715,7 @@
       "screen": "Schaut auf deinen Bildschirm…",
       "meetingSearch": "Durchsucht das Meeting",
       "meetingRead": "Liest das Meeting",
+      "computer": "Erledigt es auf deinem Computer…",
       "working": "Arbeitet daran",
       "elapsed": "{{seconds}} s"
     },
@@ -2776,7 +2777,8 @@
     },
     "quick": {
       "selection": "Auswahl",
-      "copied": "Kopiert"
+      "copied": "Kopiert",
+      "newConversation": "Neue Unterhaltung"
     }
   },
   "nav": {
@@ -3185,7 +3187,9 @@
       "using": "Befehle laufen auf {{model}} · {{provider}}.",
       "borrowed": "Das Modell deines Assistenten wird verwendet ({{provider}} · {{model}}), da {{chosen}} keinen Schlüssel hat.",
       "needsKey": "{{provider}} braucht einen Schlüssel, bevor Befehle laufen können.",
-      "setUp": "Modell einrichten"
+      "setUp": "Modell einrichten",
+      "key": "{{provider}}-API-Schlüssel",
+      "keyShared": "Wird mit der KI-Bereinigung und dem Assistenten gemeinsam genutzt."
     },
     "dryRun": {
       "title": "Probelauf",
@@ -3354,6 +3358,17 @@
       "screen": {
         "ask": "Bildschirmansicht bei Fragen",
         "call": "Bildschirmansicht in Gesprächen"
+      },
+      "quickAskMemory": {
+        "title": "Unterhaltung merken",
+        "cleared": "Die nächste Frage beginnt eine neue Unterhaltung",
+        "options": {
+          "off": "Aus",
+          "five_minutes": "5 Minuten",
+          "ten_minutes": "10 Minuten",
+          "thirty_minutes": "30 Minuten",
+          "until_cleared": "Bis ich sie lösche"
+        }
       }
     },
     "tips": {
@@ -3371,6 +3386,7 @@
       "profiles": "Personas mit eigenem Namen, eigenen Anweisungen und eigenem Antwortstil.",
       "replyLength": "Wie lang Antworten normalerweise sind.",
       "history": "Wie viele der letzten Nachrichten er im Blick behält.",
+      "quickAskMemory": "Wie lange sich eine schnelle Frage an die vorherige erinnert, damit du nachfragen kannst. Gespräche behalten ihren eigenen Verlauf.",
       "summarize": "Fasst lange Chats zusammen, damit er den Anfang nicht vergisst.",
       "opacity": "Ein niedrigerer Wert lässt deinen Desktop durchscheinen.",
       "position": "Klicke auf eine Stelle des Bildschirms.",

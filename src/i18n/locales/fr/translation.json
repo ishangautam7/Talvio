@@ -2733,6 +2733,7 @@
       "screen": "Observation de votre écran…",
       "meetingSearch": "Recherche dans la réunion",
       "meetingRead": "Lecture de la réunion",
+      "computer": "Exécution sur votre ordinateur…",
       "working": "Traitement en cours",
       "elapsed": "{{seconds}} s"
     },
@@ -2794,7 +2795,8 @@
     },
     "quick": {
       "selection": "Sélection",
-      "copied": "Copié"
+      "copied": "Copié",
+      "newConversation": "Nouvelle conversation"
     }
   },
   "nav": {
@@ -3209,7 +3211,9 @@
       "using": "Les commandes utilisent {{model}} · {{provider}}.",
       "borrowed": "Utilise le modèle de votre assistant ({{provider}} · {{model}}), car {{chosen}} n'a pas de clé.",
       "needsKey": "{{provider}} a besoin d'une clé pour exécuter des commandes.",
-      "setUp": "Configurer un modèle"
+      "setUp": "Configurer un modèle",
+      "key": "Clé API {{provider}}",
+      "keyShared": "Partagée avec le nettoyage IA et l'assistant."
     },
     "dryRun": {
       "title": "Simulation",
@@ -3381,6 +3385,17 @@
       "screen": {
         "ask": "Vision d'écran pour les questions",
         "call": "Vision d'écran pendant les conversations"
+      },
+      "quickAskMemory": {
+        "title": "Se souvenir de la conversation",
+        "cleared": "La prochaine question démarre une nouvelle conversation",
+        "options": {
+          "off": "Désactivé",
+          "five_minutes": "5 minutes",
+          "ten_minutes": "10 minutes",
+          "thirty_minutes": "30 minutes",
+          "until_cleared": "Jusqu'à ce que je l'efface"
+        }
       }
     },
     "tips": {
@@ -3398,6 +3413,7 @@
       "profiles": "Des personnalités avec leur propre nom, leurs instructions et leur style de réponse.",
       "replyLength": "La longueur habituelle des réponses.",
       "history": "Le nombre de messages récents qu'il garde en tête.",
+      "quickAskMemory": "Combien de temps une question rapide se souvient de la précédente, pour que vous puissiez poser une question de suivi. Les conversations gardent leur propre historique.",
       "summarize": "Résume les longues conversations pour ne pas en oublier le début.",
       "opacity": "Plus faible, elle laisse apparaître votre bureau.",
       "position": "Cliquez sur un emplacement de l'écran.",

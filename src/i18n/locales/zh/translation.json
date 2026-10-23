@@ -2697,6 +2697,7 @@
       "screen": "正在查看您的屏幕…",
       "meetingSearch": "正在搜索会议",
       "meetingRead": "正在阅读会议",
+      "computer": "正在您的电脑上执行…",
       "working": "正在处理",
       "elapsed": "{{seconds}}秒"
     },
@@ -2758,7 +2759,8 @@
     },
     "quick": {
       "selection": "选中内容",
-      "copied": "已复制"
+      "copied": "已复制",
+      "newConversation": "新对话"
     }
   },
   "nav": {
@@ -3161,7 +3163,9 @@
       "using": "命令在 {{model}} · {{provider}} 上运行。",
       "borrowed": "由于 {{chosen}} 没有密钥，正在使用助手的模型（{{provider}} · {{model}}）。",
       "needsKey": "{{provider}} 需要密钥才能运行命令。",
-      "setUp": "设置模型"
+      "setUp": "设置模型",
+      "key": "{{provider}} API 密钥",
+      "keyShared": "与 AI 清理和助手共用。"
     },
     "dryRun": {
       "title": "试运行",
@@ -3327,6 +3331,17 @@
       "screen": {
         "ask": "提问时的屏幕视觉",
         "call": "对话时的屏幕视觉"
+      },
+      "quickAskMemory": {
+        "title": "记住对话",
+        "cleared": "下一个问题将开始新对话",
+        "options": {
+          "off": "关闭",
+          "five_minutes": "5 分钟",
+          "ten_minutes": "10 分钟",
+          "thirty_minutes": "30 分钟",
+          "until_cleared": "直到我清除"
+        }
       }
     },
     "tips": {
@@ -3344,6 +3359,7 @@
       "profiles": "拥有各自名称、指令和回复风格的角色。",
       "replyLength": "回答通常的长度。",
       "history": "它会记住多少条最近的消息。",
+      "quickAskMemory": "快速提问会记住上一个问题多久，方便您追问。对话会保留各自的历史记录。",
       "summarize": "压缩较长的聊天，以免忘记开头的内容。",
       "opacity": "调低后可透出您的桌面。",
       "position": "点击屏幕上的一个位置。",
