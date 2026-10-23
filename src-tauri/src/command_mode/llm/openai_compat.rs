@@ -127,7 +127,11 @@ impl OpenAiCompatRouter {
             llm_client::reasoning_options_for(&self.provider.id, &self.model, ThinkingLevel::Off);
 
         let force = request.force_tool && !self.required_refused();
-        let choice = if force { json!("required") } else { json!("auto") };
+        let choice = if force {
+            json!("required")
+        } else {
+            json!("auto")
+        };
         let first = llm_client::send_chat_stream_with_tools(
             &self.provider,
             self.api_key.clone(),
@@ -459,7 +463,10 @@ mod tests {
             messages[0],
             json!({"role": "system", "content": "You route commands."})
         );
-        assert_eq!(messages[1], json!({"role": "user", "content": "open spotify"}));
+        assert_eq!(
+            messages[1],
+            json!({"role": "user", "content": "open spotify"})
+        );
         assert_eq!(messages[2]["role"], "assistant");
         assert_eq!(messages[2]["content"], "");
         let tool_call = &messages[2]["tool_calls"][0];
@@ -619,7 +626,9 @@ mod tests {
         assert!(!tool_choice_rejected(
             "API request failed with status 400 Bad Request: field 'messages' is required"
         ));
-        assert!(!tool_choice_rejected("HTTP request failed: connection refused"));
+        assert!(!tool_choice_rejected(
+            "HTTP request failed: connection refused"
+        ));
         // A tool schema error says "required" and "tool" too, but is not about
         // the choice; retrying with "auto" would fail the same way.
         assert!(!tool_choice_rejected(
@@ -673,7 +682,9 @@ mod tests {
             String::new(),
             "local-model".into(),
         );
-        let result = router.route(&request(vec![Turn::User("x".into())], true)).await;
+        let result = router
+            .route(&request(vec![Turn::User("x".into())], true))
+            .await;
         assert!(matches!(result, Err(LlmError::NotConfigured(_))));
         assert_eq!(router.label(), "builtin/local-model");
         assert_eq!(router.model(), "local-model");
@@ -838,8 +849,8 @@ mod tests {
     /// next command for that model goes straight to "auto".
     #[tokio::test]
     async fn a_refused_required_choice_falls_back_to_auto_and_is_remembered() {
-        let refusal = json!({"error":{"message":"tool_choice 'required' is not supported"}})
-            .to_string();
+        let refusal =
+            json!({"error":{"message":"tool_choice 'required' is not supported"}}).to_string();
         let (base, server, rx) = mock_server(vec![
             (400, refusal),
             (200, tool_call_stream()),
@@ -869,8 +880,8 @@ mod tests {
     /// "required".
     #[tokio::test]
     async fn a_refusal_whose_retry_also_fails_is_not_remembered() {
-        let refusal = json!({"error":{"message":"tool_choice 'required' is not supported"}})
-            .to_string();
+        let refusal =
+            json!({"error":{"message":"tool_choice 'required' is not supported"}}).to_string();
         let (base, server, rx) = mock_server(vec![
             (400, refusal.clone()),
             (400, refusal),

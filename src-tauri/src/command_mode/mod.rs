@@ -10,6 +10,8 @@
 //! The pieces:
 //!
 //! - [`registry`]: what a tool is. [`tools`]: the tools, one file each.
+//! - [`agent`]: tier 2, for what no tool covers: an agent that works the
+//!   app's controls through the accessibility tree, step by step.
 //! - [`router`]: the one LLM call, its prompt, its tool list, validation and
 //!   the single repair retry. [`llm`]: the provider interface behind it.
 //! - [`effects`]: every side effect, so dry run records instead of acting.
@@ -33,6 +35,13 @@
 //!   answer so far and the steps already done, so nothing runs twice; after
 //!   three answers a further question fails the command.
 //!
+//! When the router escalates (or a tool fails in a way another approach could
+//! fix) and `command_auto_escalate` is on where the agent can run, the task
+//! goes to [`agent::run`] on `command_agent_model`, and its steps, cost and
+//! ending join the same report. An element action the agent held for the
+//! user waits like any other confirmation, under the reserved tool name
+//! [`agent::CONFIRM_TOOL`]. Esc ([`cancel_running`]) stops it between steps.
+//!
 //! A typed or CLI command forgets the window the last dictation remembered,
 //! so its typing can never be pasted into that window
 //! ([`CommandOrigin::keeps_dictation_target`]). Every tool step runs on the
@@ -40,6 +49,7 @@
 //!
 //! See `docs/command-mode-plan.md` for the design and the phases.
 
+pub mod agent;
 pub mod contacts;
 pub mod context;
 pub mod effects;
@@ -53,12 +63,13 @@ pub mod tools;
 use log::{debug, info, warn};
 use serde::Serialize;
 use specta::Type;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::AppHandle;
 
-use context::CommandContext;
 use contacts::ContactBook;
+use context::CommandContext;
 use effects::{DryRunEffects, Effects, RecordsActions, SystemEffects};
 use llm::Usage;
 use registry::{Feedback, PendingAction, Platform, ToolCtx, ToolOutcome};
@@ -91,6 +102,24 @@ const CONFIRM_TTL: Duration = Duration::from_secs(120);
 /// How long a spoken command's confirmation waits. Phase 2 listens for the
 /// answer for about eight seconds; until then a voice confirmation gets this.
 const VOICE_CONFIRM_TTL: Duration = Duration::from_secs(30);
+
+/// Raised by Esc, `--cancel` and the Debug box's Stop to stop the running
+/// command, and lowered when a new command (or an answer or confirmation)
+/// starts. One flag for the process because one command runs at a time; the
+/// agent checks it before every request and action, and while a request is
+/// in flight.
+static CANCEL: AtomicBool = AtomicBool::new(false);
+
+/// Stop the running command, if there is one. Harmless when nothing runs:
+/// the next command lowers the flag before it starts.
+pub fn cancel_running() {
+    CANCEL.store(true, Ordering::SeqCst);
+}
+
+/// A new command starts un-cancelled.
+fn reset_cancel() {
+    CANCEL.store(false, Ordering::SeqCst);
+}
 
 /// Where a command came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
@@ -141,7 +170,8 @@ pub enum CommandStatus {
     AwaitingConfirmation,
     /// The model or a tool needs an answer before going on.
     NeedsAnswer,
-    /// No tool fits; the computer-use fallback would take over (Phase 3).
+    /// No tool fits, and the agent that would take over is switched off,
+    /// not set up, or not available on this system.
     NeedsComputerUse,
     /// Declined, expired, or replaced by a newer command.
     Cancelled,
@@ -386,7 +416,10 @@ fn not_waiting(left: &Option<Waiting>, id: u32) -> NotWaiting {
 }
 
 /// The effects for one command: real, or real-wrapped-in-dry-run.
-fn effects_for(app: &AppHandle, dry_run: bool) -> (Arc<dyn Effects>, Option<Arc<DryRunEffects<SystemEffects>>>) {
+fn effects_for(
+    app: &AppHandle,
+    dry_run: bool,
+) -> (Arc<dyn Effects>, Option<Arc<DryRunEffects<SystemEffects>>>) {
     if dry_run {
         let dry = Arc::new(DryRunEffects::new(SystemEffects::new(app.clone())));
         (dry.clone() as Arc<dyn Effects>, Some(dry))
@@ -457,6 +490,7 @@ pub async fn run_command(
     context: Option<CommandContext>,
 ) -> CommandReport {
     let started = Instant::now();
+    reset_cancel();
     release_dictation_target(origin);
     let settings = crate::settings::get_settings(app);
     let dry_run = dry_run_override.unwrap_or(settings.command_dry_run);
@@ -465,13 +499,7 @@ pub async fn run_command(
         None => tauri::async_runtime::spawn_blocking(CommandContext::capture)
             .await
             .unwrap_or_else(|_| {
-                CommandContext::at(
-                    chrono::Local::now(),
-                    None,
-                    Platform::current(),
-                    None,
-                    None,
-                )
+                CommandContext::at(chrono::Local::now(), None, Platform::current(), None, None)
             }),
     };
 
@@ -492,7 +520,11 @@ pub async fn run_command(
         Ok(llm) => llm,
         Err(e) => {
             return report.fail(
-                Feedback::new("notConfigured", "Command mode isn't set up: {{why}}", &[("why", &e.to_string())]),
+                Feedback::new(
+                    "notConfigured",
+                    "Command mode isn't set up: {{why}}",
+                    &[("why", &e.to_string())],
+                ),
                 e.to_string(),
             )
         }
@@ -536,6 +568,7 @@ pub async fn run_command(
 /// nor repeats what is done.
 pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandReport {
     let started = Instant::now();
+    reset_cancel();
     let state = app.state_or_default();
     let PendingAnswer {
         origin,
@@ -554,9 +587,11 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
                     "That command is waiting for you to confirm, not for an answer.",
                     &[],
                 ),
-                NotWaiting::Nothing => {
-                    Feedback::new("nothingWaitingAnswer", "Nothing is waiting for an answer.", &[])
-                }
+                NotWaiting::Nothing => Feedback::new(
+                    "nothingWaitingAnswer",
+                    "Nothing is waiting for an answer.",
+                    &[],
+                ),
             };
             return CommandReport::new(id, CommandOrigin::Typed, "", false)
                 .fail(feedback, "no matching question".into());
@@ -574,7 +609,11 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
         Ok(llm) => llm,
         Err(e) => {
             return report.fail(
-                Feedback::new("notConfigured", "Command mode isn't set up: {{why}}", &[("why", &e.to_string())]),
+                Feedback::new(
+                    "notConfigured",
+                    "Command mode isn't set up: {{why}}",
+                    &[("why", &e.to_string())],
+                ),
                 e.to_string(),
             )
         }
@@ -613,6 +652,7 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
 /// Accept or decline what a command left waiting for confirmation.
 pub async fn confirm_command(app: &AppHandle, id: u32, accept: bool) -> CommandReport {
     let started = Instant::now();
+    reset_cancel();
     let state = app.state_or_default();
     let pending = match state.take_confirmation(id) {
         Ok(pending) => pending,
@@ -647,6 +687,19 @@ async fn confirm_taken(
     accept: bool,
     started: Instant,
 ) -> CommandReport {
+    confirm_taken_with(state, pending, accept, started, None).await
+}
+
+/// [`confirm_taken`] with the accessibility tree an agent confirmation acts
+/// through; `None` is the platform's own ([`agent::tree`]), fetched only when
+/// the confirmation is an agent's.
+async fn confirm_taken_with(
+    state: &CommandModeState,
+    pending: PendingConfirmation,
+    accept: bool,
+    started: Instant,
+    tree: Option<Arc<dyn agent::tree::AccessibilityTree>>,
+) -> CommandReport {
     let PendingConfirmation {
         id,
         action,
@@ -660,7 +713,11 @@ async fn confirm_taken(
     let mut report = CommandReport::new(id, origin, &transcript, ctx.dry_run);
     if !accept {
         report.status = CommandStatus::Cancelled;
-        report.feedback.push(Feedback::new("cancelled", "Cancelled. Nothing was sent.", &[]));
+        report.feedback.push(Feedback::new(
+            "cancelled",
+            "Cancelled. Nothing was sent.",
+            &[],
+        ));
         report.latency_ms = started.elapsed().as_millis() as u32;
         return report;
     }
@@ -678,6 +735,18 @@ async fn confirm_taken(
         return report;
     }
 
+    if action.tool == agent::CONFIRM_TOOL {
+        let scope = Scope {
+            state,
+            ctx,
+            dry,
+            origin,
+            transcript,
+            followup,
+        };
+        return confirm_agent_action(&scope, report, action, tree, started).await;
+    }
+
     let Some(on_confirm) = registry::find(action.tool).and_then(|spec| spec.on_confirm) else {
         return report.fail(
             Feedback::new("confirmFailed", "That can no longer be done.", &[]),
@@ -690,8 +759,10 @@ async fn confirm_taken(
     let before = dry.as_ref().map(|d| d.recorded().len()).unwrap_or(0);
     let payload = action.payload.clone();
     let run_ctx = ctx.clone();
-    let outcome =
-        run_blocking(TOOL_TIMEOUT, action.tool, move || on_confirm(&run_ctx, payload)).await;
+    let outcome = run_blocking(TOOL_TIMEOUT, action.tool, move || {
+        on_confirm(&run_ctx, payload)
+    })
+    .await;
 
     report.steps.push(StepReport {
         tool: action.tool.to_string(),
@@ -711,6 +782,43 @@ async fn confirm_taken(
     if let Some(dry) = dry {
         report.dry_run_actions = dry.recorded().into_iter().skip(before).collect();
     }
+    report.latency_ms = started.elapsed().as_millis() as u32;
+    report
+}
+
+/// Carry out an element action the agent held, now that the user said yes.
+/// It has no registry entry: [`agent::confirm_element`] reads the window
+/// again and acts on the one control with the same role and name, or does
+/// nothing. A dry run records the line instead and reads nothing.
+async fn confirm_agent_action(
+    scope: &Scope<'_>,
+    mut report: CommandReport,
+    action: PendingAction,
+    tree: Option<Arc<dyn agent::tree::AccessibilityTree>>,
+    started: Instant,
+) -> CommandReport {
+    let payload = action.payload.clone();
+    report.steps.push(StepReport {
+        tool: action.tool.to_string(),
+        args_json: payload.to_string(),
+        result: String::new(),
+        detail: String::new(),
+    });
+    let outcome = if scope.ctx.dry_run {
+        report
+            .dry_run_actions
+            .push(agent::confirm_dry_run_line(&payload));
+        // `confirm_element` answers a dry run before touching the tree.
+        agent::confirm_element(&scope.ctx, &agent::tree::Unsupported, &payload)
+    } else {
+        let tree = tree.unwrap_or_else(agent::tree);
+        let run_ctx = scope.ctx.clone();
+        run_blocking(TOOL_TIMEOUT, action.tool, move || {
+            agent::confirm_element(&run_ctx, tree.as_ref(), &payload)
+        })
+        .await
+    };
+    apply_outcome(scope, &mut report, outcome);
     report.latency_ms = started.elapsed().as_millis() as u32;
     report
 }
@@ -755,7 +863,11 @@ async fn finish(
             report.llm_calls = llm_calls;
             report.usage = usage;
             return report.fail(
-                Feedback::new("routeFailed", "I couldn't work out what to do: {{why}}", &[("why", &e.to_string())]),
+                Feedback::new(
+                    "routeFailed",
+                    "I couldn't work out what to do: {{why}}",
+                    &[("why", &e.to_string())],
+                ),
                 e.to_string(),
             );
         }
@@ -781,7 +893,12 @@ async fn finish(
     report_dropped(&mut report, plan.dropped);
 
     if let Some(dry) = &scope.dry {
-        report.dry_run_actions = dry.recorded();
+        // What the tools' effects recorded, then the agent's element actions
+        // (which go through the tree, not the effects, and were collected on
+        // the report as they happened).
+        let mut actions = dry.recorded();
+        actions.append(&mut report.dry_run_actions);
+        report.dry_run_actions = actions;
     }
     report.latency_ms = started.elapsed().as_millis() as u32;
     report
@@ -814,9 +931,13 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
     let args_json = call.args.to_string();
     match call.name.as_str() {
         router::SAY => {
-            let text = registry::arg_str(&call.args, "text").unwrap_or_default().to_string();
+            let text = registry::arg_str(&call.args, "text")
+                .unwrap_or_default()
+                .to_string();
             report.steps.push(step(&call.name, &args_json, "done", ""));
-            report.feedback.push(Feedback::new("say", "{{text}}", &[("text", &text)]));
+            report
+                .feedback
+                .push(Feedback::new("say", "{{text}}", &[("text", &text)]));
             false
         }
         router::ASK_USER => {
@@ -824,7 +945,9 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
                 .unwrap_or("Can you say that differently?")
                 .to_string();
             let choices = registry::arg_strings(&call.args, "choices");
-            report.steps.push(step(&call.name, &args_json, "asked", &question));
+            report
+                .steps
+                .push(step(&call.name, &args_json, "asked", &question));
             ask(scope, report, question, choices);
             true
         }
@@ -832,26 +955,46 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
             let task = registry::arg_str(&call.args, "task")
                 .unwrap_or(scope.transcript.as_str())
                 .to_string();
-            report.steps.push(step(&call.name, &args_json, "skipped", "computer use is not available yet"));
+            if agent_enabled(&scope.ctx.settings) {
+                report.steps.push(step(
+                    &call.name,
+                    &args_json,
+                    "done",
+                    "handed to the screen agent",
+                ));
+                escalate(scope, report, task).await;
+                return true;
+            }
+            report.steps.push(step(
+                &call.name,
+                &args_json,
+                "skipped",
+                "computer use is not available",
+            ));
             report.status = CommandStatus::NeedsComputerUse;
             report.escalation = Some(task);
-            report.feedback.push(Feedback::new(
-                "needsComputerUse",
-                "None of my tools can do that yet. Controlling the screen for it comes in a later version.",
-                &[],
-            ));
+            report
+                .feedback
+                .push(computer_use_unavailable(&scope.ctx.settings));
             true
         }
         name => {
             let Some(spec) = registry::find(name) else {
                 // The router validates names, so this is a bug, not a model error.
-                report.steps.push(step(name, &args_json, "failed", "unknown tool"));
+                report
+                    .steps
+                    .push(step(name, &args_json, "failed", "unknown tool"));
                 report.status = CommandStatus::Failed;
                 report.error = Some(format!("unknown tool {name}"));
                 return true;
             };
             if !spec.supports(scope.ctx.platform) {
-                report.steps.push(step(name, &args_json, "failed", "not available on this system"));
+                report.steps.push(step(
+                    name,
+                    &args_json,
+                    "failed",
+                    "not available on this system",
+                ));
                 report.status = CommandStatus::Failed;
                 report.feedback.push(Feedback::new(
                     "unsupported",
@@ -865,7 +1008,163 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
             let args = call.args.clone();
             let outcome = run_blocking(TOOL_TIMEOUT, name, move || handler(&run_ctx, args)).await;
             report.steps.push(step(name, &args_json, "", ""));
-            apply_outcome(scope, report, outcome)
+            let stop = apply_outcome(scope, report, outcome);
+            // A failure another approach could fix goes to the agent, with
+            // the whole command as its task.
+            if report.status == CommandStatus::NeedsComputerUse
+                && agent_enabled(&scope.ctx.settings)
+            {
+                let task = report
+                    .escalation
+                    .clone()
+                    .unwrap_or_else(|| scope.transcript.clone());
+                escalate(scope, report, task).await;
+            }
+            stop
+        }
+    }
+}
+
+/// Whether an escalation goes to the agent: the user allows it and this
+/// platform has an accessibility reader.
+fn agent_enabled(settings: &crate::settings::AppSettings) -> bool {
+    settings.command_auto_escalate && agent::supported()
+}
+
+/// Why an escalation stops at `NeedsComputerUse`: the switch is off, or this
+/// system has no accessibility reader yet.
+fn computer_use_unavailable(settings: &crate::settings::AppSettings) -> Feedback {
+    if agent::supported() && !settings.command_auto_escalate {
+        Feedback::new(
+            "agentOff",
+            "None of my tools can do that. Turn on \u{201c}Control the screen when needed\u{201d} to let me work the app for you.",
+            &[],
+        )
+    } else {
+        Feedback::new(
+            "needsComputerUse",
+            "None of my tools can do that yet. Controlling the screen for it comes in a later version.",
+            &[],
+        )
+    }
+}
+
+/// Hand `task` to the agent on `command_agent_model`. A model that cannot be
+/// built (no key, no provider) leaves the command at `NeedsComputerUse` with
+/// the reason.
+async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String) {
+    report.escalation = Some(task.clone());
+    let llm = match llm::agent_llm_for(&scope.ctx.settings) {
+        Ok(llm) => llm,
+        Err(e) => {
+            report.status = CommandStatus::NeedsComputerUse;
+            report.error = Some(e.to_string());
+            report.feedback.push(Feedback::new(
+                "agentNotConfigured",
+                "That needs me to control the screen, but the agent isn't set up: {{why}}",
+                &[("why", &e.to_string())],
+            ));
+            return;
+        }
+    };
+    run_agent_into(scope, report, &task, llm.as_ref(), agent::tree(), &CANCEL).await;
+}
+
+/// Run the agent and fold what it did into the report: its steps, its
+/// requests and tokens, its dry-run lines, and a status and feedback for how
+/// it ended. Separate from [`escalate`] so tests can pass a scripted model,
+/// a fake tree and their own stop flag.
+async fn run_agent_into(
+    scope: &Scope<'_>,
+    report: &mut CommandReport,
+    task: &str,
+    llm: &dyn llm::RouterLlm,
+    tree: Arc<dyn agent::tree::AccessibilityTree>,
+    cancel: &AtomicBool,
+) {
+    let limits = agent::Limits::from_settings(&scope.ctx.settings);
+    let outcome = agent::run(task, scope.ctx.clone(), llm, tree, limits, cancel).await;
+
+    report.feedback.push(match outcome.app.as_deref() {
+        Some(app) => Feedback::new(
+            "agentWorking",
+            "Working on it in {{app}}\u{2026}",
+            &[("app", app)],
+        ),
+        None => Feedback::new("agentWorkingNoApp", "Working on it\u{2026}", &[]),
+    });
+    report.steps.extend(outcome.steps);
+    report.llm_calls += outcome.llm_calls;
+    report.usage.add(outcome.usage);
+    report.model = if report.model.is_empty() {
+        outcome.model
+    } else {
+        format!("{} + {}", report.model, outcome.model)
+    };
+    report.dry_run_actions.extend(outcome.dry_run_actions);
+
+    match outcome.end {
+        agent::AgentEnd::Done { summary } => {
+            report.status = CommandStatus::Done;
+            // A tool failure that sent the command here is history now.
+            report.error = None;
+            report.feedback.push(Feedback::new(
+                "agentDone",
+                "{{summary}}",
+                &[("summary", &summary)],
+            ));
+        }
+        agent::AgentEnd::GaveUp { reason } => {
+            report.status = CommandStatus::Failed;
+            report.error = Some(reason.clone());
+            report.feedback.push(Feedback::new(
+                "agentGaveUp",
+                "I couldn't finish that: {{reason}}",
+                &[("reason", &reason)],
+            ));
+        }
+        agent::AgentEnd::NeedsConfirmation { pending, feedback } => {
+            report.error = None;
+            apply_outcome(
+                scope,
+                report,
+                ToolOutcome::NeedsConfirmation { pending, feedback },
+            );
+        }
+        agent::AgentEnd::LimitHit { which } => {
+            report.status = CommandStatus::Failed;
+            let feedback = match which {
+                agent::Limit::Steps => Feedback::new(
+                    "agentStepLimit",
+                    "That took more than {{steps}} steps, so I stopped and left everything as it is.",
+                    &[("steps", &limits.max_steps.to_string())],
+                ),
+                agent::Limit::Cost => Feedback::new(
+                    "agentCostLimit",
+                    "That was about to cost more than ${{limit}}, so I stopped and left everything as it is.",
+                    &[("limit", &format!("{:.2}", limits.max_cost_usd))],
+                ),
+            };
+            report.error = Some(feedback.render_en().to_string());
+            report.feedback.push(feedback);
+        }
+        agent::AgentEnd::Cancelled => {
+            report.status = CommandStatus::Cancelled;
+            report.error = None;
+            report.feedback.push(Feedback::new(
+                "agentCancelled",
+                "Stopped. I left everything as it is.",
+                &[],
+            ));
+        }
+        agent::AgentEnd::Failed { reason } => {
+            report.status = CommandStatus::Failed;
+            report.error = Some(reason.clone());
+            report.feedback.push(Feedback::new(
+                "agentFailed",
+                "I couldn't control the screen: {{reason}}",
+                &[("reason", &reason)],
+            ));
         }
     }
 }
@@ -938,7 +1237,11 @@ fn apply_outcome(scope: &Scope<'_>, report: &mut CommandReport, outcome: ToolOut
                 report.escalation = Some(scope.transcript.clone());
             }
             report.error = Some(reason.clone());
-            report.feedback.push(Feedback::new("failed", "{{reason}}", &[("reason", &reason)]));
+            report.feedback.push(Feedback::new(
+                "failed",
+                "{{reason}}",
+                &[("reason", &reason)],
+            ));
             true
         }
     }
@@ -953,9 +1256,7 @@ fn ask(scope: &Scope<'_>, report: &mut CommandReport, question: String, choices:
             last.detail = "too many questions".into();
         }
         report.status = CommandStatus::Failed;
-        report.error = Some(format!(
-            "still asking after {MAX_CLARIFICATIONS} answers"
-        ));
+        report.error = Some(format!("still asking after {MAX_CLARIFICATIONS} answers"));
         report.feedback.push(Feedback::new(
             "tooManyQuestions",
             "I still couldn't work out what to do. Try saying it differently.",
@@ -979,9 +1280,11 @@ fn ask(scope: &Scope<'_>, report: &mut CommandReport, question: String, choices:
     report.status = CommandStatus::NeedsAnswer;
     report.question = Some(question.clone());
     report.choices = choices;
-    report
-        .feedback
-        .push(Feedback::new("question", "{{question}}", &[("question", &question)]));
+    report.feedback.push(Feedback::new(
+        "question",
+        "{{question}}",
+        &[("question", &question)],
+    ));
 }
 
 /// One info line per command: what was asked, what ran, what it cost in
@@ -1051,7 +1354,11 @@ mod tests {
         })
     }
 
-    fn scope<'a>(state: &'a CommandModeState, fake: &Arc<FakeEffects>, followup: Followup) -> Scope<'a> {
+    fn scope<'a>(
+        state: &'a CommandModeState,
+        fake: &Arc<FakeEffects>,
+        followup: Followup,
+    ) -> Scope<'a> {
         Scope {
             state,
             ctx: tool_ctx(fake),
@@ -1095,8 +1402,18 @@ mod tests {
         }
     }
 
+    /// The feedback keys, without the `commandMode.feedback.` namespace every
+    /// one of them carries, so assertions read like the `Feedback::new` calls.
     fn keys(report: &CommandReport) -> Vec<&str> {
-        report.feedback.iter().map(|f| f.key.as_str()).collect()
+        report
+            .feedback
+            .iter()
+            .map(|f| {
+                f.key
+                    .strip_prefix("commandMode.feedback.")
+                    .unwrap_or(&f.key)
+            })
+            .collect()
     }
 
     /// A new command takes the slot: what waited is gone, and the older
@@ -1123,8 +1440,16 @@ mod tests {
         let state = CommandModeState::default();
         let a = state.begin();
         let b = state.begin();
-        assert!(state.offer(Waiting::Confirmation(confirmation(b, &fake, Instant::now()))));
-        assert!(!state.offer(Waiting::Confirmation(confirmation(a, &fake, Instant::now()))));
+        assert!(state.offer(Waiting::Confirmation(confirmation(
+            b,
+            &fake,
+            Instant::now()
+        ))));
+        assert!(!state.offer(Waiting::Confirmation(confirmation(
+            a,
+            &fake,
+            Instant::now()
+        ))));
         assert!(!state.offer(Waiting::Answer(answer(a, &fake))));
         assert_eq!(state.take_confirmation(a).err(), Some(NotWaiting::Nothing));
         assert!(state.take_confirmation(b).is_ok());
@@ -1137,14 +1462,21 @@ mod tests {
         let fake = Arc::new(FakeEffects::default());
         let state = CommandModeState::default();
         let id = state.begin();
-        assert!(state.offer(Waiting::Confirmation(confirmation(id, &fake, Instant::now()))));
+        assert!(state.offer(Waiting::Confirmation(confirmation(
+            id,
+            &fake,
+            Instant::now()
+        ))));
         assert_eq!(state.take_answer(id).err(), Some(NotWaiting::OtherKind));
         assert_eq!(state.take_answer(id + 1).err(), Some(NotWaiting::Nothing));
         assert!(state.take_confirmation(id).is_ok());
 
         let id = state.begin();
         assert!(state.offer(Waiting::Answer(answer(id, &fake))));
-        assert_eq!(state.take_confirmation(id).err(), Some(NotWaiting::OtherKind));
+        assert_eq!(
+            state.take_confirmation(id).err(),
+            Some(NotWaiting::OtherKind)
+        );
         assert!(state.take_answer(id).is_ok());
         assert_eq!(state.take_answer(id).err(), Some(NotWaiting::Nothing));
     }
@@ -1171,7 +1503,10 @@ mod tests {
         assert_eq!(report.status, CommandStatus::Cancelled);
         assert_eq!(report.pending_summary, None);
         assert_eq!(keys(&report), vec!["emailDraft", "superseded"]);
-        assert_eq!(state.take_confirmation(old).err(), Some(NotWaiting::Nothing));
+        assert_eq!(
+            state.take_confirmation(old).err(),
+            Some(NotWaiting::Nothing)
+        );
     }
 
     /// The question keeps every earlier exchange and adds the steps of this
@@ -1187,17 +1522,28 @@ mod tests {
         };
         let scope = scope(&state, &fake, earlier);
         let mut report = CommandReport::new(id, CommandOrigin::Typed, "email Ron", false);
-        report.steps.push(step("type_text", r#"{"text":"hi team"}"#, "done", ""));
-        report.steps.push(step(router::SAY, r#"{"text":"ok"}"#, "done", ""));
-        report.steps.push(step("open_app", r#"{"name":"x"}"#, "failed", ""));
-        report.steps.push(step("compose_email", r#"{"to":"Ron"}"#, "", ""));
+        report
+            .steps
+            .push(step("type_text", r#"{"text":"hi team"}"#, "done", ""));
+        report
+            .steps
+            .push(step(router::SAY, r#"{"text":"ok"}"#, "done", ""));
+        report
+            .steps
+            .push(step("open_app", r#"{"name":"x"}"#, "failed", ""));
+        report
+            .steps
+            .push(step("compose_email", r#"{"to":"Ron"}"#, "", ""));
         apply_outcome(&scope, &mut report, ToolOutcome::ask("What time?", vec![]));
 
         assert_eq!(report.status, CommandStatus::NeedsAnswer);
         assert_eq!(report.question.as_deref(), Some("What time?"));
         let pending = state.take_answer(id).unwrap();
         assert_eq!(pending.question, "What time?");
-        assert_eq!(pending.followup.exchanges, vec![("Which Ron?".to_string(), "Weasley".to_string())]);
+        assert_eq!(
+            pending.followup.exchanges,
+            vec![("Which Ron?".to_string(), "Weasley".to_string())]
+        );
         assert_eq!(
             pending.followup.already_done,
             vec![
@@ -1216,9 +1562,18 @@ mod tests {
         let exchanges = (0..MAX_CLARIFICATIONS)
             .map(|i| (format!("q{i}"), format!("a{i}")))
             .collect();
-        let scope = scope(&state, &fake, Followup { exchanges, already_done: vec![] });
+        let scope = scope(
+            &state,
+            &fake,
+            Followup {
+                exchanges,
+                already_done: vec![],
+            },
+        );
         let mut report = CommandReport::new(id, CommandOrigin::Typed, "email Ron", false);
-        report.steps.push(step(router::ASK_USER, "{}", "asked", "Which Ron?"));
+        report
+            .steps
+            .push(step(router::ASK_USER, "{}", "asked", "Which Ron?"));
         ask(&scope, &mut report, "Which Ron?".into(), vec![]);
         assert_eq!(report.status, CommandStatus::Failed);
         assert_eq!(report.question, None);
@@ -1360,11 +1715,22 @@ mod tests {
             .collect();
         assert_eq!(
             results,
-            vec![(router::SAY, "done"), ("press_keys", "skipped"), ("type_text", "skipped")]
+            vec![
+                (router::SAY, "done"),
+                ("press_keys", "skipped"),
+                ("type_text", "skipped")
+            ]
         );
-        assert!(report.steps[1].detail.contains("step limit"), "{}", report.steps[1].detail);
+        assert!(
+            report.steps[1].detail.contains("step limit"),
+            "{}",
+            report.steps[1].detail
+        );
         assert_eq!(keys(&report), vec!["say", "planCapped"]);
-        assert_eq!(report.feedback[1].render_en(), "That was too many steps at once, so I left out the last 2.");
+        assert_eq!(
+            report.feedback[1].render_en(),
+            "That was too many steps at once, so I left out the last 2."
+        );
         assert!(fake.actions().is_empty());
     }
 
@@ -1395,5 +1761,135 @@ mod tests {
         assert_eq!(report.llm_calls, 2);
         assert_eq!(report.usage, spent);
         assert_eq!(keys(&report), vec!["routeFailed"]);
+    }
+
+    fn agent_tree() -> Arc<agent::testing::FakeTree> {
+        Arc::new(agent::testing::FakeTree::with(vec![
+            agent::testing::compose_window(),
+        ]))
+    }
+
+    /// A finished agent task is a done command: its steps, requests and
+    /// model join the report, and a tool failure that led there is cleared.
+    #[test]
+    fn an_agent_that_finishes_makes_the_command_done() {
+        use agent::testing::{answer, ScriptedLlm};
+        let fake = Arc::new(FakeEffects::default());
+        let state = CommandModeState::default();
+        let id = state.begin();
+        let scope = scope(&state, &fake, Followup::default());
+        let mut report = CommandReport::new(id, CommandOrigin::Typed, "email Ron", false);
+        report.model = "mock/router".into();
+        report.llm_calls = 1;
+        report.status = CommandStatus::NeedsComputerUse;
+        report.error = Some("no such app".into());
+        let llm = ScriptedLlm::new(vec![
+            answer(vec![("invoke", json!({"element": 3}))]),
+            answer(vec![("done", json!({"summary": "Made it bold."}))]),
+        ]);
+        let tree = agent_tree();
+        tauri::async_runtime::block_on(run_agent_into(
+            &scope,
+            &mut report,
+            "make it bold",
+            &llm,
+            tree.clone(),
+            &AtomicBool::new(false),
+        ));
+        assert_eq!(report.status, CommandStatus::Done);
+        assert_eq!(report.error, None);
+        assert_eq!(report.llm_calls, 3);
+        assert_eq!(report.model, "mock/router + mock/mock-agent");
+        assert_eq!(keys(&report), vec!["agentWorking", "agentDone"]);
+        assert_eq!(
+            report.feedback[0].render_en(),
+            "Working on it in chrome\u{2026}"
+        );
+        let tools: Vec<&str> = report.steps.iter().map(|s| s.tool.as_str()).collect();
+        assert_eq!(
+            tools,
+            vec!["agent:read_window", "agent:invoke", "agent:done"]
+        );
+        assert_eq!(tree.acted().len(), 1);
+    }
+
+    /// A Send the agent held waits like a tool's confirmation; saying yes
+    /// finds the button again by its label and presses it.
+    #[test]
+    fn a_held_agent_action_waits_and_runs_on_confirm() {
+        use agent::testing::{answer, ScriptedLlm};
+        let fake = Arc::new(FakeEffects::default());
+        let state = CommandModeState::default();
+        let id = state.begin();
+        let scope = scope(&state, &fake, Followup::default());
+        let mut report = CommandReport::new(id, CommandOrigin::Typed, "email Ron", false);
+        let llm = ScriptedLlm::new(vec![answer(vec![("invoke", json!({"element": 14}))])]);
+        let tree = agent_tree();
+        tauri::async_runtime::block_on(run_agent_into(
+            &scope,
+            &mut report,
+            "send it",
+            &llm,
+            tree.clone(),
+            &AtomicBool::new(false),
+        ));
+        assert_eq!(report.status, CommandStatus::AwaitingConfirmation);
+        assert!(report.pending_summary.as_deref().unwrap().contains("Send"));
+        assert!(tree.acted().is_empty());
+
+        let pending = state.take_confirmation(id).unwrap();
+        assert_eq!(pending.action.tool, agent::CONFIRM_TOOL);
+        let confirmed = tauri::async_runtime::block_on(confirm_taken_with(
+            &state,
+            pending,
+            true,
+            Instant::now(),
+            Some(tree.clone() as Arc<dyn agent::tree::AccessibilityTree>),
+        ));
+        assert_eq!(
+            confirmed.status,
+            CommandStatus::Done,
+            "{:?}",
+            confirmed.error
+        );
+        assert_eq!(keys(&confirmed), vec!["agentConfirmed"]);
+        assert_eq!(tree.acted(), vec![(14, agent::tree::UiAction::Invoke)]);
+    }
+
+    /// Esc during the agent leaves a cancelled command, not a failure.
+    #[test]
+    fn a_stopped_agent_cancels_the_command() {
+        use agent::testing::ScriptedLlm;
+        let fake = Arc::new(FakeEffects::default());
+        let state = CommandModeState::default();
+        let id = state.begin();
+        let scope = scope(&state, &fake, Followup::default());
+        let mut report = CommandReport::new(id, CommandOrigin::Typed, "x", false);
+        let llm = ScriptedLlm::new(vec![]);
+        tauri::async_runtime::block_on(run_agent_into(
+            &scope,
+            &mut report,
+            "x",
+            &llm,
+            agent_tree(),
+            &AtomicBool::new(true),
+        ));
+        assert_eq!(report.status, CommandStatus::Cancelled);
+        assert_eq!(keys(&report), vec!["agentWorkingNoApp", "agentCancelled"]);
+    }
+
+    /// With the switch off, an escalation still stops at "needs computer
+    /// use" and says how to turn the agent on.
+    #[test]
+    fn with_auto_escalate_off_an_escalation_stays_needs_computer_use() {
+        let mut settings = crate::settings::get_default_settings();
+        settings.command_auto_escalate = false;
+        assert!(!agent_enabled(&settings));
+        let feedback = computer_use_unavailable(&settings);
+        if agent::supported() {
+            assert_eq!(feedback.key, "commandMode.feedback.agentOff");
+        } else {
+            assert_eq!(feedback.key, "commandMode.feedback.needsComputerUse");
+        }
     }
 }

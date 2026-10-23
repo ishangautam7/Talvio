@@ -670,7 +670,12 @@ fn start_job(state: &AtomicU8) -> bool {
 /// started and now never will; false when it is already running.
 fn abandon_job(state: &AtomicU8) -> bool {
     state
-        .compare_exchange(JOB_PENDING, JOB_ABANDONED, Ordering::SeqCst, Ordering::SeqCst)
+        .compare_exchange(
+            JOB_PENDING,
+            JOB_ABANDONED,
+            Ordering::SeqCst,
+            Ordering::SeqCst,
+        )
         .is_ok()
 }
 
@@ -837,6 +842,9 @@ impl Effects for SystemEffects {
                     allow_trailing_space: false,
                     allow_auto_submit: false,
                     smart_spacing: None,
+                    // Command mode picks its window itself; never jump back to the
+                    // last dictation's target (a typed command would paste there).
+                    restore_target: false,
                 },
             )
         })
@@ -1176,7 +1184,10 @@ mod tests {
         let ids: Vec<i64> = entries.iter().map(|e| e.id).collect();
         assert_eq!(ids, vec![3, 1, 2]);
         front_first(&mut entries, Some(99));
-        assert_eq!(entries.iter().map(|e| e.id).collect::<Vec<_>>(), vec![3, 1, 2]);
+        assert_eq!(
+            entries.iter().map(|e| e.id).collect::<Vec<_>>(),
+            vec![3, 1, 2]
+        );
         front_first(&mut entries, None);
         assert_eq!(entries[0].id, 3);
     }

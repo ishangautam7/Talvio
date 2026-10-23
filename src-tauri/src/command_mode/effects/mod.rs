@@ -94,10 +94,44 @@ impl KeyCombo {
 /// Key names a [`KeyCombo`] may use besides a single letter or digit. The
 /// platform modules map each of these; `press_keys` validates against it.
 pub const KEY_NAMES: &[&str] = &[
-    "enter", "tab", "escape", "space", "backspace", "delete", "insert", "home", "end", "pageup",
-    "pagedown", "up", "down", "left", "right", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8",
-    "f9", "f10", "f11", "f12", "minus", "equal", "comma", "period", "slash", "backslash",
-    "semicolon", "quote", "bracketleft", "bracketright", "backquote",
+    "enter",
+    "tab",
+    "escape",
+    "space",
+    "backspace",
+    "delete",
+    "insert",
+    "home",
+    "end",
+    "pageup",
+    "pagedown",
+    "up",
+    "down",
+    "left",
+    "right",
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "f5",
+    "f6",
+    "f7",
+    "f8",
+    "f9",
+    "f10",
+    "f11",
+    "f12",
+    "minus",
+    "equal",
+    "comma",
+    "period",
+    "slash",
+    "backslash",
+    "semicolon",
+    "quote",
+    "bracketleft",
+    "bracketright",
+    "backquote",
 ];
 
 /// Whether `key` is a name a [`KeyCombo`] accepts.
@@ -280,10 +314,16 @@ impl<E: Effects> Effects for DryRunEffects<E> {
         self.record(format!("launch {} ({})", app.name, app.launch))
     }
     fn focus_window(&self, window: &WindowEntry) -> Result<(), String> {
-        self.record(format!("focus window \"{}\" ({})", window.title, window.app))
+        self.record(format!(
+            "focus window \"{}\" ({})",
+            window.title, window.app
+        ))
     }
     fn type_text(&self, text: &str) -> Result<(), String> {
-        self.record(format!("type {} characters: {text:?}", text.chars().count()))
+        self.record(format!(
+            "type {} characters: {text:?}",
+            text.chars().count()
+        ))
     }
     fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
         self.record(format!("press {}", combo.label()))

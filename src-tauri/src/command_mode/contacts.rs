@@ -229,8 +229,12 @@ mod tests {
 
     #[test]
     fn a_first_name_and_a_slight_mishearing_still_match() {
-        assert!(matches!(book().resolve("hermione"), ContactMatch::Unique(c) if c.name == "Hermione Granger"));
-        assert!(matches!(book().resolve("Hermoine"), ContactMatch::Unique(c) if c.name == "Hermione Granger"));
+        assert!(
+            matches!(book().resolve("hermione"), ContactMatch::Unique(c) if c.name == "Hermione Granger")
+        );
+        assert!(
+            matches!(book().resolve("Hermoine"), ContactMatch::Unique(c) if c.name == "Hermione Granger")
+        );
     }
 
     /// Two people the name fits equally well: ask, never guess.

@@ -18,8 +18,8 @@ use serde_json::Value;
 use specta::Type;
 use std::sync::Arc;
 
-use super::context::CommandContext;
 use super::contacts::ContactBook;
+use super::context::CommandContext;
 use super::effects::Effects;
 use super::llm::ToolDef;
 use crate::settings::AppSettings;

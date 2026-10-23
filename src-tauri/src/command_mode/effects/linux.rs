@@ -324,8 +324,11 @@ const SHELL_PROCESSES: &[&str] = &[
 /// else guessed from the owning process.
 fn is_shell_surface(id: i64, app: &str, has_xprop: bool) -> bool {
     let types = if has_xprop {
-        tool_output("xprop", &["-id", &format!("0x{id:x}"), "_NET_WM_WINDOW_TYPE"])
-            .map(|out| parse_window_types(&out))
+        tool_output(
+            "xprop",
+            &["-id", &format!("0x{id:x}"), "_NET_WM_WINDOW_TYPE"],
+        )
+        .map(|out| parse_window_types(&out))
     } else {
         None
     };
@@ -478,7 +481,12 @@ fn application_dirs_from(
                 .collect::<Vec<_>>()
         })
         .filter(|dirs| !dirs.is_empty())
-        .unwrap_or_else(|| vec![PathBuf::from("/usr/local/share"), PathBuf::from("/usr/share")]);
+        .unwrap_or_else(|| {
+            vec![
+                PathBuf::from("/usr/local/share"),
+                PathBuf::from("/usr/share"),
+            ]
+        });
 
     let mut dirs = Vec::new();
     if let Some(data_home) = &data_home {
@@ -536,12 +544,7 @@ fn scan_desktop_dirs(dirs: &[PathBuf]) -> Vec<DesktopApp> {
 /// `(desktop file id, path)` of every `*.desktop` file below `dir`, bounded by
 /// [`MAX_SCAN_DEPTH`] and [`MAX_SCAN_ENTRIES`]. Symlinked directories are not
 /// followed, so a loop cannot recurse forever; symlinked files are read.
-fn collect_desktop_files(
-    root: &Path,
-    dir: &Path,
-    depth: usize,
-    out: &mut Vec<(String, PathBuf)>,
-) {
+fn collect_desktop_files(root: &Path, dir: &Path, depth: usize, out: &mut Vec<(String, PathBuf)>) {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };
@@ -577,7 +580,9 @@ static APP_CACHE: Mutex<Option<(Instant, Vec<DesktopApp>)>> = Mutex::new(None);
 /// The installed apps, from the cache when it is younger than
 /// [`APP_CACHE_TTL`] and `refresh` is not set.
 fn desktop_apps(refresh: bool) -> Vec<DesktopApp> {
-    let mut cache = APP_CACHE.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let mut cache = APP_CACHE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
     if !refresh {
         if let Some((at, apps)) = cache.as_ref() {
             if at.elapsed() < APP_CACHE_TTL {
@@ -628,7 +633,9 @@ fn unescape_value(value: &str) -> String {
 /// launched by name with no file: `%f`/`%F`/`%u`/`%U` are the files or URLs to
 /// open, `%i` the icon, `%c` the name, `%k` the entry's path, and the rest are
 /// deprecated and must be dropped.
-const FIELD_CODES: &[char] = &['f', 'F', 'u', 'U', 'i', 'c', 'k', 'd', 'D', 'n', 'N', 'v', 'm'];
+const FIELD_CODES: &[char] = &[
+    'f', 'F', 'u', 'U', 'i', 'c', 'k', 'd', 'D', 'n', 'N', 'v', 'm',
+];
 
 /// An `Exec=` value as an argument vector, with field codes removed, or `None`
 /// when it is empty or has an unterminated quote.
@@ -894,7 +901,9 @@ impl SystemEffects {
         let state = self
             .app
             .try_state::<crate::input::EnigoState>()
-            .ok_or_else(|| "Keyboard control isn't ready yet. Try again in a moment.".to_string())?;
+            .ok_or_else(|| {
+                "Keyboard control isn't ready yet. Try again in a moment.".to_string()
+            })?;
         let mut enigo = state
             .0
             .lock()
@@ -1205,7 +1214,12 @@ fn start_job(state: &AtomicU8) -> bool {
 /// started and now never will; false when it is already running.
 fn abandon_job(state: &AtomicU8) -> bool {
     state
-        .compare_exchange(JOB_PENDING, JOB_ABANDONED, Ordering::SeqCst, Ordering::SeqCst)
+        .compare_exchange(
+            JOB_PENDING,
+            JOB_ABANDONED,
+            Ordering::SeqCst,
+            Ordering::SeqCst,
+        )
         .is_ok()
 }
 
@@ -1300,9 +1314,15 @@ impl Effects for SystemEffects {
             // same places and may still know it.
             None if on_path("gtk-launch") => match run_launcher("gtk-launch", &[&app.launch]) {
                 Launched::Yes | Launched::Pending => Ok(()),
-                Launched::No => Err(format!("{} doesn't seem to be installed any more.", app.name)),
+                Launched::No => Err(format!(
+                    "{} doesn't seem to be installed any more.",
+                    app.name
+                )),
             },
-            None => Err(format!("{} doesn't seem to be installed any more.", app.name)),
+            None => Err(format!(
+                "{} doesn't seem to be installed any more.",
+                app.name
+            )),
         }
     }
 
@@ -1352,6 +1372,9 @@ impl Effects for SystemEffects {
                         allow_trailing_space: false,
                         allow_auto_submit: false,
                         smart_spacing: None,
+                        // Command mode picks its window itself; never jump back to the
+                        // last dictation's target (a typed command would paste there).
+                        restore_target: false,
                     },
                 );
                 let _ = sent.send(result);
@@ -1525,7 +1548,10 @@ mod tests {
     fn localized_names_are_ignored() {
         let content = "[Desktop Entry]\nName[de]=Dateien\nName[fr]=Fichiers\nName=Files\n\
                        Type=Application\nExec=nautilus\n";
-        assert_eq!(parse_desktop_entry(content).map(|e| e.0), Some("Files".into()));
+        assert_eq!(
+            parse_desktop_entry(content).map(|e| e.0),
+            Some("Files".into())
+        );
         let only_localized = "[Desktop Entry]\nType=Application\nName[de]=Dateien\nExec=x\n";
         assert_eq!(parse_desktop_entry(only_localized), None);
     }
@@ -1570,8 +1596,14 @@ mod tests {
     /// knows the entry by.
     #[test]
     fn a_nested_entry_gets_a_dashed_desktop_file_id() {
-        assert_eq!(desktop_file_id(Path::new("firefox.desktop")), "firefox.desktop");
-        assert_eq!(desktop_file_id(Path::new("kde4/kate.desktop")), "kde4-kate.desktop");
+        assert_eq!(
+            desktop_file_id(Path::new("firefox.desktop")),
+            "firefox.desktop"
+        );
+        assert_eq!(
+            desktop_file_id(Path::new("kde4/kate.desktop")),
+            "kde4-kate.desktop"
+        );
     }
 
     /// The user's directory comes first so it can override a system entry,
@@ -1683,7 +1715,11 @@ mod tests {
         );
         assert_eq!(
             exec_argv("app --file=%f 100%%"),
-            Some(vec!["app".to_string(), "--file=".to_string(), "100%".to_string()])
+            Some(vec![
+                "app".to_string(),
+                "--file=".to_string(),
+                "100%".to_string()
+            ])
         );
     }
 
@@ -1789,11 +1825,20 @@ mod tests {
         };
         let mut windows = vec![window(1), window(2), window(3)];
         active_first(&mut windows, Some(3));
-        assert_eq!(windows.iter().map(|w| w.id).collect::<Vec<_>>(), vec![3, 1, 2]);
+        assert_eq!(
+            windows.iter().map(|w| w.id).collect::<Vec<_>>(),
+            vec![3, 1, 2]
+        );
         active_first(&mut windows, Some(99));
-        assert_eq!(windows.iter().map(|w| w.id).collect::<Vec<_>>(), vec![3, 1, 2]);
+        assert_eq!(
+            windows.iter().map(|w| w.id).collect::<Vec<_>>(),
+            vec![3, 1, 2]
+        );
         active_first(&mut windows, None);
-        assert_eq!(windows.iter().map(|w| w.id).collect::<Vec<_>>(), vec![3, 1, 2]);
+        assert_eq!(
+            windows.iter().map(|w| w.id).collect::<Vec<_>>(),
+            vec![3, 1, 2]
+        );
     }
 
     /// Raising the volume is capped at 100% by wpctl itself; lowering needs
@@ -1830,7 +1875,10 @@ mod tests {
         // at or under 100%.
         assert_eq!(pactl_step(true, 5, Some(65_200)), PactlStep::AtFull);
         assert_eq!(pactl_step(true, 5, Some(PA_VOLUME_NORM)), PactlStep::AtFull);
-        assert_eq!(pactl_step(true, 5, Some(percent_raw(150))), PactlStep::AtFull);
+        assert_eq!(
+            pactl_step(true, 5, Some(percent_raw(150))),
+            PactlStep::AtFull
+        );
         assert_eq!(pactl_step(true, 5, None), PactlStep::Unread);
         assert_eq!(pactl_step(false, 100, None), run("-100%"));
         assert_eq!(pactl_step(false, 5, Some(percent_raw(150))), run("-5%"));
@@ -1871,19 +1919,31 @@ mod tests {
         assert!(looks_like_shell_surface(Some(dock.as_slice()), "anything"));
         let desktop =
             parse_window_types("_NET_WM_WINDOW_TYPE(ATOM) = _NET_WM_WINDOW_TYPE_DESKTOP\n");
-        assert!(looks_like_shell_surface(Some(desktop.as_slice()), "nautilus"));
+        assert!(looks_like_shell_surface(
+            Some(desktop.as_slice()),
+            "nautilus"
+        ));
         // KDE puts its own type first; the first EWMH type is what counts.
         let kde = parse_window_types(
             "_NET_WM_WINDOW_TYPE(ATOM) = _KDE_NET_WM_WINDOW_TYPE_OVERRIDE, _NET_WM_WINDOW_TYPE_NORMAL\n",
         );
         assert_eq!(kde, ["NORMAL"]);
-        assert!(!looks_like_shell_surface(Some(kde.as_slice()), "plasmashell"));
+        assert!(!looks_like_shell_surface(
+            Some(kde.as_slice()),
+            "plasmashell"
+        ));
         let untyped = parse_window_types("_NET_WM_WINDOW_TYPE:  not found.\n");
         assert!(untyped.is_empty());
-        assert!(!looks_like_shell_surface(Some(untyped.as_slice()), "xfce4-panel"));
+        assert!(!looks_like_shell_surface(
+            Some(untyped.as_slice()),
+            "xfce4-panel"
+        ));
         for kind in ["DIALOG", "UTILITY"] {
             let line = format!("_NET_WM_WINDOW_TYPE(ATOM) = _NET_WM_WINDOW_TYPE_{kind}");
-            assert!(!looks_like_shell_surface(Some(parse_window_types(&line).as_slice()), ""));
+            assert!(!looks_like_shell_surface(
+                Some(parse_window_types(&line).as_slice()),
+                ""
+            ));
         }
     }
 
@@ -1909,7 +1969,10 @@ mod tests {
         assert!(ids.contains(&0x01e0_0003) && ids.contains(&0x0220_0001));
         assert_eq!(ids.len(), 2);
         assert_eq!(parse_client_list("_NET_CLIENT_LIST:  not found.\n"), None);
-        assert_eq!(parse_client_list("_NET_CLIENT_LIST(WINDOW): window id # \n"), None);
+        assert_eq!(
+            parse_client_list("_NET_CLIENT_LIST(WINDOW): window id # \n"),
+            None
+        );
     }
 
     /// A queued paste either runs while its caller still waits or never:

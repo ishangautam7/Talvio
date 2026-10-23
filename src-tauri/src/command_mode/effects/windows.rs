@@ -49,10 +49,10 @@ use windows::Win32::System::Threading::{
 use windows::Win32::UI::Input::KeyboardAndMouse::IsWindowEnabled;
 use windows::Win32::UI::WindowsAndMessaging::{
     EnumWindows, GetAncestor, GetForegroundWindow, GetLastActivePopup, GetWindow,
-    GetWindowLongPtrW, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId,
-    IsGUIThread, IsHungAppWindow, IsIconic, IsWindow, IsWindowVisible, SetForegroundWindow,
-    SetWindowPos, ShowWindowAsync, GA_ROOTOWNER, GWL_EXSTYLE, GW_OWNER, HWND_TOP,
-    SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_RESTORE, WS_EX_TOOLWINDOW,
+    GetWindowLongPtrW, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId, IsGUIThread,
+    IsHungAppWindow, IsIconic, IsWindow, IsWindowVisible, SetForegroundWindow, SetWindowPos,
+    ShowWindowAsync, GA_ROOTOWNER, GWL_EXSTYLE, GW_OWNER, HWND_TOP, SWP_ASYNCWINDOWPOS,
+    SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_RESTORE, WS_EX_TOOLWINDOW,
 };
 
 use super::{
@@ -90,9 +90,8 @@ const PASTE_WAIT: Duration = Duration::from_secs(10);
 /// How much longer a paste that has already started is waited for. It is
 /// bounded by the paste transaction's own restore timeout; the margin covers
 /// the keystroke and the clipboard work around it.
-const PASTE_FINISH_WAIT: Duration = Duration::from_secs(
-    crate::paste_tx::RESTORE_TIMEOUT.as_secs() + 2,
-);
+const PASTE_FINISH_WAIT: Duration =
+    Duration::from_secs(crate::paste_tx::RESTORE_TIMEOUT.as_secs() + 2);
 /// How long a focus change has to show up before it counts as refused.
 const FOCUS_SETTLE: Duration = Duration::from_millis(300);
 /// The same for a minimized window: its restore is posted, not waited for,
@@ -639,7 +638,12 @@ const PASTE_ABANDONED: u8 = 2;
 /// called it off. True means paste now.
 fn claim_paste(state: &AtomicU8) -> bool {
     state
-        .compare_exchange(PASTE_PENDING, PASTE_STARTED, Ordering::SeqCst, Ordering::SeqCst)
+        .compare_exchange(
+            PASTE_PENDING,
+            PASTE_STARTED,
+            Ordering::SeqCst,
+            Ordering::SeqCst,
+        )
         .is_ok()
 }
 
@@ -647,7 +651,12 @@ fn claim_paste(state: &AtomicU8) -> bool {
 /// now never will; false means it is already under way.
 fn abandon_paste(state: &AtomicU8) -> bool {
     state
-        .compare_exchange(PASTE_PENDING, PASTE_ABANDONED, Ordering::SeqCst, Ordering::SeqCst)
+        .compare_exchange(
+            PASTE_PENDING,
+            PASTE_ABANDONED,
+            Ordering::SeqCst,
+            Ordering::SeqCst,
+        )
         .is_ok()
 }
 
@@ -1035,7 +1044,10 @@ impl Effects for SystemEffects {
             };
             if landed_on(handle_id(hwnd), handle_id(foreground), handle_id(root)) {
                 if foreground != hwnd {
-                    debug!("The switch to window {} landed on a dialog it owns", window.id);
+                    debug!(
+                        "The switch to window {} landed on a dialog it owns",
+                        window.id
+                    );
                 }
                 return Ok(());
             }
@@ -1095,6 +1107,9 @@ impl Effects for SystemEffects {
                             allow_trailing_space: false,
                             allow_auto_submit: false,
                             smart_spacing: None,
+                            // Command mode picks its window itself; never jump back to the
+                            // last dictation's target (a typed command would paste there).
+                            restore_target: false,
                         },
                     ) {
                         Ok(()) => Typed::Done,
@@ -1115,18 +1130,20 @@ impl Effects for SystemEffects {
             }
             Err(mpsc::RecvTimeoutError::Timeout) => {
                 if abandon_paste(&state) {
-                    warn!("The main thread did not take up a command's paste in time; called it off");
-                    return Err("Typing that took too long to start, so I didn't type anything."
-                        .to_string());
+                    warn!(
+                        "The main thread did not take up a command's paste in time; called it off"
+                    );
+                    return Err(
+                        "Typing that took too long to start, so I didn't type anything."
+                            .to_string(),
+                    );
                 }
                 match received.recv_timeout(PASTE_FINISH_WAIT) {
                     Ok(typed) => typed,
                     Err(_) => {
                         warn!("A command's paste started but did not finish in time");
-                        return Err(
-                            "Typing that took too long. It may still have gone through."
-                                .to_string(),
-                        );
+                        return Err("Typing that took too long. It may still have gone through."
+                            .to_string());
                     }
                 }
             }
@@ -1270,8 +1287,14 @@ mod tests {
     /// its title is the app's name.
     #[test]
     fn a_store_app_window_is_named_by_its_title() {
-        assert_eq!(app_label("ApplicationFrameHost", "Calculator"), "Calculator");
-        assert_eq!(app_label("ApplicationFrameHost", "  "), "ApplicationFrameHost");
+        assert_eq!(
+            app_label("ApplicationFrameHost", "Calculator"),
+            "Calculator"
+        );
+        assert_eq!(
+            app_label("ApplicationFrameHost", "  "),
+            "ApplicationFrameHost"
+        );
         assert_eq!(app_label("chrome", "Inbox - Gmail"), "chrome");
     }
 
@@ -1304,7 +1327,8 @@ mod tests {
             "shell:AppsFolder\\Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"
         );
 
-        let one = r#"{"Name":"Calculator","AppID":"Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"}"#;
+        let one =
+            r#"{"Name":"Calculator","AppID":"Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"}"#;
         let apps = parse_start_apps(one);
         assert_eq!(apps.len(), 1);
         assert_eq!(apps[0].name, "Calculator");
@@ -1318,7 +1342,8 @@ mod tests {
         assert!(parse_start_apps("  \r\n").is_empty());
         assert!(parse_start_apps("not json").is_empty());
         assert!(parse_start_apps("[]").is_empty());
-        let with_bom = "\u{feff}[{\"Name\":\"Paint\",\"AppID\":\"Microsoft.Paint_8wekyb3d8bbwe!App\"}]\r\n";
+        let with_bom =
+            "\u{feff}[{\"Name\":\"Paint\",\"AppID\":\"Microsoft.Paint_8wekyb3d8bbwe!App\"}]\r\n";
         assert_eq!(parse_start_apps(with_bom).len(), 1);
     }
 
@@ -1335,12 +1360,18 @@ mod tests {
     #[test]
     fn start_menu_helpers_and_non_shortcuts_are_not_apps() {
         let name = |p: &str| shortcut_app_name(Path::new(p));
-        assert_eq!(name(r"C:\Start Menu\Programs\Spotify.lnk").as_deref(), Some("Spotify"));
+        assert_eq!(
+            name(r"C:\Start Menu\Programs\Spotify.lnk").as_deref(),
+            Some("Spotify")
+        );
         assert_eq!(
             name(r"C:\Start Menu\Programs\Visual Studio Code\Visual Studio Code.LNK").as_deref(),
             Some("Visual Studio Code")
         );
-        assert_eq!(name(r"C:\Start Menu\Programs\7-Zip\Uninstall 7-Zip.lnk"), None);
+        assert_eq!(
+            name(r"C:\Start Menu\Programs\7-Zip\Uninstall 7-Zip.lnk"),
+            None
+        );
         assert_eq!(name(r"C:\Start Menu\Programs\Foo\Foo Readme.lnk"), None);
         assert_eq!(name(r"C:\Start Menu\Programs\Foo\Foo Help.lnk"), None);
         assert_eq!(name(r"C:\Start Menu\Programs\Foo\Foo Website.lnk"), None);
@@ -1462,14 +1493,24 @@ mod tests {
         assert!(store_apps_read(parse_start_apps("")).is_none());
         assert!(store_apps_read(parse_start_apps("not json")).is_none());
         assert!(store_apps_read(parse_start_apps("[]")).is_none());
-        let one = r#"{"Name":"Calculator","AppID":"Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"}"#;
-        assert_eq!(store_apps_read(parse_start_apps(one)).map(|apps| apps.len()), Some(1));
+        let one =
+            r#"{"Name":"Calculator","AppID":"Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"}"#;
+        assert_eq!(
+            store_apps_read(parse_start_apps(one)).map(|apps| apps.len()),
+            Some(1)
+        );
     }
 
     #[test]
     fn a_store_launch_string_is_told_apart_from_a_path() {
-        assert_eq!(apps_folder_id("shell:AppsFolder\\Calc!App"), Some("Calc!App"));
-        assert_eq!(apps_folder_id("SHELL:appsfolder\\Calc!App"), Some("Calc!App"));
+        assert_eq!(
+            apps_folder_id("shell:AppsFolder\\Calc!App"),
+            Some("Calc!App")
+        );
+        assert_eq!(
+            apps_folder_id("SHELL:appsfolder\\Calc!App"),
+            Some("Calc!App")
+        );
         assert_eq!(apps_folder_id("shell:AppsFolder\\"), None);
         assert_eq!(apps_folder_id(r"C:\Programs\Spotify.lnk"), None);
         assert_eq!(apps_folder_id("shell"), None);
