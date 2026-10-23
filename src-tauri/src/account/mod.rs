@@ -10,6 +10,8 @@
 //!   [`discovery`]: where the server is; the only source of its address.
 //! - [`socket`]: the connection that carries the device list and the phone's
 //!   requests.
+//! - [`secrets_sync`]: "Sync API keys", the user's provider keys shared by
+//!   every computer signed in to the account.
 //! - [`remote`]: what this computer does with those requests, and the
 //!   extension point for new kinds of them. [`approval`]: the popup that asks
 //!   whether a phone may use this computer.
@@ -23,6 +25,7 @@ pub(crate) mod approval;
 mod discovery;
 mod google;
 mod remote;
+mod secrets_sync;
 mod socket;
 
 #[cfg(test)]
@@ -140,12 +143,14 @@ pub fn init(app: &AppHandle) {
         inner: Mutex::default(),
     });
     app.manage(manager.clone());
+    secrets_sync::init(app);
     std::thread::spawn(move || {
         manager.discover();
         if let Some(session) = load_session() {
             info!("Resuming the account session");
             manager.begin(session);
             manager.emit();
+            secrets_sync::sync_now();
         }
     });
 }
@@ -582,6 +587,7 @@ impl AccountManager {
         }
         info!("Signed in to the account server");
         self.emit();
+        secrets_sync::sync_now();
         Ok(self.status())
     }
 
@@ -879,6 +885,20 @@ pub fn set_remote_input_enabled(app: AppHandle, enabled: bool) -> Result<(), Str
     settings.remote_input_enabled = enabled;
     write_settings(&app, settings);
     manager(&app).emit();
+    Ok(())
+}
+
+/// Settings → Account → Sync API keys. Turning it on syncs at once; turning
+/// it off stops syncing and leaves every key on this computer.
+#[tauri::command]
+#[specta::specta]
+pub fn set_account_sync_secrets(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.account_sync_secrets = enabled;
+    write_settings(&app, settings);
+    if enabled {
+        secrets_sync::sync_now();
+    }
     Ok(())
 }
 

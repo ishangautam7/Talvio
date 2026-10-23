@@ -2034,6 +2034,11 @@ pub struct AppSettings {
     /// dictate or type into this computer.
     #[serde(default = "default_true")]
     pub remote_input_enabled: bool,
+    /// "Sync API keys": provider keys added on this computer are kept in the
+    /// user's account and arrive on their other signed-in computers
+    /// (`account/secrets_sync.rs`). Only while signed in.
+    #[serde(default = "default_true")]
+    pub account_sync_secrets: bool,
     /// The account's phones (device ids) this computer's user allowed to
     /// dictate and type here. Cleared when the computer signs out; ids that
     /// leave the account are dropped.
@@ -4642,6 +4647,7 @@ pub fn get_default_settings() -> AppSettings {
         account_server_url: String::new(),
         account_discovered_server: String::new(),
         remote_input_enabled: true,
+        account_sync_secrets: true,
         account_approved_devices: Vec::new(),
         command_mode_enabled: false,
         command_router_provider_id: default_command_router_provider_id(),
