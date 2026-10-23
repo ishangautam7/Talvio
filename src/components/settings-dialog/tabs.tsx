@@ -76,6 +76,7 @@ import { LogLevelSelector } from "@/components/settings/debug/LogLevelSelector";
 import { WordCorrectionThreshold } from "@/components/settings/debug/WordCorrectionThreshold";
 import { PasteDelay } from "@/components/settings/debug/PasteDelay";
 import { RecordingBuffer } from "@/components/settings/debug/RecordingBuffer";
+import { CommandModeTester } from "@/components/settings/debug/CommandModeTester";
 import { ClamshellMicrophoneSelector } from "@/components/settings/ClamshellMicrophoneSelector";
 
 /**
@@ -484,6 +485,12 @@ export const DebugTab: React.FC = () => {
         <PasteDelay descriptionMode="tooltip" grouped={true} />
         <RecordingBuffer descriptionMode="tooltip" grouped={true} />
         <ClamshellMicrophoneSelector descriptionMode="tooltip" grouped={true} />
+      </SettingsGroup>
+      <SettingsGroup
+        title={t("settings.debug.commandMode.title")}
+        description={t("settings.debug.commandMode.description")}
+      >
+        <CommandModeTester />
       </SettingsGroup>
     </>
   );

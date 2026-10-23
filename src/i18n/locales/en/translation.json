@@ -1503,6 +1503,83 @@
       "recordingBuffer": {
         "title": "Extra recording buffer",
         "description": "Milliseconds to keep recording after you release the key."
+      },
+      "commandMode": {
+        "title": "Command mode",
+        "description": "Type a command to see which tool the router picks and what it does. The hotkey comes in a later version.",
+        "enabled": {
+          "title": "Command mode",
+          "description": "Lets commands act in your apps. Needed for --run-command; this box works either way."
+        },
+        "input": {
+          "title": "Try a command",
+          "description": "Sends the text to the router model as if you had said it. With Dry run on, nothing happens on screen: you see what would have.",
+          "placeholder": "Send an email to Ron about a meeting at 9:00"
+        },
+        "dryRun": {
+          "label": "Dry run"
+        },
+        "dryRunSetting": {
+          "title": "Dry run by default",
+          "description": "Commands show what they would do instead of doing it. The box above and --dry-run can still choose for one command."
+        },
+        "delay": {
+          "label": "Run after {{seconds}} seconds",
+          "hint": "Typing and key presses go to the window in front, which is this one when you press Run. Turn on the delay and click into the app you want, or use Dry run.",
+          "countdown": "Running in {{seconds}} s. Click into the app the command is for.",
+          "cancel": "Cancel ({{seconds}})"
+        },
+        "run": "Run",
+        "running": "Running…",
+        "invokeFailed": "The command could not be sent: {{error}}",
+        "status": {
+          "done": "Done",
+          "awaiting_confirmation": "Waiting for confirmation",
+          "needs_answer": "Needs an answer",
+          "needs_computer_use": "Needs computer use",
+          "cancelled": "Cancelled",
+          "failed": "Failed"
+        },
+        "dryRunBadge": "Dry run",
+        "fromCli": "From the command line",
+        "meta": "{{model}} · {{calls}} LLM call(s) · tokens {{input}} in, {{output}} out, {{cached}} cached · {{ms}} ms",
+        "transcript": "Command: {{text}}",
+        "send": "Send",
+        "cancel": "Cancel",
+        "answer": {
+          "placeholder": "Your answer",
+          "submit": "Answer"
+        },
+        "escalation": "Task for computer use: {{task}}",
+        "error": "Error: {{error}}",
+        "steps": "Steps",
+        "dryRunActions": "Would have done",
+        "provider": {
+          "title": "Router provider",
+          "description": "The provider id that picks the tool for each command (for example anthropic or openrouter). It uses the API key already saved for that provider. Empty goes back to anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Router model",
+          "description": "The model that picks the tool. Small and fast is best: every command costs one call. Empty goes back to the default.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google account",
+          "description": "The account Gmail and Calendar open in (an email address or an account number). Empty uses the browser's default Google account.",
+          "placeholder": "Default account"
+        },
+        "searchUrl": {
+          "title": "Search page",
+          "description": "The page a web search opens. It must contain {query}, which is replaced with what you asked for; anything else goes back to Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Contacts",
+          "description": "The names commands can email, in a JSON file you edit. It is created with one example the first time.",
+          "open": "Open contacts file",
+          "openFailed": "Could not open the contacts file: {{error}}"
+        }
       }
     },
     "about": {
@@ -3684,5 +3761,54 @@
     "saveFailingTitle": "Settings aren't being saved",
     "saveFailingDescription": "Your recent changes haven't been saved yet. Zynveliq will keep trying.",
     "dismiss": "Dismiss"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "Calendar event “{{title}}” is ready to save.",
+      "calendarDraftMissingGuests": "Calendar event “{{title}}” is ready to save. I left out {{guests}}: I don't have an email address for them, so add them in the form.",
+      "cancelled": "Cancelled. Nothing was sent.",
+      "confirmExpired": "That waited too long, so I didn't do it. Ask me again.",
+      "confirmFailed": "That can no longer be done.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} is in your contacts, but has no email address or phone number saved.",
+      "contactNotFound": "I don't have a contact called {{name}}.",
+      "emailDraft": "Draft to {{name}} is open. Say send or cancel.",
+      "emailDraftTruncated": "Draft to {{name}} is open. The message was too long to pass to Gmail, so it was cut short; check the end before sending. Say send or cancel.",
+      "emailSent": "Sent to {{name}}.",
+      "empty": "I didn't catch a command.",
+      "failed": "{{reason}}",
+      "mediaNext": "Skipped to the next track.",
+      "mediaPlayPause": "Play/pause pressed.",
+      "mediaPrevious": "Back to the previous track.",
+      "mediaStop": "Stopped playback.",
+      "needsComputerUse": "None of my tools can do that yet. Controlling the screen for it comes in a later version.",
+      "notConfigured": "Command mode isn't set up: {{why}}",
+      "nothingWaitingAnswer": "Nothing is waiting for an answer.",
+      "nothingWaitingConfirmation": "Nothing is waiting for confirmation.",
+      "openedInstead": "{{app}} wasn't open, so I opened it.",
+      "openingApp": "Opening {{app}}.",
+      "openingFile": "Opening {{file}}.",
+      "planCapped": "That was too many steps at once, so I left out the last {{count}}.",
+      "pressKeysConfirm": "{{keys}} could send or submit something in {{window}}. Say yes to press it, or cancel.",
+      "pressedKeys": "Pressed {{keys}}.",
+      "pressedKeysRepeat": "Pressed {{keys}} {{count}} times.",
+      "question": "{{question}}",
+      "routeFailed": "I couldn't work out what to do: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Searching for {{query}}.",
+      "superseded": "A newer command replaced this one, so it isn't waiting any more.",
+      "switchedTo": "Switched to {{title}}.",
+      "tooManyQuestions": "I still couldn't work out what to do. Try saying it differently.",
+      "typedText": "Typed it.",
+      "unsupported": "That isn't possible on {{os}}.",
+      "urlOpened": "Opened {{site}}.",
+      "volumeDown": "Turned the volume down.",
+      "volumeMute": "Sound muted.",
+      "volumeSet": "Volume set to {{percent}}%.",
+      "volumeUnmute": "Sound back on.",
+      "volumeUp": "Turned the volume up.",
+      "waitingForAnswer": "That command is waiting for an answer, not a confirmation.",
+      "waitingForConfirmation": "That command is waiting for you to confirm, not for an answer."
+    }
   }
 }

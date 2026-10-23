@@ -1512,6 +1512,83 @@
       "recordingBuffer": {
         "title": "Búfer de grabación adicional",
         "description": "Milisegundos que sigue grabando después de soltar la tecla."
+      },
+      "commandMode": {
+        "title": "Modo comando",
+        "description": "Escribe un comando para ver qué herramienta elige el enrutador y qué hace. El atajo llegará en una versión posterior.",
+        "enabled": {
+          "title": "Modo comando",
+          "description": "Permite que los comandos actúen en tus aplicaciones. Necesario para --run-command; este cuadro funciona de todos modos."
+        },
+        "input": {
+          "title": "Prueba un comando",
+          "description": "Envía el texto al modelo enrutador como si lo hubieras dicho. Con la simulación activada, no pasa nada en pantalla: ves lo que habría pasado.",
+          "placeholder": "Envía un correo a Ron sobre una reunión a las 9:00"
+        },
+        "dryRun": {
+          "label": "Simulación"
+        },
+        "dryRunSetting": {
+          "title": "Simulación por defecto",
+          "description": "Los comandos muestran lo que harían en lugar de hacerlo. El cuadro de arriba y --dry-run aún pueden decidirlo para un solo comando."
+        },
+        "delay": {
+          "label": "Ejecutar tras {{seconds}} segundos",
+          "hint": "Lo que se escribe y las teclas pulsadas van a la ventana activa, que es esta cuando pulsas Ejecutar. Activa el retraso y haz clic en la aplicación que quieras, o usa la simulación.",
+          "countdown": "Se ejecuta en {{seconds}} s. Haz clic en la aplicación a la que va el comando.",
+          "cancel": "Cancelar ({{seconds}})"
+        },
+        "run": "Ejecutar",
+        "running": "Ejecutando…",
+        "invokeFailed": "No se pudo enviar el comando: {{error}}",
+        "status": {
+          "done": "Hecho",
+          "awaiting_confirmation": "Esperando confirmación",
+          "needs_answer": "Necesita una respuesta",
+          "needs_computer_use": "Necesita controlar el equipo",
+          "cancelled": "Cancelado",
+          "failed": "Falló"
+        },
+        "dryRunBadge": "Simulación",
+        "fromCli": "Desde la línea de comandos",
+        "meta": "{{model}} · {{calls}} llamada(s) al LLM · tokens: {{input}} de entrada, {{output}} de salida, {{cached}} en caché · {{ms}} ms",
+        "transcript": "Comando: {{text}}",
+        "send": "Enviar",
+        "cancel": "Cancelar",
+        "answer": {
+          "placeholder": "Tu respuesta",
+          "submit": "Responder"
+        },
+        "escalation": "Tarea para controlar el equipo: {{task}}",
+        "error": "Error: {{error}}",
+        "steps": "Pasos",
+        "dryRunActions": "Habría hecho",
+        "provider": {
+          "title": "Proveedor del enrutador",
+          "description": "El id del proveedor que elige la herramienta para cada comando (por ejemplo anthropic u openrouter). Usa la clave API ya guardada para ese proveedor. Vacío vuelve a anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Modelo enrutador",
+          "description": "El modelo que elige la herramienta. Mejor uno pequeño y rápido: cada comando cuesta una llamada. Vacío vuelve al predeterminado.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Cuenta de Google",
+          "description": "La cuenta en la que se abren Gmail y Calendar (una dirección de correo o un número de cuenta). Vacío usa la cuenta de Google predeterminada del navegador.",
+          "placeholder": "Cuenta predeterminada"
+        },
+        "searchUrl": {
+          "title": "Página de búsqueda",
+          "description": "La página que abre una búsqueda web. Debe contener {query}, que se sustituye por lo que pediste; cualquier otra cosa vuelve a Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Contactos",
+          "description": "Los nombres a los que los comandos pueden enviar correos, en un archivo JSON que editas tú. Se crea con un ejemplo la primera vez.",
+          "open": "Abrir archivo de contactos",
+          "openFailed": "No se pudo abrir el archivo de contactos: {{error}}"
+        }
       }
     },
     "about": {
@@ -3738,5 +3815,54 @@
     "saveFailingTitle": "La configuración no se está guardando",
     "saveFailingDescription": "Tus cambios recientes aún no se han guardado. Zynveliq seguirá intentándolo.",
     "dismiss": "Descartar"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "El evento «{{title}}» está listo para guardar.",
+      "calendarDraftMissingGuests": "El evento «{{title}}» está listo para guardar. No incluí a {{guests}}: no tengo su dirección de correo, así que añádelos en el formulario.",
+      "cancelled": "Cancelado. No se envió nada.",
+      "confirmExpired": "Pasó demasiado tiempo, así que no lo hice. Pídemelo otra vez.",
+      "confirmFailed": "Eso ya no se puede hacer.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} está en tus contactos, pero no tiene guardado ningún correo ni teléfono.",
+      "contactNotFound": "No tengo ningún contacto llamado {{name}}.",
+      "emailDraft": "El borrador para {{name}} está abierto. Di enviar o cancelar.",
+      "emailDraftTruncated": "El borrador para {{name}} está abierto. El mensaje era demasiado largo para pasarlo a Gmail, así que se recortó; revisa el final antes de enviarlo. Di enviar o cancelar.",
+      "emailSent": "Enviado a {{name}}.",
+      "empty": "No entendí ningún comando.",
+      "failed": "{{reason}}",
+      "mediaNext": "Pasé a la siguiente pista.",
+      "mediaPlayPause": "Reproducir/pausa pulsado.",
+      "mediaPrevious": "Volví a la pista anterior.",
+      "mediaStop": "Reproducción detenida.",
+      "needsComputerUse": "Ninguna de mis herramientas puede hacer eso todavía. Controlar la pantalla para ello llegará en una versión posterior.",
+      "notConfigured": "El modo comando no está configurado: {{why}}",
+      "nothingWaitingAnswer": "No hay nada esperando una respuesta.",
+      "nothingWaitingConfirmation": "No hay nada esperando confirmación.",
+      "openedInstead": "{{app}} no estaba abierto, así que lo abrí.",
+      "openingApp": "Abriendo {{app}}.",
+      "openingFile": "Abriendo {{file}}.",
+      "planCapped": "Eran demasiados pasos a la vez, así que dejé fuera los últimos {{count}}.",
+      "pressKeysConfirm": "{{keys}} podría enviar algo en {{window}}. Di sí para pulsarlo, o cancelar.",
+      "pressedKeys": "Pulsé {{keys}}.",
+      "pressedKeysRepeat": "Pulsé {{keys}} {{count}} veces.",
+      "question": "{{question}}",
+      "routeFailed": "No supe qué hacer: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Buscando {{query}}.",
+      "superseded": "Un comando más reciente sustituyó a este, así que ya no está esperando.",
+      "switchedTo": "Cambié a {{title}}.",
+      "tooManyQuestions": "Sigo sin saber qué hacer. Prueba a decirlo de otra forma.",
+      "typedText": "Escrito.",
+      "unsupported": "Eso no es posible en {{os}}.",
+      "urlOpened": "Abrí {{site}}.",
+      "volumeDown": "Bajé el volumen.",
+      "volumeMute": "Sonido silenciado.",
+      "volumeSet": "Volumen al {{percent}}%.",
+      "volumeUnmute": "Sonido activado de nuevo.",
+      "volumeUp": "Subí el volumen.",
+      "waitingForAnswer": "Ese comando espera una respuesta, no una confirmación.",
+      "waitingForConfirmation": "Ese comando espera que lo confirmes, no una respuesta."
+    }
   }
 }

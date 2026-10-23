@@ -1503,6 +1503,83 @@
       "recordingBuffer": {
         "title": "Zusätzlicher Aufnahmepuffer",
         "description": "Millisekunden, die nach dem Loslassen der Taste weiter aufgenommen wird."
+      },
+      "commandMode": {
+        "title": "Befehlsmodus",
+        "description": "Gib einen Befehl ein, um zu sehen, welches Werkzeug der Router wählt und was es tut. Das Tastenkürzel kommt in einer späteren Version.",
+        "enabled": {
+          "title": "Befehlsmodus",
+          "description": "Erlaubt Befehlen, in deinen Apps zu handeln. Nötig für --run-command; dieses Feld funktioniert so oder so."
+        },
+        "input": {
+          "title": "Befehl ausprobieren",
+          "description": "Sendet den Text an das Router-Modell, als hättest du ihn gesagt. Mit Probelauf passiert auf dem Bildschirm nichts: Du siehst, was passiert wäre.",
+          "placeholder": "Schick Ron eine E-Mail wegen eines Meetings um 9:00"
+        },
+        "dryRun": {
+          "label": "Probelauf"
+        },
+        "dryRunSetting": {
+          "title": "Standardmäßig Probelauf",
+          "description": "Befehle zeigen, was sie tun würden, statt es zu tun. Das Feld oben und --dry-run können für einen einzelnen Befehl trotzdem anders entscheiden."
+        },
+        "delay": {
+          "label": "Nach {{seconds}} Sekunden ausführen",
+          "hint": "Getippter Text und Tastendrücke gehen an das Fenster im Vordergrund, also an dieses, wenn du auf Ausführen klickst. Schalte die Verzögerung ein und klicke in die gewünschte App, oder nutze den Probelauf.",
+          "countdown": "Ausführung in {{seconds}} s. Klicke in die App, für die der Befehl ist.",
+          "cancel": "Abbrechen ({{seconds}})"
+        },
+        "run": "Ausführen",
+        "running": "Wird ausgeführt…",
+        "invokeFailed": "Der Befehl konnte nicht gesendet werden: {{error}}",
+        "status": {
+          "done": "Fertig",
+          "awaiting_confirmation": "Wartet auf Bestätigung",
+          "needs_answer": "Braucht eine Antwort",
+          "needs_computer_use": "Braucht Computersteuerung",
+          "cancelled": "Abgebrochen",
+          "failed": "Fehlgeschlagen"
+        },
+        "dryRunBadge": "Probelauf",
+        "fromCli": "Von der Befehlszeile",
+        "meta": "{{model}} · {{calls}} LLM-Aufruf(e) · Tokens {{input}} ein, {{output}} aus, {{cached}} im Cache · {{ms}} ms",
+        "transcript": "Befehl: {{text}}",
+        "send": "Senden",
+        "cancel": "Abbrechen",
+        "answer": {
+          "placeholder": "Deine Antwort",
+          "submit": "Antworten"
+        },
+        "escalation": "Aufgabe für die Computersteuerung: {{task}}",
+        "error": "Fehler: {{error}}",
+        "steps": "Schritte",
+        "dryRunActions": "Hätte getan",
+        "provider": {
+          "title": "Router-Anbieter",
+          "description": "Die Anbieter-ID, die für jeden Befehl das Werkzeug wählt (zum Beispiel anthropic oder openrouter). Sie nutzt den API-Schlüssel, der für diesen Anbieter bereits gespeichert ist. Leer bedeutet anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Router-Modell",
+          "description": "Das Modell, das das Werkzeug wählt. Klein und schnell ist am besten: Jeder Befehl kostet einen Aufruf. Leer bedeutet Standard.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google-Konto",
+          "description": "Das Konto, in dem Gmail und Kalender geöffnet werden (eine E-Mail-Adresse oder eine Kontonummer). Leer nutzt das Standard-Google-Konto des Browsers.",
+          "placeholder": "Standardkonto"
+        },
+        "searchUrl": {
+          "title": "Suchseite",
+          "description": "Die Seite, die eine Websuche öffnet. Sie muss {query} enthalten, das durch deine Suchanfrage ersetzt wird; alles andere führt zurück zu Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kontakte",
+          "description": "Die Namen, denen Befehle E-Mails schicken können, in einer JSON-Datei, die du bearbeitest. Sie wird beim ersten Mal mit einem Beispiel angelegt.",
+          "open": "Kontaktdatei öffnen",
+          "openFailed": "Die Kontaktdatei konnte nicht geöffnet werden: {{error}}"
+        }
       }
     },
     "about": {
@@ -3684,5 +3761,54 @@
     "saveFailingTitle": "Einstellungen werden nicht gespeichert",
     "saveFailingDescription": "Deine letzten Änderungen sind noch nicht gespeichert. Zynveliq versucht es weiter.",
     "dismiss": "Schließen"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "Kalendertermin „{{title}}“ ist bereit zum Speichern.",
+      "calendarDraftMissingGuests": "Kalendertermin „{{title}}“ ist bereit zum Speichern. {{guests}} habe ich weggelassen: Ich habe keine E-Mail-Adresse dafür, also füge sie im Formular hinzu.",
+      "cancelled": "Abgebrochen. Es wurde nichts gesendet.",
+      "confirmExpired": "Das hat zu lange gewartet, deshalb habe ich es nicht getan. Frag mich noch einmal.",
+      "confirmFailed": "Das geht nicht mehr.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} ist in deinen Kontakten, hat aber keine E-Mail-Adresse oder Telefonnummer gespeichert.",
+      "contactNotFound": "Ich habe keinen Kontakt namens {{name}}.",
+      "emailDraft": "Entwurf an {{name}} ist offen. Sag „Senden“ oder „Abbrechen“.",
+      "emailDraftTruncated": "Entwurf an {{name}} ist offen. Die Nachricht war zu lang für Gmail und wurde gekürzt; prüfe das Ende vor dem Senden. Sag „Senden“ oder „Abbrechen“.",
+      "emailSent": "An {{name}} gesendet.",
+      "empty": "Ich habe keinen Befehl verstanden.",
+      "failed": "{{reason}}",
+      "mediaNext": "Zum nächsten Titel gesprungen.",
+      "mediaPlayPause": "Wiedergabe/Pause gedrückt.",
+      "mediaPrevious": "Zurück zum vorherigen Titel.",
+      "mediaStop": "Wiedergabe gestoppt.",
+      "needsComputerUse": "Keines meiner Werkzeuge kann das bisher. Die Bildschirmsteuerung dafür kommt in einer späteren Version.",
+      "notConfigured": "Der Befehlsmodus ist nicht eingerichtet: {{why}}",
+      "nothingWaitingAnswer": "Nichts wartet auf eine Antwort.",
+      "nothingWaitingConfirmation": "Nichts wartet auf eine Bestätigung.",
+      "openedInstead": "{{app}} war nicht offen, also habe ich es geöffnet.",
+      "openingApp": "{{app}} wird geöffnet.",
+      "openingFile": "{{file}} wird geöffnet.",
+      "planCapped": "Das waren zu viele Schritte auf einmal, deshalb habe ich die letzten {{count}} weggelassen.",
+      "pressKeysConfirm": "{{keys}} könnte in {{window}} etwas senden oder abschicken. Sag „Ja“, um es zu drücken, oder „Abbrechen“.",
+      "pressedKeys": "{{keys}} gedrückt.",
+      "pressedKeysRepeat": "{{keys}} {{count}}-mal gedrückt.",
+      "question": "{{question}}",
+      "routeFailed": "Ich konnte nicht herausfinden, was zu tun ist: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Suche nach {{query}}.",
+      "superseded": "Ein neuerer Befehl hat diesen ersetzt, deshalb wartet er nicht mehr.",
+      "switchedTo": "Zu {{title}} gewechselt.",
+      "tooManyQuestions": "Ich weiß immer noch nicht, was zu tun ist. Versuch es anders zu formulieren.",
+      "typedText": "Eingetippt.",
+      "unsupported": "Das ist unter {{os}} nicht möglich.",
+      "urlOpened": "{{site}} geöffnet.",
+      "volumeDown": "Lautstärke verringert.",
+      "volumeMute": "Ton stummgeschaltet.",
+      "volumeSet": "Lautstärke auf {{percent}} % gesetzt.",
+      "volumeUnmute": "Ton wieder an.",
+      "volumeUp": "Lautstärke erhöht.",
+      "waitingForAnswer": "Dieser Befehl wartet auf eine Antwort, nicht auf eine Bestätigung.",
+      "waitingForConfirmation": "Dieser Befehl wartet auf deine Bestätigung, nicht auf eine Antwort."
+    }
   }
 }

@@ -1503,6 +1503,83 @@
       "recordingBuffer": {
         "title": "Ek kayıt tamponu",
         "description": "Tuşu bıraktıktan sonra kaydın sürdürüleceği milisaniye."
+      },
+      "commandMode": {
+        "title": "Komut modu",
+        "description": "Yönlendiricinin hangi aracı seçtiğini ve ne yaptığını görmek için bir komut yazın. Kısayol sonraki bir sürümde gelecek.",
+        "enabled": {
+          "title": "Komut modu",
+          "description": "Komutların uygulamalarınızda işlem yapmasına izin verir. --run-command için gereklidir; bu kutu her iki durumda da çalışır."
+        },
+        "input": {
+          "title": "Bir komut deneyin",
+          "description": "Metni, siz söylemişsiniz gibi yönlendirici modele gönderir. Deneme çalıştırması açıkken ekranda hiçbir şey olmaz: ne olacağını görürsünüz.",
+          "placeholder": "Ron'a saat 9:00'daki toplantı hakkında e-posta gönder"
+        },
+        "dryRun": {
+          "label": "Deneme çalıştırması"
+        },
+        "dryRunSetting": {
+          "title": "Varsayılan olarak deneme çalıştırması",
+          "description": "Komutlar yapacaklarını yapmak yerine gösterir. Yukarıdaki kutu ve --dry-run tek bir komut için yine de seçim yapabilir."
+        },
+        "delay": {
+          "label": "{{seconds}} saniye sonra çalıştır",
+          "hint": "Yazma ve tuş basışları öndeki pencereye gider; Çalıştır'a bastığınızda bu, bu penceredir. Gecikmeyi açıp istediğiniz uygulamaya tıklayın ya da deneme çalıştırmasını kullanın.",
+          "countdown": "{{seconds}} sn içinde çalışacak. Komutun hedefi olan uygulamaya tıklayın.",
+          "cancel": "İptal ({{seconds}})"
+        },
+        "run": "Çalıştır",
+        "running": "Çalışıyor…",
+        "invokeFailed": "Komut gönderilemedi: {{error}}",
+        "status": {
+          "done": "Tamamlandı",
+          "awaiting_confirmation": "Onay bekleniyor",
+          "needs_answer": "Yanıt gerekiyor",
+          "needs_computer_use": "Bilgisayar kullanımı gerekiyor",
+          "cancelled": "İptal edildi",
+          "failed": "Başarısız"
+        },
+        "dryRunBadge": "Deneme çalıştırması",
+        "fromCli": "Komut satırından",
+        "meta": "{{model}} · {{calls}} LLM çağrısı · token: {{input}} giriş, {{output}} çıkış, {{cached}} önbellekte · {{ms}} ms",
+        "transcript": "Komut: {{text}}",
+        "send": "Gönder",
+        "cancel": "İptal",
+        "answer": {
+          "placeholder": "Yanıtınız",
+          "submit": "Yanıtla"
+        },
+        "escalation": "Bilgisayar kullanımı görevi: {{task}}",
+        "error": "Hata: {{error}}",
+        "steps": "Adımlar",
+        "dryRunActions": "Yapılacak olanlar",
+        "provider": {
+          "title": "Yönlendirici sağlayıcısı",
+          "description": "Her komut için aracı seçen sağlayıcının kimliği (örneğin anthropic veya openrouter). O sağlayıcı için zaten kayıtlı API anahtarını kullanır. Boş bırakılırsa anthropic kullanılır.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Yönlendirici modeli",
+          "description": "Aracı seçen model. Küçük ve hızlı olanı en iyisidir: her komut bir çağrıya mal olur. Boş bırakılırsa varsayılan kullanılır.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google hesabı",
+          "description": "Gmail ve Takvim'in açılacağı hesap (bir e-posta adresi veya hesap numarası). Boş bırakılırsa tarayıcının varsayılan Google hesabı kullanılır.",
+          "placeholder": "Varsayılan hesap"
+        },
+        "searchUrl": {
+          "title": "Arama sayfası",
+          "description": "Web aramasının açtığı sayfa. İstediğiniz şeyle değiştirilen {query} ifadesini içermelidir; aksi halde Google kullanılır.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kişiler",
+          "description": "Komutların e-posta gönderebileceği adlar, düzenlediğiniz bir JSON dosyasındadır. İlk seferde tek bir örnekle oluşturulur.",
+          "open": "Kişiler dosyasını aç",
+          "openFailed": "Kişiler dosyası açılamadı: {{error}}"
+        }
       }
     },
     "about": {
@@ -3684,5 +3761,54 @@
     "saveFailingTitle": "Ayarlar kaydedilmiyor",
     "saveFailingDescription": "Son değişiklikleriniz henüz kaydedilmedi. Zynveliq denemeye devam edecek.",
     "dismiss": "Kapat"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "“{{title}}” takvim etkinliği kaydedilmeye hazır.",
+      "calendarDraftMissingGuests": "“{{title}}” takvim etkinliği kaydedilmeye hazır. {{guests}} eklenmedi: e-posta adresleri bende yok, bu yüzden onları formda ekleyin.",
+      "cancelled": "İptal edildi. Hiçbir şey gönderilmedi.",
+      "confirmExpired": "Çok uzun süre bekledi, bu yüzden yapmadım. Tekrar isteyin.",
+      "confirmFailed": "Bu artık yapılamıyor.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} kişilerinizde var, ancak kayıtlı bir e-posta adresi veya telefon numarası yok.",
+      "contactNotFound": "{{name}} adında bir kişi bulamadım.",
+      "emailDraft": "{{name}} için taslak açık. Gönder ya da iptal deyin.",
+      "emailDraftTruncated": "{{name}} için taslak açık. İleti Gmail'e aktarmak için çok uzundu, bu yüzden kısaltıldı; göndermeden önce sonunu kontrol edin. Gönder ya da iptal deyin.",
+      "emailSent": "{{name}} kişisine gönderildi.",
+      "empty": "Bir komut anlayamadım.",
+      "failed": "{{reason}}",
+      "mediaNext": "Sonraki parçaya geçildi.",
+      "mediaPlayPause": "Oynat/duraklat tuşuna basıldı.",
+      "mediaPrevious": "Önceki parçaya dönüldü.",
+      "mediaStop": "Oynatma durduruldu.",
+      "needsComputerUse": "Araçlarımın hiçbiri bunu henüz yapamıyor. Bunun için ekranı kontrol etme özelliği sonraki bir sürümde gelecek.",
+      "notConfigured": "Komut modu ayarlanmamış: {{why}}",
+      "nothingWaitingAnswer": "Yanıt bekleyen bir şey yok.",
+      "nothingWaitingConfirmation": "Onay bekleyen bir şey yok.",
+      "openedInstead": "{{app}} açık değildi, bu yüzden açtım.",
+      "openingApp": "{{app}} açılıyor.",
+      "openingFile": "{{file}} açılıyor.",
+      "planCapped": "Tek seferde çok fazla adım vardı, bu yüzden son {{count}} adımı atladım.",
+      "pressKeysConfirm": "{{keys}}, {{window}} içinde bir şey gönderebilir veya iletebilir. Basmam için evet deyin ya da iptal edin.",
+      "pressedKeys": "{{keys}} tuşlarına basıldı.",
+      "pressedKeysRepeat": "{{keys}} tuşlarına {{count}} kez basıldı.",
+      "question": "{{question}}",
+      "routeFailed": "Ne yapacağımı çıkaramadım: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "{{query}} aranıyor.",
+      "superseded": "Daha yeni bir komut bunun yerini aldı, bu yüzden artık beklemiyor.",
+      "switchedTo": "{{title}} penceresine geçildi.",
+      "tooManyQuestions": "Hâlâ ne yapacağımı çıkaramadım. Farklı bir şekilde söylemeyi deneyin.",
+      "typedText": "Yazıldı.",
+      "unsupported": "Bu, {{os}} üzerinde mümkün değil.",
+      "urlOpened": "{{site}} açıldı.",
+      "volumeDown": "Ses düzeyi azaltıldı.",
+      "volumeMute": "Ses kapatıldı.",
+      "volumeSet": "Ses düzeyi %{{percent}} olarak ayarlandı.",
+      "volumeUnmute": "Ses yeniden açıldı.",
+      "volumeUp": "Ses düzeyi artırıldı.",
+      "waitingForAnswer": "Bu komut onay değil, yanıt bekliyor.",
+      "waitingForConfirmation": "Bu komut yanıt değil, onaylamanızı bekliyor."
+    }
   }
 }

@@ -1494,6 +1494,83 @@
       "recordingBuffer": {
         "title": "額外錄音緩衝",
         "description": "放開按鍵後繼續錄音的毫秒數。"
+      },
+      "commandMode": {
+        "title": "指令模式",
+        "description": "輸入指令，查看路由器選擇哪個工具，以及它會做什麼。快捷鍵將在之後的版本推出。",
+        "enabled": {
+          "title": "指令模式",
+          "description": "讓指令在您的應用程式中執行動作。--run-command 需要開啟此選項；下方的輸入框則不受影響。"
+        },
+        "input": {
+          "title": "試用指令",
+          "description": "將文字傳送給路由模型，就像您親口說出一樣。開啟「試運行」時，畫面上不會發生任何事，只會顯示原本會執行的動作。",
+          "placeholder": "寄一封電子郵件給 Ron，關於 9:00 的會議"
+        },
+        "dryRun": {
+          "label": "試運行"
+        },
+        "dryRunSetting": {
+          "title": "預設為試運行",
+          "description": "指令只顯示會執行的動作，而不實際執行。上方的輸入框與 --dry-run 仍可針對單一指令選擇。"
+        },
+        "delay": {
+          "label": "{{seconds}} 秒後執行",
+          "hint": "輸入的文字與按鍵會送到最前方的視窗，也就是您按下「執行」時的這個視窗。請開啟延遲並點進目標應用程式，或使用試運行。",
+          "countdown": "將在 {{seconds}} 秒後執行。請點進指令要操作的應用程式。",
+          "cancel": "取消（{{seconds}}）"
+        },
+        "run": "執行",
+        "running": "執行中…",
+        "invokeFailed": "無法傳送指令：{{error}}",
+        "status": {
+          "done": "完成",
+          "awaiting_confirmation": "等待確認",
+          "needs_answer": "需要回答",
+          "needs_computer_use": "需要電腦操作",
+          "cancelled": "已取消",
+          "failed": "失敗"
+        },
+        "dryRunBadge": "試運行",
+        "fromCli": "來自命令列",
+        "meta": "{{model}} · {{calls}} 次 LLM 呼叫 · token 輸入 {{input}}、輸出 {{output}}、快取 {{cached}} · {{ms}} ms",
+        "transcript": "指令：{{text}}",
+        "send": "傳送",
+        "cancel": "取消",
+        "answer": {
+          "placeholder": "您的回答",
+          "submit": "回答"
+        },
+        "escalation": "交由電腦操作的任務：{{task}}",
+        "error": "錯誤：{{error}}",
+        "steps": "步驟",
+        "dryRunActions": "原本會執行",
+        "provider": {
+          "title": "路由供應商",
+          "description": "為每個指令選擇工具的供應商 ID（例如 anthropic 或 openrouter）。會使用該供應商已儲存的 API 金鑰。留空則改回 anthropic。",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "路由模型",
+          "description": "負責選擇工具的模型。小而快的最好：每個指令都會呼叫一次。留空則改回預設值。",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google 帳戶",
+          "description": "Gmail 與 Calendar 開啟時使用的帳戶（電子郵件地址或帳戶編號）。留空則使用瀏覽器預設的 Google 帳戶。",
+          "placeholder": "預設帳戶"
+        },
+        "searchUrl": {
+          "title": "搜尋頁面",
+          "description": "網頁搜尋開啟的頁面。必須包含 {query}，它會被替換成您要搜尋的內容；否則會改回 Google。",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "聯絡人",
+          "description": "指令可以寄送電子郵件的對象名稱，存放在您可編輯的 JSON 檔案中。第一次會建立並附上一個範例。",
+          "open": "開啟聯絡人檔案",
+          "openFailed": "無法開啟聯絡人檔案：{{error}}"
+        }
       }
     },
     "about": {
@@ -3630,5 +3707,54 @@
     "saveFailingTitle": "設定未能儲存",
     "saveFailingDescription": "最近的變更尚未儲存。Zynveliq 會繼續嘗試。",
     "dismiss": "關閉"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "行事曆活動「{{title}}」已可儲存。",
+      "calendarDraftMissingGuests": "行事曆活動「{{title}}」已可儲存。我沒有加入 {{guests}}，因為我沒有他們的電子郵件地址，請在表單中自行新增。",
+      "cancelled": "已取消，沒有傳送任何內容。",
+      "confirmExpired": "等待時間太長，所以我沒有執行。請再告訴我一次。",
+      "confirmFailed": "這項動作已無法執行。",
+      "contactFound": "{{name}}：{{details}}。",
+      "contactNoDetails": "{{name}} 在您的聯絡人中，但沒有儲存電子郵件地址或電話號碼。",
+      "contactNotFound": "我找不到名為 {{name}} 的聯絡人。",
+      "emailDraft": "給 {{name}} 的草稿已開啟。請說「傳送」或「取消」。",
+      "emailDraftTruncated": "給 {{name}} 的草稿已開啟。訊息太長，無法完整傳給 Gmail，因此被截短了；傳送前請檢查結尾。請說「傳送」或「取消」。",
+      "emailSent": "已傳送給 {{name}}。",
+      "empty": "我沒有聽到指令。",
+      "failed": "{{reason}}",
+      "mediaNext": "已跳到下一首。",
+      "mediaPlayPause": "已按下播放／暫停。",
+      "mediaPrevious": "已回到上一首。",
+      "mediaStop": "已停止播放。",
+      "needsComputerUse": "我目前的工具都還做不到這件事。操控畫面來完成它的功能將在之後的版本推出。",
+      "notConfigured": "指令模式尚未設定：{{why}}",
+      "nothingWaitingAnswer": "目前沒有等待回答的項目。",
+      "nothingWaitingConfirmation": "目前沒有等待確認的項目。",
+      "openedInstead": "{{app}} 尚未開啟，所以我把它打開了。",
+      "openingApp": "正在開啟 {{app}}。",
+      "openingFile": "正在開啟 {{file}}。",
+      "planCapped": "一次的步驟太多，所以我略過了最後 {{count}} 個。",
+      "pressKeysConfirm": "{{keys}} 可能會在 {{window}} 中傳送或提交內容。請說「是」來按下，或說「取消」。",
+      "pressedKeys": "已按下 {{keys}}。",
+      "pressedKeysRepeat": "已按下 {{keys}} {{count}} 次。",
+      "question": "{{question}}",
+      "routeFailed": "我無法判斷該怎麼做：{{why}}",
+      "say": "{{text}}",
+      "searchOpened": "正在搜尋 {{query}}。",
+      "superseded": "較新的指令取代了這個指令，所以它不再等待。",
+      "switchedTo": "已切換到 {{title}}。",
+      "tooManyQuestions": "我還是無法判斷該怎麼做。請換個說法試試。",
+      "typedText": "已輸入。",
+      "unsupported": "在 {{os}} 上無法這麼做。",
+      "urlOpened": "已開啟 {{site}}。",
+      "volumeDown": "已調低音量。",
+      "volumeMute": "已靜音。",
+      "volumeSet": "音量已設為 {{percent}}%。",
+      "volumeUnmute": "已恢復聲音。",
+      "volumeUp": "已調高音量。",
+      "waitingForAnswer": "這個指令正在等待回答，而不是確認。",
+      "waitingForConfirmation": "這個指令正在等待您確認，而不是回答。"
+    }
   }
 }

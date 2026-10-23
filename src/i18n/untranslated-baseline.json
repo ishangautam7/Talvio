@@ -2,6 +2,10 @@
   "ar": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "onboarding.cleanup.cardTitle",
       "onboarding.models.breeze-asr.name",
@@ -42,6 +46,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -72,6 +79,10 @@
   "bg": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "modelSelector.downloadSpeed",
       "onboarding.cleanup.cardTitle",
@@ -112,6 +123,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -143,6 +157,10 @@
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
       "assistantPage.features.appearance.title",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "home.stats.duration.minutes",
       "home.stats.none",
@@ -198,6 +216,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.cloud.model.title",
       "settings.dictation.flow.phrasePlaceholder",
@@ -242,6 +263,10 @@
       "assistantPage.cards.profiles.more",
       "assistantPage.features.appearance.title",
       "cleanup.styles.form.name",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "feedback.aboutRow.title",
       "feedback.screenshots.preview",
@@ -316,6 +341,9 @@
       "settings.assistant.webSearch.depthOptions.medium",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.debug.logLevel.levels.debug",
       "settings.debug.logLevel.levels.info",
       "settings.debug.logLevel.levels.trace",
@@ -378,6 +406,10 @@
       "assistantPage.cards.profiles.more",
       "assistantPage.features.appearance.title",
       "assistantPage.groups.personal",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "common.no",
       "feedback.kind.idea",
@@ -428,6 +460,10 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.error",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.debug.logLevel.levels.error",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.cloud.endpoint.title",
@@ -492,6 +528,9 @@
       "catalog.inUse.assistant",
       "catalog.useFor.assistant",
       "cleanup.styles.form.instruction",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.pause",
       "feedback.kind.bug",
       "feedback.kind.question",
@@ -575,6 +614,10 @@
       "settings.assistant.webSearch.depthOptions.medium",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.contacts.title",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.debug.logLevel.levels.info",
       "settings.debug.logLevel.levels.trace",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
@@ -639,6 +682,10 @@
   "he": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "modelSelector.downloadSpeed",
       "onboarding.cleanup.cardTitle",
@@ -680,6 +727,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.history.filters.flow",
       "settings.history.flowLabel",
@@ -709,6 +759,10 @@
   "it": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "common.no",
       "feedback.aboutRow.title",
@@ -779,6 +833,9 @@
       "settings.assistant.webSearch.depthOptions.medium",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.debug.logLevel.levels.debug",
       "settings.debug.logLevel.levels.info",
       "settings.debug.logLevel.levels.trace",
@@ -827,6 +884,9 @@
   "ja": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "home.stats.wpm",
       "modelSelector.downloadSpeed",
@@ -868,6 +928,9 @@
       "settings.assistant.tts.packSize",
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -893,11 +956,17 @@
       "voiceEngines.names.supertonic",
       "voiceEngines.names.xai"
     ],
-    "englishFromOtherKey": ["onboarding.tour.ask.examples.translate.answer"]
+    "englishFromOtherKey": [
+      "onboarding.tour.ask.examples.translate.answer"
+    ]
   },
   "ko": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "home.stats.wpm",
       "modelSelector.downloadSpeed",
@@ -940,6 +1009,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -971,6 +1043,10 @@
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
       "assistantPage.features.appearance.title",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "home.stats.duration.minutes",
       "home.stats.none",
@@ -1019,6 +1095,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.cloud.model.title",
       "settings.dictation.flow.phrasePlaceholder",
@@ -1061,6 +1140,10 @@
       "assistant.conversation.sensitivities.normal",
       "assistant.tool.elapsed",
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "feedback.aboutRow.title",
       "feedback.kind.bug",
@@ -1116,6 +1199,9 @@
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.exa",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.debug.logLevel.levels.info",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.cloud.endpoint.title",
@@ -1158,6 +1244,10 @@
   "ru": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "onboarding.cleanup.cardTitle",
       "onboarding.models.breeze-asr.name",
@@ -1198,6 +1288,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -1231,6 +1324,10 @@
       "assistant.conversation.sensitivities.normal",
       "assistantPage.cards.profiles.more",
       "assistantPage.features.appearance.title",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "feedback.aboutRow.title",
       "home.stats.duration.minutes",
@@ -1289,6 +1386,9 @@
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.exa",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.debug.logLevel.levels.info",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
@@ -1336,6 +1436,10 @@
       "assistant.conversation.sensitivities.normal",
       "assistantPage.cards.profiles.more",
       "assistantPage.features.appearance.title",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "home.stats.none",
       "modelSelector.downloadSpeed",
@@ -1383,6 +1487,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.cloud.model.title",
       "settings.dictation.flow.phrasePlaceholder",
@@ -1416,11 +1523,17 @@
       "voiceEngines.names.supertonic",
       "voiceEngines.names.xai"
     ],
-    "englishFromOtherKey": ["settings.models.customModel.resultCount_other"]
+    "englishFromOtherKey": [
+      "settings.models.customModel.resultCount_other"
+    ]
   },
   "uk": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "home.stats.none",
       "onboarding.cleanup.cardTitle",
       "onboarding.models.breeze-asr.name",
@@ -1460,6 +1573,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -1490,6 +1606,10 @@
   "vi": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.contactFound",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "home.stats.none",
       "modelSelector.downloadSpeed",
@@ -1533,6 +1653,9 @@
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
       "settings.assistant.webSearch.providers.serpapi",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.cloud.endpoint.title",
       "settings.dictation.flow.phrasePlaceholder",
@@ -1564,11 +1687,16 @@
       "voiceEngines.names.supertonic",
       "voiceEngines.names.xai"
     ],
-    "englishFromOtherKey": ["onboarding.tour.ask.examples.translate.answer"]
+    "englishFromOtherKey": [
+      "onboarding.tour.ask.examples.translate.answer"
+    ]
   },
   "zh": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "home.stats.none",
       "modelSelector.downloadSpeed",
@@ -1609,6 +1737,9 @@
       "settings.assistant.tts.packSize",
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -1634,11 +1765,16 @@
       "voiceEngines.names.supertonic",
       "voiceEngines.names.xai"
     ],
-    "englishFromOtherKey": ["onboarding.tour.ask.examples.translate.answer"]
+    "englishFromOtherKey": [
+      "onboarding.tour.ask.examples.translate.answer"
+    ]
   },
   "zh-TW": {
     "sameAsEnglish": [
       "assistantPage.cards.profiles.more",
+      "commandMode.feedback.failed",
+      "commandMode.feedback.question",
+      "commandMode.feedback.say",
       "common.beta",
       "home.stats.none",
       "modelSelector.downloadSpeed",
@@ -1679,6 +1815,9 @@
       "settings.assistant.tts.packSize",
       "settings.assistant.tts.speedValue",
       "settings.assistant.webSearch.providers.brave",
+      "settings.debug.commandMode.model.placeholder",
+      "settings.debug.commandMode.provider.placeholder",
+      "settings.debug.commandMode.searchUrl.placeholder",
       "settings.dictation.cloud.endpoint.azurePlaceholder",
       "settings.dictation.flow.phrasePlaceholder",
       "settings.history.filters.flow",
@@ -1704,6 +1843,8 @@
       "voiceEngines.names.supertonic",
       "voiceEngines.names.xai"
     ],
-    "englishFromOtherKey": ["onboarding.tour.ask.examples.translate.answer"]
+    "englishFromOtherKey": [
+      "onboarding.tour.ask.examples.translate.answer"
+    ]
   }
 }

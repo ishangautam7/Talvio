@@ -1494,6 +1494,83 @@
       "recordingBuffer": {
         "title": "追加録音バッファ",
         "description": "キーを離してから録音を続けるミリ秒数。"
+      },
+      "commandMode": {
+        "title": "コマンドモード",
+        "description": "コマンドを入力すると、ルーターが選ぶツールとその動作を確認できます。ホットキーは今後のバージョンで対応します。",
+        "enabled": {
+          "title": "コマンドモード",
+          "description": "コマンドがアプリ内で操作できるようにします。--run-command に必要です。この入力欄はどちらの場合も使えます。"
+        },
+        "input": {
+          "title": "コマンドを試す",
+          "description": "話したときと同じように、テキストをルーターモデルに送信します。ドライランがオンの場合、画面上では何も起こらず、実行される内容だけが表示されます。",
+          "placeholder": "9:00の会議についてRonにメールを送って"
+        },
+        "dryRun": {
+          "label": "ドライラン"
+        },
+        "dryRunSetting": {
+          "title": "既定でドライラン",
+          "description": "コマンドを実行せず、実行される内容を表示します。上の入力欄と --dry-run では、コマンドごとに選べます。"
+        },
+        "delay": {
+          "label": "{{seconds}} 秒後に実行",
+          "hint": "入力やキー操作は最前面のウィンドウに送られます。「実行」を押したときは、このウィンドウです。遅延をオンにして対象のアプリをクリックするか、ドライランを使ってください。",
+          "countdown": "{{seconds}} 秒後に実行します。コマンドの対象のアプリをクリックしてください。",
+          "cancel": "キャンセル（{{seconds}}）"
+        },
+        "run": "実行",
+        "running": "実行中…",
+        "invokeFailed": "コマンドを送信できませんでした: {{error}}",
+        "status": {
+          "done": "完了",
+          "awaiting_confirmation": "確認待ち",
+          "needs_answer": "回答が必要",
+          "needs_computer_use": "コンピューター操作が必要",
+          "cancelled": "キャンセル済み",
+          "failed": "失敗"
+        },
+        "dryRunBadge": "ドライラン",
+        "fromCli": "コマンドラインから",
+        "meta": "{{model}} · LLM呼び出し {{calls}} 回 · トークン 入力 {{input}}、出力 {{output}}、キャッシュ {{cached}} · {{ms}} ms",
+        "transcript": "コマンド: {{text}}",
+        "send": "送信",
+        "cancel": "キャンセル",
+        "answer": {
+          "placeholder": "回答",
+          "submit": "回答する"
+        },
+        "escalation": "コンピューター操作のタスク: {{task}}",
+        "error": "エラー: {{error}}",
+        "steps": "ステップ",
+        "dryRunActions": "実行される内容",
+        "provider": {
+          "title": "ルーターのプロバイダー",
+          "description": "各コマンドのツールを選ぶプロバイダーのID（例: anthropic、openrouter）。そのプロバイダーに保存済みのAPIキーを使います。空欄の場合は anthropic に戻ります。",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "ルーターのモデル",
+          "description": "ツールを選ぶモデル。コマンドごとに1回呼び出すため、小さく速いモデルが最適です。空欄の場合は既定に戻ります。",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google アカウント",
+          "description": "Gmail とカレンダーを開くアカウント（メールアドレスまたはアカウント番号）。空欄の場合はブラウザの既定の Google アカウントを使います。",
+          "placeholder": "既定のアカウント"
+        },
+        "searchUrl": {
+          "title": "検索ページ",
+          "description": "ウェブ検索で開くページ。{query} を含める必要があり、そこが検索内容に置き換わります。それ以外の場合は Google に戻ります。",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "連絡先",
+          "description": "コマンドでメールを送れる相手の名前。編集できる JSON ファイルに保存されます。初回は例が1件入った状態で作成されます。",
+          "open": "連絡先ファイルを開く",
+          "openFailed": "連絡先ファイルを開けませんでした: {{error}}"
+        }
       }
     },
     "about": {
@@ -3630,5 +3707,54 @@
     "saveFailingTitle": "設定を保存できていません",
     "saveFailingDescription": "最近の変更はまだ保存されていません。Zynveliq は保存を試み続けます。",
     "dismiss": "閉じる"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "カレンダーの予定「{{title}}」を保存できる状態にしました。",
+      "calendarDraftMissingGuests": "カレンダーの予定「{{title}}」を保存できる状態にしました。{{guests}} はメールアドレスがわからないので入れていません。フォームで追加してください。",
+      "cancelled": "キャンセルしました。何も送信していません。",
+      "confirmExpired": "時間が経ちすぎたので実行しませんでした。もう一度お願いしてください。",
+      "confirmFailed": "それはもう実行できません。",
+      "contactFound": "{{name}}: {{details}}。",
+      "contactNoDetails": "{{name}} は連絡先にありますが、メールアドレスも電話番号も保存されていません。",
+      "contactNotFound": "{{name}} という連絡先は見つかりません。",
+      "emailDraft": "{{name}} 宛ての下書きを開きました。「送信」か「キャンセル」と言ってください。",
+      "emailDraftTruncated": "{{name}} 宛ての下書きを開きました。メッセージが長すぎて Gmail に渡しきれなかったため、途中で切れています。送信する前に末尾を確認してください。「送信」か「キャンセル」と言ってください。",
+      "emailSent": "{{name}} に送信しました。",
+      "empty": "コマンドを聞き取れませんでした。",
+      "failed": "{{reason}}",
+      "mediaNext": "次の曲にスキップしました。",
+      "mediaPlayPause": "再生/一時停止を押しました。",
+      "mediaPrevious": "前の曲に戻りました。",
+      "mediaStop": "再生を停止しました。",
+      "needsComputerUse": "それができるツールはまだありません。画面を操作して行う機能は今後のバージョンで対応します。",
+      "notConfigured": "コマンドモードが設定されていません: {{why}}",
+      "nothingWaitingAnswer": "回答を待っているものはありません。",
+      "nothingWaitingConfirmation": "確認を待っているものはありません。",
+      "openedInstead": "{{app}} が開いていなかったので、起動しました。",
+      "openingApp": "{{app}} を開いています。",
+      "openingFile": "{{file}} を開いています。",
+      "planCapped": "一度に実行するにはステップが多すぎたので、最後の {{count}} 件は省きました。",
+      "pressKeysConfirm": "{{keys}} を押すと、{{window}} で何かが送信される可能性があります。押す場合は「はい」、やめる場合は「キャンセル」と言ってください。",
+      "pressedKeys": "{{keys}} を押しました。",
+      "pressedKeysRepeat": "{{keys}} を {{count}} 回押しました。",
+      "question": "{{question}}",
+      "routeFailed": "何をすればいいかわかりませんでした: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "{{query}} を検索しています。",
+      "superseded": "新しいコマンドに置き換えられたため、このコマンドはもう待機していません。",
+      "switchedTo": "{{title}} に切り替えました。",
+      "tooManyQuestions": "やはり何をすればいいかわかりませんでした。別の言い方で試してください。",
+      "typedText": "入力しました。",
+      "unsupported": "{{os}} ではそれはできません。",
+      "urlOpened": "{{site}} を開きました。",
+      "volumeDown": "音量を下げました。",
+      "volumeMute": "ミュートしました。",
+      "volumeSet": "音量を {{percent}}% にしました。",
+      "volumeUnmute": "ミュートを解除しました。",
+      "volumeUp": "音量を上げました。",
+      "waitingForAnswer": "このコマンドは確認ではなく、回答を待っています。",
+      "waitingForConfirmation": "このコマンドは回答ではなく、確認を待っています。"
+    }
   }
 }
