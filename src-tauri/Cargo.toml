@@ -273,6 +273,10 @@ windows = { version = "0.61.3", features = [
   # text of the field just dictated into so a word the user fixes by hand can be
   # learned. Read-only, and only for the field the app itself pasted into.
   "Win32_UI_Accessibility",
+  # Command mode's UI Automation reader reads cached VARIANT properties
+  # (GetCachedPropertyValue); tao enables this too, but we should not
+  # depend on that.
+  "Win32_System_Ole",
   # Smart spacing (see smart_spacing/windows.rs): the foreground process's
   # executable name, so a terminal is recognised and never read.
   "Win32_System_Threading",
