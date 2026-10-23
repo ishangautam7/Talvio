@@ -220,14 +220,31 @@ pub(crate) fn usable(settings: &AppSettings, provider_id: &str) -> bool {
 /// with `command_agent_model` (a stronger model than the router's, since it
 /// plans over many steps). An empty agent model means the default.
 pub fn agent_llm_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError> {
-    let model = settings.command_agent_model.trim();
-    let model = if model.is_empty() {
-        crate::settings::DEFAULT_COMMAND_AGENT_MODEL
-    } else {
-        model
-    };
-    let (provider_id, model) = effective(settings, model);
+    let (provider_id, model) = agent_choice(settings);
     llm_for(settings, &provider_id, &model)
+}
+
+/// The provider and model the agent runs on. The default agent model is an
+/// Anthropic id, which means nothing to any other provider: on Azure it was
+/// asked for as a deployment that does not exist (HTTP 404
+/// `DeploymentNotFound`), so every command that fell through to the agent
+/// failed. Off Anthropic, an unset or default agent model therefore means the
+/// router's own model, which that provider is known to serve.
+pub(crate) fn agent_choice(settings: &AppSettings) -> (String, String) {
+    let configured = settings.command_agent_model.trim();
+    let default = crate::settings::DEFAULT_COMMAND_AGENT_MODEL;
+    let wanted = if configured.is_empty() {
+        default
+    } else {
+        configured
+    };
+    let (provider_id, model) = effective(settings, wanted);
+    if provider_id == "anthropic" || (wanted != default && model == wanted) {
+        return (provider_id, model);
+    }
+    // Not Anthropic, and the agent model is the Anthropic default (or the
+    // assistant's model already replaced it): run on the router's model.
+    effective(settings, settings.command_router_model.trim())
 }
 
 /// [`router_for`] and [`agent_llm_for`] with the model already chosen.
@@ -281,4 +298,49 @@ fn llm_for(
         api_key,
         model.to_string(),
     )))
+}
+
+#[cfg(test)]
+mod agent_choice_tests {
+    use super::agent_choice;
+    use crate::settings::{get_default_settings, AppSettings};
+
+    fn with_key(provider: &str, router_model: &str) -> AppSettings {
+        let mut settings = get_default_settings();
+        settings.command_router_provider_id = provider.into();
+        settings.command_router_model = router_model.into();
+        settings
+            .post_process_api_keys
+            .insert(provider.into(), "key".into());
+        settings
+    }
+
+    /// The Anthropic default agent model means nothing on Azure: the agent
+    /// runs on the router's model there (the real failure was HTTP 404
+    /// DeploymentNotFound for `claude-sonnet-5-5`).
+    #[test]
+    fn off_anthropic_the_default_agent_model_becomes_the_routers() {
+        let mut settings = with_key("azure_openai", "gpt-5.6-luna");
+        if settings.post_process_provider("azure_openai").is_none() {
+            return; // no Azure in this build's provider list
+        }
+        settings.command_agent_model = String::new();
+        assert_eq!(
+            agent_choice(&settings),
+            ("azure_openai".into(), "gpt-5.6-luna".into())
+        );
+        settings.command_agent_model = crate::settings::DEFAULT_COMMAND_AGENT_MODEL.into();
+        assert_eq!(agent_choice(&settings).1, "gpt-5.6-luna");
+        // A model the user picked for that provider is kept.
+        settings.command_agent_model = "gpt-5.6".into();
+        assert_eq!(agent_choice(&settings).1, "gpt-5.6");
+    }
+
+    #[test]
+    fn on_anthropic_the_default_agent_model_stays() {
+        let settings = with_key("anthropic", "claude-haiku-5-5");
+        let (provider, model) = agent_choice(&settings);
+        assert_eq!(provider, "anthropic");
+        assert_eq!(model, crate::settings::DEFAULT_COMMAND_AGENT_MODEL);
+    }
 }
