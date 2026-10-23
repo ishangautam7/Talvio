@@ -63,25 +63,27 @@ message for a code they don't know.
 
 ## Finding the server
 
-The server's host name can change, so neither app hard-codes it. Both read it
+The server's address can change, so neither app hard-codes it. Both read it
 from a discovery address, defined once per app:
 
 ```
 GET https://domain.gautamishan.com.np
-→ 200, JSON: { "domain": "sync.example.com" }
+→ 200, JSON: { "apiBaseUrl": "http://192.168.101.69:8787" }
 ```
 
-- The value is a host name with an optional port (`sync.example.com`,
-  `sync.example.com:8443`) or an `https://` URL of one (path, query and fragment
-  are ignored). Clients read `domain`; if that key is missing they take the
-  object's only string field. Anything else (not JSON, no usable field, a
-  user/password part, a non-https scheme, a loopback host in a release build)
-  is ignored as if the request had failed. Development builds also accept an
-  explicit `http://` URL (e.g. `http://192.168.1.5:8787` for a server on the
-  LAN); release builds never do.
-- The server URL is then `https://<host[:port]>`. Discovery is fetched over
-  https only, with a 10 s timeout, no redirects to other hosts, and never
-  carries a token or any user data.
+- The value is an `http://` or `https://` origin (`http://192.168.101.69:8787`,
+  `https://sync.example.com`); a path, query and fragment are ignored. A bare
+  host name with an optional port (`sync.example.com:8443`) is also accepted
+  and means `https://`. Clients read `apiBaseUrl`; if that key is missing they
+  read the legacy `domain`, and if that is missing too, the object's only string
+  field. A key that is present but unusable is not replaced by a later one.
+  Anything else (not JSON, no usable field, a user/password part, a scheme
+  other than http/https, a loopback host in a release build) is ignored as if
+  the request had failed.
+- The server URL is then that origin, `scheme://host[:port]`. Plain http is
+  accepted in every build, because the address arrives in the https discovery
+  answer: discovery itself is fetched over https only, with a 10 s timeout, no
+  redirects to other hosts, and never carries a token or any user data.
 - When: at launch, and again when the current server cannot be reached
   (connect failure or timeout, not an HTTP error answer), at most once a minute.
   The last good value is saved and used until a new one arrives, so the apps
@@ -89,14 +91,14 @@ GET https://domain.gautamishan.com.np
   saved value and no answer, the app falls back to its built-in default
   (`http://localhost:8787` in development builds; release builds show that the
   server cannot be found and keep retrying).
-- **Automatic** (discovery) is the default. The user can type a server in the
-  Server setting instead (**Custom**), which turns discovery off until they
-  switch back to Automatic. A development build's `--dart-define` /
-  environment override also pins the server.
-- Sessions: in Automatic mode a session follows the discovered server, so when
-  the domain changes a signed-in app reconnects to the new host with the same
-  token (the server, its database and the tokens are the same; only the name
-  moved). In Custom mode a session stays bound to the URL it signed in on.
+- Discovery is the only source of the server address: the desktop app has no
+  setting to choose or type a server (its Account tab only shows which server
+  is in use), and a server typed into an earlier version is ignored. A
+  development build's `--dart-define` / environment override can still pin the
+  phone app's server.
+- Sessions: a session follows the discovered server, so when the address
+  changes a signed-in app reconnects to the new one with the same token (the
+  server, its database and the tokens are the same; only the address moved).
   Discovery is therefore a trust anchor: whoever controls the discovery
   address decides where sign-ins and tokens go.
 - Server side: `PUBLIC_URL` must be the current domain, and Google sign-in

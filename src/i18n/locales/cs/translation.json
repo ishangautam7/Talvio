@@ -2110,8 +2110,7 @@
         "or": "nebo",
         "google": "Pokračovat přes Google",
         "googleWaiting": "Dokončete přihlášení v prohlížeči.",
-        "privacy": "Server uchovává jen váš účet a seznam zařízení, nikdy vaše nahrávky ani texty.",
-        "serverUnsaved": "Před přihlášením uložte novou adresu serveru níže."
+        "privacy": "Server uchovává jen váš účet a seznam zařízení, nikdy vaše nahrávky ani texty."
       },
       "signOut": "Odhlásit se",
       "signingOut": "Odhlašování…",
@@ -2152,10 +2151,6 @@
       },
       "server": {
         "title": "Server účtů",
-        "hint": "Kde je váš účet uložený. Měňte to jen v případě, že provozujete vlastní server.",
-        "locked": "Pro změnu serveru se odhlaste.",
-        "automatic": "Automaticky",
-        "custom": "Vlastní",
         "using": "Používá se {{host}}",
         "notFound": "Server teď nelze najít. Talvio to dál zkouší."
       },
@@ -2177,9 +2172,7 @@
         "server": "Server poslal neočekávanou odpověď. Zkuste to později.",
         "timeout": "Přihlášení přes Google trvalo příliš dlouho. Zkuste to znovu.",
         "signed_in": "Než změníte server, odhlaste se.",
-        "invalid_url": "Zadejte adresu, která začíná https://, aby vaše heslo zůstalo šifrované. http:// funguje jen pro server na tomto počítači.",
-        "keychain": "Přihlášení se na tomto počítači nepodařilo bezpečně uložit. Zkuste to znovu.",
-        "wrongServer": "Adresa serveru nevypadá správně. Zkontrolujte ji níže a zkuste to znovu."
+        "keychain": "Přihlášení se na tomto počítači nepodařilo bezpečně uložit. Zkuste to znovu."
       }
     }
   },

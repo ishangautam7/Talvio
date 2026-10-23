@@ -2021,9 +2021,10 @@ pub struct AppSettings {
     pub main_window_width: Option<f64>,
     #[serde(default)]
     pub main_window_height: Option<f64>,
-    /// The Custom account server this computer signs in to (`account`), or
-    /// empty for Automatic: the server discovery finds. Changed only while
-    /// signed out.
+    /// Deprecated and ignored: the Custom account server earlier versions let
+    /// the user type. The account server now comes only from discovery
+    /// (`account/discovery.rs`), so an install that had a custom server follows
+    /// discovery too. Kept so existing stores still load.
     #[serde(default)]
     pub account_server_url: String,
     /// The account server discovery last found, used until it finds another.

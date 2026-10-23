@@ -2083,8 +2083,7 @@
         "or": "hoặc",
         "google": "Tiếp tục với Google",
         "googleWaiting": "Hoàn tất đăng nhập trong trình duyệt.",
-        "privacy": "Máy chủ chỉ lưu tài khoản và danh sách thiết bị của bạn, không bao giờ lưu bản ghi âm hay văn bản.",
-        "serverUnsaved": "Hãy lưu địa chỉ máy chủ mới bên dưới trước khi đăng nhập."
+        "privacy": "Máy chủ chỉ lưu tài khoản và danh sách thiết bị của bạn, không bao giờ lưu bản ghi âm hay văn bản."
       },
       "signOut": "Đăng xuất",
       "signingOut": "Đang đăng xuất…",
@@ -2125,10 +2124,6 @@
       },
       "server": {
         "title": "Máy chủ tài khoản",
-        "hint": "Nơi lưu tài khoản của bạn. Chỉ đổi nếu bạn tự chạy máy chủ riêng.",
-        "locked": "Đăng xuất để đổi máy chủ.",
-        "automatic": "Tự động",
-        "custom": "Tùy chỉnh",
         "using": "Đang dùng {{host}}",
         "notFound": "Hiện không tìm thấy máy chủ. Talvio vẫn đang thử lại."
       },
@@ -2150,9 +2145,7 @@
         "server": "Máy chủ trả về phản hồi không mong muốn. Hãy thử lại sau.",
         "timeout": "Đăng nhập bằng Google mất quá nhiều thời gian. Hãy thử lại.",
         "signed_in": "Đăng xuất trước khi đổi máy chủ.",
-        "invalid_url": "Nhập địa chỉ bắt đầu bằng https:// để mật khẩu của bạn được mã hóa. http:// chỉ dùng được với máy chủ trên máy tính này.",
-        "keychain": "Không thể lưu thông tin đăng nhập an toàn trên máy tính này. Hãy thử lại.",
-        "wrongServer": "Địa chỉ máy chủ có vẻ không đúng. Hãy kiểm tra bên dưới rồi thử lại."
+        "keychain": "Không thể lưu thông tin đăng nhập an toàn trên máy tính này. Hãy thử lại."
       }
     }
   },

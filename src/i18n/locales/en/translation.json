@@ -2092,8 +2092,7 @@
         "or": "or",
         "google": "Continue with Google",
         "googleWaiting": "Finish signing in in your browser.",
-        "privacy": "The server keeps only your account and device list, never your recordings or text.",
-        "serverUnsaved": "Save the new server address below before you sign in."
+        "privacy": "The server keeps only your account and device list, never your recordings or text."
       },
       "signOut": "Sign out",
       "signingOut": "Signing out…",
@@ -2134,10 +2133,6 @@
       },
       "server": {
         "title": "Account server",
-        "hint": "Where your account is kept. Change it only if you run your own server.",
-        "locked": "Sign out to change the server.",
-        "automatic": "Automatic",
-        "custom": "Custom",
         "using": "Using {{host}}",
         "notFound": "Can't find the server right now. Talvio keeps trying."
       },
@@ -2159,9 +2154,7 @@
         "server": "The server sent an unexpected reply. Try again later.",
         "timeout": "Google sign-in took too long. Try again.",
         "signed_in": "Sign out before changing the server.",
-        "invalid_url": "Enter an address that starts with https:// so your password stays encrypted. http:// works only for a server on this computer.",
-        "keychain": "Couldn't save your sign-in securely on this computer. Try again.",
-        "wrongServer": "That server address doesn't look right. Check it below and try again."
+        "keychain": "Couldn't save your sign-in securely on this computer. Try again."
       }
     }
   },

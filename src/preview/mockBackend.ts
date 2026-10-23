@@ -1562,7 +1562,6 @@ const DAY_MS = 86_400_000;
 const accountStatus = (): Json => ({
   signed_in: accountMode !== "out",
   server_url: "https://sync.example.com",
-  server_automatic: true,
   user:
     accountMode === "out"
       ? null

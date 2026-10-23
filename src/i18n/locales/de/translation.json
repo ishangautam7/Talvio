@@ -2092,8 +2092,7 @@
         "or": "oder",
         "google": "Weiter mit Google",
         "googleWaiting": "Schließe die Anmeldung in deinem Browser ab.",
-        "privacy": "Der Server speichert nur dein Konto und deine Geräteliste, niemals deine Aufnahmen oder Texte.",
-        "serverUnsaved": "Speichere die neue Serveradresse unten, bevor du dich anmeldest."
+        "privacy": "Der Server speichert nur dein Konto und deine Geräteliste, niemals deine Aufnahmen oder Texte."
       },
       "signOut": "Abmelden",
       "signingOut": "Abmeldung läuft…",
@@ -2134,10 +2133,6 @@
       },
       "server": {
         "title": "Kontoserver",
-        "hint": "Wo dein Konto gespeichert ist. Ändere das nur, wenn du einen eigenen Server betreibst.",
-        "locked": "Melde dich ab, um den Server zu ändern.",
-        "automatic": "Automatisch",
-        "custom": "Eigener",
         "using": "Verwendet: {{host}}",
         "notFound": "Der Server ist gerade nicht auffindbar. Talvio versucht es weiter."
       },
@@ -2159,9 +2154,7 @@
         "server": "Der Server hat unerwartet geantwortet. Versuche es später erneut.",
         "timeout": "Die Google-Anmeldung hat zu lange gedauert. Versuche es erneut.",
         "signed_in": "Melde dich ab, bevor du den Server änderst.",
-        "invalid_url": "Gib eine Adresse ein, die mit https:// beginnt, damit dein Passwort verschlüsselt bleibt. http:// funktioniert nur für einen Server auf diesem Computer.",
-        "keychain": "Deine Anmeldung konnte auf diesem Computer nicht sicher gespeichert werden. Versuche es erneut.",
-        "wrongServer": "Diese Serveradresse scheint nicht zu stimmen. Prüfe sie unten und versuche es erneut."
+        "keychain": "Deine Anmeldung konnte auf diesem Computer nicht sicher gespeichert werden. Versuche es erneut."
       }
     }
   },

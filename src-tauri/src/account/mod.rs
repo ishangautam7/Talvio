@@ -7,7 +7,7 @@
 //! keychain, never in the settings file, in a log or in the webview.
 //!
 //! - [`api`]: the HTTP routes. [`google`]: the browser sign-in.
-//!   [`discovery`]: where the server is, in Automatic mode.
+//!   [`discovery`]: where the server is; the only source of its address.
 //! - [`socket`]: the connection that carries the device list and the phone's
 //!   requests.
 //! - [`remote`]: what this computer does with those requests, and the
@@ -87,10 +87,9 @@ pub enum AccountConnection {
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct AccountStatus {
     pub signed_in: bool,
-    /// The server in use; empty while Automatic has found none.
+    /// The server in use, as discovery found it; empty while it has found
+    /// none.
     pub server_url: String,
-    /// Automatic (discovery) rather than a Custom server the user typed.
-    pub server_automatic: bool,
     pub user: Option<AccountUser>,
     pub device_id: Option<String>,
     pub connection: AccountConnection,
@@ -158,11 +157,7 @@ fn manager(app: &AppHandle) -> Arc<AccountManager> {
 /// The server in use, if there is one yet.
 fn server_url(app: &AppHandle) -> Option<String> {
     let settings = get_settings(app);
-    resolve_server(
-        &settings.account_server_url,
-        &settings.account_discovered_server,
-        RELEASE,
-    )
+    resolve_server(&settings.account_discovered_server, RELEASE)
 }
 
 /// A client for the server in use (`no_server` while there is none).
@@ -170,48 +165,26 @@ fn server_api(app: &AppHandle) -> Result<Api, String> {
     Api::new(&server_url(app).ok_or_else(|| "no_server".to_string())?)
 }
 
-/// The Custom server; else, in Automatic mode (`custom` empty), the one
-/// discovery last found if this build may use it; else, in development builds
-/// only, the local default.
-fn resolve_server(custom: &str, discovered: &str, release: bool) -> Option<String> {
-    if !custom.is_empty() {
-        return Some(custom.to_string());
-    }
+/// The server discovery last found, if this build may use it; else, in
+/// development builds only, the local default. There is no other source: the
+/// address is never chosen or typed by the user, and the old Custom server
+/// setting (`account_server_url`) is ignored.
+fn resolve_server(discovered: &str, release: bool) -> Option<String> {
     discovery::server_from(discovered, release)
         .or_else(|| (!release).then(|| DEFAULT_ACCOUNT_SERVER_URL.to_string()))
 }
 
 /// Whether a server discovery `found` moves this app, and a signed-in session
-/// with it: only in Automatic mode, and only to a different server.
-fn moves(custom: &str, discovered: &str, found: &str, release: bool) -> bool {
-    resolve_server(custom, discovered, release) != resolve_server(custom, found, release)
+/// with it: only to a different server.
+fn moves(discovered: &str, found: &str, release: bool) -> bool {
+    resolve_server(discovered, release) != resolve_server(found, release)
 }
 
-/// Release builds send a password and a session token only over https, or to
-/// a server on this computer; debug builds also reach a LAN development server
-/// over plain http.
+/// Release builds refuse a loopback server, so a development server never
+/// receives a real password or token; debug builds also use one. Plain http
+/// and https are both accepted in every build: the address comes only from
+/// the https discovery answer, which is the trust anchor (`discovery.rs`).
 const RELEASE: bool = !cfg!(debug_assertions);
-
-/// An `http`/`https` URL with a host and nothing after its path, without a
-/// trailing slash, that [`secure_enough`] allows.
-fn normalize_server_url(input: &str, release: bool) -> Option<String> {
-    let url = reqwest::Url::parse(input.trim()).ok()?;
-    let plain = url.host_str().is_some_and(|host| !host.is_empty())
-        && url.username().is_empty()
-        && url.password().is_none()
-        && url.query().is_none()
-        && url.fragment().is_none();
-    (plain && secure_enough(&url, release)).then(|| url.as_str().trim_end_matches('/').to_string())
-}
-
-/// https anywhere; plain http only to this computer, unless not `release`.
-fn secure_enough(url: &reqwest::Url, release: bool) -> bool {
-    match url.scheme() {
-        "https" => true,
-        "http" => !release || url.host_str().is_some_and(is_loopback),
-        _ => false,
-    }
-}
 
 fn is_loopback(host: &str) -> bool {
     host == "localhost"
@@ -222,11 +195,13 @@ fn is_loopback(host: &str) -> bool {
             .is_ok_and(|ip| ip.is_loopback())
 }
 
-/// Whether this build may talk to the server at `server_url`: also checked
+/// Whether this build may talk to the server at `server_url`, by discovery's
+/// own rule ([`discovery::server_from`]): an explicit http or https URL with no
+/// user/password part, and no loopback host in a release build. Also checked
 /// where the stored address is used, since a debug build may have saved one a
 /// release build refuses.
 fn server_allowed(server_url: &str) -> bool {
-    reqwest::Url::parse(server_url).is_ok_and(|url| secure_enough(&url, RELEASE))
+    server_url.contains("://") && discovery::server_from(server_url, RELEASE).is_some()
 }
 
 impl AccountManager {
@@ -239,13 +214,8 @@ impl AccountManager {
         let inner = self.lock();
         AccountStatus {
             signed_in: inner.session.is_some(),
-            server_url: resolve_server(
-                &settings.account_server_url,
-                &settings.account_discovered_server,
-                RELEASE,
-            )
-            .unwrap_or_default(),
-            server_automatic: settings.account_server_url.is_empty(),
+            server_url: resolve_server(&settings.account_discovered_server, RELEASE)
+                .unwrap_or_default(),
             user: inner.session.as_ref().map(|s| s.user.clone()),
             device_id: inner.session.as_ref().map(|s| s.device_id.clone()),
             connection: inner.connection,
@@ -336,11 +306,9 @@ impl AccountManager {
         }
     }
 
-    /// In Automatic mode, ask where the server is now, at most once a minute.
+    /// Ask where the server is now, at most once a minute.
     fn discover(self: &Arc<Self>) {
-        if !get_settings(&self.app).account_server_url.is_empty()
-            || !self.lock().discovery.due(Instant::now())
-        {
+        if !self.lock().discovery.due(Instant::now()) {
             return;
         }
         let manager = self.clone();
@@ -368,12 +336,7 @@ impl AccountManager {
         if settings.account_discovered_server == found {
             return;
         }
-        let moved = moves(
-            &settings.account_server_url,
-            &settings.account_discovered_server,
-            &found,
-            RELEASE,
-        );
+        let moved = moves(&settings.account_discovered_server, &found, RELEASE);
         info!("The account server is at {found}");
         settings.account_discovered_server = found;
         write_settings(&self.app, settings);
@@ -909,27 +872,6 @@ pub fn fit_account_approval(app: AppHandle, height: f64) {
     approval::fit(&app, height);
 }
 
-/// A Custom server, or an empty `url` for Automatic. Only while signed out:
-/// a session belongs to the server it signed in on.
-#[tauri::command]
-#[specta::specta]
-pub fn set_account_server_url(app: AppHandle, url: String) -> Result<(), String> {
-    let manager = manager(&app);
-    if manager.signed_in() {
-        return Err("signed_in".to_string());
-    }
-    let url = if url.trim().is_empty() {
-        String::new()
-    } else {
-        normalize_server_url(&url, RELEASE).ok_or_else(|| "invalid_url".to_string())?
-    };
-    let mut settings = get_settings(&app);
-    settings.account_server_url = url;
-    write_settings(&app, settings);
-    manager.moved();
-    Ok(())
-}
-
 #[tauri::command]
 #[specta::specta]
 pub fn set_remote_input_enabled(app: AppHandle, enabled: bool) -> Result<(), String> {
@@ -945,97 +887,50 @@ mod tests {
     use super::*;
 
     #[test]
-    fn server_urls_are_http_or_https_without_a_trailing_slash() {
-        let normalize_server_url = |url| normalize_server_url(url, false);
-        assert_eq!(
-            normalize_server_url(" https://Sync.Example.com/ ").as_deref(),
-            Some("https://sync.example.com")
-        );
-        assert_eq!(
-            normalize_server_url("http://localhost:8787").as_deref(),
-            Some("http://localhost:8787")
-        );
-        assert_eq!(
-            normalize_server_url("http://192.168.1.20:8787").as_deref(),
-            Some("http://192.168.1.20:8787")
-        );
-        assert_eq!(
-            normalize_server_url("https://example.com/talvio/").as_deref(),
-            Some("https://example.com/talvio")
-        );
-        for bad in [
-            "",
-            "localhost:8787",
-            "ftp://example.com",
-            "file:///etc/passwd",
-            "javascript:alert(1)",
-            "https://user:pass@example.com",
-            "https://example.com/?a=b",
-            "https://example.com/#x",
-            "http://",
-        ] {
-            assert_eq!(normalize_server_url(bad), None, "{bad:?}");
-        }
-    }
-
-    #[test]
-    fn release_builds_send_a_password_over_http_only_to_this_computer() {
-        for good in [
-            "https://sync.example.com",
-            "http://localhost:8787",
-            "http://127.0.0.1:8787",
-            "http://127.1.2.3",
-            "http://[::1]:8787",
-        ] {
-            assert!(normalize_server_url(good, true).is_some(), "{good:?}");
-        }
-        for bad in [
-            "http://sync.example.com",
-            "http://192.168.1.20:8787",
-            "http://localhost.example.com",
-            "http://[::2]",
-        ] {
-            assert_eq!(normalize_server_url(bad, true), None, "{bad:?}");
-        }
-    }
-
-    #[test]
-    fn custom_wins_then_discovery_then_the_development_default() {
-        let custom = "https://mine.example.com";
+    fn the_server_is_the_discovered_one_or_the_development_default() {
         let found = "https://sync.example.com";
+        let lan = "http://192.168.101.69:8787";
         for release in [false, true] {
-            assert_eq!(
-                resolve_server(custom, found, release).as_deref(),
-                Some(custom)
-            );
-            assert_eq!(resolve_server("", found, release).as_deref(), Some(found));
+            assert_eq!(resolve_server(found, release).as_deref(), Some(found));
+            assert_eq!(resolve_server(lan, release).as_deref(), Some(lan));
         }
         assert_eq!(
-            resolve_server("", "", false).as_deref(),
+            resolve_server("", false).as_deref(),
             Some(DEFAULT_ACCOUNT_SERVER_URL)
         );
-        // A release build with nothing found has no server, and never uses
-        // one a development build saved that it would not accept.
-        assert_eq!(resolve_server("", "", true), None);
-        assert_eq!(resolve_server("", "http://192.168.1.5:8787", true), None);
+        // A release build with nothing found has no server, and never uses a
+        // loopback one a development build saved.
+        assert_eq!(resolve_server("", true), None);
+        assert_eq!(resolve_server("http://localhost:8787", true), None);
         assert_eq!(
-            resolve_server("", "http://192.168.1.5:8787", false).as_deref(),
-            Some("http://192.168.1.5:8787")
+            resolve_server("http://localhost:8787", false).as_deref(),
+            Some("http://localhost:8787")
         );
     }
 
     #[test]
-    fn a_session_follows_discovery_only_in_automatic_mode() {
-        let (old, new) = ("https://a.example.com", "https://b.example.com");
-        assert!(moves("", old, new, true));
-        assert!(moves("", "", new, true));
-        assert!(
-            moves("", "", new, false),
-            "away from the development default"
-        );
-        assert!(!moves("", old, old, true));
-        assert!(!moves("https://mine.example.com", old, new, true));
-        assert!(!moves("https://mine.example.com", "", new, false));
+    fn a_session_follows_discovery_to_a_different_server() {
+        let (old, new) = ("https://a.example.com", "http://192.168.1.5:8787");
+        assert!(moves(old, new, true));
+        assert!(moves("", new, true));
+        assert!(moves("", new, false), "away from the development default");
+        assert!(!moves(old, old, true));
+        assert!(!moves(new, new, false));
+    }
+
+    #[test]
+    fn the_server_may_be_http_or_https() {
+        assert!(server_allowed("http://192.168.101.69:8787"));
+        assert!(server_allowed("https://sync.example.com"));
+        assert_eq!(server_allowed("http://localhost:8787"), !RELEASE);
+        for bad in [
+            "",
+            "sync.example.com",
+            "ftp://sync.example.com",
+            "https://user:pass@sync.example.com",
+        ] {
+            assert!(!server_allowed(bad), "{bad:?}");
+        }
     }
 
     #[test]

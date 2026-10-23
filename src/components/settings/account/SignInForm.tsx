@@ -21,8 +21,6 @@ interface SignInFormProps {
   googleAvailable: boolean;
   /** A Google sign-in is waiting on the browser, maybe since an earlier visit. */
   googlePending: boolean;
-  /** The server field holds an address that is not saved yet. */
-  serverUnsaved: boolean;
 }
 
 const Field: React.FC<
@@ -61,7 +59,6 @@ const Field: React.FC<
 export const SignInForm: React.FC<SignInFormProps> = ({
   googleAvailable,
   googlePending,
-  serverUnsaved,
 }) => {
   const { t } = useTranslation();
   const ids = useId();
@@ -75,7 +72,6 @@ export const SignInForm: React.FC<SignInFormProps> = ({
   const waiting = busy === "google" || googlePending;
   const locked = busy !== null || googlePending;
   const googleId = `${ids}-google`;
-  const unsavedId = `${ids}-unsaved`;
 
   // The Google button and the waiting row's Cancel replace each other, so
   // the one that had focus is gone: the other takes it.
@@ -104,7 +100,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (locked || serverUnsaved) return;
+    if (locked) return;
     const address = email.trim();
     if (!looksLikeEmail(address)) {
       setError(accountErrorKey("invalid_email"));
@@ -207,19 +203,10 @@ export const SignInForm: React.FC<SignInFormProps> = ({
             </p>
           )}
 
-          {serverUnsaved && (
-            <p id={unsavedId} className="text-sm text-muted">
-              {t("settings.account.signedOut.serverUnsaved")}
-            </p>
-          )}
-
           <Button
             type="submit"
             className="w-full"
-            disabled={
-              googlePending || serverUnsaved || !email.trim() || !password
-            }
-            aria-describedby={serverUnsaved ? unsavedId : undefined}
+            disabled={googlePending || !email.trim() || !password}
           >
             {busy === "password"
               ? t(
@@ -268,8 +255,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
                 id={googleId}
                 variant="secondary"
                 className="w-full"
-                disabled={locked || serverUnsaved}
-                aria-describedby={serverUnsaved ? unsavedId : undefined}
+                disabled={locked}
                 onClick={() =>
                   void run("google", () => commands.accountSignInGoogle())
                 }

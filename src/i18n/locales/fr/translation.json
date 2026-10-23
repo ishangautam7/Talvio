@@ -2101,8 +2101,7 @@
         "or": "ou",
         "google": "Continuer avec Google",
         "googleWaiting": "Terminez la connexion dans votre navigateur.",
-        "privacy": "Le serveur ne conserve que votre compte et la liste de vos appareils, jamais vos enregistrements ni vos textes.",
-        "serverUnsaved": "Enregistrez la nouvelle adresse du serveur ci-dessous avant de vous connecter."
+        "privacy": "Le serveur ne conserve que votre compte et la liste de vos appareils, jamais vos enregistrements ni vos textes."
       },
       "signOut": "Se déconnecter",
       "signingOut": "Déconnexion…",
@@ -2143,10 +2142,6 @@
       },
       "server": {
         "title": "Serveur de compte",
-        "hint": "L'endroit où votre compte est conservé. Ne le modifiez que si vous utilisez votre propre serveur.",
-        "locked": "Déconnectez-vous pour changer de serveur.",
-        "automatic": "Automatique",
-        "custom": "Personnalisé",
         "using": "Utilise {{host}}",
         "notFound": "Le serveur est introuvable pour le moment. Talvio continue d'essayer."
       },
@@ -2168,9 +2163,7 @@
         "server": "Le serveur a renvoyé une réponse inattendue. Réessayez plus tard.",
         "timeout": "La connexion Google a pris trop de temps. Réessayez.",
         "signed_in": "Déconnectez-vous avant de changer de serveur.",
-        "invalid_url": "Saisissez une adresse qui commence par https:// pour que votre mot de passe reste chiffré. http:// ne fonctionne qu'avec un serveur sur cet ordinateur.",
-        "keychain": "Impossible d'enregistrer votre connexion de façon sécurisée sur cet ordinateur. Réessayez.",
-        "wrongServer": "Cette adresse de serveur semble incorrecte. Vérifiez-la ci-dessous, puis réessayez."
+        "keychain": "Impossible d'enregistrer votre connexion de façon sécurisée sur cet ordinateur. Réessayez."
       }
     }
   },

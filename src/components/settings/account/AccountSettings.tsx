@@ -19,7 +19,6 @@ const CONFIG_RETRY_MS = 31_000;
 export const AccountSettings: React.FC = () => {
   const { t } = useTranslation();
   const [status, setStatus] = useState<AccountStatus | null>(null);
-  const [serverUnsaved, setServerUnsaved] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -64,16 +63,9 @@ export const AccountSettings: React.FC = () => {
         <SignInForm
           googleAvailable={status.google_available === true}
           googlePending={status.google_pending}
-          serverUnsaved={serverUnsaved}
         />
       )}
-      <ServerSetting
-        serverUrl={status.server_url}
-        automatic={status.server_automatic}
-        locked={status.signed_in}
-        busy={status.google_pending}
-        onUnsavedChange={setServerUnsaved}
-      />
+      <ServerSetting serverUrl={status.server_url} />
       {user && <DeleteAccount email={user.email} />}
     </>
   );
