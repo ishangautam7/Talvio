@@ -1,6 +1,7 @@
 pub mod assistant;
 pub mod audio;
 pub mod autolearn;
+pub mod command_mode;
 pub mod history;
 pub mod local_llm;
 pub mod meetings;
@@ -281,7 +282,7 @@ pub fn initialize_shortcuts(app: AppHandle) -> Result<(), String> {
 ///
 /// TCC stores a grant together with the code signature it was given to. A build
 /// without a stable signing identity has a different signature every release, so
-/// after an update System Settings still lists Zynveliq as switched on (that
+/// after an update System Settings still lists Talvio as switched on (that
 /// row is keyed by bundle identifier) while the OS answers no for the new
 /// binary. Requesting access again shows nothing, because an entry already
 /// exists; removing it is what lets the next request add a fresh one. The same

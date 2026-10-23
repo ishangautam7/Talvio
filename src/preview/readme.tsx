@@ -6,7 +6,7 @@ import ReactDOM from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { MessageCircle, Mic, PhoneCall } from "lucide-react";
 import "@fontsource-variable/inter";
-import "@fontsource/instrument-serif/400.css";
+import "@fontsource-variable/plus-jakarta-sans";
 import "../App.css";
 import "../i18n";
 import "@/components/onboarding/onboarding.css";

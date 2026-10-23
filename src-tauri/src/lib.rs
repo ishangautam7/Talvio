@@ -10,6 +10,7 @@ mod autolearn;
 mod catalog;
 pub mod cli;
 mod clipboard;
+mod command_mode;
 mod commands;
 mod dictation_recovery;
 pub mod engine_supervisor;
@@ -30,6 +31,7 @@ mod overlay_follow;
 mod overlay_lifecycle;
 mod paste_tx;
 pub mod portable;
+pub mod rebrand;
 mod reminders;
 mod screenshot;
 mod secret_store;
@@ -655,6 +657,10 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     let autostart_manager = app_handle.autolaunch();
     let settings = settings::get_settings(&app_handle);
 
+    // An entry left by the app's previous name points at an executable an
+    // update replaced; drop it, then apply the setting under the new name.
+    rebrand::remove_legacy_autostart();
+
     if settings.autostart_enabled {
         // Enable autostart if user has opted in
         let _ = autostart_manager.enable();
@@ -944,6 +950,10 @@ fn filter_webview2_context_menu<R: tauri::Runtime>(webview: &tauri::Webview<R>) 
 pub fn run(cli_args: CliArgs) {
     // Detect portable mode before anything else
     portable::init();
+
+    // Carry an install over from the app's previous name before anything
+    // resolves a path, opens the log or takes the single-instance lock.
+    rebrand::carry_over_data_dirs();
 
     // Allow the assistant panel to play TTS audio without a user gesture
     // (WebView2 reads this env var at creation time).
@@ -1341,8 +1351,23 @@ pub fn run(cli_args: CliArgs) {
             account::account_pending_approvals,
             account::account_answer_approval,
             account::fit_account_approval,
-            account::set_account_server_url,
             account::set_remote_input_enabled,
+            account::set_account_sync_secrets,
+            commands::command_mode::command_run_text,
+            commands::command_mode::command_answer,
+            commands::command_mode::command_confirm,
+            commands::command_mode::command_open_contacts_file,
+            commands::command_mode::change_command_mode_enabled_setting,
+            commands::command_mode::change_command_router_provider_id_setting,
+            commands::command_mode::change_command_router_model_setting,
+            commands::command_mode::change_command_dry_run_setting,
+            commands::command_mode::change_command_google_account_setting,
+            commands::command_mode::change_command_search_url_setting,
+            commands::command_mode::change_command_auto_escalate_setting,
+            commands::command_mode::change_command_agent_model_setting,
+            commands::command_mode::change_command_agent_max_steps_setting,
+            commands::command_mode::change_command_agent_max_cost_usd_setting,
+            commands::command_mode::command_cancel,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 
@@ -1408,11 +1433,11 @@ pub fn run(cli_args: CliArgs) {
                     Target::new(if let Some(data_dir) = portable::data_dir() {
                         TargetKind::Folder {
                             path: data_dir.join("logs"),
-                            file_name: Some("zynveliq".into()),
+                            file_name: Some("talvio".into()),
                         }
                     } else {
                         TargetKind::LogDir {
-                            file_name: Some("zynveliq".into()),
+                            file_name: Some("talvio".into()),
                         }
                     })
                     .filter(|metadata| {
@@ -1443,6 +1468,12 @@ pub fn run(cli_args: CliArgs) {
 
     builder
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // First, because it carries a value: the others are plain
+            // switches matched by name below.
+            if let Some((text, dry_run)) = cli::run_command_from_argv(&args) {
+                signal_handle::run_command(app, text, dry_run, "CLI");
+                return;
+            }
             if args.iter().any(|a| a == "--toggle-transcription") {
                 signal_handle::send_transcription_input(app, "transcribe", "CLI");
             } else if args.iter().any(|a| a == "--toggle-post-process") {
@@ -1472,6 +1503,7 @@ pub fn run(cli_args: CliArgs) {
         ))
         .manage(cli_args.clone())
         .setup(move |app| {
+            rebrand::log_report();
             // Record the GPU environment policy main() applied, so a crash
             // report can tell whether an overlay layer could have been involved.
             #[cfg(target_os = "windows")]
@@ -1514,7 +1546,7 @@ pub fn run(cli_args: CliArgs) {
                     // names the window to the OS: the taskbar hover preview,
                     // Alt+Tab, Task Manager, Linux window lists and screen
                     // readers. An empty one left all of those blank.
-                    .title("Zynveliq")
+                    .title("Talvio")
                     // Open a bit wider/taller so content (max-w-3xl) breathes
                     // next to the sidebar instead of feeling cramped. Min stays
                     // smaller so users on small laptops can shrink it to fit
@@ -1628,6 +1660,7 @@ pub fn run(cli_args: CliArgs) {
             app.manage(TranscriptionCoordinator::new(app_handle.clone()));
             app.manage(assistant::AssistantConversation::new());
             app.manage(voice_conversation::VoiceConversation::default());
+            app.manage(command_mode::CommandModeState::default());
 
             initialize_core_logic(&app_handle);
             account::init(&app_handle);
@@ -1647,6 +1680,16 @@ pub fn run(cli_args: CliArgs) {
             // switching the assistant off to stop the panel loading must not
             // silently swallow an alarm the user is relying on.
             reminders::init(&app_handle);
+
+            // `--run-command` on a launch with no instance running yet. The
+            // remote-control toggles only act on a running instance, but a
+            // command is a whole request, so it runs once the managers above
+            // exist rather than being dropped. It runs in the background, and
+            // waits there for keyboard control, which only exists once the
+            // main window has mounted (see `signal_handle::run_command`).
+            if let Some(text) = cli_args.run_command.clone() {
+                signal_handle::run_command(&app_handle, text, cli_args.dry_run, "CLI");
+            }
 
             // Pre-warm device enumeration on a background thread. The first
             // call starts a short-lived transcription worker that registers
@@ -1670,7 +1713,12 @@ pub fn run(cli_args: CliArgs) {
             // Show main window only if not starting hidden.
             // CLI --start-hidden flag overrides the setting.
             // But if permission onboarding is required, always show the window.
-            let should_hide = settings.start_hidden || cli_args.start_hidden;
+            // A cold-start `--run-command` also starts hidden: the command acts
+            // on the window in front, and showing ours a moment later would put
+            // Talvio there, so typed text and keys would land in Settings. The
+            // window still loads hidden, which is what creates keyboard control.
+            let should_hide =
+                settings.start_hidden || cli_args.start_hidden || cli_args.run_command.is_some();
             let should_force_show = should_force_show_permissions_window(&app_handle);
 
             // If start_hidden but tray is disabled, we must show the window

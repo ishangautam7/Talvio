@@ -62,11 +62,11 @@ define_class!(
     // SAFETY: NSObject has no subclassing requirements and the ivars are
     // plain Rust values guarded by a Mutex.
     #[unsafe(super(NSObject))]
-    #[name = "ZynveliqPasteProvider"]
+    #[name = "TalvioPasteProvider"]
     #[ivars = ProviderIvars]
-    pub struct ZynveliqPasteProvider;
+    pub struct TalvioPasteProvider;
 
-    impl ZynveliqPasteProvider {
+    impl TalvioPasteProvider {
         // NSPasteboardOwner informal protocol: the pasteboard asks for the
         // promised data, which is the receipt that a consumer read it.
         #[unsafe(method(pasteboard:provideDataForType:))]
@@ -101,7 +101,7 @@ define_class!(
     }
 );
 
-impl ZynveliqPasteProvider {
+impl TalvioPasteProvider {
     fn new(state: Arc<Mutex<TxState>>, text: String, html: Option<String>) -> Retained<Self> {
         let this = Self::alloc().set_ivars(ProviderIvars { state, text, html });
         unsafe { msg_send![super(this), init] }
@@ -113,7 +113,7 @@ struct MacPending {
     saved_text: Option<String>,
     saved_image: Option<tauri::image::Image<'static>>,
     change_count: NSInteger,
-    provider: Option<Retained<ZynveliqPasteProvider>>,
+    provider: Option<Retained<TalvioPasteProvider>>,
     auto_submit: Option<AutoSubmitKey>,
     /// "Copy to clipboard": left as ordinary text when settling.
     leave_copy: Option<String>,
@@ -309,7 +309,7 @@ pub(super) fn run(
     };
 
     let state = Arc::new(Mutex::new(TxState::new()));
-    let provider = ZynveliqPasteProvider::new(
+    let provider = TalvioPasteProvider::new(
         state.clone(),
         request.text.to_string(),
         request.html.map(super::utf8_html_document),

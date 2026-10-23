@@ -1,5 +1,5 @@
 {
-  "name": "zynveliq-feedback-worker",
+  "name": "talvio-feedback-worker",
   "private": true,
   "type": "module",
   "scripts": {

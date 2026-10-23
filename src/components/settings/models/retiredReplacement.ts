@@ -3,7 +3,7 @@ import type { ModelInfo } from "@/bindings";
 /**
  * Moving off a retired speech model: one rule for every place that offers it.
  *
- * A retired model is one whose engine Zynveliq no longer includes (the ONNX
+ * A retired model is one whose engine Talvio no longer includes (the ONNX
  * models; see `managers/legacy_models.rs`). Its files stay on disk and it can
  * stay the saved selection after an upgrade, but it never runs. Three
  * surfaces offer its new version (Home's prompt, the prompt at the top of the

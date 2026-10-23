@@ -73,14 +73,14 @@ export function looksLikeEmail(email: string): boolean {
 
 /** One line for the "Include app version and system" checkbox. */
 export const describeSystem = (info: FeedbackSystemInfo) =>
-  `Zynveliq ${info.app_version} · ${info.os} · ${info.arch} · ${info.install}`;
+  `Talvio ${info.app_version} · ${info.os} · ${info.arch} · ${info.install}`;
 
 // ── Draft ────────────────────────────────────────────────────────────────
 // Closing the dialog, a failed send, or an app restart must not throw away a
 // bug report someone took the time to write.
 
-const DRAFT_KEY = "zynveliq.feedback.draft";
-const EMAIL_KEY = "zynveliq.feedback.email";
+const DRAFT_KEY = "talvio.feedback.draft";
+const EMAIL_KEY = "talvio.feedback.email";
 
 export interface FeedbackDraft {
   kind: FeedbackKind;

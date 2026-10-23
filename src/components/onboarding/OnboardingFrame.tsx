@@ -53,7 +53,7 @@ export const OnboardingFrame: React.FC<{
                     aria-hidden="true"
                     className={`grid h-5 w-5 place-items-center rounded-full text-[0.6875rem] font-semibold tabular-nums ${
                       state === "current"
-                        ? "bg-ink text-on-ink"
+                        ? "bg-accent text-on-primary"
                         : state === "done"
                           ? "bg-accent/12 text-accent"
                           : "bg-surface-strong text-muted"

@@ -72,7 +72,7 @@ pub(crate) const FAILED_INJECTION_TIMEOUT: Duration = Duration::from_millis(500)
 /// already read *before* it.
 ///
 /// A promise is rendered once: the first reader gets the data, and from then
-/// on it is ordinary clipboard data that no later read reports. Zynveliq
+/// on it is ordinary clipboard data that no later read reports. Talvio
 /// leaves clipboard monitoring on (remote-desktop and VM clients forward the
 /// clipboard into their session, see `clipboard::write_transient_clipboard_text`),
 /// so a clipboard manager or a VM client reacting to the change can take that

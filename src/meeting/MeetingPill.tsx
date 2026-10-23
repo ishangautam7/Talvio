@@ -568,7 +568,7 @@ interface OfferCardProps {
  * It did, and that was the single most alarming thing in this feature: the card
  * reused the live recorder's breathing red dot — the universal "capturing now"
  * signal — on a card that arrives unprompted six to nine seconds into a call. A
- * user who glanced at it read "Zynveliq started recording my call by itself".
+ * user who glanced at it read "Talvio started recording my call by itself".
  * The indicator is a hollow, static ring in the accent colour, which is not a
  * state the live recorder can ever be in, and the card says "Not recording" in as
  * many words. Redundant next to "Record it?", and kept anyway: this is the one

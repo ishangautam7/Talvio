@@ -35,10 +35,10 @@
     "downloading": "İndiriliyor… %{{progress}}",
     "downloadingUnknown": "İndiriliyor…",
     "installing": "Yükleniyor…",
-    "reopening": "Zynveliq güncellemeyi yüklemek için kapanacak ve birkaç saniye içinde yeniden açılacak.",
+    "reopening": "Talvio güncellemeyi yüklemek için kapanacak ve birkaç saniye içinde yeniden açılacak.",
     "updatedTo": "{{version}} sürümüne güncellendi",
     "restart": "Şimdi yeniden başlat",
-    "readyToRestart": "Güncelleme yüklendi. Kullanmaya başlamak için Zynveliq'u yeniden başlatın.",
+    "readyToRestart": "Güncelleme yüklendi. Kullanmaya başlamak için Talvio'yu yeniden başlatın.",
     "installFailed": "Güncelleme yüklenemedi. Tekrar deneyebilir ya da yükleyiciyi indirip kendiniz çalıştırabilirsiniz.",
     "downloadFailed": "İndirme tamamlanmadı. Bağlantınızı kontrol edip tekrar deneyin.",
     "downloadInstaller": "Yükleyiciyi indir",
@@ -49,13 +49,13 @@
     "showInFolder": "Klasörde göster",
     "viewRelease": "GitHub'da görüntüle",
     "hint": {
-      "windows": "Zynveliq kapanır, güncellemeyi yükler ve yeniden açılır. Başka bir şeye tıklamanız gerekmez.",
-      "macos": "Zynveliq yeni sürümle yeniden başlar. macOS ardından Mikrofon ve Erişilebilirlik izinlerini yeniden vermenizi isteyebilir.",
-      "linux": "Zynveliq yeni sürümle yeniden başlar. .deb kurulumu önce parolanızı sorar."
+      "windows": "Talvio kapanır, güncellemeyi yükler ve yeniden açılır. Başka bir şeye tıklamanız gerekmez.",
+      "macos": "Talvio yeni sürümle yeniden başlar. macOS ardından Mikrofon ve Erişilebilirlik izinlerini yeniden vermenizi isteyebilir.",
+      "linux": "Talvio yeni sürümle yeniden başlar. .deb kurulumu önce parolanızı sorar."
     },
     "modes": {
       "portable": "Bu, kendini değiştiremeyen taşınabilir sürümdür. Yeni sürümü indirin ve Data klasörünüzü içine kopyalayın.",
-      "packageManager": "Zynveliq'u paket yöneticiniz yükledi, bu yüzden oradan güncelleyin; örneğin yay -Syu zynveliq-bin ile.",
+      "packageManager": "Talvio'yu paket yöneticiniz yükledi, bu yüzden oradan güncelleyin; örneğin yay -Syu talvio-bin ile.",
       "download": "Bu kopya kendini yerinde güncelleyemez. Yeni sürümü almak için yükleyiciyi indirip çalıştırın."
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "Geri bildirim gönder",
     "title": "Geri bildirim gönder",
-    "description": "Her mesajı kendim okuyorum, o yüzden aklınıza nasıl geliyorsa öyle yazın. Zynveliq'u daha iyi hâle getirmeye yardım ettiğiniz için teşekkürler.",
+    "description": "Her mesajı kendim okuyorum, o yüzden aklınıza nasıl geliyorsa öyle yazın. Talvio'yu daha iyi hâle getirmeye yardım ettiğiniz için teşekkürler.",
     "kind": {
       "label": "Geri bildirim türü",
       "bug": "Hata",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "Ne oldu ve bunun yerine ne bekliyordunuz?",
-      "idea": "Zynveliq'u sizin için ne daha iyi yapardı?",
+      "idea": "Talvio'yu sizin için ne daha iyi yapardı?",
       "question": "Ne öğrenmek istersiniz?"
     },
     "messageLabel": "Mesaj",
@@ -159,10 +159,10 @@
       "retry": "Tekrar dene"
     },
     "tour": {
-      "features": "Zynveliq neler yapar",
+      "features": "Talvio neler yapar",
       "count": "{{current}}/{{total}}",
       "next": "İleri",
-      "finish": "Zynveliq'u aç",
+      "finish": "Talvio'yu aç",
       "tabs": {
         "dictate": "Dikte",
         "ask": "Asistan",
@@ -240,7 +240,7 @@
       "ready": "Hazırsınız"
     },
     "speechToText": {
-      "title": "Zynveliq sizi nasıl duysun?",
+      "title": "Talvio sizi nasıl duysun?",
       "subtitle": "Bu, sesinizi doğrudan makinenizde metne dönüştürür. Birini seçin, istediğiniz zaman değiştirin.",
       "cards": {
         "fast": {
@@ -305,7 +305,7 @@
       "downloadingVoice": "Ses modeliniz iniyor. %{{percentage}} tamamlandı.",
       "downloadingGeneric": "İndirme sürüyor. %{{percentage}} tamamlandı.",
       "signOff": "Hepsi bu. Hadi bir şeyler söyleyin.",
-      "openApp": "Zynveliq'u aç"
+      "openApp": "Talvio'yu aç"
     },
     "errors": {
       "selectModel": "Bu model seçilemedi. Lütfen tekrar deneyin.",
@@ -437,7 +437,7 @@
     },
     "permissions": {
       "title": "İzinler gerekli",
-      "description": "Zynveliq'nin düzgün çalışabilmesi için birkaç izne ihtiyacı var.",
+      "description": "Talvio'nun düzgün çalışabilmesi için birkaç izne ihtiyacı var.",
       "microphone": {
         "title": "Mikrofon erişimi",
         "description": "Sesinizi transkripsiyon için alabilmek için gereklidir."
@@ -447,7 +447,7 @@
         "description": "Transkribe edilen metni uygulamalarınıza yazabilmek için gereklidir.",
         "stuckHint": "Sistem Ayarları'nda zaten açık mı? Bir güncellemeden sonra macOS, bu sürümle artık eşleşmeyen bir izni tutabilir.",
         "reset": "İzni sıfırla",
-        "resetDone": "Şimdi Sistem Ayarları'nda Zynveliq'u yeniden açın."
+        "resetDone": "Şimdi Sistem Ayarları'nda Talvio'yu yeniden açın."
       },
       "grant": "İzin ver",
       "granted": "Verildi",
@@ -456,7 +456,7 @@
       "errors": {
         "checkFailed": "İzinler kontrol edilemedi. Lütfen tekrar deneyin.",
         "requestFailed": "İzin istenemedi. Lütfen tekrar deneyin.",
-        "resetFailed": "İzin sıfırlanamadı. Zynveliq'u Erişilebilirlik listesinden kaldırıp yeniden ekleyin."
+        "resetFailed": "İzin sıfırlanamadı. Talvio'yu Erişilebilirlik listesinden kaldırıp yeniden ekleyin."
       }
     },
     "frame": {
@@ -684,7 +684,7 @@
       },
       "handsFree": {
         "unavailableKeys": "Dikte yalnızca Ctrl + Win gibi değiştirici tuşlardan oluştuğunda çalışır. {{keys}} ile bunun yerine “Konuşmak için basılı tut” seçeneğini kapatın: her dikte, tuşlara yeniden basana kadar sürer.",
-        "unavailableEngine": "Zynveliq Keys klavye motoru gerekir ({{where}}). Ya da “Konuşmak için basılı tut” seçeneğini kapatın: her dikte, tuşlara yeniden basana kadar sürer.",
+        "unavailableEngine": "Talvio Keys klavye motoru gerekir ({{where}}). Ya da “Konuşmak için basılı tut” seçeneğini kapatın: her dikte, tuşlara yeniden basana kadar sürer.",
         "taken": "{{name}} zaten {{keys}} kullanıyor; biri değişene kadar bu tuş bir şey yapmaz.",
         "needsKey": "Boşluk ya da Enter gibi tek bir tuş seçin. Tek başına bir değiştirici tuş eller serbest tuşu olamaz.",
         "pressKey": "Bir tuşa basın…",
@@ -741,9 +741,9 @@
       "clearSearch": "Aramayı temizle",
       "noSearchResults": "“{{query}}” adlı model yok.",
       "olderHint": "Eski biçim. {{model}} ({{size}}) bu modelin yeni sürümü.",
-      "retiredHint": "Zynveliq'un artık içermediği eski bir motor kullanıyor. Bunun yerine {{model}} ({{size}}) indirin.",
+      "retiredHint": "Talvio'nun artık içermediği eski bir motor kullanıyor. Bunun yerine {{model}} ({{size}}) indirin.",
       "retired": {
-        "notice": "Bu modeller, Zynveliq'un artık içermediği eski bir motor kullanıyordu.",
+        "notice": "Bu modeller, Talvio'nun artık içermediği eski bir motor kullanıyordu.",
         "newVersion": "Yeni sürüm: {{model}} · {{size}}",
         "getNewVersion": "Yeni sürümü indir",
         "useNewVersion": "Yeni sürümü kullan",
@@ -802,7 +802,7 @@
         "rescanning": "Yeniden taranıyor…",
         "rescanDone_one": "{{count}} yerel model bulundu.",
         "rescanDone_other": "{{count}} yerel model bulundu.",
-        "footnote": "Bağlı klasörler Zynveliq her açıldığında yeniden taranır; bu yüzden sonradan eklediğiniz modeller kendiliğinden görünür. Bir klasörün bağlantısını kaldırmak veya bir modeli kaldırmak onu yalnızca bu listeden siler — dosyalarınız olduğu yerde kalır.",
+        "footnote": "Bağlı klasörler Talvio her açıldığında yeniden taranır; bu yüzden sonradan eklediğiniz modeller kendiliğinden görünür. Bir klasörün bağlantısını kaldırmak veya bir modeli kaldırmak onu yalnızca bu listeden siler — dosyalarınız olduğu yerde kalır.",
         "removeTitle": "Listeden kaldırılsın mı?",
         "removeConfirm": "“{{modelName}}” model listenizden kaldırılsın mı?\n\nDosyanın kendisi olduğu yerde kalır:\n{{path}}",
         "missingBadge": "Dosya yok",
@@ -892,7 +892,7 @@
         "label": "Kısayol olarak fare düğmeleri",
         "description": "Farenizin orta, Geri veya İleri düğmesini kısayol olarak kullanın: bir kısayolun tuşlarına tıklayın, ardından düğmeye basın. Kısayol olduğu sürece düğme başka bir şey yapmaz.",
         "linux": "Linux'ta yalnızca orta düğme çalışır.",
-        "needsEngine": "Zynveliq Keys klavye altyapısını gerektirir."
+        "needsEngine": "Talvio Keys klavye altyapısını gerektirir."
       },
       "longFormChunking": {
         "title": "Uzun kayıtları böl",
@@ -910,11 +910,11 @@
       },
       "autostart": {
         "label": "Başlangıçta çalıştır",
-        "description": "Oturum açtığınızda Zynveliq'u otomatik olarak açar."
+        "description": "Oturum açtığınızda Talvio'yu otomatik olarak açar."
       },
       "showTrayIcon": {
         "label": "Tepsi simgesini göster",
-        "description": "Zynveliq'u sistem tepsisinde tutar."
+        "description": "Talvio'yu sistem tepsisinde tutar."
       },
       "trayIconColor": {
         "label": "Renkli tepsi simgesi",
@@ -922,7 +922,7 @@
       },
       "closeBehavior": {
         "label": "Pencereyi kapattığımda uygulamadan çık",
-        "description": "Kapalıyken pencereyi kapatmak Zynveliq'u tepside çalışır durumda tutar, böylece kısayollarınız çalışmaya devam eder. Açıkken pencereyi kapatmak uygulamayı tamamen kapatır."
+        "description": "Kapalıyken pencereyi kapatmak Talvio'yu tepside çalışır durumda tutar, böylece kısayollarınız çalışmaya devam eder. Açıkken pencereyi kapatmak uygulamayı tamamen kapatır."
       },
       "overlayStyle": {
         "title": "Kaplama",
@@ -1016,8 +1016,8 @@
       },
       "customWords": {
         "title": "Özel kelimeler",
-        "description": "Zynveliq'un sizin istediğiniz gibi yazması gereken adlar, ürünler ve ifadeler.",
-        "info": "Örnek: Zynveliq “Coco row” yazıyorsa “Kokoro” ekleyin.",
+        "description": "Talvio'nun sizin istediğiniz gibi yazması gereken adlar, ürünler ve ifadeler.",
+        "info": "Örnek: Talvio “Coco row” yazıyorsa “Kokoro” ekleyin.",
         "placeholder": "Bir ad, terim veya kısa ifade ekleyin",
         "add": "Ekle",
         "empty": "Henüz özel kelime yok.",
@@ -1026,7 +1026,7 @@
       },
       "autoLearn": {
         "label": "Düzelttiğim kelimeleri öğren",
-        "description": "Zynveliq'un yanlış yazdığı bir kelimeyi düzelttiğinizde yazılışınızı hatırlar.",
+        "description": "Talvio'nun yanlış yazdığı bir kelimeyi düzelttiğinizde yazılışınızı hatırlar.",
         "info": "Yalnızca az önce yazdığı alanı, yaklaşık bir dakika boyunca okur. Hiçbir şey yüklenmez ve öğrendiği her kelime burada listelenir.",
         "unsupported": "Düzeltmelerden öğrenme şimdilik yalnızca Windows'ta kullanılabilir. Yine de yukarıdan kelimeleri elle ekleyebilirsiniz.",
         "learnedTitle": "Düzeltmelerinizden öğrenilenler",
@@ -1040,7 +1040,7 @@
         "title": "Metin değiştirmeleri",
         "description": "Transkriptinizdeki bir ifadeyi, sık kullandığınız bir metinle değiştirin. Örnek: “e-postam” ifadesi “alex@example.com” olur.",
         "rulesTitle": "Değiştirme kuralları",
-        "rulesHint": "Zynveliq'un ne duyacağını ve ne ekleyeceğini seçin.",
+        "rulesHint": "Talvio'nun ne duyacağını ve ne ekleyeceğini seçin.",
         "empty": "Sık söylediğiniz bir ifade için kural oluşturun.",
         "addFirst": "İlk kuralı oluştur",
         "addRule": "Değiştirme ekle",
@@ -1418,7 +1418,7 @@
       },
       "updateChecks": {
         "label": "Güncellemeleri otomatik kontrol et",
-        "description": "Zynveliq açıldığında ve her 12 saatte bir yeni sürüm arar. İstediğiniz zaman elle de kontrol edebilirsiniz."
+        "description": "Talvio açıldığında ve her 12 saatte bir yeni sürüm arar. İstediğiniz zaman elle de kontrol edebilirsiniz."
       },
       "soundTheme": {
         "label": "Ses teması",
@@ -1476,7 +1476,7 @@
       "smartSpacing": {
         "label": "Akıllı boşluk",
         "description": "Her dikteyi alanda zaten bulunan metne uydurur; böylece durup devam ettiğinizde kelimeler birbirine yapışmaz.",
-        "info": "Yapıştırmadan önce Zynveliq imlecin çevresindeki birkaç karaktere bakar ve yalnızca gereken yerde boşluk ekler. Bir uygulama metnini gizliyorsa, bunun yerine kendi son diktesini kullanır. Hiçbir şey kaydedilmez veya bir yere gönderilmez. macOS'ta Zynveliq'un zaten sahip olduğu Erişilebilirlik iznini kullanır. Linux'ta Chrome, Electron ve Qt uygulamaları metinlerini yalnızca masaüstünün erişilebilirlik ayarı açıkken paylaşır."
+        "info": "Yapıştırmadan önce Talvio imlecin çevresindeki birkaç karaktere bakar ve yalnızca gereken yerde boşluk ekler. Bir uygulama metnini gizliyorsa, bunun yerine kendi son diktesini kullanır. Hiçbir şey kaydedilmez veya bir yere gönderilmez. macOS'ta Talvio'nun zaten sahip olduğu Erişilebilirlik iznini kullanır. Linux'ta Chrome, Electron ve Qt uygulamaları metinlerini yalnızca masaüstünün erişilebilirlik ayarı açıkken paylaşır."
       },
       "smartSpacingFixCase": {
         "label": "Büyük harfleri düzelt",
@@ -1484,7 +1484,7 @@
       },
       "smartSpacingJoin": {
         "label": "Yarım kalan cümleleri birleştir",
-        "description": "Cümlenin ortasında durduğunuzda Zynveliq'un eklediği noktayı kaldırır, örneğin \"I went to the.\""
+        "description": "Cümlenin ortasında durduğunuzda Talvio'nun eklediği noktayı kaldırır, örneğin \"I went to the.\""
       },
       "keyboardImplementation": {
         "title": "Klavye altyapısı",
@@ -1503,6 +1503,101 @@
       "recordingBuffer": {
         "title": "Ek kayıt tamponu",
         "description": "Tuşu bıraktıktan sonra kaydın sürdürüleceği milisaniye."
+      },
+      "commandMode": {
+        "title": "Komut modu",
+        "description": "Yönlendiricinin hangi aracı seçtiğini ve ne yaptığını görmek için bir komut yazın. Kısayol sonraki bir sürümde gelecek.",
+        "enabled": {
+          "title": "Komut modu",
+          "description": "Komutların uygulamalarınızda işlem yapmasına izin verir. --run-command için gereklidir; bu kutu her iki durumda da çalışır."
+        },
+        "input": {
+          "title": "Bir komut deneyin",
+          "description": "Metni, siz söylemişsiniz gibi yönlendirici modele gönderir. Deneme çalıştırması açıkken ekranda hiçbir şey olmaz: ne olacağını görürsünüz.",
+          "placeholder": "Ron'a saat 9:00'daki toplantı hakkında e-posta gönder"
+        },
+        "dryRun": {
+          "label": "Deneme çalıştırması"
+        },
+        "dryRunSetting": {
+          "title": "Varsayılan olarak deneme çalıştırması",
+          "description": "Komutlar yapacaklarını yapmak yerine gösterir. Yukarıdaki kutu ve --dry-run tek bir komut için yine de seçim yapabilir."
+        },
+        "delay": {
+          "label": "{{seconds}} saniye sonra çalıştır",
+          "hint": "Yazma ve tuş basışları öndeki pencereye gider; Çalıştır'a bastığınızda bu, bu penceredir. Gecikmeyi açıp istediğiniz uygulamaya tıklayın ya da deneme çalıştırmasını kullanın.",
+          "countdown": "{{seconds}} sn içinde çalışacak. Komutun hedefi olan uygulamaya tıklayın.",
+          "cancel": "İptal ({{seconds}})"
+        },
+        "run": "Çalıştır",
+        "running": "Çalışıyor…",
+        "invokeFailed": "Komut gönderilemedi: {{error}}",
+        "status": {
+          "done": "Tamamlandı",
+          "awaiting_confirmation": "Onay bekleniyor",
+          "needs_answer": "Yanıt gerekiyor",
+          "needs_computer_use": "Bilgisayar kullanımı gerekiyor",
+          "cancelled": "İptal edildi",
+          "failed": "Başarısız"
+        },
+        "dryRunBadge": "Deneme çalıştırması",
+        "fromCli": "Komut satırından",
+        "meta": "{{model}} · {{calls}} LLM çağrısı · token: {{input}} giriş, {{output}} çıkış, {{cached}} önbellekte · {{ms}} ms",
+        "transcript": "Komut: {{text}}",
+        "send": "Gönder",
+        "cancel": "İptal",
+        "answer": {
+          "placeholder": "Yanıtınız",
+          "submit": "Yanıtla"
+        },
+        "escalation": "Bilgisayar kullanımı görevi: {{task}}",
+        "error": "Hata: {{error}}",
+        "steps": "Adımlar",
+        "dryRunActions": "Yapılacak olanlar",
+        "provider": {
+          "title": "Yönlendirici sağlayıcısı",
+          "description": "Her komut için aracı seçen sağlayıcının kimliği (örneğin anthropic veya openrouter). O sağlayıcı için zaten kayıtlı API anahtarını kullanır. Boş bırakılırsa anthropic kullanılır.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Yönlendirici modeli",
+          "description": "Aracı seçen model. Küçük ve hızlı olanı en iyisidir: her komut bir çağrıya mal olur. Boş bırakılırsa varsayılan kullanılır.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google hesabı",
+          "description": "Gmail ve Takvim'in açılacağı hesap (bir e-posta adresi veya hesap numarası). Boş bırakılırsa tarayıcının varsayılan Google hesabı kullanılır.",
+          "placeholder": "Varsayılan hesap"
+        },
+        "searchUrl": {
+          "title": "Arama sayfası",
+          "description": "Web aramasının açtığı sayfa. İstediğiniz şeyle değiştirilen {query} ifadesini içermelidir; aksi halde Google kullanılır.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kişiler",
+          "description": "Komutların e-posta gönderebileceği adlar, düzenlediğiniz bir JSON dosyasındadır. İlk seferde tek bir örnekle oluşturulur.",
+          "open": "Kişiler dosyasını aç",
+          "openFailed": "Kişiler dosyası açılamadı: {{error}}"
+        },
+        "stop": "Durdur",
+        "autoEscalate": {
+          "title": "Gerektiğinde ekranı kontrol et",
+          "description": "Bir komuta uyan araç olmadığında bir ajan uygulamanın denetimlerini okur ve sizin yerinize kullanır; gönderen, satın alan veya silen her şeyden önce sorar. Şimdilik yalnızca Windows'ta."
+        },
+        "agentModel": {
+          "title": "Ajan modeli",
+          "description": "Ekranı kontrol eden model, yönlendiricinin sağlayıcısında. Yönlendiricininkinden daha güçlü bir model daha iyi çalışır. Boş bırakılırsa varsayılan kullanılır.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Ajan adım sınırı",
+          "description": "Bir görevin kullanabileceği en fazla model çağrısı sayısı, 1 ile 60 arası. Ajan orada durur ve ekranı olduğu gibi bırakır."
+        },
+        "agentMaxCost": {
+          "title": "Ajan maliyet sınırı (US$)",
+          "description": "Bir görev yaklaşık bu kadara mal olduğunda onu durdurur. Yalnızca bilinen Claude modellerinin fiyatı vardır; diğer modeller yalnızca adım sınırına tabidir."
+        }
       }
     },
     "about": {
@@ -1521,7 +1616,7 @@
       },
       "appDataDirectory": {
         "title": "Uygulama veri klasörü",
-        "description": "Zynveliq'un modellerinizi, geçmişinizi ve ayarlarınızı sakladığı yer."
+        "description": "Talvio'nun modellerinizi, geçmişinizi ve ayarlarınızı sakladığı yer."
       },
       "sourceCode": {
         "title": "Kaynak kodu",
@@ -1530,12 +1625,12 @@
       },
       "license": {
         "title": "Lisans",
-        "description": "Zynveliq, MIT Lisansı altında açık kaynaktır ve CJ Pais'in Handy (o da MIT) projesi üzerine kuruludur.",
+        "description": "Talvio, MIT Lisansı altında açık kaynaktır ve CJ Pais'in Handy (o da MIT) projesi üzerine kuruludur.",
         "button": "Lisansı görüntüle"
       },
       "supportDevelopment": {
         "title": "Geliştirmeyi destekleyin",
-        "description": "Zynveliq'u geliştirmeye devam etmemize yardımcı olun",
+        "description": "Talvio'yu geliştirmeye devam etmemize yardımcı olun",
         "button": "Bağış Yap"
       }
     },
@@ -1543,7 +1638,7 @@
       "enable": {
         "title": "Asistan",
         "label": "Asistanı etkinleştir",
-        "description": "Zynveliq'u yalnızca dikte için kullanmak istiyorsanız bunu kapatın. Yüzen panel kapatılır ve hiç yüklenmez, kısayolları serbest bırakılır ve kullandığı bellek geri verilir. Flow ile oluştur ve yapay zekâ temizleme çalışmayı sürdürür."
+        "description": "Talvio'yu yalnızca dikte için kullanmak istiyorsanız bunu kapatın. Yüzen panel kapatılır ve hiç yüklenmez, kısayolları serbest bırakılır ve kullandığı bellek geri verilir. Flow ile oluştur ve yapay zekâ temizleme çalışmayı sürdürür."
       },
       "shortcuts": {
         "title": "Kısayollar"
@@ -1582,7 +1677,7 @@
         "deleteModelFailed": "Model silinemedi.",
         "finderSectionTitle": "Daha fazla cihaz içi model",
         "finderTitle": "Hugging Face'e göz at",
-        "finderDescription": "Binlerce GGUF modeli arasında arama yapın ve birini doğrudan Zynveliq'a indirin.",
+        "finderDescription": "Binlerce GGUF modeli arasında arama yapın ve birini doğrudan Talvio'ya indirin.",
         "finderAction": "Model bul",
         "huggingFaceTitle": "Modelleriniz",
         "catalogEmpty": "Şu anda önerilen bir yerel model yok."
@@ -1705,7 +1800,7 @@
           "label": "Yakalama zamanı"
         },
         "screenRecording": {
-          "description": "Ekran görüşü, macOS Ekran Kaydı iznine ihtiyaç duyar. İzni Sistem Ayarları'ndan verin, ardından etkili olması için Zynveliq'u yeniden başlatın.",
+          "description": "Ekran görüşü, macOS Ekran Kaydı iznine ihtiyaç duyar. İzni Sistem Ayarları'ndan verin, ardından etkili olması için Talvio'yu yeniden başlatın.",
           "grant": "Sistem Ayarları'nı aç"
         }
       },
@@ -1882,7 +1977,7 @@
         "testGpuMoved": "Ekran kartınız örneği bozdu, bu yüzden sessize alındı. Kokoro artık işlemciyi kullanıyor; duymak için yeniden test edin.",
         "testGpuForced": "Ekran kartınız örneği bozdu, bu yüzden sessize alındı. Çalıştığı yer ayarını Otomatik veya İşlemci yapın.",
         "testGpuSuspect": "Örnek bozuk çıktı, bu yüzden sessize alındı. Ekran kartınızı kontrol etmek için yeniden test edin.",
-        "testPhrase": "Merhaba! Bu, Zynveliq'un ses çıkışı testidir.",
+        "testPhrase": "Merhaba! Bu, Talvio'nun ses çıkışı testidir.",
         "downloadStart": "Kokoro sesi indiriliyor…",
         "downloadProgress": "Kokoro sesi indiriliyor… %{{progress}}",
         "downloadReady": "Kokoro sesi hazır ✓",
@@ -1984,7 +2079,7 @@
     "account": {
       "signedOut": {
         "title": "Telefonunuzu bağlayın",
-        "body": "Burada ve telefonunuzdaki Zynveliq uygulamasında aynı hesapla oturum açın. Ardından telefonunuzdan bu bilgisayarda dikte edip yazabilirsiniz.",
+        "body": "Burada ve telefonunuzdaki Talvio uygulamasında aynı hesapla oturum açın. Ardından telefonunuzdan bu bilgisayarda dikte edip yazabilirsiniz.",
         "modeLabel": "Oturum açın veya hesap oluşturun",
         "signIn": "Oturum aç",
         "createAccount": "Hesap oluştur",
@@ -1997,8 +2092,7 @@
         "or": "veya",
         "google": "Google ile devam et",
         "googleWaiting": "Oturum açmayı tarayıcınızda tamamlayın.",
-        "privacy": "Sunucu yalnızca hesabınızı ve cihaz listenizi saklar; kayıtlarınızı veya metinlerinizi asla saklamaz.",
-        "serverUnsaved": "Oturum açmadan önce aşağıdaki yeni sunucu adresini kaydedin."
+        "privacy": "Sunucu hesabınızı, cihaz listenizi ve eşitliyorsanız API anahtarlarınızı (şifrelenmiş olarak) saklar. Kayıtlarınızı veya metinlerinizi asla saklamaz."
       },
       "signOut": "Oturumu kapat",
       "signingOut": "Oturum kapatılıyor…",
@@ -2006,13 +2100,18 @@
         "online": "Bağlı",
         "connecting": "Bağlanıyor…",
         "offline": "Bağlı değil",
-        "offlineHint": "Zynveliq şu anda sunucuya ulaşamıyor ve denemeye devam ediyor. O zamana kadar telefonunuz bu bilgisayarı kullanamaz."
+        "offlineHint": "Talvio şu anda sunucuya ulaşamıyor ve denemeye devam ediyor. O zamana kadar telefonunuz bu bilgisayarı kullanamaz."
       },
       "phone": {
         "title": "Telefon",
         "remoteInput": "Telefondan dikte",
         "remoteInputHint": "Telefonunuzun bu bilgisayarda dikte etmesine ve yazmasına izin verir.",
-        "install": "Telefonunuza Zynveliq uygulamasını yükleyin ve {{email}} ile oturum açın."
+        "install": "Telefonunuza Talvio uygulamasını yükleyin ve {{email}} ile oturum açın."
+      },
+      "keys": {
+        "title": "API anahtarları",
+        "sync": "API anahtarlarını eşitle",
+        "syncHint": "Bu bilgisayara eklediğiniz anahtarlar Talvio hesabınızda şifrelenmiş olarak saklanır ve diğer bilgisayarlarınızda da görünür."
       },
       "devices": {
         "title": "Cihazlar",
@@ -2039,12 +2138,8 @@
       },
       "server": {
         "title": "Hesap sunucusu",
-        "hint": "Hesabınızın tutulduğu yer. Yalnızca kendi sunucunuzu çalıştırıyorsanız değiştirin.",
-        "locked": "Sunucuyu değiştirmek için oturumu kapatın.",
-        "automatic": "Otomatik",
-        "custom": "Özel",
         "using": "Kullanılan: {{host}}",
-        "notFound": "Sunucu şu anda bulunamıyor. Zynveliq denemeye devam ediyor."
+        "notFound": "Sunucu şu anda bulunamıyor. Talvio denemeye devam ediyor."
       },
       "errors": {
         "generic": "Bir şeyler ters gitti. Tekrar deneyin.",
@@ -2064,9 +2159,7 @@
         "server": "Sunucu beklenmedik bir yanıt gönderdi. Daha sonra tekrar deneyin.",
         "timeout": "Google ile oturum açmak çok uzun sürdü. Tekrar deneyin.",
         "signed_in": "Sunucuyu değiştirmeden önce oturumu kapatın.",
-        "invalid_url": "Parolanız şifreli gitsin diye https:// ile başlayan bir adres girin. http:// yalnızca bu bilgisayardaki bir sunucuyla çalışır.",
-        "keychain": "Oturumunuz bu bilgisayara güvenli şekilde kaydedilemedi. Tekrar deneyin.",
-        "wrongServer": "Bu sunucu adresi doğru görünmüyor. Aşağıdan kontrol edip tekrar deneyin."
+        "keychain": "Oturumunuz bu bilgisayara güvenli şekilde kaydedilemedi. Tekrar deneyin."
       }
     }
   },
@@ -2167,7 +2260,7 @@
     "list": {
       "title": "Kaydedilen toplantılar",
       "emptyTitle": "Henüz toplantı yok",
-      "emptyHint": "Bir görüşmeden önce kaydı başlatın; Zynveliq transkripti kimin konuştuğuna göre ayrılmış olarak saklar.",
+      "emptyHint": "Bir görüşmeden önce kaydı başlatın; Talvio transkripti kimin konuştuğuna göre ayrılmış olarak saklar.",
       "loadMore": "Daha fazla yükle",
       "speakers_one": "{{count}} konuşmacı",
       "speakers_other": "{{count}} konuşmacı",
@@ -2331,7 +2424,7 @@
   },
   "accessibility": {
     "permissionsRequired": "Erişilebilirlik izinleri gerekli",
-    "permissionsDescription": "Zynveliq, transkribe edilen metni yazabilmek için erişilebilirlik izinlerine ihtiyaç duyar.",
+    "permissionsDescription": "Talvio, transkribe edilen metni yazabilmek için erişilebilirlik izinlerine ihtiyaç duyar.",
     "openSettings": "Sistem Ayarlarını Aç",
     "dismiss": "Yoksay"
   },
@@ -2360,7 +2453,7 @@
   },
   "appLanguage": {
     "title": "Uygulama dili",
-    "description": "Zynveliq arayüzünün dilini değiştirin"
+    "description": "Talvio arayüzünün dilini değiştirin"
   },
   "overlay": {
     "preparing": "Mikrofon hazırlanıyor…",
@@ -2728,7 +2821,7 @@
       "performance": "Performans"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "Sürüm {{version}}",
       "project": "Proje",
       "docs": "Belgeler",
@@ -2746,7 +2839,7 @@
     "subtitleTap": "Herhangi bir uygulamada kısayolunuza dokunun, konuşun ve yeniden dokunun. Sözleriniz imlecinizin olduğu yerde görünür.",
     "needsModel": {
       "title": "Dikte etmeye başlamak için bir konuşma modeli seçin.",
-      "description": "Zynveliq'un söylediklerinizi yazabilmesi için bir konuşmadan metne modeline ihtiyacı var.",
+      "description": "Talvio'nun söylediklerinizi yazabilmesi için bir konuşmadan metne modeline ihtiyacı var.",
       "action": "Bir model seçin"
     },
     "stats": {
@@ -2822,8 +2915,8 @@
         "open": "Klavye ayarları"
       },
       "linux": {
-        "wayland": "Wayland'de masaüstünüz bu tuşları Zynveliq'a yalnızca pencerelerinden biri öndeyken iletir. Bunları her uygulamada kullanmak için sistem ayarlarında kısayol olarak ekleyin.",
-        "noAccess": "Zynveliq Keys bu bilgisayarda klavyeyi okuyamıyor, bu yüzden bu kısayollar henüz bir şey yapmıyor.",
+        "wayland": "Wayland'de masaüstünüz bu tuşları Talvio'ya yalnızca pencerelerinden biri öndeyken iletir. Bunları her uygulamada kullanmak için sistem ayarlarında kısayol olarak ekleyin.",
+        "noAccess": "Talvio Keys bu bilgisayarda klavyeyi okuyamıyor, bu yüzden bu kısayollar henüz bir şey yapmıyor.",
         "setUp": "Kur",
         "where": {
           "gnome": "Ayarlar → Klavye → Kısayolları Görüntüle ve Özelleştir → Özel Kısayollar'ı açın, aşağıdaki her komut için bir tane ekleyin ve istediğiniz tuşlara basın.",
@@ -2831,7 +2924,7 @@
           "other": "Aşağıdaki her komut için masaüstünüzün klavye ayarlarına özel bir kısayol ya da compositor yapılandırmanıza bir bind satırı ekleyin."
         },
         "tapOnly": "Bu şekilde eklenen bir kısayol “Açıp kapatmak için dokun” gibi çalışır: başlatmak için bir kez, durdurmak için tekrar basın.",
-        "access": "Ya da Zynveliq Keys'in klavyeyi okumasına izin verin. Bunu bir terminalde çalıştırın, ardından oturumu kapatıp yeniden açın:",
+        "access": "Ya da Talvio Keys'in klavyeyi okumasına izin verin. Bunu bir terminalde çalıştırın, ardından oturumu kapatıp yeniden açın:",
         "copy": "Kopyala",
         "copied": "Kopyalandı"
       }
@@ -2861,7 +2954,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}}, Zynveliq'un artık içermediği eski bir motor kullanıyordu.",
+    "title": "{{model}}, Talvio'nun artık içermediği eski bir motor kullanıyordu.",
     "newVersion": "Yeni sürümü {{model}}.",
     "ready": "{{model}} indirildi ve hazır.",
     "noVersion": "Dikte etmeye devam etmek için başka bir model seçin.",
@@ -2870,12 +2963,12 @@
     "retry": "Tekrar dene",
     "chooseAnother": "Başka bir model seç",
     "progressLabel": "Yeni sürüm indiriliyor",
-    "dialogTitle": "Zynveliq'un yeni bir konuşma motoru var",
+    "dialogTitle": "Talvio'nun yeni bir konuşma motoru var",
     "dialogBody": "Daha hızlı ve daha kararlı, bu yüzden daha az sorunla karşılaşacaksınız. {{model}} eski motorda çalışıyordu ve çalışmaya devam etmesi için yeni sürümüne ihtiyacı var.",
     "later": "Daha sonra"
   },
   "modelsHub": {
-    "description": "Zynveliq'daki her işi sizin seçtiğiniz bir model yapar. Gizlilik için bu bilgisayarda, hız için bulutta çalıştırın.",
+    "description": "Talvio'daki her işi sizin seçtiğiniz bir model yapar. Gizlilik için bu bilgisayarda, hız için bulutta çalıştırın.",
     "addLocal": "Model dosyası ekle",
     "privacyNote": "Bu bilgisayardaki modeller sesinizi veya metninizi hiçbir yere göndermez. Bulut modelleri, API anahtarınızı kullanarak bunları seçtiğiniz sağlayıcıya gönderir.",
     "inUse": "Kullanımda",
@@ -3035,12 +3128,12 @@
     "shortcutRow": "Kısayol"
   },
   "dictionary": {
-    "description": "Zynveliq'a kullandığınız adları ve terimleri öğretin, daha uzun metne dönüşen kısaltmalar tanımlayın.",
+    "description": "Talvio'ya kullandığınız adları ve terimleri öğretin, daha uzun metne dönüşen kısaltmalar tanımlayın.",
     "words": {
       "title": "Kelimeleriniz",
-      "description": "Zynveliq'un her zaman doğru yazması gereken adlar, jargon ve yazımlar.",
+      "description": "Talvio'nun her zaman doğru yazması gereken adlar, jargon ve yazımlar.",
       "placeholder": "Bir ad, terim veya yazım ekleyin…",
-      "empty": "Burada henüz bir şey yok. Zynveliq'un sürekli yanlış yazdığı kelimeleri ekleyin."
+      "empty": "Burada henüz bir şey yok. Talvio'nun sürekli yanlış yazdığı kelimeleri ekleyin."
     },
     "replacements": {
       "title": "Değiştirmeler",
@@ -3426,7 +3519,7 @@
     "or": "veya",
     "changeOther": "{{name}} kısayolunun diğer tuşlarını değiştir",
     "pressKeysOrButton": "Tuşlara veya bir fare düğmesine basın…",
-    "mouseNeedsKeysEngine": "Fare düğmeleri Zynveliq Keys klavye altyapısını gerektirir (Ayarlar → Gelişmiş → Deneysel).",
+    "mouseNeedsKeysEngine": "Fare düğmeleri Talvio Keys klavye altyapısını gerektirir (Ayarlar → Gelişmiş → Deneysel).",
     "mouse": {
       "middle": "Orta fare düğmesi",
       "back": "Fare Geri düğmesi",
@@ -3505,7 +3598,7 @@
     }
   },
   "insights": {
-    "about": "Zynveliq'u nasıl kullandığınız, bu bilgisayarda sayılır.",
+    "about": "Talvio'yu nasıl kullandığınız, bu bilgisayarda sayılır.",
     "nothingYet": "Dikte ettiğinizde, asistana sorduğunuzda ya da bir toplantı kaydettiğinizde istatistikleriniz görünür.",
     "goHome": "Kısayolları göster",
     "figures": {
@@ -3565,7 +3658,7 @@
     },
     "share": {
       "button": "Paylaş",
-      "nothingYet": "Zynveliq'u kullanmaya başladığınızda paylaşacak bir şeyiniz olur.",
+      "nothingYet": "Talvio'yu kullanmaya başladığınızda paylaşacak bir şeyiniz olur.",
       "title": "İstatistiklerinizi paylaşın",
       "private": "Bu bilgisayarda oluşturulur. Hiçbir şey yüklenmez.",
       "size": "Boyut",
@@ -3596,13 +3689,13 @@
       "openSite": "{{site}}’ı aç",
       "openFailed": "{{site}} açılamadı",
       "more": "Diğer uygulamalar",
-      "sheetTitle": "Zynveliq istatistiklerim",
+      "sheetTitle": "Talvio istatistiklerim",
       "shareFailed": "Paylaşım penceresi açılamadı",
       "drawFailed": "Kartlar çizilemedi. Bunu kapatıp tekrar deneyin.",
       "tagline": "Ücretsiz · Açık kaynak · Çevrimdışı çalışır",
       "cards": {
         "highlights": {
-          "title": "Zynveliq özetim",
+          "title": "Talvio özetim",
           "words_one": "konuşulan kelime",
           "words_other": "konuşulan kelime",
           "streak_one": "günlük seri",
@@ -3665,12 +3758,12 @@
         }
       },
       "post": {
-        "dictation_one": "Zynveliq sayesinde {{formatted}} kelimeyi bilgisayarıma yazmak yerine söyledim.",
-        "dictation_other": "Zynveliq sayesinde {{formatted}} kelimeyi bilgisayarıma yazmak yerine söyledim.",
-        "asks_one": "Sekme değiştirmeden Zynveliq'un asistanına {{formatted}} soru sordum.",
-        "asks_other": "Sekme değiştirmeden Zynveliq'un asistanına {{formatted}} soru sordum.",
-        "meetings_one": "Zynveliq {{formatted}} toplantımı kaydetti ve notlarını benim yerime yazdı.",
-        "meetings_other": "Zynveliq {{formatted}} toplantımı kaydetti ve notlarını benim yerime yazdı."
+        "dictation_one": "Talvio sayesinde {{formatted}} kelimeyi bilgisayarıma yazmak yerine söyledim.",
+        "dictation_other": "Talvio sayesinde {{formatted}} kelimeyi bilgisayarıma yazmak yerine söyledim.",
+        "asks_one": "Sekme değiştirmeden Talvio'nun asistanına {{formatted}} soru sordum.",
+        "asks_other": "Sekme değiştirmeden Talvio'nun asistanına {{formatted}} soru sordum.",
+        "meetings_one": "Talvio {{formatted}} toplantımı kaydetti ve notlarını benim yerime yazdı.",
+        "meetings_other": "Talvio {{formatted}} toplantımı kaydetti ve notlarını benim yerime yazdı."
       }
     }
   },
@@ -3678,11 +3771,72 @@
     "restored": "Ayarlarınız bozulmuştu ve bir yedekten geri yüklendi.",
     "restoredDescription": "Son değişiklikler eksik olabilir.",
     "unrecoverableTitle": "Ayarlarınız kurtarılamadı",
-    "unrecoverableDescription": "Zynveliq varsayılan ayarlarla başlatıldı. Bozuk dosya {{file}} adıyla saklandı.",
+    "unrecoverableDescription": "Talvio varsayılan ayarlarla başlatıldı. Bozuk dosya {{file}} adıyla saklandı.",
     "notSavingTitle": "Ayar değişiklikleri kaydedilmeyecek",
-    "notSavingDescription": "Ayar dosyası okunamadığı için olduğu gibi bırakıldı. Tekrar denemek için Zynveliq'u yeniden başlatın.",
+    "notSavingDescription": "Ayar dosyası okunamadığı için olduğu gibi bırakıldı. Tekrar denemek için Talvio'yu yeniden başlatın.",
     "saveFailingTitle": "Ayarlar kaydedilmiyor",
-    "saveFailingDescription": "Son değişiklikleriniz henüz kaydedilmedi. Zynveliq denemeye devam edecek.",
+    "saveFailingDescription": "Son değişiklikleriniz henüz kaydedilmedi. Talvio denemeye devam edecek.",
     "dismiss": "Kapat"
+  },
+  "commandMode": {
+    "feedback": {
+      "agentCancelled": "Durdum. Her şeyi olduğu gibi bıraktım.",
+      "agentConfirm": "{{window}} içindeki “{{name}}” bir şey gönderebilir, satın alabilir veya silebilir. Devam etmek için evet deyin ya da iptal edin.",
+      "agentConfirmed": "Tamamlandı: “{{name}}”.",
+      "agentCostLimit": "Bu, ${{limit}} tutarından fazlasına mal olmak üzereydi, bu yüzden durdum ve her şeyi olduğu gibi bıraktım.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Ekranı kontrol edemedim: {{reason}}",
+      "agentGaveUp": "Bunu bitiremedim: {{reason}}",
+      "agentNotConfigured": "Bunun için ekranı kontrol etmem gerekiyor, ancak ajan ayarlanmamış: {{why}}",
+      "agentOff": "Araçlarımdan hiçbiri bunu yapamıyor. Uygulamayı sizin yerinize kullanabilmem için “Gerektiğinde ekranı kontrol et” seçeneğini açın.",
+      "agentStepLimit": "Bu, {{steps}} adımdan fazla sürdü, bu yüzden durdum ve her şeyi olduğu gibi bıraktım.",
+      "agentWorking": "{{app}} içinde üzerinde çalışıyorum…",
+      "agentWorkingNoApp": "Üzerinde çalışıyorum…",
+      "calendarDraft": "“{{title}}” takvim etkinliği kaydedilmeye hazır.",
+      "calendarDraftMissingGuests": "“{{title}}” takvim etkinliği kaydedilmeye hazır. {{guests}} eklenmedi: e-posta adresleri bende yok, bu yüzden onları formda ekleyin.",
+      "cancelled": "İptal edildi. Hiçbir şey gönderilmedi.",
+      "confirmExpired": "Çok uzun süre bekledi, bu yüzden yapmadım. Tekrar isteyin.",
+      "confirmFailed": "Bu artık yapılamıyor.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} kişilerinizde var, ancak kayıtlı bir e-posta adresi veya telefon numarası yok.",
+      "contactNotFound": "{{name}} adında bir kişi bulamadım.",
+      "emailDraft": "{{name}} için taslak açık. Gönder ya da iptal deyin.",
+      "emailDraftTruncated": "{{name}} için taslak açık. İleti Gmail'e aktarmak için çok uzundu, bu yüzden kısaltıldı; göndermeden önce sonunu kontrol edin. Gönder ya da iptal deyin.",
+      "emailSent": "{{name}} kişisine gönderildi.",
+      "empty": "Bir komut anlayamadım.",
+      "failed": "{{reason}}",
+      "mediaNext": "Sonraki parçaya geçildi.",
+      "mediaPlayPause": "Oynat/duraklat tuşuna basıldı.",
+      "mediaPrevious": "Önceki parçaya dönüldü.",
+      "mediaStop": "Oynatma durduruldu.",
+      "needsComputerUse": "Araçlarımın hiçbiri bunu henüz yapamıyor. Bunun için ekranı kontrol etme özelliği sonraki bir sürümde gelecek.",
+      "notConfigured": "Komut modu ayarlanmamış: {{why}}",
+      "nothingWaitingAnswer": "Yanıt bekleyen bir şey yok.",
+      "nothingWaitingConfirmation": "Onay bekleyen bir şey yok.",
+      "openedInstead": "{{app}} açık değildi, bu yüzden açtım.",
+      "openingApp": "{{app}} açılıyor.",
+      "openingFile": "{{file}} açılıyor.",
+      "planCapped": "Tek seferde çok fazla adım vardı, bu yüzden son {{count}} adımı atladım.",
+      "pressKeysConfirm": "{{keys}}, {{window}} içinde bir şey gönderebilir veya iletebilir. Basmam için evet deyin ya da iptal edin.",
+      "pressedKeys": "{{keys}} tuşlarına basıldı.",
+      "pressedKeysRepeat": "{{keys}} tuşlarına {{count}} kez basıldı.",
+      "question": "{{question}}",
+      "routeFailed": "Ne yapacağımı çıkaramadım: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "{{query}} aranıyor.",
+      "superseded": "Daha yeni bir komut bunun yerini aldı, bu yüzden artık beklemiyor.",
+      "switchedTo": "{{title}} penceresine geçildi.",
+      "tooManyQuestions": "Hâlâ ne yapacağımı çıkaramadım. Farklı bir şekilde söylemeyi deneyin.",
+      "typedText": "Yazıldı.",
+      "unsupported": "Bu, {{os}} üzerinde mümkün değil.",
+      "urlOpened": "{{site}} açıldı.",
+      "volumeDown": "Ses düzeyi azaltıldı.",
+      "volumeMute": "Ses kapatıldı.",
+      "volumeSet": "Ses düzeyi %{{percent}} olarak ayarlandı.",
+      "volumeUnmute": "Ses yeniden açıldı.",
+      "volumeUp": "Ses düzeyi artırıldı.",
+      "waitingForAnswer": "Bu komut onay değil, yanıt bekliyor.",
+      "waitingForConfirmation": "Bu komut yanıt değil, onaylamanızı bekliyor."
+    }
   }
 }

@@ -1,6 +1,7 @@
 /* The assistant's windows: the quick ask, the call, and the reminder popup.
  *
- * One dark visual language: graphite glass, cool off-white ink, hairline edges.
+ * One dark visual language: Talvio's deep blue-violet card, soft off-white ink,
+ * hairline edges.
  * The quick ask and the call are one family and are drawn from the same parts:
  * the quick ask's waiting pill *is* the call's status bubble (same surface, same
  * level bars and spinner, same few words), and the one primary action in either
@@ -8,7 +9,8 @@
  * assistant's surfaces. A teal sparkle, a teal ring and a teal edge used to mark
  * the quick ask as "the assistant"; beside the monochrome call they read as a
  * different app, and the mark said nothing the words next to it did not.
- * (`--as-accent*` survives only for thumbnail hover and a few focus rings.)
+ * (`--as-accent*`, now Talvio coral, survives only for thumbnail hover and a few
+ * focus rings; the call's orb is the one place the brand's colours are drawn.)
  *
  * Tokens live on `.assistant-scope` so the settings preview and the reminder
  * popup render the exact same classes from the same stylesheet.
@@ -27,17 +29,18 @@
    * on <html> and the settings preview inline on this element; declaring them
    * here would shadow both. */
 
-  /* Graphite, tinted a hair toward the brand's own hue rather than toward warm.
-   * The previous brown-black is what made the whole surface read as yellowish. */
-  --as-surface: rgba(19, 22, 23, var(--as-alpha, 1));
+  /* Talvio's dark card (#17192F) and ink (#F2F1F7), from docs/talvio-brand.md
+   * §5. A deep blue-violet rather than the graphite it replaced, so the floating
+   * windows read as the same product as the main window's dark theme. */
+  --as-surface: rgba(23, 25, 47, var(--as-alpha, 1));
   --as-panel-surface: var(--as-surface);
-  --as-chip-surface: rgba(21, 24, 25, calc(0.96 * var(--as-alpha, 1)));
-  --as-menu-surface: #1c2123;
-  --as-ink: #eef2f2;
-  --as-body: #d2d8d8;
-  --as-muted: #9ba5a6;
-  --as-faint: #6e797a;
-  --as-placeholder: #86908f;
+  --as-chip-surface: rgba(23, 25, 47, calc(0.96 * var(--as-alpha, 1)));
+  --as-menu-surface: #1f2240;
+  --as-ink: #f2f1f7;
+  --as-body: #d6d5e2;
+  --as-muted: #a3a5bf;
+  --as-faint: #8083a2;
+  --as-placeholder: #8c8ea9;
   --as-hairline: rgba(255, 255, 255, 0.08);
   --as-hairline-strong: rgba(255, 255, 255, 0.14);
   --as-inner:
@@ -48,23 +51,25 @@
   --as-inset-bg: rgba(0, 0, 0, 0.28);
   --as-user-bg: rgba(255, 255, 255, 0.08);
 
-  /* The brand teal, as the app's dark theme defines it (App.css). */
-  --as-accent: #5cd6be;
-  --as-accent-strong: #90e8d4;
-  --as-accent-fill: #1ea28f;
-  /* Text on a teal fill: ~9.5:1 on --as-accent. */
-  --as-accent-ink: #04241f;
-  --as-accent-soft: rgba(92, 214, 190, 0.13);
-  --as-accent-line: rgba(92, 214, 190, 0.36);
+  /* Talvio coral, dark-mode value (#FF6A52, 6.6:1 on the dark canvas). Kept to
+     graphics: focus rings and a thumbnail's hover edge, never a fill behind
+     text or a badge. */
+  --as-accent: #ff6a52;
+  --as-accent-strong: #ff8f7d;
+  --as-accent-fill: #ff6a52;
+  /* Text on a coral fill: the brand's dark ink, 6.6:1 on --as-accent. */
+  --as-accent-ink: #101122;
+  --as-accent-soft: rgba(255, 106, 82, 0.13);
+  --as-accent-line: rgba(255, 106, 82, 0.5);
 
   --as-error: #fda4af;
   --as-error-bg: rgba(244, 63, 94, 0.12);
   /* An error on its own surface (the call's bubble, the quick ask's card): the
-     faint red tint already laid over the graphite, and opaque. Mixing the two
+     faint red tint already laid over the card colour, and opaque. Mixing the two
      translucent tokens with `color-mix()` mixed their alpha too and gave a
      surface about 37% opaque, so over a white window the message came out pink
      on pale grey — unreadable, and lighter than everything around it. */
-  --as-error-surface: #2a1d21;
+  --as-error-surface: #2e1c2d;
   --as-error-line: rgba(253, 164, 175, 0.28);
   --as-live: #e5484d;
 
@@ -1130,7 +1135,7 @@
   border: none;
   border-radius: 50%;
   background: var(--as-ink);
-  color: #111415;
+  color: #101122;
   cursor: pointer;
   transition:
     background 140ms ease,
@@ -1183,12 +1188,12 @@
 .qa-btn.primary {
   border-color: transparent;
   background: var(--as-ink);
-  color: #111415;
+  color: #101122;
 }
 
 .qa-btn.primary:hover {
   background: #ffffff;
-  color: #111415;
+  color: #101122;
 }
 
 .qa-surface :focus-visible {
@@ -1540,9 +1545,9 @@
   padding: 18px;
   background: radial-gradient(
     130% 130% at 15% 12%,
-    #34444a 0%,
-    #222c30 48%,
-    #14191b 100%
+    #262b6b 0%,
+    #181a45 48%,
+    #0e0f26 100%
   );
 }
 
@@ -1550,9 +1555,9 @@
 .assistant-desktop {
   background: radial-gradient(
     130% 130% at 15% 12%,
-    #34444a 0%,
-    #222c30 48%,
-    #14191b 100%
+    #262b6b 0%,
+    #181a45 48%,
+    #0e0f26 100%
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }

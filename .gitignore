@@ -76,11 +76,11 @@ secrets.json
 settings_store.json
 
 # Internal marketing/testing website — kept out of the app repo
-zynveliq-website/
+talvio-website/
 
 # Internal generated docs/reference HTML (local-only, regenerable)
-zynveliq-docs.html
-zynveliq-feature-reference.html
+talvio-docs.html
+talvio-feature-reference.html
 
 # Internal launch & competitive-strategy playbook — kept out of the public repo
 # (self-declared internal; contains launch tactics + competitor analysis).
@@ -90,7 +90,7 @@ LAUNCH_PLAN.md
 # checklists, provider audits, prompt references, redesign write-ups. These are
 # local scratch documents, not product documentation, so the whole folder stays
 # out of the public repo. User-facing docs live in README.md, BUILD.md,
-# CONTRIBUTING.md, PRIVACY.md and on zynveliq.invalid/docs.
+# CONTRIBUTING.md, PRIVACY.md and on talvio.invalid/docs.
 docs/
 
 # Demo / marketing capture tooling (not shipped, regenerable, dev-only).

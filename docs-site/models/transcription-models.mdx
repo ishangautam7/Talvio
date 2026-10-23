@@ -1,6 +1,6 @@
 ---
 title: "Transcription models"
-description: "The Models page in Zynveliq, organised by the job a model does: speech to text, AI cleanup, assistant, and voice. Covers the speech catalog, downloads, switching models, and how each job can run locally or in the cloud."
+description: "The Models page in Talvio, organised by the job a model does: speech to text, AI cleanup, assistant, and voice. Covers the speech catalog, downloads, switching models, and how each job can run locally or in the cloud."
 icon: "microchip"
 ---
 
@@ -56,10 +56,10 @@ Filters combine. When nothing matches, **Clear filters** puts the full list back
 
 ## Models from an earlier version
 
-Before Zynveliq moved every model to transcribe.cpp, some models came in older formats. What happens to them depends on the format.
+Before Talvio moved every model to transcribe.cpp, some models came in older formats. What happens to them depends on the format.
 
 - **Whisper `.bin` files** (Whisper Small, Medium, Turbo, Large, and Breeze ASR) still work. A downloaded one is listed with an **Older** tag, because the catalog has the same model in the current format. One you never downloaded is not offered any more.
-- **ONNX models** (Parakeet V2 and V3, Moonshine, SenseVoice, GigaAM, Canary, and Cohere) ran on an engine Zynveliq no longer includes, so they can't be used. A downloaded one is listed with a **Retired** tag and **Get new version**, which downloads the same model for the new engine. A note above the list gathers them, with one **Delete old files** button to free the space.
+- **ONNX models** (Parakeet V2 and V3, Moonshine, SenseVoice, GigaAM, Canary, and Cohere) ran on an engine Talvio no longer includes, so they can't be used. A downloaded one is listed with a **Retired** tag and **Get new version**, which downloads the same model for the new engine. A note above the list gathers them, with one **Delete old files** button to free the space.
 
 If a retired model was your speech model, it stays selected after the update so you can see what happened. Home and the Speech to text tab show a prompt with **Download new version**, and pressing a voice shortcut shows "needs an update" on the pill and opens that prompt. When the download finishes, the new version becomes your speech model on its own. **Choose another model** takes you to the rest of the catalog instead. Until one of those happens, a meeting or a History retranscription tells you the model needs its new version instead of starting.
 
@@ -82,7 +82,7 @@ Cancelling keeps the partial file, so resuming later picks up where you left off
 
 Pick a different model from the dropdown at the top of the Speech to text tab. You can also switch from the system tray menu without opening the app.
 
-A brand-new install is seeded with Parakeet Unified EN 0.6B. If it is not on disk yet, Zynveliq falls back to any other downloaded speech model, so the app is never left without a working model.
+A brand-new install is seeded with Parakeet Unified EN 0.6B. If it is not on disk yet, Talvio falls back to any other downloaded speech model, so the app is never left without a working model.
 
 ## Deleting a model
 

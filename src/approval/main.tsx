@@ -1,3 +1,6 @@
+// Must be first: copies storage from before the rename to Talvio, ahead of
+// any module that reads it (see lib/storageMigration.ts).
+import "../lib/storageMigration";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import ApprovalPopup from "./ApprovalPopup";

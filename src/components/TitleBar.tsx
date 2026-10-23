@@ -4,7 +4,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Copy, Minus, Square, X } from "lucide-react";
 import { useSafeWindowDrag } from "@/lib/useSafeWindowDrag";
-import Wordmark from "./Wordmark";
+import LogoLockup from "./LogoLockup";
 
 /**
  * Custom window title bar.
@@ -87,9 +87,13 @@ export const TitleBar: React.FC = () => {
         isMac ? "pl-[78px] pr-3" : "ps-3.5 pe-2"
       }`}
     >
-      {/* Brand wordmark. pointer-events-none keeps the strip draggable. */}
+      {/* The Wave-T mark and the wordmark. pointer-events-none keeps the strip
+       *  draggable. */}
       <div className="flex items-center pointer-events-none select-none">
-        <Wordmark className="text-base" />
+        <LogoLockup
+          className="gap-2 [&>svg:last-child]:h-[0.8125rem]"
+          iconClassName="h-[1.375rem] w-auto"
+        />
       </div>
 
       {/* Windows/Linux use these controls; macOS keeps native traffic lights. */}

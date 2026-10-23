@@ -10,7 +10,7 @@
 //! behind it.
 //!
 //! A batch run that arrives while a live stream is open waits for the stream
-//! to end instead of ending it (upstream Handy ends it). Zynveliq can
+//! to end instead of ending it (upstream Handy ends it). Talvio can
 //! transcribe a meeting chunk while the user dictates, and ending the
 //! dictation's stream for it would throw the live transcript away. The old
 //! in-process engine made the same choice by leasing the engine to the stream.
@@ -1431,7 +1431,7 @@ impl Worker {
         let mut command = ProcessCommand::new(exe);
         #[cfg(target_os = "linux")]
         if let Some(arg0) = std::env::args_os().next() {
-            // Keep `ps` showing Zynveliq's own path rather than /proc/self/exe.
+            // Keep `ps` showing Talvio's own path rather than /proc/self/exe.
             use std::os::unix::process::CommandExt;
             command.arg0(arg0);
         }
@@ -1717,7 +1717,7 @@ fn wait_exit(child: &mut Child, timeout: Duration) -> Option<ExitStatus> {
 #[cfg(test)]
 static LIVE_WORKERS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
-/// The file Zynveliq was started from, with its identity (device and inode),
+/// The file Talvio was started from, with its identity (device and inode),
 /// recorded at startup; see [`worker_exe`]. `None` if either couldn't be read,
 /// which skips the check.
 #[cfg(all(unix, not(test)))]
@@ -1740,14 +1740,14 @@ fn record_launched_exe() {
                 let id = file_id(&path)?;
                 Ok((path, id))
             })
-            .inspect_err(|e| warn!("Could not identify Zynveliq's executable: {}", e))
+            .inspect_err(|e| warn!("Could not identify Talvio's executable: {}", e))
             .ok()
     });
 }
 
 /// The executable a worker runs: always this very binary, so the two agree on
 /// the protocol and on transcribe.cpp's backend libraries. Upgrading or moving
-/// Zynveliq while it runs replaces or removes the file it started from, and a
+/// Talvio while it runs replaces or removes the file it started from, and a
 /// worker started from there would be the new version (macOS), or this binary
 /// loading the new version's backend libraries (Linux). Only a restart fixes
 /// that, so refuse to start one and say so. Windows locks a running executable
@@ -1768,7 +1768,7 @@ fn worker_exe() -> io::Result<PathBuf> {
         let exe = harness
             .parent()
             .and_then(std::path::Path::parent)
-            .map(|dir| dir.join(format!("zynveliq{}", std::env::consts::EXE_SUFFIX)))
+            .map(|dir| dir.join(format!("talvio{}", std::env::consts::EXE_SUFFIX)))
             .filter(|exe| exe.exists())
             .ok_or_else(|| {
                 io::Error::other(format!(
@@ -1784,7 +1784,7 @@ fn worker_exe() -> io::Result<PathBuf> {
         if let Some((path, launched)) = LAUNCHED_EXE.get().and_then(Option::as_ref) {
             if file_id(path).ok().as_ref() != Some(launched) {
                 return Err(io::Error::other(
-                    "Zynveliq was updated or moved while it was running; restart Zynveliq",
+                    "Talvio was updated or moved while it was running; restart Talvio",
                 ));
             }
         }
@@ -2069,11 +2069,11 @@ mod unit_tests {
 ///
 /// `cargo build && cargo test --lib engine_supervisor -- --ignored --nocapture --test-threads=1`
 ///
-/// The worker defaults to the `zynveliq` binary beside the test harness
-/// (`ZYNVELIQ_TRANSCRIBE_WORKER_EXE` overrides it). Models come from the
-/// installed app's folder (`ZYNVELIQ_MODELS_DIR`), the GGUF Parakeet TDT v3
-/// from `ZYNVELIQ_PARAKEET_TDT`, the recording from the newest one in the
-/// app's recordings folder (`ZYNVELIQ_LIVE_WAV`). Transcript text is never
+/// The worker defaults to the `talvio` binary beside the test harness
+/// (`TALVIO_TRANSCRIBE_WORKER_EXE` overrides it). Models come from the
+/// installed app's folder (`TALVIO_MODELS_DIR`), the GGUF Parakeet TDT v3
+/// from `TALVIO_PARAKEET_TDT`, the recording from the newest one in the
+/// app's recordings folder (`TALVIO_LIVE_WAV`). Transcript text is never
 /// printed, only its length.
 #[cfg(test)]
 mod live_tests {
@@ -2084,17 +2084,17 @@ mod live_tests {
 
     fn app_data() -> PathBuf {
         let roaming = std::env::var_os("APPDATA").expect("APPDATA is set on Windows");
-        PathBuf::from(roaming).join("com.zynveliq.desktop")
+        PathBuf::from(roaming).join("com.talvio.desktop")
     }
 
     fn models_dir() -> PathBuf {
-        std::env::var_os("ZYNVELIQ_MODELS_DIR")
+        std::env::var_os("TALVIO_MODELS_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|| app_data().join("models"))
     }
 
     fn parakeet_tdt() -> PathBuf {
-        std::env::var_os("ZYNVELIQ_PARAKEET_TDT")
+        std::env::var_os("TALVIO_PARAKEET_TDT")
             .map(PathBuf::from)
             .unwrap_or_else(|| models_dir().join("parakeet-tdt-0.6b-v3-Q8_0.gguf"))
     }
@@ -2125,7 +2125,7 @@ mod live_tests {
 
     /// The newest recording of 3 to 20 seconds of audio, cut to 20 s.
     fn recording() -> Vec<f32> {
-        if let Some(path) = std::env::var_os("ZYNVELIQ_LIVE_WAV") {
+        if let Some(path) = std::env::var_os("TALVIO_LIVE_WAV") {
             let mut pcm = read_wav(Path::new(&path));
             pcm.truncate(20 * RATE);
             return pcm;
@@ -2167,20 +2167,20 @@ mod live_tests {
 
     /// Faults are read by each worker at spawn, so set them before loading.
     fn set_fault(fault: Option<&str>, gpu_only: bool) {
-        let marker = std::env::temp_dir().join("zynveliq-worker-fault-once");
+        let marker = std::env::temp_dir().join("talvio-worker-fault-once");
         let _ = std::fs::remove_file(&marker);
-        std::env::remove_var("ZYNVELIQ_WORKER_FAULT_ONCE");
-        std::env::remove_var("ZYNVELIQ_WORKER_FAULT_GPU_ONLY");
+        std::env::remove_var("TALVIO_WORKER_FAULT_ONCE");
+        std::env::remove_var("TALVIO_WORKER_FAULT_GPU_ONLY");
         match fault {
             Some(fault) => {
-                std::env::set_var("ZYNVELIQ_WORKER_FAULT", fault);
+                std::env::set_var("TALVIO_WORKER_FAULT", fault);
                 if gpu_only {
-                    std::env::set_var("ZYNVELIQ_WORKER_FAULT_GPU_ONLY", "1");
+                    std::env::set_var("TALVIO_WORKER_FAULT_GPU_ONLY", "1");
                 } else {
-                    std::env::set_var("ZYNVELIQ_WORKER_FAULT_ONCE", marker);
+                    std::env::set_var("TALVIO_WORKER_FAULT_ONCE", marker);
                 }
             }
-            None => std::env::remove_var("ZYNVELIQ_WORKER_FAULT"),
+            None => std::env::remove_var("TALVIO_WORKER_FAULT"),
         }
     }
 
@@ -2402,7 +2402,7 @@ mod live_tests {
     fn live_crash_everywhere_fails_plainly() {
         let pcm = recording();
         set_fault(Some("segv@run"), false);
-        std::env::remove_var("ZYNVELIQ_WORKER_FAULT_ONCE");
+        std::env::remove_var("TALVIO_WORKER_FAULT_ONCE");
         let engine = EngineSupervisor::new(true);
         engine.load(spec(parakeet_tdt())).expect("load");
         let result = engine.transcribe(pcm.clone(), RunOptions::default(), None);
@@ -2582,7 +2582,7 @@ mod live_tests {
             let pcm = pcm.clone();
             thread::spawn(move || engine.transcribe(pcm, RunOptions::default(), Some(cancel)))
         };
-        let marker = std::env::temp_dir().join("zynveliq-worker-fault-once");
+        let marker = std::env::temp_dir().join("talvio-worker-fault-once");
         let waited = Instant::now();
         while !marker.exists() {
             assert!(waited.elapsed() < Duration::from_secs(60), "never hung");

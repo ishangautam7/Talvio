@@ -1,12 +1,12 @@
-# Contributing to Zynveliq
+# Contributing to Talvio
 
-Thank you for your interest in contributing to Zynveliq! This guide will help you get started with contributing to this open source, local-first voice assistant.
+Thank you for your interest in contributing to Talvio! This guide will help you get started with contributing to this open source, local-first voice assistant.
 
-Zynveliq started as a fork of [Handy](https://github.com/cjpais/Handy) by CJ Pais — see [README.md](README.md#credits--license) for full attribution. Anything below describing project history or philosophy refers to Zynveliq going forward, not the upstream project.
+Talvio started as a fork of [Handy](https://github.com/cjpais/Handy) by CJ Pais — see [README.md](README.md#credits--license) for full attribution. Anything below describing project history or philosophy refers to Talvio going forward, not the upstream project.
 
 ## 📖 Philosophy
 
-Zynveliq aims to be a forkable, well-patterned voice assistant. The goal is to create both a useful tool and a foundation for others to build upon—a simple codebase that serves the community. We prioritize:
+Talvio aims to be a forkable, well-patterned voice assistant. The goal is to create both a useful tool and a foundation for others to build upon—a simple codebase that serves the community. We prioritize:
 
 - **Simplicity**: Clear, maintainable code over clever solutions
 - **Extensibility**: Make it easy for others to fork and customize
@@ -30,8 +30,8 @@ Before you begin, ensure you have the following installed:
 2. **Clone your fork**:
 
    ```bash
-   git clone git@github.com:YOUR_USERNAME/Zynveliq.git
-   cd Zynveliq
+   git clone git@github.com:YOUR_USERNAME/Talvio.git
+   cd Talvio
    ```
 
 3. **Add upstream remote**:
@@ -64,7 +64,7 @@ For detailed platform-specific setup instructions, see [BUILD.md](BUILD.md).
 
 ### Understanding the Codebase
 
-Zynveliq follows a clean architecture pattern:
+Talvio follows a clean architecture pattern:
 
 **Backend (Rust - `src-tauri/src/`):**
 
@@ -122,7 +122,7 @@ Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md) when creatin
    - The problem you're trying to solve
    - Your proposed solution
    - Any alternatives you've considered
-   - How it fits with Zynveliq's philosophy
+   - How it fits with Talvio's philosophy
 
 ## 🔧 Making Code Contributions
 
@@ -191,7 +191,7 @@ Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md) when creatin
    ```
 
 7. **Create a Pull Request**:
-   - Go to the [Zynveliq repository](https://github.com/ishangautam7/zynveliq)
+   - Go to the [Talvio repository](https://github.com/ishangautam7/zynveliq)
    - Click "New Pull Request"
    - Select your fork and branch
    - Fill out the PR template completely, including:
@@ -286,8 +286,8 @@ Look for issues labeled `good first issue` or `help wanted` if you're new to the
 
 ## 📜 License
 
-By contributing to Zynveliq, you agree that your contributions will be licensed under the MIT License. See [LICENSE](LICENSE) for details. Zynveliq is a fork of [Handy](https://github.com/cjpais/Handy) by CJ Pais; upstream attribution is preserved in [LICENSE](LICENSE) and [README.md](README.md#credits--license).
+By contributing to Talvio, you agree that your contributions will be licensed under the MIT License. See [LICENSE](LICENSE) for details. Talvio is a fork of [Handy](https://github.com/cjpais/Handy) by CJ Pais; upstream attribution is preserved in [LICENSE](LICENSE) and [README.md](README.md#credits--license).
 
 ---
 
-**Thank you for contributing to Zynveliq!** Your efforts help make private, local-first voice technology more accessible and extensible for everyone.
+**Thank you for contributing to Talvio!** Your efforts help make private, local-first voice technology more accessible and extensible for everyone.

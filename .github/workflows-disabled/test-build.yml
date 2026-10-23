@@ -85,6 +85,6 @@ jobs:
       build-args: ${{ matrix.args }}
       sign-binaries: false
       upload-artifacts: true
-      asset-prefix: "zynveliq-test"
+      asset-prefix: "talvio-test"
       no-cache: false
     secrets: inherit

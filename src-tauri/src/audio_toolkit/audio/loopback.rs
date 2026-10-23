@@ -91,7 +91,7 @@ impl std::error::Error for LoopbackError {}
 /// "didn't work" for exactly this reason. Anything that captures system audio
 /// on macOS must state this rather than let the user discover an empty
 /// recording after their meeting.
-pub const MACOS_PERMISSION_HELP: &str = "macOS needs the \"System Audio Only\" permission, which is separate from \"Screen Recording and System Audio\". Open System Settings > Privacy & Security > Screen & System Audio Recording and add Zynveliq under System Audio Only. Without it macOS records silence without ever asking.";
+pub const MACOS_PERMISSION_HELP: &str = "macOS needs the \"System Audio Only\" permission, which is separate from \"Screen Recording and System Audio\". Open System Settings > Privacy & Security > Screen & System Audio Recording and add Talvio under System Audio Only. Without it macOS records silence without ever asking.";
 
 /// A running loopback capture. Dropping this stops the capture.
 pub struct LoopbackStream {

@@ -4,17 +4,12 @@ import type React from "react";
  * Semantic color tones for the iOS-style setting rows: each row gets a soft
  * tinted icon tile on the left, and some controls (shortcut pills) pick up the
  * same hue. Tints stay low-saturation (`/15`) so they read as calm accents in
- * both light and dark themes rather than shouting. `teal` matches the brand
- * accent; the rest add just enough variety to make scanning easier.
+ * both light and dark themes rather than shouting. `teal` is a legacy name
+ * for the brand accent (Talvio coral); the rest add just enough variety to
+ * make scanning easier.
  */
 export type SettingTone =
-  | "teal"
-  | "rose"
-  | "violet"
-  | "amber"
-  | "sky"
-  | "emerald"
-  | "indigo";
+  "teal" | "rose" | "violet" | "amber" | "sky" | "emerald" | "indigo";
 
 /** Icon component shape — compatible with lucide-react icons. */
 export type SettingIcon = React.ComponentType<{
@@ -44,7 +39,7 @@ export const TONE_TILE: Record<SettingTone, string> = {
  *  style). For hero moments — onboarding cards, nav cards — where the UI
  *  should feel alive; quiet settings rows keep the soft TONE_TILE wash. */
 export const TONE_TILE_VIVID: Record<SettingTone, string> = {
-  teal: "bg-gradient-to-br from-teal-400 to-teal-600 text-white shadow-sm",
+  teal: "bg-gradient-to-br from-[#FF8F3F] to-[#EE3A5C] text-white shadow-sm",
   rose: "bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-sm",
   violet:
     "bg-gradient-to-br from-violet-400 to-violet-600 text-white shadow-sm",
@@ -57,7 +52,7 @@ export const TONE_TILE_VIVID: Record<SettingTone, string> = {
 };
 /** Tinted value pill (e.g. a shortcut chip) that echoes the row's tone. */
 export const TONE_PILL: Record<SettingTone, string> = {
-  teal: "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30",
+  teal: "bg-accent/10 text-accent border-accent/30",
   rose: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
   violet:
     "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30",

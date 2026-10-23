@@ -10,7 +10,8 @@
 //! in-place install is the right thing, and "Download installer" everywhere
 //! else.
 //!
-//! The download fallback reads the `zynveliq.downloads` block that
+//! The download fallback reads the `talvio.downloads` block (or, from a
+//! manifest written before the rename, `zynveliq.downloads`) that
 //! `scripts/ci/updater-manifest.ts` writes into `latest.json` (the updater
 //! ignores fields it does not know), so the app never has to guess an asset
 //! name from a version number.
@@ -180,8 +181,26 @@ struct ManifestExtras {
 #[derive(Deserialize)]
 struct Manifest {
     version: String,
+    talvio: Option<ManifestExtras>,
+    /// The same block under the app's previous name, which manifests written
+    /// before the rename carry.
     zynveliq: Option<ManifestExtras>,
 }
+
+impl Manifest {
+    /// The installer downloads, from the current block or the old-named one.
+    fn downloads(&self) -> HashMap<String, String> {
+        self.talvio
+            .as_ref()
+            .or(self.zynveliq.as_ref())
+            .map(|x| x.downloads.clone())
+            .unwrap_or_default()
+    }
+}
+
+/// Names the published installers start with: the current product name, and
+/// the previous one for releases made before the rename.
+const INSTALLER_NAME_PREFIXES: [&str; 2] = ["Talvio", "Zynveliq"];
 
 fn bundle_download_suffix(bundle: Option<BundleType>) -> Option<&'static str> {
     Some(match bundle? {
@@ -237,8 +256,10 @@ pub fn installer_file_name(last_segment: &str) -> Option<String> {
     let known = [".exe", ".msi", ".dmg", ".AppImage", ".deb", ".rpm"]
         .iter()
         .any(|ext| name.ends_with(ext));
-    (allowed && known && name.starts_with("Zynveliq") && !name.contains(".."))
-        .then(|| name.to_string())
+    let ours = INSTALLER_NAME_PREFIXES
+        .iter()
+        .any(|prefix| name.starts_with(prefix));
+    (allowed && known && ours && !name.contains("..")).then(|| name.to_string())
 }
 
 fn percent_decode(value: &str) -> Option<String> {
@@ -272,7 +293,7 @@ pub struct DownloadedInstaller {
 
 fn http_client(timeout: Option<Duration>) -> Result<reqwest::Client, String> {
     let mut builder = reqwest::Client::builder()
-        .user_agent(concat!("Zynveliq/", env!("CARGO_PKG_VERSION")))
+        .user_agent(concat!("Talvio/", env!("CARGO_PKG_VERSION")))
         .connect_timeout(Duration::from_secs(20));
     if let Some(timeout) = timeout {
         builder = builder.timeout(timeout);
@@ -748,7 +769,7 @@ pub async fn download_update_installer(app: AppHandle) -> Result<DownloadedInsta
         .await
         .map_err(|e| format!("The update information was unreadable: {e}"))?;
 
-    let downloads = manifest.zynveliq.map(|x| x.downloads).unwrap_or_default();
+    let downloads = manifest.downloads();
     let url = pick_installer_url(
         &downloads,
         std::env::consts::OS,
@@ -1129,43 +1150,36 @@ mod tests {
         assert!(!content_range_is("", 0, 0));
     }
 
-    // Made with `tauri signer sign` and the real Zynveliq key over the 16
-    // bytes "hello zynveliq"; the same vector `updater-manifest.test.ts`
+    // Made with `tauri signer sign` and the real Talvio key over the 16
+    // bytes "hello speakoflow"; the same vector `updater-manifest.test.ts`
     // checks the CI verifier with.
-    const SIGNED_PAYLOAD: &[u8] = b"hello zynveliq";
+    const SIGNED_PAYLOAD: &[u8] = b"hello speakoflow";
     const SIGNATURE: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQkEzaUgvLzNSYzJ0dVM1emFGdGtKaGEzUVpHRU9YY253VWtmR0dyUUtQUFc2eDhsQzZCRGs1czVvTXY3NnAxdlVVeTdVSUZDd3BzbldpM2RLYkhLbHVwQzlZRVJVdEF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTkxMjU5CWZpbGU6c2Ytc2lnbi10ZXN0LmJpbgpnQlRzTm9HZGtFcjVvNEVKay9WUlJKVWpVSUxBSktZRklQMGRzeDJwSUhlWEFydUNGODJzRlVpYVkyNDYvT3BlcTQ1SEU0R0R3eUFpZ2RHMTJmbDNBQT09Cg==";
 
-    fn configured_pubkey() -> String {
-        let conf: serde_json::Value =
-            serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
-        conf["plugins"]["updater"]["pubkey"]
-            .as_str()
-            .unwrap()
-            .to_string()
-    }
+    /// The public half of the key `SIGNATURE` was made with (key id
+    /// 73D1FDFF87780381, the original project's updater key). Pinned here
+    /// because these tests check the verifier, not the build: a private build
+    /// ships no updater key at all (`tauri.conf.json`'s pubkey is empty), and
+    /// a vector can only be checked against the key that signed it.
+    const VECTOR_PUBKEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDczRDFGREZGODc3ODAzODEKUldTQkEzaUgvLzNSYzRMakMrcU5PNGRWOHZZTFJzZUx1dWE0Wi9kNjViRUZheWhSU2pOcnRIeVMK";
 
     #[test]
     fn a_download_signed_with_our_key_is_accepted() {
         assert_eq!(
-            verify_update_signature(SIGNED_PAYLOAD, SIGNATURE, &configured_pubkey()),
+            verify_update_signature(SIGNED_PAYLOAD, SIGNATURE, VECTOR_PUBKEY),
             Ok(())
         );
     }
 
     #[test]
     fn a_download_that_changed_is_refused() {
-        assert!(
-            verify_update_signature(b"hello speakoflox", SIGNATURE, &configured_pubkey()).is_err()
-        );
-        assert!(
-            verify_update_signature(SIGNED_PAYLOAD, "not a signature", &configured_pubkey())
-                .is_err()
-        );
+        assert!(verify_update_signature(b"hello speakoflox", SIGNATURE, VECTOR_PUBKEY).is_err());
+        assert!(verify_update_signature(SIGNED_PAYLOAD, "not a signature", VECTOR_PUBKEY).is_err());
     }
 
     #[test]
     fn a_parallel_download_is_kept_only_if_it_verifies() {
-        let key = configured_pubkey();
+        let key = VECTOR_PUBKEY.to_string();
         assert_eq!(
             keep_if_verified(SIGNED_PAYLOAD.to_vec(), SIGNATURE, Some(&key)),
             Some(SIGNED_PAYLOAD.to_vec())
@@ -1393,7 +1407,7 @@ mod tests {
             .unwrap();
         runtime.block_on(async {
             let client = crate::managers::model::download_client().unwrap();
-            let url = "https://github.com/ishangautam7/zynveliq/releases/download/v2.0.1/Zynveliq_2.0.1_x64-setup.exe";
+            let url = "https://github.com/ishangautam7/zynveliq/releases/download/v2.0.1/Talvio_2.0.1_x64-setup.exe";
             let mib = 1024 * 1024;
             let settings: [(usize, u64); 4] = [(8, mib), (8, 5 * mib), (16, 2 * mib), (16, 3 * mib)];
             for round in 1..=2 {
@@ -1453,7 +1467,7 @@ mod tests {
                 .await
                 .expect("the parallel path fell back");
             let secs = started.elapsed().as_secs_f64();
-            verify_update_signature(&bytes, signature, &configured_pubkey()).unwrap();
+            verify_update_signature(&bytes, signature, VECTOR_PUBKEY).unwrap();
             println!(
                 "{url}\n  one connection: {single_mbps:.1} Mbit/s (≈{:.0}s for the file)\n  parallel:       {:.1} MB in {secs:.1}s = {:.1} Mbit/s, signature OK",
                 bytes.len() as f64 * 8.0 / 1e6 / single_mbps,
@@ -1516,13 +1530,13 @@ mod tests {
     fn downloads() -> HashMap<String, String> {
         let url = |name: &str| format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/{name}");
         [
-            ("windows-x86_64", url("Zynveliq_1.5.0_x64-setup.exe")),
-            ("windows-x86_64-nsis", url("Zynveliq_1.5.0_x64-setup.exe")),
-            ("windows-x86_64-msi", url("Zynveliq_1.5.0_x64_en-US.msi")),
-            ("darwin-aarch64", url("Zynveliq_1.5.0_aarch64.dmg")),
-            ("darwin-aarch64-dmg", url("Zynveliq_1.5.0_aarch64.dmg")),
-            ("linux-x86_64", url("Zynveliq_1.5.0_amd64.AppImage")),
-            ("linux-x86_64-deb", url("Zynveliq_1.5.0_amd64.deb")),
+            ("windows-x86_64", url("Talvio_1.5.0_x64-setup.exe")),
+            ("windows-x86_64-nsis", url("Talvio_1.5.0_x64-setup.exe")),
+            ("windows-x86_64-msi", url("Talvio_1.5.0_x64_en-US.msi")),
+            ("darwin-aarch64", url("Talvio_1.5.0_aarch64.dmg")),
+            ("darwin-aarch64-dmg", url("Talvio_1.5.0_aarch64.dmg")),
+            ("linux-x86_64", url("Talvio_1.5.0_amd64.AppImage")),
+            ("linux-x86_64-deb", url("Talvio_1.5.0_amd64.deb")),
         ]
         .into_iter()
         .map(|(k, v)| (k.to_string(), v))
@@ -1544,16 +1558,16 @@ mod tests {
 
     #[test]
     fn downloads_are_confined_to_this_repositorys_releases() {
-        let ok = format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/Zynveliq_1.5.0_x64-setup.exe");
+        let ok = format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/Talvio_1.5.0_x64-setup.exe");
         assert!(is_trusted_download(&ok));
         for bad in [
             "https://example.com/SpeakoFlow_1.5.0_x64-setup.exe",
             "https://github.com/someone/SpeakoFlow/releases/download/v1.5.0/SpeakoFlow_1.5.0_x64-setup.exe",
             &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/evil.exe"),
-            &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/Zynveliq_1.5.0.zip"),
-            &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/a/Zynveliq_1.5.0_x64-setup.exe"),
-            &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/Zynveliq%2F..%2F..%2Fx.exe"),
-            &format!("{RELEASE_DOWNLOAD_PREFIX}/Zynveliq_1.5.0_x64-setup.exe"),
+            &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/Talvio_1.5.0.zip"),
+            &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/a/Talvio_1.5.0_x64-setup.exe"),
+            &format!("{RELEASE_DOWNLOAD_PREFIX}v1.5.0/Talvio%2F..%2F..%2Fx.exe"),
+            &format!("{RELEASE_DOWNLOAD_PREFIX}/Talvio_1.5.0_x64-setup.exe"),
         ] {
             assert!(!is_trusted_download(bad), "{bad}");
         }
@@ -1593,12 +1607,31 @@ mod tests {
     #[test]
     fn saved_file_names_are_plain_and_known() {
         assert_eq!(
-            installer_file_name("Zynveliq_1.5.0_x64-setup.exe").as_deref(),
-            Some("Zynveliq_1.5.0_x64-setup.exe")
+            installer_file_name("Talvio_1.5.0_x64-setup.exe").as_deref(),
+            Some("Talvio_1.5.0_x64-setup.exe")
         );
-        assert_eq!(installer_file_name("Zynveliq..exe"), None);
-        assert_eq!(installer_file_name("Zynveliq_1.5.0.exe.part"), None);
-        assert_eq!(installer_file_name("Zynveliq%20x.exe"), None);
-        assert_eq!(installer_file_name("Zynveliq_%zz.exe"), None);
+        assert_eq!(
+            installer_file_name("Zynveliq_2.0.1_x64-setup.exe").as_deref(),
+            Some("Zynveliq_2.0.1_x64-setup.exe"),
+            "releases from before the rename keep their name"
+        );
+        assert_eq!(installer_file_name("Other_1.5.0_x64-setup.exe"), None);
+        assert_eq!(installer_file_name("Talvio..exe"), None);
+        assert_eq!(installer_file_name("Talvio_1.5.0.exe.part"), None);
+        assert_eq!(installer_file_name("Talvio%20x.exe"), None);
+        assert_eq!(installer_file_name("Talvio_%zz.exe"), None);
+    }
+
+    #[test]
+    fn the_manifest_downloads_are_read_under_either_name() {
+        let parse = |json: &str| serde_json::from_str::<Manifest>(json).unwrap().downloads();
+        let new = parse(
+            r#"{"version":"3.0.0","talvio":{"downloads":{"windows-x86_64":"a"}},
+                "zynveliq":{"downloads":{"windows-x86_64":"b"}}}"#,
+        );
+        assert_eq!(new.get("windows-x86_64").map(String::as_str), Some("a"));
+        let old = parse(r#"{"version":"2.0.1","zynveliq":{"downloads":{"windows-x86_64":"b"}}}"#);
+        assert_eq!(old.get("windows-x86_64").map(String::as_str), Some("b"));
+        assert!(parse(r#"{"version":"2.0.1"}"#).is_empty());
     }
 }

@@ -852,7 +852,7 @@ pub struct SmartSpacingPaste {
     /// Whether anything was known about the field. When not, the text is the
     /// transcript as it was, and the trailing-space setting applies as usual.
     pub known: bool,
-    /// Characters to remove before the caret first: Zynveliq's own stray
+    /// Characters to remove before the caret first: Talvio's own stray
     /// period from the previous dictation. Only ever 0 or 1.
     pub erase_before: usize,
     /// The text starts with a space the field would trim if it were pasted
@@ -872,7 +872,7 @@ impl Default for PasteBehavior {
 }
 
 /// Whether a paste method delivers keystrokes to the focused app, and so can
-/// also send the Backspace that removes Zynveliq's own stray period.
+/// also send the Backspace that removes Talvio's own stray period.
 pub fn paste_method_can_erase(paste_method: PasteMethod) -> bool {
     matches!(
         paste_method,

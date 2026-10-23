@@ -1,10 +1,10 @@
 ---
 title: "Command-line flags"
-description: "Every command-line flag Zynveliq accepts: launch options, remote-control flags that reach a running instance, and examples for Windows, macOS, and Linux window managers."
+description: "Every command-line flag Talvio accepts: launch options, remote-control flags that reach a running instance, and examples for Windows, macOS, and Linux window managers."
 icon: "terminal"
 ---
 
-Zynveliq accepts command-line flags on all platforms. Use them for scripts, window managers, stream decks, and autostart setups.
+Talvio accepts command-line flags on all platforms. Use them for scripts, window managers, stream decks, and autostart setups.
 
 ## Flags
 
@@ -26,9 +26,9 @@ Zynveliq accepts command-line flags on all platforms. Use them for scripts, wind
 
 ## How remote-control flags reach the running instance
 
-Zynveliq enforces a single instance. The `--toggle-transcription`, `--toggle-post-process`, `--toggle-assistant`, and `--cancel` flags work by launching a second process. That process hands its arguments to the already-running instance through Tauri's single-instance plugin, then exits immediately. No second window or tray icon appears, and the command returns right away.
+Talvio enforces a single instance. The `--toggle-transcription`, `--toggle-post-process`, `--toggle-assistant`, and `--cancel` flags work by launching a second process. That process hands its arguments to the already-running instance through Tauri's single-instance plugin, then exits immediately. No second window or tray icon appears, and the command returns right away.
 
-If Zynveliq is not already running, the new process becomes the primary instance and starts normally. The toggle/cancel flags have nothing to act on in that case.
+If Talvio is not already running, the new process becomes the primary instance and starts normally. The toggle/cancel flags have nothing to act on in that case.
 
 Launching a second instance with no recognized flag brings the existing window to the front.
 
@@ -37,21 +37,21 @@ Launching a second instance with no recognized flag brings the existing window t
 | Variable                      | Effect                                                                                                                         |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `RUST_LOG`                    | Filters console output independently of the log level in Settings. `RUST_LOG=trace` gives a live firehose in a terminal.       |
-| `ZYNVELIQ_ALLOW_WAYLAND`      | Linux. Keep a native Wayland session instead of falling back to XWayland on GNOME. The recording overlay may not stay on top.  |
-| `ZYNVELIQ_NO_GTK_LAYER_SHELL` | Linux. Skip GTK layer-shell initialization for the overlay. Try this if the overlay misbehaves under a layer-shell compositor. |
+| `TALVIO_ALLOW_WAYLAND`      | Linux. Keep a native Wayland session instead of falling back to XWayland on GNOME. The recording overlay may not stay on top.  |
+| `TALVIO_NO_GTK_LAYER_SHELL` | Linux. Skip GTK layer-shell initialization for the overlay. Try this if the overlay misbehaves under a layer-shell compositor. |
 
 ## Examples
 
 ### Windows: toggle dictation from a script
 
 ```powershell
-& "C:\Program Files\Zynveliq\Zynveliq.exe" --toggle-transcription
+& "C:\Program Files\Talvio\Talvio.exe" --toggle-transcription
 ```
 
 ### macOS: toggle dictation from a script
 
 ```bash
-/Applications/Zynveliq.app/Contents/MacOS/Zynveliq --toggle-transcription
+/Applications/Talvio.app/Contents/MacOS/Talvio --toggle-transcription
 ```
 
 ### Linux: Sway or Hyprland shortcut
@@ -59,23 +59,23 @@ Launching a second instance with no recognized flag brings the existing window t
 In your Sway config:
 
 ```
-bindsym Ctrl+Space exec zynveliq --toggle-transcription
-bindsym Ctrl+Shift+Space exec zynveliq --toggle-post-process
-bindsym Ctrl+Alt+Space exec zynveliq --toggle-assistant
+bindsym Ctrl+Space exec talvio --toggle-transcription
+bindsym Ctrl+Shift+Space exec talvio --toggle-post-process
+bindsym Ctrl+Alt+Space exec talvio --toggle-assistant
 ```
 
 For Hyprland, the same idea in `hyprland.conf`:
 
 ```
-bind = CTRL, space, exec, zynveliq --toggle-transcription
-bind = CTRL SHIFT, space, exec, zynveliq --toggle-post-process
-bind = CTRL ALT, space, exec, zynveliq --toggle-assistant
+bind = CTRL, space, exec, talvio --toggle-transcription
+bind = CTRL SHIFT, space, exec, talvio --toggle-post-process
+bind = CTRL ALT, space, exec, talvio --toggle-assistant
 ```
 
 For an AppImage, use the full path:
 
 ```
-bindsym Ctrl+Space exec ~/Applications/Zynveliq.AppImage --toggle-transcription
+bindsym Ctrl+Space exec ~/Applications/Talvio.AppImage --toggle-transcription
 ```
 
 ### Linux: GNOME or KDE custom shortcut
@@ -83,12 +83,12 @@ bindsym Ctrl+Space exec ~/Applications/Zynveliq.AppImage --toggle-transcription
 In **GNOME Settings → Keyboard → Custom Shortcuts**, add a shortcut with the command:
 
 ```
-zynveliq --toggle-transcription
+talvio --toggle-transcription
 ```
 
 In **KDE System Settings → Shortcuts → Custom Shortcuts**, create a new entry with the same command.
 
-On Wayland, compositor-owned shortcuts are the most reliable way to trigger Zynveliq, since the app's built-in shortcut engine may only hear keypresses while one of its own windows has focus.
+On Wayland, compositor-owned shortcuts are the most reliable way to trigger Talvio, since the app's built-in shortcut engine may only hear keypresses while one of its own windows has focus.
 
 <AccordionGroup>
   <Accordion title="How --start-hidden and --no-tray interact">
@@ -101,13 +101,13 @@ On Wayland, compositor-owned shortcuts are the most reliable way to trigger Zynv
 <Accordion title="What --list-devices shows">
   It brings the native speech engine up, lists every compute device it found
   with its index and memory, and reports whether the Vulkan, Metal, and CPU
-  backends loaded. Useful for verifying your GPU is visible to Zynveliq before
+  backends loaded. Useful for verifying your GPU is visible to Talvio before
   filing a bug. There is also a hidden `--probe-devices` flag used internally on
   Linux for crash-isolated device probing.
 </Accordion>
 
   <Accordion title="GDK_BACKEND on GNOME Wayland">
-    On GNOME under Wayland, Zynveliq sets `GDK_BACKEND=x11` for itself so the
+    On GNOME under Wayland, Talvio sets `GDK_BACKEND=x11` for itself so the
     overlay can float above other windows. If you have already set
     `GDK_BACKEND` yourself, your choice is respected.
   </Accordion>

@@ -37,13 +37,13 @@ ElevenLabs and Deepgram support live streaming: text arrives while you are still
 
 For ElevenLabs, you need a realtime model (like `scribe_v2_realtime`). The batch model (`scribe_v2`) only transcribes after you stop.
 
-If the stream fails, Zynveliq falls back to a full batch transcription. The batch and realtime models can produce slightly different wording.
+If the stream fails, Talvio falls back to a full batch transcription. The batch and realtime models can produce slightly different wording.
 
 ## Custom words
 
 The **Send my custom words** switch passes your [Dictionary](/dictation/custom-words) vocabulary to the provider as a recognition hint. This is on by default.
 
-How the hint is sent depends on the provider: ElevenLabs receives them as key terms, OpenAI and Groq as a prompt, Deepgram as key terms. When the provider handles the hint upstream, Zynveliq skips its own local fuzzy-correction pass, because a second guess at text the model already got right can only make it worse.
+How the hint is sent depends on the provider: ElevenLabs receives them as key terms, OpenAI and Groq as a prompt, Deepgram as key terms. When the provider handles the hint upstream, Talvio skips its own local fuzzy-correction pass, because a second guess at text the model already got right can only make it worse.
 
 OpenRouter accepts the field but ignores it, so for OpenRouter the app keeps running its own local correction instead.
 
@@ -65,7 +65,7 @@ Providers without a translation route show a note explaining that the switch is 
 
 ## Incomplete configuration
 
-If your cloud setup is incomplete (no key saved, no model chosen, or no endpoint for Azure), Zynveliq falls back to the local speech engine for that dictation instead of failing. An incomplete configuration never blocks a recording. Once the configuration is complete, only a wire-level failure (a bad key, an exhausted quota) surfaces an error.
+If your cloud setup is incomplete (no key saved, no model chosen, or no endpoint for Azure), Talvio falls back to the local speech engine for that dictation instead of failing. An incomplete configuration never blocks a recording. Once the configuration is complete, only a wire-level failure (a bad key, an exhausted quota) surfaces an error.
 
 ## Test connection
 

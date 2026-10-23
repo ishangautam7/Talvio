@@ -12,7 +12,7 @@ import { useCallback, useState } from "react";
  * user has to act on should not be closable at all, and the caller is
  * responsible for that distinction.
  */
-const storageKey = (id: string) => `zynveliq.notice.dismissed.${id}`;
+const storageKey = (id: string) => `talvio.notice.dismissed.${id}`;
 
 const readDismissed = (id: string): boolean => {
   try {

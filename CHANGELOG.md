@@ -1,8 +1,31 @@
 # Changelog
 
-What changed in each Zynveliq release. The release page on GitHub carries the
-highlights; this file has the full list. Versions before 2.0.0 are described on
-their [GitHub releases](https://github.com/ishangautam7/zynveliq/releases).
+What changed in each Talvio release (called Zynveliq before 2026-10-23). The
+release page on GitHub carries the highlights; this file has the full list.
+Versions before 2.0.0 are described on their [GitHub releases](https://github.com/ishangautam7/zynveliq/releases).
+
+## Unreleased
+
+### Zynveliq is now Talvio
+
+The app has a new name and a new icon: the Wave-T, a voice waveform whose
+middle bar becomes the stem of a T. Nothing you set up is lost. On its first
+start Talvio moves Zynveliq's settings, history, recordings, models and logs
+to its own folders, moves the API keys in the system keychain to its own
+entry, keeps the app starting at sign-in if it did before, and carries over
+what the windows remembered (theme, finished onboarding, dismissed notices,
+feedback draft). On Windows the installer removes the old Zynveliq program and
+its shortcuts, never its data.
+
+- The program is `talvio` (`talvio.exe` on Windows), its log is
+  `talvio.log`, and its data lives under `com.talvio.desktop`.
+- Environment variables are `TALVIO_*`; the `ZYNVELIQ_*` names you may have
+  set still work.
+- Linux: the desktop entry is `talvio.desktop` and its command is `talvio`
+  (it pointed at a `speak` launcher that no longer existed); the Arch package
+  is `talvio-bin`. Nix options are `programs.talvio` and `services.talvio`,
+  with the old `zynveliq` names kept as aliases.
+- The GitHub repository keeps its address for now.
 
 ## 2.2.0
 

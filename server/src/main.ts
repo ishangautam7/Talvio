@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { startServer } from "./app";
+import { resolveDatabasePath } from "./databasePath";
 
 const env = process.env;
 
@@ -15,7 +16,12 @@ const publicUrl = (env.PUBLIC_URL ?? `http://localhost:${port}`).replace(
 );
 new URL(publicUrl); // throws on a malformed PUBLIC_URL before anything starts
 
-const databasePath = env.DATABASE_PATH ?? "./data/zynveliq.db";
+const { path: databasePath, legacy } = resolveDatabasePath(env.DATABASE_PATH);
+if (legacy) {
+  console.log(
+    `Using the existing database ${databasePath} from before the rename to Talvio`,
+  );
+}
 mkdirSync(dirname(databasePath), { recursive: true });
 
 const google =
@@ -30,9 +36,10 @@ const app = startServer({
   publicUrl,
   google,
   trustProxy: env.TRUST_PROXY === "1",
+  secretsKey: env.TALVIO_SECRETS_KEY,
 });
 console.log(
-  `Zynveliq account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"})`,
+  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"})`,
 );
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

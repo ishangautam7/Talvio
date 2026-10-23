@@ -7,7 +7,7 @@ param(
   [int]$Ngl = 0
 )
 
-$M = "$env:APPDATA\com.zynveliq.desktop\models"
+$M = "$env:APPDATA\com.talvio.desktop\models"
 $E = "$M\engine\llama-server.exe"
 
 $system = @"

@@ -331,8 +331,8 @@ const PROVIDER_TILES = {
   tavily: `bg-[#468BFF] text-white ${SOLID}`,
   exa: `bg-[#1F40ED] text-white ${SOLID}`,
   kimi: `bg-[#1783FF] text-white ${SOLID}`,
-  /** Ours (the built-in engine, the local voice): the app's own teal. */
-  ours: `bg-accent-fill text-white ${SOLID}`,
+  /** Ours (the built-in engine, the local voice): the app's own coral. */
+  ours: `bg-gradient-to-br from-[#FF8F3F] to-[#EE3A5C] text-white ${SOLID}`,
   /** Things the user points at themselves (custom endpoints, search APIs
    *  with no mark of their own): a quiet tinted chip, clearly not a brand. */
   generic: "bg-accent/10 text-accent ring-1 ring-inset ring-accent/15",

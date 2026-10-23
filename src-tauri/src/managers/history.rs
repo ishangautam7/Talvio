@@ -2250,7 +2250,7 @@ mod tests {
                 post_process_requested
             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
-                format!("zynveliq-{}.wav", timestamp),
+                format!("talvio-{}.wav", timestamp),
                 timestamp,
                 false,
                 format!("Recording {}", timestamp),
@@ -2365,8 +2365,8 @@ mod tests {
             .expect("select count-retention entries");
         let selected_files: Vec<&str> = selected.iter().map(|(_, name)| name.as_str()).collect();
 
-        assert_eq!(selected_files, vec!["zynveliq-200.wav", "zynveliq-100.wav"]);
-        assert!(!selected_files.contains(&"zynveliq-50.wav"));
+        assert_eq!(selected_files, vec!["talvio-200.wav", "talvio-100.wav"]);
+        assert!(!selected_files.contains(&"talvio-50.wav"));
     }
 
     #[test]
@@ -2385,8 +2385,8 @@ mod tests {
             .expect("select time-retention entries");
         let selected_files: Vec<&str> = selected.iter().map(|(_, name)| name.as_str()).collect();
 
-        assert_eq!(selected_files, vec!["zynveliq-100.wav"]);
-        assert!(!selected_files.contains(&"zynveliq-50.wav"));
+        assert_eq!(selected_files, vec!["talvio-100.wav"]);
+        assert!(!selected_files.contains(&"talvio-50.wav"));
     }
 
     // ---------------------------------------------------------------------
@@ -2556,14 +2556,14 @@ mod tests {
             .expect("count plan");
         assert_eq!(
             by_count.iter().map(|(_, f)| f.as_str()).collect::<Vec<_>>(),
-            vec!["zynveliq-100.wav"]
+            vec!["talvio-100.wav"]
         );
 
         let by_time = HistoryManager::pending_deletions(&conn, RetentionPlan::OlderThan(200))
             .expect("time plan");
         assert_eq!(
             by_time.iter().map(|(_, f)| f.as_str()).collect::<Vec<_>>(),
-            vec!["zynveliq-100.wav"]
+            vec!["talvio-100.wav"]
         );
     }
 
@@ -2621,7 +2621,7 @@ mod tests {
     #[test]
     fn wav_duration_reads_header_and_rejects_missing_files() {
         let dir = std::env::temp_dir();
-        let path = dir.join(format!("zynveliq-usage-test-{}.wav", std::process::id()));
+        let path = dir.join(format!("talvio-usage-test-{}.wav", std::process::id()));
         let spec = hound::WavSpec {
             channels: 1,
             sample_rate: 16000,
@@ -2637,7 +2637,7 @@ mod tests {
         }
         assert_eq!(wav_duration_seconds(&path), Some(1.5));
 
-        let empty = dir.join(format!("zynveliq-usage-empty-{}.wav", std::process::id()));
+        let empty = dir.join(format!("talvio-usage-empty-{}.wav", std::process::id()));
         hound::WavWriter::create(&empty, spec)
             .expect("create empty wav")
             .finalize()
@@ -2745,7 +2745,7 @@ mod tests {
             "INSERT INTO transcription_history (
                 file_name, timestamp, saved, title, transcription_text, dismissed
             ) VALUES (?1, ?2, 0, 'Dismissed', ?3, 1)",
-            params![format!("zynveliq-{}.wav", timestamp), timestamp, text],
+            params![format!("talvio-{}.wav", timestamp), timestamp, text],
         )
         .expect("insert dismissed entry");
         conn.last_insert_rowid()

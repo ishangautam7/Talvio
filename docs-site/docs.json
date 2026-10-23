@@ -1,7 +1,7 @@
 {
   "theme": "maple",
-  "name": "Zynveliq",
-  "description": "Documentation for Zynveliq, free and open-source voice dictation and an AI assistant for Windows, macOS, and Linux: dictation, AI cleanup, the quick ask, spoken conversations, meetings, screen vision, reminders, memory, models, settings, and shortcuts.",
+  "name": "Talvio",
+  "description": "Documentation for Talvio, free and open-source voice dictation and an AI assistant for Windows, macOS, and Linux: dictation, AI cleanup, the quick ask, spoken conversations, meetings, screen vision, reminders, memory, models, settings, and shortcuts.",
   "colors": {
     "primary": "#0A7A70",
     "light": "#2DD4BF",
@@ -17,7 +17,7 @@
   "logo": {
     "light": "/logo/lockup.svg",
     "dark": "/logo/lockup-dark.svg",
-    "href": "https://zynveliq.invalid"
+    "href": "https://talvio.invalid"
   },
   "favicon": "/favicon.png",
   "appearance": {
@@ -27,7 +27,7 @@
     "links": [
       {
         "label": "Download",
-        "href": "https://zynveliq.invalid"
+        "href": "https://talvio.invalid"
       }
     ],
     "primary": {
@@ -38,13 +38,13 @@
   "footer": {
     "socials": {
       "github": "https://github.com/ishangautam7/zynveliq",
-      "website": "https://zynveliq.invalid"
+      "website": "https://talvio.invalid"
     },
     "links": [
       {
-        "header": "Zynveliq",
+        "header": "Talvio",
         "items": [
-          { "label": "Download", "href": "https://zynveliq.invalid" },
+          { "label": "Download", "href": "https://talvio.invalid" },
           {
             "label": "Releases",
             "href": "https://github.com/ishangautam7/zynveliq/releases"
@@ -80,16 +80,16 @@
   "seo": {
     "indexing": "navigable",
     "metatags": {
-      "canonical": "https://zynveliq.invalid/docs",
-      "og:site_name": "Zynveliq Documentation",
+      "canonical": "https://talvio.invalid/docs",
+      "og:site_name": "Talvio Documentation",
       "og:type": "website",
-      "og:url": "https://zynveliq.invalid/docs",
+      "og:url": "https://talvio.invalid/docs",
       "twitter:card": "summary_large_image"
     },
     "organization": {
-      "name": "Zynveliq",
-      "url": "https://zynveliq.invalid",
-      "logo": "https://zynveliq.invalid/assets/img/logo/lockup.svg",
+      "name": "Talvio",
+      "url": "https://talvio.invalid",
+      "logo": "https://talvio.invalid/assets/img/logo/lockup.svg",
       "sameAs": ["https://github.com/ishangautam7/zynveliq"]
     }
   },

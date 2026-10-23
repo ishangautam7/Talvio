@@ -47,7 +47,7 @@ import sys
 from itertools import permutations
 from pathlib import Path
 
-IDENTIFIER = "com.zynveliq.desktop"
+IDENTIFIER = "com.talvio.desktop"
 TEST_PREFIX = "[TEST]"
 
 # Anything at or under these passes. Loose on purpose: they exist to catch a

@@ -8,11 +8,11 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket/web_socket.dart';
 import 'package:web_socket_channel/adapter_web_socket_channel.dart';
-import 'package:zynveliq_mobile/src/core/api_client.dart';
-import 'package:zynveliq_mobile/src/core/models.dart';
-import 'package:zynveliq_mobile/src/core/relay_client.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
-import 'package:zynveliq_mobile/src/core/session_store.dart';
+import 'package:talvio_mobile/src/core/api_client.dart';
+import 'package:talvio_mobile/src/core/models.dart';
+import 'package:talvio_mobile/src/core/relay_client.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/session_store.dart';
 
 import '../helpers.dart';
 
@@ -47,45 +47,46 @@ Future<SessionStore> store(
 }
 
 void main() {
-  test(
-    'the server: the build, then Custom, discovered, the fallback',
-    () async {
-      const custom = 'https://custom.example.com';
-      const found = 'https://found.example.com';
-      const pinned = 'https://pinned.example.com';
-      const fallback = 'http://10.0.2.2:8787';
-      const both = {'server_url': custom, 'server_found': found};
+  test('the server: a pinned development one, then discovered, the '
+      'fallback; a server typed into an older version is ignored', () async {
+    const typed = 'https://custom.example.com';
+    const found = 'https://found.example.com';
+    const pinned = 'https://pinned.example.com';
+    const fallback = 'http://10.0.2.2:8787';
+    const both = {'server_url': typed, 'server_found': found};
 
-      Future<(String?, ServerChoice)> resolve(
-        Map<String, Object> saved, {
-        String? pinned,
-        String? fallback,
-      }) async {
-        final s = await store(saved, pinned: pinned, fallback: fallback);
-        return (s.serverUrl, s.serverChoice);
-      }
+    Future<(String?, ServerChoice)> resolve(
+      Map<String, Object> saved, {
+      String? pinned,
+      String? fallback,
+    }) async {
+      final s = await store(saved, pinned: pinned, fallback: fallback);
+      await s.load();
+      s.finder.enabled = false;
+      return (s.serverUrl, s.serverChoice);
+    }
 
-      expect(await resolve(both, pinned: pinned, fallback: fallback), (
-        pinned,
-        ServerChoice.pinned,
-      ));
-      expect(await resolve(both, fallback: fallback), (
-        custom,
-        ServerChoice.custom,
-      ));
-      expect(await resolve({'server_found': found}, fallback: fallback), (
-        found,
-        ServerChoice.automatic,
-      ));
-      expect(await resolve({}, fallback: fallback), (
-        fallback,
-        ServerChoice.automatic,
-      ));
-      expect(await resolve({}), (null, ServerChoice.automatic));
-    },
-  );
+    expect(await resolve(both, pinned: pinned, fallback: fallback), (
+      pinned,
+      ServerChoice.pinned,
+    ));
+    expect(await resolve(both, fallback: fallback), (
+      found,
+      ServerChoice.automatic,
+    ));
+    expect(await resolve({'server_url': typed}, fallback: fallback), (
+      fallback,
+      ServerChoice.automatic,
+    ));
+    expect(await resolve({'server_url': typed}), (
+      null,
+      ServerChoice.automatic,
+    ));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.containsKey('server_url'), isFalse, reason: 'cleared');
+  });
 
-  test('Automatic: the session follows the discovered server, and the '
+  test('Discovery: the session follows the discovered server, and the '
       'socket reconnects there with the same token', () async {
     var domain = 'a.example.com';
     final s = await store({}, discovery: (_) async => answer(domain));
@@ -135,31 +136,41 @@ void main() {
     expect(next.session!.automatic, isTrue);
   });
 
-  test('Custom: discovery stays off and the session stays bound', () async {
-    var lookups = 0;
-    final s = await store(
-      {
+  test('an older session bound to a typed server is signed out; one on '
+      'the discovered server follows discovery', () async {
+    Future<SessionStore> withSession(String serverUrl) async {
+      final s = await store({
         'server_url': 'https://custom.example.com',
         'server_found': 'https://found.example.com',
-      },
-      discovery: (_) async {
-        lookups++;
-        return answer('elsewhere.example.com');
-      },
-    );
-    await s.load();
-    await s.signIn(AuthResponse.fromJson(authJson()));
-    s.finder.unreachable();
-    await s.finder.lookUp();
-    await pumpEventQueue();
+        'account.recent': 'x',
+      });
+      // As older versions saved it: bound, and maybe with no flag at all.
+      final old = {
+        ...Session(
+          token: 'zv1_token',
+          serverUrl: serverUrl,
+          deviceId: 'phone',
+          user: User.fromJson(userJson()),
+        ).toJson(),
+      }..remove('automatic');
+      expect(Session.fromJson(old).automatic, isFalse);
+      FlutterSecureStorage.setMockInitialValues({'session': jsonEncode(old)});
+      await s.load();
+      s.finder.enabled = false;
+      return s;
+    }
 
-    expect(lookups, 0);
-    expect(s.session!.automatic, isFalse);
-    expect(s.serverUrl, 'https://custom.example.com');
+    final typed = await withSession('https://custom.example.com');
+    expect(typed.signedIn, isFalse);
+    expect(typed.serverUrl, 'https://found.example.com');
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.containsKey('account.recent'), isFalse);
+    expect(prefs.containsKey('server_url'), isFalse);
 
-    // A session saved before discovery existed is bound too.
-    final old = {...s.session!.toJson()}..remove('automatic');
-    expect(Session.fromJson(old).automatic, isFalse);
+    final found = await withSession('https://found.example.com');
+    expect(found.session!.automatic, isTrue);
+    expect(found.serverUrl, 'https://found.example.com');
+    expect(found.serverChoice, ServerChoice.automatic);
   });
 
   testWidgets('a server that does not answer is looked up again, one that '

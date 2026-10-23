@@ -1,10 +1,13 @@
 //! Finding the account server (`server/PROTOCOL.md`, "Finding the server"):
-//! its host name changes from time to time, so the app reads it from one
-//! fixed address instead of building it in.
+//! its address changes from time to time, so the app reads it from one fixed
+//! address instead of building it in. That is the only source of the server's
+//! address; the user never chooses or types one.
 //!
-//! That address is a trust anchor (whoever controls it decides where sign-ins
-//! and tokens go), so it is fetched over https only, never follows a redirect
-//! to another host, and carries no token or anything about the user.
+//! The discovery address is a trust anchor (whoever controls it decides where
+//! sign-ins and tokens go), so it is fetched over https only, never follows a
+//! redirect to another host, and carries no token or anything about the user.
+//! The server it names may be plain http (a LAN address and port, for
+//! example): trusting the https answer is what makes that acceptable.
 
 use std::time::{Duration, Instant};
 
@@ -17,14 +20,16 @@ const TIMEOUT: Duration = Duration::from_secs(10);
 const EVERY: Duration = Duration::from_secs(60);
 const MAX_REDIRECTS: usize = 5;
 
-/// The server an answer names, if this build may use it: `domain`, else the
-/// object's only string field, read by [`server_from`].
+/// The server an answer names, if this build may use it: `apiBaseUrl`, else
+/// the legacy `domain`, else the object's only string field, read by
+/// [`server_from`]. A present field that is not usable is not replaced by a
+/// later one.
 pub fn parse(body: &str, release: bool) -> Option<String> {
     let Ok(Value::Object(fields)) = serde_json::from_str(body) else {
         return None;
     };
-    let value = match fields.get("domain") {
-        Some(domain) => domain.as_str()?,
+    let value = match fields.get("apiBaseUrl").or_else(|| fields.get("domain")) {
+        Some(named) => named.as_str()?,
         None => {
             let mut strings = fields.values().filter_map(Value::as_str);
             match (strings.next(), strings.next()) {
@@ -36,11 +41,12 @@ pub fn parse(body: &str, release: bool) -> Option<String> {
     server_from(value, release)
 }
 
-/// `https://<host[:port]>` for a host, `host:port` or https URL (its path,
-/// query and fragment dropped); outside release builds also an explicit
-/// `http://` URL. Never a user/password part, nor a loopback host in a release
-/// build. Also how a saved server is read back, since a development build may
-/// have saved one a release build refuses.
+/// The origin (`scheme://host[:port]`) of an `http`/`https` URL (its path,
+/// query and fragment dropped), or `https://<host[:port]>` for a bare host or
+/// `host:port`. Plain http is accepted in every build: the address arrives in
+/// the https discovery answer. Never a user/password part, nor a loopback host
+/// in a release build. Also how a saved server is read back, since a
+/// development build may have saved one a release build refuses.
 pub fn server_from(value: &str, release: bool) -> Option<String> {
     let value = value.trim();
     let url = if value.contains("://") {
@@ -49,13 +55,8 @@ pub fn server_from(value: &str, release: bool) -> Option<String> {
         reqwest::Url::parse(&format!("https://{value}"))
     }
     .ok()?;
-    let scheme_ok = match url.scheme() {
-        "https" => true,
-        "http" => !release,
-        _ => false,
-    };
     let host = url.host_str().filter(|host| !host.is_empty())?;
-    (scheme_ok
+    (matches!(url.scheme(), "https" | "http")
         && url.username().is_empty()
         && url.password().is_none()
         && !(release && super::is_loopback(host)))
@@ -183,17 +184,57 @@ mod tests {
     }
 
     #[test]
-    fn plain_http_only_outside_release_builds() {
+    fn reads_api_base_url_first() {
+        // The production answer: plain http on a LAN address, in every build.
+        for release in [DEV, RELEASE] {
+            assert_eq!(
+                parse(r#"{"apiBaseUrl":"http://192.168.101.69:8787"}"#, release).as_deref(),
+                Some("http://192.168.101.69:8787")
+            );
+        }
         assert_eq!(
-            server_from("http://192.168.1.5:8787", DEV).as_deref(),
-            Some("http://192.168.1.5:8787")
+            parse(r#"{"apiBaseUrl":"https://Sync.Example.com/v1/"}"#, RELEASE).as_deref(),
+            Some("https://sync.example.com")
         );
+        // It wins over the legacy field.
+        assert_eq!(
+            parse(
+                r#"{"domain":"old.example.com","apiBaseUrl":"https://new.example.com"}"#,
+                RELEASE
+            )
+            .as_deref(),
+            Some("https://new.example.com")
+        );
+        // A present but unusable `apiBaseUrl` is not replaced by `domain`.
+        for bad in [
+            r#"{"apiBaseUrl":1,"domain":"sync.example.com"}"#,
+            r#"{"apiBaseUrl":"http://localhost:8787"}"#,
+            r#"{"apiBaseUrl":"http://user:pass@192.168.1.5:8787"}"#,
+            r#"{"apiBaseUrl":"ftp://sync.example.com"}"#,
+            r#"{"apiBaseUrl":"not a url at all"}"#,
+        ] {
+            assert_eq!(parse(bad, RELEASE), None, "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn plain_http_in_every_build() {
+        for release in [DEV, RELEASE] {
+            assert_eq!(
+                server_from("http://192.168.1.5:8787/x?y", release).as_deref(),
+                Some("http://192.168.1.5:8787")
+            );
+            assert_eq!(
+                server_from("http://sync.example.com:80", release).as_deref(),
+                Some("http://sync.example.com")
+            );
+        }
         assert_eq!(
             server_from("http://localhost:8787", DEV).as_deref(),
             Some("http://localhost:8787")
         );
-        assert_eq!(server_from("http://192.168.1.5:8787", RELEASE), None);
-        assert_eq!(server_from("http://sync.example.com", RELEASE), None);
+        assert_eq!(server_from("http://localhost:8787", RELEASE), None);
+        assert_eq!(server_from("http://127.0.0.1:8787", RELEASE), None);
     }
 
     #[test]
@@ -222,7 +263,15 @@ mod tests {
             assert_eq!(server_from(loopback, RELEASE), None, "{loopback:?}");
             assert!(server_from(loopback, DEV).is_some(), "{loopback:?}");
         }
-        for garbage in ["", "not json", "[]", r#""sync.example.com""#, "null", "{}"] {
+        for garbage in [
+            "",
+            "not json",
+            "[]",
+            r#""sync.example.com""#,
+            "null",
+            "{}",
+            "<html>apiBaseUrl</html>",
+        ] {
             assert_eq!(parse(garbage, DEV), None, "{garbage:?}");
         }
     }

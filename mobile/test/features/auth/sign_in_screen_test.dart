@@ -7,13 +7,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zynveliq_mobile/src/core/api_client.dart';
-import 'package:zynveliq_mobile/src/core/app_services.dart';
-import 'package:zynveliq_mobile/src/core/relay_client.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
-import 'package:zynveliq_mobile/src/core/session_store.dart';
-import 'package:zynveliq_mobile/src/features/auth/sign_in_screen.dart';
-import 'package:zynveliq_mobile/src/theme.dart';
+import 'package:talvio_mobile/src/core/api_client.dart';
+import 'package:talvio_mobile/src/core/app_services.dart';
+import 'package:talvio_mobile/src/core/relay_client.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/session_store.dart';
+import 'package:talvio_mobile/src/features/auth/sign_in_screen.dart';
+import 'package:talvio_mobile/src/theme.dart';
 
 import '../../helpers.dart';
 
@@ -37,7 +37,7 @@ Handler server({bool google = false, Handler? auth}) => (request) async {
   return auth!(request);
 };
 
-/// The sign-in screen over [session], by default signed out on a Custom
+/// The sign-in screen over [session], by default signed out on a pinned
 /// server; [handler] answers the account server's API.
 Future<SessionStore> pumpSignIn(
   WidgetTester tester,
@@ -66,7 +66,7 @@ final password = find.widgetWithText(TextFormField, 'Password');
 final signInButton = find.widgetWithText(FilledButton, 'Sign in');
 final google = find.text('Continue with Google');
 
-/// A release build in Automatic mode, signed out; [discovery] answers the
+/// A release build (unless [pinned]), signed out; [discovery] answers the
 /// discovery address.
 Future<SessionStore> automatic(Handler discovery, {String? pinned}) async {
   SharedPreferences.setMockInitialValues({});
@@ -98,7 +98,7 @@ void main() {
   ) async {
     await pumpSignIn(tester, server());
     expect(google, findsNothing);
-    expect(find.text('Custom · sync.test:8787'), findsOneWidget);
+    expect(find.text('Development server · sync.test:8787'), findsOneWidget);
   });
 
   testWidgets('offers Google when the server does', (tester) async {
@@ -260,35 +260,7 @@ void main() {
     expect(session.session!.serverUrl, 'http://sync.test:8787');
   });
 
-  testWidgets('the server address can be changed, and is validated', (
-    tester,
-  ) async {
-    final hosts = <String>[];
-    await pumpSignIn(tester, (request) async {
-      hosts.add(request.url.host);
-      return json({'protocol': 1, 'google': false});
-    });
-
-    await tester.tap(find.text('Change'));
-    await tester.pumpAndSettle();
-    final field = find.widgetWithText(TextFormField, 'Server address');
-    await tester.enterText(field, 'ftp://nope');
-    await tester.tap(find.text('Save'));
-    await tester.pump();
-    expect(
-      find.text('Enter an address like https://sync.example.com'),
-      findsOneWidget,
-    );
-
-    await tester.enterText(field, 'new.example.com/');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Custom · new.example.com'), findsOneWidget);
-    expect(hosts, ['sync.test', 'new.example.com']);
-  });
-
-  testWidgets('Automatic: looking, then not found with Try again, then found', (
+  testWidgets('Discovery: looking, then not found with Try again, then found', (
     tester,
   ) async {
     tester.view
@@ -302,7 +274,6 @@ void main() {
 
     expect(find.text('Looking for the server…'), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
-    expect(find.text('Change'), findsOneWidget);
 
     discovery.complete(http.Response('', 503));
     await tester.pump();
@@ -316,46 +287,28 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pump();
     await tester.pump();
-    expect(find.text('Automatic · sync.example.com'), findsOneWidget);
+    expect(find.text('Server · sync.example.com'), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
     expect(hosts, ['sync.example.com']);
   });
 
-  testWidgets('a Custom server, then back to Automatic', (tester) async {
+  testWidgets('offers no way to choose or type a server', (tester) async {
     final hosts = <String>[];
     final session = await automatic(
-      (_) async => json({'domain': 'sync.example.com'}),
+      (_) async => json({'apiBaseUrl': 'http://192.168.101.69:8787'}),
     );
     await pumpSignIn(tester, config(hosts), session: session);
     await tester.pump();
-    expect(find.text('Automatic · sync.example.com'), findsOneWidget);
-
-    await tester.tap(find.text('Change'));
-    await tester.pumpAndSettle();
-    expect(find.text('Use automatic'), findsNothing);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Server address'),
-      'custom.example.com',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(find.text('Custom · custom.example.com'), findsOneWidget);
-    expect(session.serverChoice, ServerChoice.custom);
-
-    await tester.tap(find.text('Change'));
-    await tester.pumpAndSettle();
-    expect(find.text('https://custom.example.com'), findsOneWidget);
-    await tester.tap(find.text('Use automatic'));
-    await tester.pumpAndSettle();
-    expect(find.text('Automatic · sync.example.com'), findsOneWidget);
-    expect(hosts, [
-      'sync.example.com',
-      'custom.example.com',
-      'sync.example.com',
-    ]);
+    expect(find.text('Server · 192.168.101.69:8787'), findsOneWidget);
+    expect(find.text('Change'), findsNothing);
+    // Email and password; no server field anywhere.
+    expect(find.byType(TextFormField), findsNWidgets(2));
+    expect(hosts, ['192.168.101.69:8787']);
   });
 
-  testWidgets('a server built in cannot be changed', (tester) async {
+  testWidgets("a development build's pinned server skips discovery", (
+    tester,
+  ) async {
     var lookups = 0;
     final session = await automatic((_) async {
       lookups++;
@@ -363,8 +316,10 @@ void main() {
     }, pinned: 'https://pinned.example.com');
     await pumpSignIn(tester, config([]), session: session);
 
-    expect(find.text('Server: pinned.example.com'), findsOneWidget);
-    expect(find.text('Change'), findsNothing);
+    expect(
+      find.text('Development server · pinned.example.com'),
+      findsOneWidget,
+    );
     expect(lookups, 0);
   });
 }

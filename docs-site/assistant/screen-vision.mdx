@@ -29,14 +29,14 @@ It looks at most once per message. Every screenshot that goes to the model appea
 
 ## What gets captured
 
-Zynveliq captures the monitor under your mouse cursor, so on a multi-monitor desk you get the screen you are working on.
+Talvio captures the monitor under your mouse cursor, so on a multi-monitor desk you get the screen you are working on.
 
 Only a compact thumbnail is stored in the conversation and in [History](/personalize/history). The full-resolution frame is sent to the model once and never written to disk. A screenshot the model does not ask for is dropped at the end of the turn and never leaves your device. Thumbnails show inline in the panel and in History, and you can click one to enlarge it.
 
 <Warning>
   **macOS.** Screen vision needs macOS Screen Recording permission. Grant it in
   _System Settings → Privacy & Security → Screen Recording_, then restart
-  Zynveliq for it to take effect.
+  Talvio for it to take effect.
 </Warning>
 
 <AccordionGroup>
@@ -65,7 +65,7 @@ Only a compact thumbnail is stored in the conversation and in [History](/persona
 
 <Accordion title="What happens if your model cannot read images">
   When the assistant tries to use a screenshot but the model does not support
-  images, Zynveliq recovers the turn: it drops the image, tells the model the
+  images, Talvio recovers the turn: it drops the image, tells the model the
   screenshot was not available, and lets it answer from text alone. You will see
   a notice in the conversation. Switch to a vision-capable model if you want
   screen vision to work.

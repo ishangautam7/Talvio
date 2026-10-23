@@ -134,7 +134,7 @@ class RelayClient {
   Stream<IncomingRelay> get messages => _incoming.stream;
 
   /// Connects, and keeps reconnecting until [disconnect]. A session that
-  /// moved to its server's new address (Automatic mode) reconnects there.
+  /// moved to its server's new address (discovery) reconnects there.
   void connect() {
     _wanted = true;
     if (_url != _session.session?.serverUrl) _stop();

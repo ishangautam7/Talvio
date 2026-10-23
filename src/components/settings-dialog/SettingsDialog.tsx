@@ -136,14 +136,14 @@ export const SettingsDialog: React.FC = () => {
               onClick={() => openSettings(tab.id)}
               className={`flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-start text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
                 selected
-                  ? "bg-ink/[0.07] font-medium text-ink"
+                  ? "bg-accent/10 font-medium text-accent-strong"
                   : "text-body hover:bg-ink/[0.045] hover:text-ink"
               }`}
             >
               <Icon
                 size={16}
                 strokeWidth={selected ? 2 : 1.75}
-                className={selected ? "text-ink" : "text-muted"}
+                className={selected ? "text-accent" : "text-muted"}
               />
               <span className="truncate">
                 {t(`settingsDialog.tabs.${tab.id}`)}

@@ -1,5 +1,5 @@
-name: zynveliq_mobile
-description: "Zynveliq for Android and iOS: a wireless mic and keyboard for Zynveliq on your computer."
+name: talvio_mobile
+description: "Talvio for Android and iOS: a wireless mic and keyboard for Talvio on your computer."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

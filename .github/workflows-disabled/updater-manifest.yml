@@ -1,6 +1,6 @@
 name: "Updater manifest"
 
-# Writes latest.json, the file every installed Zynveliq polls at
+# Writes latest.json, the file every installed Talvio polls at
 #   https://github.com/ishangautam7/zynveliq/releases/latest/download/latest.json
 # and attaches it to a release. Runs once, after every platform has built, from
 # the signatures that are actually on the release (see
@@ -58,7 +58,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       # The generator's own tests are fast and include a real signature made
-      # with the Zynveliq key, so a verifier regression cannot wave a bad
+      # with the Talvio key, so a verifier regression cannot wave a bad
       # manifest through.
       - name: Test the manifest generator
         run: bun test scripts/ci/updater-manifest.test.ts

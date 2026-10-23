@@ -1,4 +1,4 @@
-//! Wire protocol between Zynveliq and its transcribe.cpp worker process.
+//! Wire protocol between Talvio and its transcribe.cpp worker process.
 //!
 //! Strict request/response: every [`Request`] gets exactly one [`Response`],
 //! except [`Request::Cancel`], which is answered by the request it cancels
@@ -10,7 +10,7 @@
 //! goes through JSON.
 //!
 //! Ported from upstream Handy's `engine_supervisor/protocol.rs` (#2208), with
-//! Zynveliq's load target, request ids for cancellation, and structured
+//! Talvio's load target, request ids for cancellation, and structured
 //! transcribe.cpp errors added.
 
 use serde::{Deserialize, Serialize};
@@ -177,7 +177,7 @@ impl DeviceInfo {
 
 /// Persistent device identity: the backend's stable `device_id` (the PCI bus id
 /// on Vulkan) where it reports one, its name otherwise (Metal reports none).
-/// The same encoding upstream Handy stores and older Zynveliq versions saved
+/// The same encoding upstream Handy stores and older Talvio versions saved
 /// as `transcribe_gpu_device`, so it must stay byte-identical.
 pub fn device_key(kind: &str, device_id: Option<&str>, name: &str) -> String {
     let (identity_kind, identity) = match device_id {
@@ -303,7 +303,7 @@ fn check_section_len(len: usize) -> io::Result<()> {
 
 /// Append `pcm` as little-endian f32 bytes.
 ///
-/// On a little-endian machine (every platform Zynveliq ships on) that is the
+/// On a little-endian machine (every platform Talvio ships on) that is the
 /// samples' own memory, copied in one `memcpy`. A per-sample loop costs tens
 /// of milliseconds for a long recording in a dev build, where this crate is
 /// compiled without optimisation.

@@ -2,7 +2,7 @@
 //!
 //! Without it, two dictations into the same box run together ("hello" +
 //! "there" pastes "hellothere"), because a paste knows nothing about what is
-//! already there. With it on, Zynveliq looks at the few characters around the
+//! already there. With it on, Talvio looks at the few characters around the
 //! caret of the field it is about to paste into, and the rules in [`rules`]
 //! decide on a space before, a space after, the case of the first word, and a
 //! stray period of its own from the previous dictation.
@@ -24,7 +24,7 @@
 //! # When the field cannot be read
 //!
 //! Some apps hide their text from every outside tool. There, the last-paste
-//! memory takes over: if Zynveliq pasted into the same window or app a moment
+//! memory takes over: if Talvio pasted into the same window or app a moment
 //! ago, it knows what it left there and adds the space a continuation needs.
 //! It never changes case or removes anything on that basis. With neither, the
 //! dictation is pasted exactly as before this feature existed.
@@ -34,7 +34,7 @@
 //! Password fields are never read. Terminals are never read (their text is the
 //! shell's). No text from another app is ever logged or stored beyond the one
 //! decision it is read for: the log carries kinds and lengths, the memory keeps
-//! only the tail of Zynveliq's own last paste.
+//! only the tail of Talvio's own last paste.
 
 mod reading;
 mod rules;
@@ -66,7 +66,7 @@ const READ_BUDGET: Duration = Duration::from_millis(500);
 /// one (or the memory). Felt by the user only when an app is slow to answer.
 const PASTE_WAIT: Duration = Duration::from_millis(100);
 
-/// How long Zynveliq's own last paste is trusted as "the text before the
+/// How long Talvio's own last paste is trusted as "the text before the
 /// caret" for a field that cannot be read.
 const REMEMBER_FOR: Duration = Duration::from_secs(45);
 
@@ -230,7 +230,7 @@ fn platform_read() -> Snapshot {
 /// Fit a finished dictation onto the field, or `None` to paste it as before.
 ///
 /// `can_erase` says whether the paste method can send the Backspace that
-/// removes Zynveliq's own stray period; without it that rule is skipped.
+/// removes Talvio's own stray period; without it that rule is skipped.
 /// Consumes this dictation's reading: a second call (another paste of other
 /// text) gets `None`.
 pub fn prepare(app: &AppHandle, transcript: &str, can_erase: bool) -> Option<Fitted> {
@@ -337,7 +337,7 @@ pub fn prepare(app: &AppHandle, transcript: &str, can_erase: bool) -> Option<Fit
 }
 
 /// Whether the window in front is still the one this dictation's field was
-/// read from. The Backspace that removes Zynveliq's own stray period goes
+/// read from. The Backspace that removes Talvio's own stray period goes
 /// wherever focus is now, and the paste respects a switch to another app made
 /// while the speech was transcribed (`input::restore_paste_target`), so after
 /// such a switch it would delete a character of the user's own text there.
@@ -365,7 +365,7 @@ fn current_target() -> Option<String> {
 
 /// The fitted dictation landed. Remember its tail for the next one.
 ///
-/// `submitted` is true when Zynveliq also pressed Enter after it: the field
+/// `submitted` is true when Talvio also pressed Enter after it: the field
 /// was sent and is empty now, so there is nothing to continue.
 pub fn record_paste(pasted: &str, submitted: bool) {
     let mut state = state();

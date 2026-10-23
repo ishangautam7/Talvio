@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Zynveliq
+Name=Talvio
 Comment=Local voice dictation and AI assistant
-Exec=speak
-Icon=zynveliq
+Exec=talvio
+Icon=talvio
 Terminal=false
 Categories=AudioVideo;Audio;
 StartupNotify=true
-StartupWMClass=Zynveliq
+StartupWMClass=Talvio

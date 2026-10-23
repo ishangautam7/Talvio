@@ -37,7 +37,8 @@ export const hasSeededName = (speaker: MeetingSpeaker): boolean =>
  */
 export const LOW_CONFIDENCE = 0.4;
 
-/** Brand teal is reserved for the user; everyone else cycles the rest. */
+/** The brand accent (the legacy `teal` tone) is reserved for the user;
+ * everyone else cycles the rest. */
 const OTHER_TONES: readonly SettingTone[] = [
   "violet",
   "amber",

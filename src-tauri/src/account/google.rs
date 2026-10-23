@@ -149,18 +149,18 @@ fn page_html(signed_in: bool) -> String {
     let (title, message) = if signed_in {
         (
             "You're signed in",
-            "You can close this tab and go back to Zynveliq.",
+            "You can close this tab and go back to Talvio.",
         )
     } else {
         (
             "Sign-in didn't finish",
-            "You can close this tab and try again in Zynveliq.",
+            "You can close this tab and try again in Talvio.",
         )
     };
     format!(
         "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">\
          <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\
-         <title>Zynveliq</title><style>\
+         <title>Talvio</title><style>\
          :root{{color-scheme:light dark;--bg:#f3f6f6;--card:#fff;--ink:#1b292e;--muted:#5b6b70;--accent:#007e70}}\
          @media (prefers-color-scheme:dark){{:root{{--bg:#0f1517;--card:#172024;--ink:#e6eef0;--muted:#9fb0b4;--accent:#5cd6be}}}}\
          body{{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);\

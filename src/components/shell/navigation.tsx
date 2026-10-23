@@ -33,7 +33,7 @@ export type PageId =
   | "dictionary"
   | "models";
 
-/** The four jobs a model does in Zynveliq — one tab each on Models. */
+/** The four jobs a model does in Talvio — one tab each on Models. */
 export type ModelSlot = "stt" | "cleanup" | "assistant" | "voice";
 
 export const MODEL_SLOTS: ModelSlot[] = [

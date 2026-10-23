@@ -13,11 +13,11 @@ abstract final class AccountStrings {
   static String removeTooltip(String name) => 'Remove $name';
   static String removeTitle(String name) => 'Remove $name?';
   static const removeBody =
-      'It will be signed out of Zynveliq. To use it with this phone again, '
+      'It will be signed out of Talvio. To use it with this phone again, '
       'sign in on it.';
   static const deleteTitle = 'Delete your account?';
   static const deleteBody =
-      'This permanently deletes your Zynveliq account and signs out every '
+      'This permanently deletes your Talvio account and signs out every '
       "device, including this phone. It can't be undone.";
 
   static String lastSeen(DateTime at, DateTime now) {

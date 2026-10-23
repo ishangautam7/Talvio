@@ -12,9 +12,9 @@ fn main() {
 
     // Linux ships transcribe-cpp as a shared libtranscribe + loadable ggml
     // backend modules (the `dynamic-backends` posture in Cargo.toml). Bake an
-    // $ORIGIN-relative rpath into the `zynveliq` binary so it finds
-    // libtranscribe next to it in the package — AppImage `usr/bin/zynveliq`
-    // -> `usr/lib`, and deb/rpm `/usr/bin/zynveliq` -> `/usr/lib`.
+    // $ORIGIN-relative rpath into the `talvio` binary so it finds
+    // libtranscribe next to it in the package — AppImage `usr/bin/talvio`
+    // -> `usr/lib`, and deb/rpm `/usr/bin/talvio` -> `/usr/lib`.
     // transcribe's init_backends_default() then loads the ggml modules
     // co-located there. (Windows resolves DLLs from the exe directory, so it
     // needs no rpath; macOS links transcribe-cpp statically — Apple Silicon via
@@ -36,7 +36,7 @@ fn main() {
         }
     }
 
-    // Windows needs no Vulkan link step: nothing in `zynveliq.exe` imports
+    // Windows needs no Vulkan link step: nothing in `talvio.exe` imports
     // `vulkan-1.dll`. transcribe.cpp's Vulkan backend is a loadable module
     // (`ggml-vulkan.dll`, dynamic-backends) that imports it on its own and is
     // only loaded by `init_backends_default()`, so a PC without the Vulkan
@@ -53,7 +53,7 @@ fn main() {
     // .github/workflows/build.yml).
     //
     // For a *distributable* .dmg that dylib has to travel inside the bundle, in
-    // `Zynveliq.app/Contents/Frameworks` (tauri-bundler puts `bundle.macOS.
+    // `Talvio.app/Contents/Frameworks` (tauri-bundler puts `bundle.macOS.
     // frameworks` entries there). tauri-bundler explicitly does NOT touch load
     // paths — embedding the rpath is the caller's job — so bake it in here.
     //
@@ -77,13 +77,13 @@ fn main() {
     // Must run after transcribe staging because that helper recreates
     // transcribe-libs/. Ships the app-local VC++ runtime on Windows.
     //
-    // NOTE (Zynveliq divergence from upstream Handy): ONNX Runtime stays
+    // NOTE (Talvio divergence from upstream Handy): ONNX Runtime stays
     // statically embedded through `ort`'s default `download-binaries` (it is
     // only used by Silero VAD and meeting diarization now that transcribe-rs is
     // gone), rather than Handy's dynamically linked baseline ORT. So there is
     // NO `stage_onnxruntime_dll()` here: no onnxruntime.dll is staged or
     // bundled. pyke's prebuilt Windows ORT is always compiled with the DirectML
-    // execution provider (see ort-sys's static_link), so `zynveliq.exe` still
+    // execution provider (see ort-sys's static_link), so `talvio.exe` still
     // imports `DirectML.dll` and ort-sys's `copy-dylibs` still drops a copy in
     // the target dir, even though no session registers that provider any more.
     // Windows 10 1903+ ships `DirectML.dll` in System32, and nothing here
@@ -91,8 +91,27 @@ fn main() {
     stage_vc_runtime_dlls();
 
     generate_tray_translations();
+    generate_command_tools();
 
-    tauri_build::build()
+    // Windows: link the Common Controls v6 manifest into every binary rather
+    // than letting tauri-build add it as a resource to the app binary only.
+    // `cargo test`'s binary otherwise gets comctl32 v5 and dies before main
+    // (STATUS_ENTRYPOINT_NOT_FOUND on TaskDialogIndirect), which is the
+    // workaround Tauri documents for running unit tests on Windows.
+    let target_windows_msvc = std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows")
+        && std::env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("msvc");
+    if target_windows_msvc {
+        let manifest = std::path::Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap())
+            .join("windows-app-manifest.xml");
+        println!("cargo:rerun-if-changed={}", manifest.display());
+        println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
+        println!("cargo:rustc-link-arg=/MANIFESTINPUT:{}", manifest.display());
+        let windows = tauri_build::WindowsAttributes::new_without_app_manifest();
+        tauri_build::try_build(tauri_build::Attributes::new().windows_attributes(windows))
+            .expect("failed to run tauri-build");
+    } else {
+        tauri_build::build()
+    }
 }
 
 /// Stage transcribe-cpp's shared runtime libraries into `transcribe-libs/` so
@@ -109,7 +128,7 @@ fn main() {
 /// `MODULE_DIR` (dlopen'd ggml modules) may be the same dir — the `BTreeSet`
 /// below dedups them.
 ///
-/// Where the staged dir lands: Windows bundles it beside `zynveliq.exe` (DLLs
+/// Where the staged dir lands: Windows bundles it beside `talvio.exe` (DLLs
 /// resolve from the exe dir, via tauri.windows.conf.json); Linux maps it into
 /// `/usr/lib`, on the binary's `$ORIGIN/../lib` rpath (see the CI AppImage /
 /// deb staging).
@@ -182,21 +201,21 @@ fn stage_transcribe_runtime_libs() {
 
 /// Stage the MSVC runtime DLLs into `transcribe-libs/` for app-local deployment.
 ///
-/// Zynveliq's native stack (transcribe-cpp's ggml DLLs, and the ONNX Runtime
+/// Talvio's native stack (transcribe-cpp's ggml DLLs, and the ONNX Runtime
 /// `ort` embeds) links the VC++ runtime dynamically (/MD). Shipping the
-/// DLLs beside `zynveliq.exe` covers machines with no redistributable
+/// DLLs beside `talvio.exe` covers machines with no redistributable
 /// installed and machines whose system redist is older than the CI toolset.
 ///
-/// Driven by `ZYNVELIQ_VC_REDIST_DIRS`, set by CI to the redist dirs from the
+/// Driven by `TALVIO_VC_REDIST_DIRS`, set by CI to the redist dirs from the
 /// same Visual Studio install that compiled the native code. Copies only the
 /// runtime DLL families we import and no-ops when the env var is unset (so a
 /// plain local `cargo build` stages only the transcribe-cpp DLLs and skips this).
 fn stage_vc_runtime_dlls() {
     use std::path::PathBuf;
 
-    println!("cargo:rerun-if-env-changed=ZYNVELIQ_VC_REDIST_DIRS");
+    println!("cargo:rerun-if-env-changed=TALVIO_VC_REDIST_DIRS");
 
-    let Some(redist_dirs) = std::env::var_os("ZYNVELIQ_VC_REDIST_DIRS") else {
+    let Some(redist_dirs) = std::env::var_os("TALVIO_VC_REDIST_DIRS") else {
         return;
     };
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
@@ -209,7 +228,7 @@ fn stage_vc_runtime_dlls() {
     let mut copied: Vec<String> = Vec::new();
     for dir in std::env::split_paths(&redist_dirs) {
         for entry in std::fs::read_dir(&dir)
-            .unwrap_or_else(|e| panic!("ZYNVELIQ_VC_REDIST_DIRS: read {}: {e}", dir.display()))
+            .unwrap_or_else(|e| panic!("TALVIO_VC_REDIST_DIRS: read {}: {e}", dir.display()))
             .flatten()
         {
             let src = entry.path();
@@ -239,8 +258,8 @@ fn stage_vc_runtime_dlls() {
     for required in ["msvcp140.dll", "vcruntime140.dll"] {
         if !copied.iter().any(|n| n == required) {
             panic!(
-                "ZYNVELIQ_VC_REDIST_DIRS is set but {required} was not found in it; \
-                 the app-local VC++ runtime would be incomplete and Zynveliq would \
+                "TALVIO_VC_REDIST_DIRS is set but {required} was not found in it; \
+                 the app-local VC++ runtime would be incomplete and Talvio would \
                  crash on machines without a current redist"
             );
         }
@@ -255,6 +274,63 @@ fn stage_vc_runtime_dlls() {
 ///
 /// Source of truth: src/i18n/locales/*/translation.json
 /// The English "tray" section defines the struct fields.
+/// Generate the command-mode tool list from the files in
+/// `src/command_mode/tools/` (one tool per file, each exporting
+/// `pub static SPEC: ToolSpec`).
+///
+/// This is what makes adding a tool a one-file change. Link-time registration
+/// (the `inventory` crate) was the alternative and was rejected: this crate also
+/// builds as a staticlib/cdylib, where an object file nothing else references
+/// can be dropped by the linker, and a tool that silently vanishes from the
+/// router's list is exactly the bug that is hardest to notice.
+fn generate_command_tools() {
+    use std::fs;
+    use std::path::Path;
+
+    let dir = Path::new("src/command_mode/tools");
+    println!("cargo:rerun-if-changed={}", dir.display());
+
+    let mut names: Vec<String> = fs::read_dir(dir)
+        .map(|entries| {
+            entries
+                .flatten()
+                .map(|entry| entry.path())
+                .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
+                .filter_map(|path| path.file_stem()?.to_str().map(str::to_string))
+                .filter(|stem| stem != "mod")
+                .collect()
+        })
+        .unwrap_or_default();
+    // Sorted, so the tool list the model sees is byte-identical from build to
+    // build and the provider's prompt cache keeps hitting.
+    names.sort();
+
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let mut out = String::from(
+        "// Auto-generated by build.rs from src/command_mode/tools/*.rs - do not edit\n\n",
+    );
+    for name in &names {
+        let path = Path::new(&manifest_dir)
+            .join(dir)
+            .join(format!("{name}.rs"));
+        println!("cargo:rerun-if-changed={}", path.display());
+        // `{:?}` quotes and escapes the path, so Windows backslashes survive.
+        out.push_str(&format!(
+            "#[path = {:?}]\npub mod {name};\n",
+            path.display().to_string()
+        ));
+    }
+    out.push_str("\n/// Every tool, sorted by file name.\n");
+    out.push_str("pub static ALL: &[&crate::command_mode::registry::ToolSpec] = &[\n");
+    for name in &names {
+        out.push_str(&format!("    &{name}::SPEC,\n"));
+    }
+    out.push_str("];\n");
+
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+    fs::write(Path::new(&out_dir).join("command_tools.rs"), out).unwrap();
+}
+
 fn generate_tray_translations() {
     use std::collections::BTreeMap;
     use std::fs;

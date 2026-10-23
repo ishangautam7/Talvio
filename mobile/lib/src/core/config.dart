@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'models.dart';
+import 'server_finder.dart';
 
 /// Kept equal to `version` in pubspec.yaml (no package_info dependency).
 const appVersion = '1.0.0';
@@ -10,21 +11,22 @@ const appVersion = '1.0.0';
 /// time to time, so it is never built in.
 const discoveryUrl = 'https://domain.gautamishan.com.np';
 
-/// The build's `--dart-define=ZYNVELIQ_SERVER_URL`, which pins the server
-/// (discovery and the Server setting are then off), or null without one. An
+/// The build's `--dart-define=TALVIO_SERVER_URL`, a developer override that
+/// pins the server (discovery is then off), or null without one. Ignored in
+/// [release] builds, which only ever use the server discovery names. An
 /// invalid one throws: `main` calls this first, so such a build fails at
 /// launch.
-String? pinnedServerUrl() {
-  const fromBuild = String.fromEnvironment('ZYNVELIQ_SERVER_URL');
-  if (fromBuild.isEmpty) return null;
-  return normalizeServerUrl(fromBuild) ??
+String? pinnedServerUrl({bool release = kReleaseMode}) {
+  const fromBuild = String.fromEnvironment('TALVIO_SERVER_URL');
+  if (release || fromBuild.isEmpty) return null;
+  return serverOrigin(fromBuild, release: false) ??
       (throw StateError(
-        'ZYNVELIQ_SERVER_URL is "$fromBuild". Build with '
-        '--dart-define=ZYNVELIQ_SERVER_URL=https://your-server',
+        'TALVIO_SERVER_URL is "$fromBuild". Build with '
+        '--dart-define=TALVIO_SERVER_URL=http://192.168.1.20:8787',
       ));
 }
 
-/// Where Automatic goes while discovery has never answered: outside release
+/// Where the app goes while discovery has never answered: outside release
 /// builds, a server on the development machine (the Android emulator reaches
 /// its host at 10.0.2.2); a release build has nowhere to go.
 String? developmentServerUrl() {
@@ -32,27 +34,6 @@ String? developmentServerUrl() {
   return defaultTargetPlatform == TargetPlatform.iOS
       ? 'http://localhost:8787'
       : 'http://10.0.2.2:8787';
-}
-
-/// The canonical form of a server address the user typed, or null when it is
-/// not an http(s) base URL. A bare host gets `https://`. A [release] build
-/// takes https only: dart:io ignores Android's cleartext policy and iOS App
-/// Transport Security, so nothing else stops a password or token going out
-/// in the clear.
-String? normalizeServerUrl(String input, {bool release = kReleaseMode}) {
-  final text = input.trim();
-  if (text.isEmpty) return null;
-  final uri = Uri.tryParse(text.contains('://') ? text : 'https://$text');
-  if (uri == null ||
-      (uri.scheme != 'https' && (release || uri.scheme != 'http')) ||
-      uri.host.isEmpty ||
-      uri.userInfo.isNotEmpty ||
-      uri.hasQuery ||
-      uri.hasFragment) {
-    return null;
-  }
-  final path = uri.path.replaceFirst(RegExp(r'/+$'), '');
-  return uri.replace(path: path).toString();
 }
 
 /// How this phone introduces itself when it signs in.

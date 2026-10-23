@@ -12,7 +12,7 @@ interface MouseButtonShortcutsProps {
 /**
  * The middle, Back and Forward mouse buttons as shortcut keys. In Settings →
  * Shortcuts on Windows and macOS; on Linux it stays under Experimental, since
- * there it needs the Zynveliq Keys engine and only the middle button works.
+ * there it needs the Talvio Keys engine and only the middle button works.
  *
  * A button is only ever a shortcut's other keys, never its own (the backend
  * refuses that), so turning this off changes no shortcut: its button is kept

@@ -1,5 +1,5 @@
 {
-  "name": "zynveliq-server",
+  "name": "talvio-server",
   "private": true,
   "type": "module",
   "scripts": {

@@ -77,6 +77,13 @@ enum CancelOrigin {
 fn cancel_operation(app: &AppHandle, origin: CancelOrigin) {
     info!("Initiating operation cancellation...");
 
+    // A command-mode agent working the screen stops before its next request
+    // or action. Only a real cancel: a withdrawn hotkey press says nothing
+    // about a command that is running.
+    if origin == CancelOrigin::User {
+        crate::command_mode::cancel_running();
+    }
+
     // A press that was still holding back its window (`shortcut::chord`) never
     // showed anything, so nothing it would have shown must appear now. And if
     // it is being withdrawn rather than cancelled, it had touched nothing of

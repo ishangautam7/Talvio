@@ -71,7 +71,7 @@ const MAX_SELECTION_CHARS: usize = 8000;
 /// Sentinel written to the clipboard when no change counter is available, so a
 /// read can be told apart from the user's previous clipboard contents. Chosen to
 /// be something no human would ever have copied.
-const SENTINEL: &str = "\u{200B}zynveliq-selection-probe\u{200B}";
+const SENTINEL: &str = "\u{200B}talvio-selection-probe\u{200B}";
 
 /// Where a captured selection came from. Kept because the two routes have
 /// genuinely different reliability, and the logs are much easier to read when a

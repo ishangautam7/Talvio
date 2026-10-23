@@ -1199,7 +1199,7 @@ const POCKET_TEMPERATURE: f32 = 0.3;
 
 fn pocket_temperature() -> f32 {
     #[cfg(test)]
-    if let Some(n) = std::env::var("ZYNVELIQ_TTS_TEMP")
+    if let Some(n) = std::env::var("TALVIO_TTS_TEMP")
         .ok()
         .and_then(|v| v.parse().ok())
     {
@@ -1836,7 +1836,7 @@ impl NativeRequest {
 /// Threads for this pack here. Tests can pin it to measure a curve.
 fn engine_threads(pack: &VoicePack) -> i32 {
     #[cfg(test)]
-    if let Some(n) = std::env::var("ZYNVELIQ_TTS_THREADS")
+    if let Some(n) = std::env::var("TALVIO_TTS_THREADS")
         .ok()
         .and_then(|v| v.parse().ok())
     {
@@ -1848,7 +1848,7 @@ fn engine_threads(pack: &VoicePack) -> i32 {
 /// Flow-matching steps for a family, which tests can override.
 fn flow_steps(default: i32) -> i32 {
     #[cfg(test)]
-    if let Some(n) = std::env::var("ZYNVELIQ_TTS_STEPS")
+    if let Some(n) = std::env::var("TALVIO_TTS_STEPS")
         .ok()
         .and_then(|v| v.parse().ok())
     {
@@ -1865,7 +1865,7 @@ fn flow_steps(default: i32) -> i32 {
 /// alone, so it keeps them whole.
 fn silence_scale(family: VoiceFamily) -> f32 {
     #[cfg(test)]
-    if let Some(n) = std::env::var("ZYNVELIQ_TTS_SILENCE")
+    if let Some(n) = std::env::var("TALVIO_TTS_SILENCE")
         .ok()
         .and_then(|v| v.parse().ok())
     {
@@ -2268,7 +2268,7 @@ mod tests {
     #[test]
     fn a_runtime_that_cannot_be_opened_is_a_named_error() {
         let dir =
-            std::env::temp_dir().join(format!("zynveliq-native-tts-empty-{}", std::process::id()));
+            std::env::temp_dir().join(format!("talvio-native-tts-empty-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         // SAFETY: nothing in the folder can be loaded, so no foreign code runs.
         let error = match unsafe { load_runtime_from(&dir) } {
@@ -2722,19 +2722,19 @@ mod tests {
     /// Writes one WAV per pack, voice and sentence for an outside speech
     /// recognizer to check word for word (the Pocket settings were chosen by
     /// transcribing these with SenseVoice and scoring word error rate), and
-    /// prints each one's speed. `ZYNVELIQ_TTS_ONLY` picks packs;
-    /// `ZYNVELIQ_TTS_VOICES` (comma separated) picks voices.
+    /// prints each one's speed. `TALVIO_TTS_ONLY` picks packs;
+    /// `TALVIO_TTS_VOICES` (comma separated) picks voices.
     #[test]
     #[ignore]
     fn live_quality_matrix() {
         let dir = PathBuf::from(
-            std::env::var_os("ZYNVELIQ_NATIVE_TTS_DIR").expect("ZYNVELIQ_NATIVE_TTS_DIR"),
+            std::env::var_os("TALVIO_NATIVE_TTS_DIR").expect("TALVIO_NATIVE_TTS_DIR"),
         );
         let out =
-            PathBuf::from(std::env::var_os("ZYNVELIQ_TTS_WAV_DIR").expect("ZYNVELIQ_TTS_WAV_DIR"));
+            PathBuf::from(std::env::var_os("TALVIO_TTS_WAV_DIR").expect("TALVIO_TTS_WAV_DIR"));
         init(dir);
-        let only = std::env::var("ZYNVELIQ_TTS_ONLY").unwrap_or_default();
-        let voices: Vec<String> = std::env::var("ZYNVELIQ_TTS_VOICES")
+        let only = std::env::var("TALVIO_TTS_ONLY").unwrap_or_default();
+        let voices: Vec<String> = std::env::var("TALVIO_TTS_VOICES")
             .unwrap_or_default()
             .split(',')
             .map(str::trim)
@@ -2770,7 +2770,7 @@ mod tests {
                 let request = NativeRequest {
                     pack,
                     voice: voice.clone(),
-                    speed: std::env::var("ZYNVELIQ_TTS_SPEED")
+                    speed: std::env::var("TALVIO_TTS_SPEED")
                         .ok()
                         .and_then(|v| v.parse().ok())
                         .unwrap_or(1.0),
@@ -2798,26 +2798,26 @@ mod tests {
 
     /// Real synthesis through the installed runtime and packs, with timings.
     /// Needs the app's models folder with the packs downloaded (or
-    /// `ZYNVELIQ_NATIVE_TTS_DIR` pointing at a folder laid out the same way);
-    /// packs that aren't there are skipped. `ZYNVELIQ_TTS_ONLY` filters by
-    /// catalog id, and `ZYNVELIQ_TTS_THREADS` / `ZYNVELIQ_TTS_STEPS` pin
+    /// `TALVIO_NATIVE_TTS_DIR` pointing at a folder laid out the same way);
+    /// packs that aren't there are skipped. `TALVIO_TTS_ONLY` filters by
+    /// catalog id, and `TALVIO_TTS_THREADS` / `TALVIO_TTS_STEPS` pin
     /// those settings to measure a curve:
     /// `cargo test --lib native_tts::tests::live -- --ignored --nocapture`
     #[test]
     #[ignore]
     fn live_native_synthesis() {
-        let dir = std::env::var_os("ZYNVELIQ_NATIVE_TTS_DIR")
+        let dir = std::env::var_os("TALVIO_NATIVE_TTS_DIR")
             .map(PathBuf::from)
             .or_else(|| {
                 std::env::var_os("APPDATA").map(|appdata| {
                     PathBuf::from(appdata)
-                        .join("com.zynveliq.desktop")
+                        .join("com.talvio.desktop")
                         .join("models")
                 })
             })
             .expect("a models directory");
         init(dir.clone());
-        let only = std::env::var("ZYNVELIQ_TTS_ONLY").unwrap_or_default();
+        let only = std::env::var("TALVIO_TTS_ONLY").unwrap_or_default();
         let cases: [(&'static VoicePack, &str, u32); 12] = [
             (&KOKORO_PACK, "af_heart", 24_000),
             (&KOKORO_PACK, "bf_emma", 24_000),
@@ -2895,7 +2895,7 @@ mod tests {
                 warm / seconds,
                 short,
             );
-            if let Ok(out) = std::env::var("ZYNVELIQ_TTS_WAV_DIR") {
+            if let Ok(out) = std::env::var("TALVIO_TTS_WAV_DIR") {
                 let path = PathBuf::from(out).join(format!("{}-{voice}.wav", pack.model_id));
                 std::fs::write(path, samples_to_wav(&samples, rate)).unwrap();
             }

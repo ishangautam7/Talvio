@@ -1,7 +1,7 @@
 //! Process isolation for transcribe.cpp.
 //!
 //! All transcribe.cpp native code (backend init, device enumeration, model
-//! load, inference, streaming) runs in a child process: the Zynveliq
+//! load, inference, streaming) runs in a child process: the Talvio
 //! executable re-launched with [`WORKER_FLAG`]. A GPU driver fault, a
 //! `GGML_ASSERT` abort or a hang then ends only the worker, where it used to
 //! take the whole app down or leave dictation stuck on "Transcribing…" for
@@ -21,7 +21,7 @@
 //! fallback down with it.
 //!
 //! Ported from upstream Handy #2208 (`engine_supervisor/`), adapted to
-//! Zynveliq: cancellation goes through transcribe.cpp's own abort callback
+//! Talvio: cancellation goes through transcribe.cpp's own abort callback
 //! first, so Esc stops a dictation without throwing the loaded model away,
 //! and a batch run waits for a live stream instead of ending it, because a
 //! meeting may transcribe beside a dictation.
@@ -44,12 +44,12 @@ pub const WORKER_FLAG: &str = "--transcribe-worker";
 /// Worker argument: register only the CPU backends.
 const CPU_ONLY_FLAG: &str = "--cpu-only";
 /// The parent's log level, so the worker does not format lines nobody keeps.
-const LOG_LEVEL_ENV: &str = "ZYNVELIQ_TRANSCRIBE_WORKER_LOG";
+const LOG_LEVEL_ENV: &str = "TALVIO_TRANSCRIBE_WORKER_LOG";
 /// Debug and test builds only: run this executable as the worker instead of
 /// the current one. Under `cargo test` the current executable is the test
 /// harness, which cannot be a worker.
 #[cfg(any(test, debug_assertions))]
-const WORKER_EXE_ENV: &str = "ZYNVELIQ_TRANSCRIBE_WORKER_EXE";
+const WORKER_EXE_ENV: &str = "TALVIO_TRANSCRIBE_WORKER_EXE";
 
 /// Whether this process was launched as a transcription worker. Checked in
 /// `main` before CLI parsing, Tauri, single-instance, portable-mode or

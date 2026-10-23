@@ -35,10 +35,10 @@
     "downloading": "Downloading… {{progress}}%",
     "downloadingUnknown": "Downloading…",
     "installing": "Installing…",
-    "reopening": "Zynveliq is closing to install the update and will reopen in a few seconds.",
+    "reopening": "Talvio is closing to install the update and will reopen in a few seconds.",
     "updatedTo": "Updated to version {{version}}",
     "restart": "Restart now",
-    "readyToRestart": "The update is installed. Restart Zynveliq to start using it.",
+    "readyToRestart": "The update is installed. Restart Talvio to start using it.",
     "installFailed": "The update didn't install. You can try again, or download the installer and run it yourself.",
     "downloadFailed": "The download didn't finish. Check your connection and try again.",
     "downloadInstaller": "Download installer",
@@ -49,13 +49,13 @@
     "showInFolder": "Show in folder",
     "viewRelease": "View on GitHub",
     "hint": {
-      "windows": "Zynveliq closes, installs the update, and opens again. Nothing else to click.",
-      "macos": "Zynveliq restarts on the new version. macOS may ask you to allow Microphone and Accessibility again afterwards.",
-      "linux": "Zynveliq restarts on the new version. A .deb install asks for your password first."
+      "windows": "Talvio closes, installs the update, and opens again. Nothing else to click.",
+      "macos": "Talvio restarts on the new version. macOS may ask you to allow Microphone and Accessibility again afterwards.",
+      "linux": "Talvio restarts on the new version. A .deb install asks for your password first."
     },
     "modes": {
       "portable": "This is the portable build, which can't replace itself. Download the new version and copy your Data folder into it.",
-      "packageManager": "Your package manager installed Zynveliq, so update it there, for example with yay -Syu zynveliq-bin.",
+      "packageManager": "Your package manager installed Talvio, so update it there, for example with yay -Syu talvio-bin.",
       "download": "This copy can't update itself in place. Download the installer and run it to get the new version."
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "Send feedback",
     "title": "Send feedback",
-    "description": "I read every message myself, so say it however it comes out. Thanks for helping make Zynveliq better.",
+    "description": "I read every message myself, so say it however it comes out. Thanks for helping make Talvio better.",
     "kind": {
       "label": "Kind of feedback",
       "bug": "Bug",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "What happened, and what did you expect instead?",
-      "idea": "What would make Zynveliq better for you?",
+      "idea": "What would make Talvio better for you?",
       "question": "What would you like to know?"
     },
     "messageLabel": "Message",
@@ -159,10 +159,10 @@
       "retry": "Try again"
     },
     "tour": {
-      "features": "What Zynveliq does",
+      "features": "What Talvio does",
       "count": "{{current}} of {{total}}",
       "next": "Next",
-      "finish": "Open Zynveliq",
+      "finish": "Open Talvio",
       "tabs": {
         "dictate": "Dictation",
         "ask": "Assistant",
@@ -240,7 +240,7 @@
       "ready": "You're ready"
     },
     "speechToText": {
-      "title": "How should Zynveliq hear you?",
+      "title": "How should Talvio hear you?",
       "subtitle": "This turns your voice into text, right on your machine. Pick one, switch anytime.",
       "cards": {
         "fast": {
@@ -305,7 +305,7 @@
       "downloadingVoice": "Your voice model is landing. {{percentage}}% there.",
       "downloadingGeneric": "Still downloading. {{percentage}}% there.",
       "signOff": "That's it. Go say something.",
-      "openApp": "Open Zynveliq"
+      "openApp": "Open Talvio"
     },
     "errors": {
       "selectModel": "Couldn't select that model. Please try again.",
@@ -437,7 +437,7 @@
     },
     "permissions": {
       "title": "Permissions required",
-      "description": "Zynveliq needs a couple of permissions to work properly.",
+      "description": "Talvio needs a couple of permissions to work properly.",
       "microphone": {
         "title": "Microphone access",
         "description": "Required to hear your voice for transcription."
@@ -447,7 +447,7 @@
         "description": "Required to type transcribed text into your applications.",
         "stuckHint": "Already switched on in System Settings? After an update, macOS can keep a permission that no longer matches this version.",
         "reset": "Reset permission",
-        "resetDone": "Now switch Zynveliq on again in System Settings."
+        "resetDone": "Now switch Talvio on again in System Settings."
       },
       "grant": "Grant permission",
       "granted": "Granted",
@@ -456,7 +456,7 @@
       "errors": {
         "checkFailed": "Couldn't check permissions. Please try again.",
         "requestFailed": "Couldn't request permission. Please try again.",
-        "resetFailed": "Couldn't reset the permission. Remove Zynveliq from the Accessibility list and add it again."
+        "resetFailed": "Couldn't reset the permission. Remove Talvio from the Accessibility list and add it again."
       }
     },
     "frame": {
@@ -684,7 +684,7 @@
       },
       "handsFree": {
         "unavailableKeys": "Works when Dictate is modifier keys alone, like Ctrl + Win. With {{keys}}, turn off Hold to talk instead: every dictation then keeps going until you press the keys again.",
-        "unavailableEngine": "Needs the Zynveliq Keys keyboard engine ({{where}}). Or turn off Hold to talk: every dictation then keeps going until you press the keys again.",
+        "unavailableEngine": "Needs the Talvio Keys keyboard engine ({{where}}). Or turn off Hold to talk: every dictation then keeps going until you press the keys again.",
         "taken": "{{name}} already uses {{keys}}, so this key does nothing until one of them changes.",
         "needsKey": "Pick one key, like Space or Enter. A modifier on its own can't be the hands-free key.",
         "pressKey": "Press a key…",
@@ -741,9 +741,9 @@
       "clearSearch": "Clear search",
       "noSearchResults": "No models named “{{query}}”.",
       "olderHint": "Older format. {{model}} ({{size}}) is the newer version of this model.",
-      "retiredHint": "Uses an older engine Zynveliq no longer includes. Get {{model}} ({{size}}) instead.",
+      "retiredHint": "Uses an older engine Talvio no longer includes. Get {{model}} ({{size}}) instead.",
       "retired": {
-        "notice": "These models used an older engine that Zynveliq no longer includes.",
+        "notice": "These models used an older engine that Talvio no longer includes.",
         "newVersion": "New version: {{model}} · {{size}}",
         "getNewVersion": "Get new version",
         "useNewVersion": "Use new version",
@@ -802,7 +802,7 @@
         "rescanning": "Rescanning…",
         "rescanDone_one": "{{count}} local model found.",
         "rescanDone_other": "{{count}} local models found.",
-        "footnote": "Linked folders are rescanned when Zynveliq starts, so models you add to them later show up on their own. Unlinking a folder or removing a model only removes it from this list — your files stay where they are.",
+        "footnote": "Linked folders are rescanned when Talvio starts, so models you add to them later show up on their own. Unlinking a folder or removing a model only removes it from this list — your files stay where they are.",
         "removeTitle": "Remove from list?",
         "removeConfirm": "Remove \"{{modelName}}\" from your model list?\n\nThe file itself stays where it is:\n{{path}}",
         "missingBadge": "File missing",
@@ -892,7 +892,7 @@
         "label": "Mouse buttons as shortcuts",
         "description": "Use your mouse's middle, Back or Forward button as a shortcut: click a shortcut's keys, then press the button. While it is a shortcut, the button does nothing else.",
         "linux": "On Linux only the middle button works.",
-        "needsEngine": "Needs the Zynveliq Keys keyboard implementation."
+        "needsEngine": "Needs the Talvio Keys keyboard implementation."
       },
       "longFormChunking": {
         "title": "Split long recordings",
@@ -910,11 +910,11 @@
       },
       "autostart": {
         "label": "Launch on startup",
-        "description": "Open Zynveliq automatically when you sign in."
+        "description": "Open Talvio automatically when you sign in."
       },
       "showTrayIcon": {
         "label": "Show tray icon",
-        "description": "Keep Zynveliq in your system tray."
+        "description": "Keep Talvio in your system tray."
       },
       "trayIconColor": {
         "label": "Color tray icon",
@@ -922,7 +922,7 @@
       },
       "closeBehavior": {
         "label": "Quit when I close the window",
-        "description": "When off, closing the window keeps Zynveliq running in the tray so your hotkeys still work. When on, closing the window quits the app completely."
+        "description": "When off, closing the window keeps Talvio running in the tray so your hotkeys still work. When on, closing the window quits the app completely."
       },
       "overlayStyle": {
         "title": "Overlay",
@@ -1016,8 +1016,8 @@
       },
       "customWords": {
         "title": "Custom words",
-        "description": "Names, products, and phrases Zynveliq should spell your way.",
-        "info": "Example: add “Kokoro” if Zynveliq writes “Coco row.”",
+        "description": "Names, products, and phrases Talvio should spell your way.",
+        "info": "Example: add “Kokoro” if Talvio writes “Coco row.”",
         "placeholder": "Add a name, term, or short phrase",
         "add": "Add",
         "empty": "No custom words yet.",
@@ -1026,7 +1026,7 @@
       },
       "autoLearn": {
         "label": "Learn words I correct",
-        "description": "Remembers your spelling when you fix a word Zynveliq got wrong.",
+        "description": "Remembers your spelling when you fix a word Talvio got wrong.",
         "info": "It reads only the field it just typed into, for about a minute. Nothing is uploaded, and every word it learns is listed here.",
         "unsupported": "Learning from corrections is only available on Windows so far. You can still add words by hand above.",
         "learnedTitle": "Learned from your corrections",
@@ -1040,7 +1040,7 @@
         "title": "Text replacements",
         "description": "Replace a phrase in your transcript with text you use often. Example: “my email” becomes “alex@example.com”.",
         "rulesTitle": "Replacement rules",
-        "rulesHint": "Choose what Zynveliq hears and what it should insert.",
+        "rulesHint": "Choose what Talvio hears and what it should insert.",
         "empty": "Create a rule for a phrase you say often.",
         "addFirst": "Create first rule",
         "addRule": "Add replacement",
@@ -1418,7 +1418,7 @@
       },
       "updateChecks": {
         "label": "Check for updates automatically",
-        "description": "Looks for a new version when Zynveliq starts and every 12 hours. You can always check by hand."
+        "description": "Looks for a new version when Talvio starts and every 12 hours. You can always check by hand."
       },
       "soundTheme": {
         "label": "Sound theme",
@@ -1476,7 +1476,7 @@
       "smartSpacing": {
         "label": "Smart spacing",
         "description": "Fit each dictation to the text already in the field, so you can stop and continue without words running together.",
-        "info": "Before pasting, Zynveliq looks at the few characters around the cursor and adds a space only where one is needed. Where an app hides its text, it uses its own last dictation instead. Nothing is stored or sent anywhere. On macOS this uses the Accessibility permission Zynveliq already has. On Linux, Chrome, Electron and Qt apps share their text only when the desktop accessibility setting is on."
+        "info": "Before pasting, Talvio looks at the few characters around the cursor and adds a space only where one is needed. Where an app hides its text, it uses its own last dictation instead. Nothing is stored or sent anywhere. On macOS this uses the Accessibility permission Talvio already has. On Linux, Chrome, Electron and Qt apps share their text only when the desktop accessibility setting is on."
       },
       "smartSpacingFixCase": {
         "label": "Fix capital letters",
@@ -1484,7 +1484,7 @@
       },
       "smartSpacingJoin": {
         "label": "Join sentences you paused in",
-        "description": "Remove the period Zynveliq added when you stopped mid-sentence, as in \"I went to the.\""
+        "description": "Remove the period Talvio added when you stopped mid-sentence, as in \"I went to the.\""
       },
       "keyboardImplementation": {
         "title": "Keyboard implementation",
@@ -1503,6 +1503,101 @@
       "recordingBuffer": {
         "title": "Extra recording buffer",
         "description": "Milliseconds to keep recording after you release the key."
+      },
+      "commandMode": {
+        "title": "Command mode",
+        "description": "Type a command to see which tool the router picks and what it does. The hotkey comes in a later version.",
+        "enabled": {
+          "title": "Command mode",
+          "description": "Lets commands act in your apps. Needed for --run-command; this box works either way."
+        },
+        "input": {
+          "title": "Try a command",
+          "description": "Sends the text to the router model as if you had said it. With Dry run on, nothing happens on screen: you see what would have.",
+          "placeholder": "Send an email to Ron about a meeting at 9:00"
+        },
+        "dryRun": {
+          "label": "Dry run"
+        },
+        "dryRunSetting": {
+          "title": "Dry run by default",
+          "description": "Commands show what they would do instead of doing it. The box above and --dry-run can still choose for one command."
+        },
+        "delay": {
+          "label": "Run after {{seconds}} seconds",
+          "hint": "Typing and key presses go to the window in front, which is this one when you press Run. Turn on the delay and click into the app you want, or use Dry run.",
+          "countdown": "Running in {{seconds}} s. Click into the app the command is for.",
+          "cancel": "Cancel ({{seconds}})"
+        },
+        "run": "Run",
+        "running": "Running…",
+        "invokeFailed": "The command could not be sent: {{error}}",
+        "status": {
+          "done": "Done",
+          "awaiting_confirmation": "Waiting for confirmation",
+          "needs_answer": "Needs an answer",
+          "needs_computer_use": "Needs computer use",
+          "cancelled": "Cancelled",
+          "failed": "Failed"
+        },
+        "dryRunBadge": "Dry run",
+        "fromCli": "From the command line",
+        "meta": "{{model}} · {{calls}} LLM call(s) · tokens {{input}} in, {{output}} out, {{cached}} cached · {{ms}} ms",
+        "transcript": "Command: {{text}}",
+        "send": "Send",
+        "cancel": "Cancel",
+        "answer": {
+          "placeholder": "Your answer",
+          "submit": "Answer"
+        },
+        "escalation": "Task for computer use: {{task}}",
+        "error": "Error: {{error}}",
+        "steps": "Steps",
+        "dryRunActions": "Would have done",
+        "provider": {
+          "title": "Router provider",
+          "description": "The provider id that picks the tool for each command (for example anthropic or openrouter). It uses the API key already saved for that provider. Empty goes back to anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Router model",
+          "description": "The model that picks the tool. Small and fast is best: every command costs one call. Empty goes back to the default.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google account",
+          "description": "The account Gmail and Calendar open in (an email address or an account number). Empty uses the browser's default Google account.",
+          "placeholder": "Default account"
+        },
+        "searchUrl": {
+          "title": "Search page",
+          "description": "The page a web search opens. It must contain {query}, which is replaced with what you asked for; anything else goes back to Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Contacts",
+          "description": "The names commands can email, in a JSON file you edit. It is created with one example the first time.",
+          "open": "Open contacts file",
+          "openFailed": "Could not open the contacts file: {{error}}"
+        },
+        "stop": "Stop",
+        "autoEscalate": {
+          "title": "Control the screen when needed",
+          "description": "When no tool fits a command, an agent reads the app's controls and works them for you, and asks before anything that sends, buys or deletes. Windows only for now."
+        },
+        "agentModel": {
+          "title": "Agent model",
+          "description": "The model that controls the screen, on the router's provider. A stronger model than the router's works better. Empty goes back to the default.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Agent step limit",
+          "description": "The most model calls one task may use, from 1 to 60. The agent stops there and leaves the screen as it is."
+        },
+        "agentMaxCost": {
+          "title": "Agent cost limit (US$)",
+          "description": "Stops a task once it has cost about this much. Only known Claude models are priced; any other model is held to the step limit alone."
+        }
       }
     },
     "about": {
@@ -1521,7 +1616,7 @@
       },
       "appDataDirectory": {
         "title": "App data folder",
-        "description": "Where Zynveliq keeps your models, history, and settings."
+        "description": "Where Talvio keeps your models, history, and settings."
       },
       "sourceCode": {
         "title": "Source code",
@@ -1530,12 +1625,12 @@
       },
       "license": {
         "title": "License",
-        "description": "Zynveliq is open source under the MIT License, building on Handy (also MIT) by CJ Pais.",
+        "description": "Talvio is open source under the MIT License, building on Handy (also MIT) by CJ Pais.",
         "button": "View license"
       },
       "supportDevelopment": {
         "title": "Support development",
-        "description": "Help us keep building Zynveliq",
+        "description": "Help us keep building Talvio",
         "button": "Donate"
       }
     },
@@ -1543,7 +1638,7 @@
       "enable": {
         "title": "Assistant",
         "label": "Enable the assistant",
-        "description": "Turn this off to make Zynveliq dictation-only. The floating panel is closed and never loaded, its hotkeys are freed, and the memory it uses is returned. Generate with Flow and AI cleanup keep working."
+        "description": "Turn this off to make Talvio dictation-only. The floating panel is closed and never loaded, its hotkeys are freed, and the memory it uses is returned. Generate with Flow and AI cleanup keep working."
       },
       "shortcuts": {
         "title": "Shortcuts"
@@ -1582,7 +1677,7 @@
         "deleteModelFailed": "Could not delete the model.",
         "finderSectionTitle": "More on-device models",
         "finderTitle": "Browse Hugging Face",
-        "finderDescription": "Search thousands of GGUF models and download one directly to Zynveliq.",
+        "finderDescription": "Search thousands of GGUF models and download one directly to Talvio.",
         "finderAction": "Find a model",
         "huggingFaceTitle": "Your models",
         "catalogEmpty": "No recommended local models are available right now."
@@ -1705,7 +1800,7 @@
           "label": "Capture timing"
         },
         "screenRecording": {
-          "description": "Screen vision needs macOS Screen Recording permission. Grant it in System Settings, then restart Zynveliq for it to take effect.",
+          "description": "Screen vision needs macOS Screen Recording permission. Grant it in System Settings, then restart Talvio for it to take effect.",
           "grant": "Open System Settings"
         }
       },
@@ -1882,7 +1977,7 @@
         "testGpuMoved": "Your graphics card garbled the sample, so it was muted. Kokoro now uses the processor, so test again to hear it.",
         "testGpuForced": "Your graphics card garbled the sample, so it was muted. Set Runs on to Automatic or Processor.",
         "testGpuSuspect": "The sample came out garbled, so it was muted. Test again to check your graphics card.",
-        "testPhrase": "Hi! This is a test of Zynveliq's voice output.",
+        "testPhrase": "Hi! This is a test of Talvio's voice output.",
         "downloadStart": "Downloading Kokoro voice…",
         "downloadProgress": "Downloading Kokoro voice… {{progress}}%",
         "downloadReady": "Kokoro voice ready ✓",
@@ -1984,7 +2079,7 @@
     "account": {
       "signedOut": {
         "title": "Connect your phone",
-        "body": "Sign in here and in the Zynveliq phone app with the same account. Then you can dictate and type on this computer from your phone.",
+        "body": "Sign in here and in the Talvio phone app with the same account. Then you can dictate and type on this computer from your phone.",
         "modeLabel": "Sign in or create an account",
         "signIn": "Sign in",
         "createAccount": "Create account",
@@ -1997,8 +2092,7 @@
         "or": "or",
         "google": "Continue with Google",
         "googleWaiting": "Finish signing in in your browser.",
-        "privacy": "The server keeps only your account and device list, never your recordings or text.",
-        "serverUnsaved": "Save the new server address below before you sign in."
+        "privacy": "The server keeps your account, your device list and, if you sync them, your API keys (encrypted). Never your recordings or text."
       },
       "signOut": "Sign out",
       "signingOut": "Signing out…",
@@ -2006,13 +2100,18 @@
         "online": "Connected",
         "connecting": "Connecting…",
         "offline": "Offline",
-        "offlineHint": "Zynveliq can't reach the server right now and keeps trying. Until it's back, your phone can't use this computer."
+        "offlineHint": "Talvio can't reach the server right now and keeps trying. Until it's back, your phone can't use this computer."
       },
       "phone": {
         "title": "Phone",
         "remoteInput": "Phone dictation",
         "remoteInputHint": "Lets your phone dictate and type on this computer.",
-        "install": "Get the Zynveliq app on your phone and sign in as {{email}}."
+        "install": "Get the Talvio app on your phone and sign in as {{email}}."
+      },
+      "keys": {
+        "title": "API keys",
+        "sync": "Sync API keys",
+        "syncHint": "Keys you add on this computer are saved, encrypted, in your Talvio account and appear on your other computers."
       },
       "devices": {
         "title": "Devices",
@@ -2039,12 +2138,8 @@
       },
       "server": {
         "title": "Account server",
-        "hint": "Where your account is kept. Change it only if you run your own server.",
-        "locked": "Sign out to change the server.",
-        "automatic": "Automatic",
-        "custom": "Custom",
         "using": "Using {{host}}",
-        "notFound": "Can't find the server right now. Zynveliq keeps trying."
+        "notFound": "Can't find the server right now. Talvio keeps trying."
       },
       "errors": {
         "generic": "Something went wrong. Try again.",
@@ -2064,9 +2159,7 @@
         "server": "The server sent an unexpected reply. Try again later.",
         "timeout": "Google sign-in took too long. Try again.",
         "signed_in": "Sign out before changing the server.",
-        "invalid_url": "Enter an address that starts with https:// so your password stays encrypted. http:// works only for a server on this computer.",
-        "keychain": "Couldn't save your sign-in securely on this computer. Try again.",
-        "wrongServer": "That server address doesn't look right. Check it below and try again."
+        "keychain": "Couldn't save your sign-in securely on this computer. Try again."
       }
     }
   },
@@ -2167,7 +2260,7 @@
     "list": {
       "title": "Recorded meetings",
       "emptyTitle": "No meetings yet",
-      "emptyHint": "Start recording before a call and Zynveliq keeps the transcript, split by who was speaking.",
+      "emptyHint": "Start recording before a call and Talvio keeps the transcript, split by who was speaking.",
       "loadMore": "Load more",
       "speakers_one": "{{count}} speaker",
       "speakers_other": "{{count}} speakers",
@@ -2331,7 +2424,7 @@
   },
   "accessibility": {
     "permissionsRequired": "Accessibility permissions required",
-    "permissionsDescription": "Zynveliq needs accessibility permissions to type transcribed text.",
+    "permissionsDescription": "Talvio needs accessibility permissions to type transcribed text.",
     "openSettings": "Open System Settings",
     "dismiss": "Dismiss"
   },
@@ -2360,7 +2453,7 @@
   },
   "appLanguage": {
     "title": "App language",
-    "description": "Change the language of the Zynveliq interface"
+    "description": "Change the language of the Talvio interface"
   },
   "overlay": {
     "preparing": "Getting mic ready…",
@@ -2728,7 +2821,7 @@
       "performance": "Performance"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "Version {{version}}",
       "project": "Project",
       "docs": "Documentation",
@@ -2746,7 +2839,7 @@
     "subtitleTap": "Tap your shortcut in any app, talk, and tap it again. Your words appear where your cursor is.",
     "needsModel": {
       "title": "Pick a speech model to start dictating.",
-      "description": "Zynveliq needs a speech-to-text model before it can type what you say.",
+      "description": "Talvio needs a speech-to-text model before it can type what you say.",
       "action": "Choose a model"
     },
     "stats": {
@@ -2822,8 +2915,8 @@
         "open": "Keyboard settings"
       },
       "linux": {
-        "wayland": "On Wayland, your desktop only passes these keys to Zynveliq while one of its windows is in front. To use them in any app, add them as shortcuts in your system settings.",
-        "noAccess": "Zynveliq Keys can't read the keyboard on this computer, so these shortcuts do nothing yet.",
+        "wayland": "On Wayland, your desktop only passes these keys to Talvio while one of its windows is in front. To use them in any app, add them as shortcuts in your system settings.",
+        "noAccess": "Talvio Keys can't read the keyboard on this computer, so these shortcuts do nothing yet.",
         "setUp": "Set up",
         "where": {
           "gnome": "Open Settings → Keyboard → View and Customize Shortcuts → Custom Shortcuts, add one for each command below, and press the keys you want.",
@@ -2831,7 +2924,7 @@
           "other": "Add a custom shortcut in your desktop's keyboard settings, or a bind line in your compositor's config, for each command below."
         },
         "tapOnly": "A shortcut added this way works like Tap to toggle: press once to start and again to stop.",
-        "access": "Or let Zynveliq Keys read the keyboard. Run this in a terminal, then log out and back in:",
+        "access": "Or let Talvio Keys read the keyboard. Run this in a terminal, then log out and back in:",
         "copy": "Copy",
         "copied": "Copied"
       }
@@ -2861,7 +2954,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} used an older engine that Zynveliq no longer includes.",
+    "title": "{{model}} used an older engine that Talvio no longer includes.",
     "newVersion": "Its new version is {{model}}.",
     "ready": "{{model}} is downloaded and ready.",
     "noVersion": "Choose another model to keep dictating.",
@@ -2870,12 +2963,12 @@
     "retry": "Try again",
     "chooseAnother": "Choose another model",
     "progressLabel": "Downloading the new version",
-    "dialogTitle": "Zynveliq has a new speech engine",
+    "dialogTitle": "Talvio has a new speech engine",
     "dialogBody": "It's faster and more stable, so you'll run into fewer problems. {{model}} ran on the old engine and needs its new version to keep working.",
     "later": "Later"
   },
   "modelsHub": {
-    "description": "Each job in Zynveliq is done by a model you choose. Run it on this computer for privacy, or in the cloud for speed.",
+    "description": "Each job in Talvio is done by a model you choose. Run it on this computer for privacy, or in the cloud for speed.",
     "addLocal": "Add a model file",
     "privacyNote": "Models on this computer never send your voice or text anywhere. Cloud models send it to the provider you picked, using your API key.",
     "inUse": "In use",
@@ -3035,12 +3128,12 @@
     "shortcutRow": "Shortcut"
   },
   "dictionary": {
-    "description": "Teach Zynveliq the names and terms you use, and set shortcuts that expand into longer text.",
+    "description": "Teach Talvio the names and terms you use, and set shortcuts that expand into longer text.",
     "words": {
       "title": "Your words",
-      "description": "Names, jargon, and spellings Zynveliq should always get right.",
+      "description": "Names, jargon, and spellings Talvio should always get right.",
       "placeholder": "Add a name, a term, or a spelling…",
-      "empty": "Nothing here yet. Add the words Zynveliq keeps getting wrong."
+      "empty": "Nothing here yet. Add the words Talvio keeps getting wrong."
     },
     "replacements": {
       "title": "Replacements",
@@ -3426,7 +3519,7 @@
     "or": "or",
     "changeOther": "Change the other keys for the {{name}} shortcut",
     "pressKeysOrButton": "Press keys or a mouse button…",
-    "mouseNeedsKeysEngine": "Mouse buttons need the Zynveliq Keys keyboard implementation (Settings → Advanced → Experimental).",
+    "mouseNeedsKeysEngine": "Mouse buttons need the Talvio Keys keyboard implementation (Settings → Advanced → Experimental).",
     "mouse": {
       "middle": "Mouse Middle",
       "back": "Mouse Back",
@@ -3505,7 +3598,7 @@
     }
   },
   "insights": {
-    "about": "How you use Zynveliq, counted on this computer.",
+    "about": "How you use Talvio, counted on this computer.",
     "nothingYet": "Your insights appear once you dictate, ask the assistant or record a meeting.",
     "goHome": "See your shortcuts",
     "figures": {
@@ -3565,7 +3658,7 @@
     },
     "share": {
       "button": "Share",
-      "nothingYet": "There's something to share once you've used Zynveliq.",
+      "nothingYet": "There's something to share once you've used Talvio.",
       "title": "Share your insights",
       "private": "Made on this computer. Nothing is uploaded.",
       "size": "Size",
@@ -3596,13 +3689,13 @@
       "openSite": "Open {{site}}",
       "openFailed": "Couldn't open {{site}}",
       "more": "More apps",
-      "sheetTitle": "My Zynveliq insights",
+      "sheetTitle": "My Talvio insights",
       "shareFailed": "Couldn't open Share",
       "drawFailed": "The cards couldn't be drawn. Close this and try again.",
       "tagline": "Free · Open source · Works offline",
       "cards": {
         "highlights": {
-          "title": "My Zynveliq highlights",
+          "title": "My Talvio highlights",
           "words_one": "word spoken",
           "words_other": "words spoken",
           "streak_one": "day streak",
@@ -3665,12 +3758,12 @@
         }
       },
       "post": {
-        "dictation_one": "I've spoken {{formatted}} word to my computer instead of typing it, with Zynveliq.",
-        "dictation_other": "I've spoken {{formatted}} words to my computer instead of typing them, with Zynveliq.",
-        "asks_one": "I've asked Zynveliq's assistant {{formatted}} question without switching tabs.",
-        "asks_other": "I've asked Zynveliq's assistant {{formatted}} questions without switching tabs.",
-        "meetings_one": "Zynveliq has recorded {{formatted}} meeting and written the notes for me.",
-        "meetings_other": "Zynveliq has recorded {{formatted}} meetings and written the notes for me."
+        "dictation_one": "I've spoken {{formatted}} word to my computer instead of typing it, with Talvio.",
+        "dictation_other": "I've spoken {{formatted}} words to my computer instead of typing them, with Talvio.",
+        "asks_one": "I've asked Talvio's assistant {{formatted}} question without switching tabs.",
+        "asks_other": "I've asked Talvio's assistant {{formatted}} questions without switching tabs.",
+        "meetings_one": "Talvio has recorded {{formatted}} meeting and written the notes for me.",
+        "meetings_other": "Talvio has recorded {{formatted}} meetings and written the notes for me."
       }
     }
   },
@@ -3678,11 +3771,72 @@
     "restored": "Your settings were damaged and have been restored from a backup.",
     "restoredDescription": "Recent changes may be missing.",
     "unrecoverableTitle": "Your settings couldn't be recovered",
-    "unrecoverableDescription": "Zynveliq started with its default settings. The damaged file was kept as {{file}}.",
+    "unrecoverableDescription": "Talvio started with its default settings. The damaged file was kept as {{file}}.",
     "notSavingTitle": "Settings changes won't be saved",
-    "notSavingDescription": "The settings file couldn't be read, so it was left alone. Restart Zynveliq to try again.",
+    "notSavingDescription": "The settings file couldn't be read, so it was left alone. Restart Talvio to try again.",
     "saveFailingTitle": "Settings aren't being saved",
-    "saveFailingDescription": "Your recent changes haven't been saved yet. Zynveliq will keep trying.",
+    "saveFailingDescription": "Your recent changes haven't been saved yet. Talvio will keep trying.",
     "dismiss": "Dismiss"
+  },
+  "commandMode": {
+    "feedback": {
+      "agentCancelled": "Stopped. I left everything as it is.",
+      "agentConfirm": "“{{name}}” in {{window}} could send, buy or delete something. Say yes to go ahead, or cancel.",
+      "agentConfirmed": "Done: “{{name}}”.",
+      "agentCostLimit": "That was about to cost more than ${{limit}}, so I stopped and left everything as it is.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "I couldn't control the screen: {{reason}}",
+      "agentGaveUp": "I couldn't finish that: {{reason}}",
+      "agentNotConfigured": "That needs me to control the screen, but the agent isn't set up: {{why}}",
+      "agentOff": "None of my tools can do that. Turn on “Control the screen when needed” to let me work the app for you.",
+      "agentStepLimit": "That took more than {{steps}} steps, so I stopped and left everything as it is.",
+      "agentWorking": "Working on it in {{app}}…",
+      "agentWorkingNoApp": "Working on it…",
+      "calendarDraft": "Calendar event “{{title}}” is ready to save.",
+      "calendarDraftMissingGuests": "Calendar event “{{title}}” is ready to save. I left out {{guests}}: I don't have an email address for them, so add them in the form.",
+      "cancelled": "Cancelled. Nothing was sent.",
+      "confirmExpired": "That waited too long, so I didn't do it. Ask me again.",
+      "confirmFailed": "That can no longer be done.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} is in your contacts, but has no email address or phone number saved.",
+      "contactNotFound": "I don't have a contact called {{name}}.",
+      "emailDraft": "Draft to {{name}} is open. Say send or cancel.",
+      "emailDraftTruncated": "Draft to {{name}} is open. The message was too long to pass to Gmail, so it was cut short; check the end before sending. Say send or cancel.",
+      "emailSent": "Sent to {{name}}.",
+      "empty": "I didn't catch a command.",
+      "failed": "{{reason}}",
+      "mediaNext": "Skipped to the next track.",
+      "mediaPlayPause": "Play/pause pressed.",
+      "mediaPrevious": "Back to the previous track.",
+      "mediaStop": "Stopped playback.",
+      "needsComputerUse": "None of my tools can do that yet. Controlling the screen for it comes in a later version.",
+      "notConfigured": "Command mode isn't set up: {{why}}",
+      "nothingWaitingAnswer": "Nothing is waiting for an answer.",
+      "nothingWaitingConfirmation": "Nothing is waiting for confirmation.",
+      "openedInstead": "{{app}} wasn't open, so I opened it.",
+      "openingApp": "Opening {{app}}.",
+      "openingFile": "Opening {{file}}.",
+      "planCapped": "That was too many steps at once, so I left out the last {{count}}.",
+      "pressKeysConfirm": "{{keys}} could send or submit something in {{window}}. Say yes to press it, or cancel.",
+      "pressedKeys": "Pressed {{keys}}.",
+      "pressedKeysRepeat": "Pressed {{keys}} {{count}} times.",
+      "question": "{{question}}",
+      "routeFailed": "I couldn't work out what to do: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Searching for {{query}}.",
+      "superseded": "A newer command replaced this one, so it isn't waiting any more.",
+      "switchedTo": "Switched to {{title}}.",
+      "tooManyQuestions": "I still couldn't work out what to do. Try saying it differently.",
+      "typedText": "Typed it.",
+      "unsupported": "That isn't possible on {{os}}.",
+      "urlOpened": "Opened {{site}}.",
+      "volumeDown": "Turned the volume down.",
+      "volumeMute": "Sound muted.",
+      "volumeSet": "Volume set to {{percent}}%.",
+      "volumeUnmute": "Sound back on.",
+      "volumeUp": "Turned the volume up.",
+      "waitingForAnswer": "That command is waiting for an answer, not a confirmation.",
+      "waitingForConfirmation": "That command is waiting for you to confirm, not for an answer."
+    }
   }
 }

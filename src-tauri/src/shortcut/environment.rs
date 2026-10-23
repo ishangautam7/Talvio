@@ -1,4 +1,4 @@
-//! Whether global shortcuts can reach Zynveliq on this Linux session, and
+//! Whether global shortcuts can reach Talvio on this Linux session, and
 //! what to do when they cannot.
 //!
 //! Neither keyboard engine can hear a key pressed in another app on most Linux
@@ -9,14 +9,14 @@
 //!   Wayland session that reaches the XWayland server only, which sees a key
 //!   while an X11 window is in front and nothing otherwise. GNOME, KDE Plasma,
 //!   Hyprland, Sway and COSMIC all run Wayland by default.
-//! * **Zynveliq keys** (handy-keys) read the keyboard devices directly, which
+//! * **Talvio keys** (handy-keys) read the keyboard devices directly, which
 //!   works on any desktop, but reading them needs `/dev/input/event*`
 //!   (normally `root:input 0660`), and withholding a hotkey's key from the
 //!   focused app needs a mirror of each keyboard through `/dev/uinput`
 //!   (normally `root:root 0600`, so the `input` group alone is not enough).
 //!
 //! What always works is a shortcut the desktop itself owns, set to run
-//! `zynveliq --toggle-transcription` and friends. [`shortcut_environment`]
+//! `talvio --toggle-transcription` and friends. [`shortcut_environment`]
 //! says which case this is and lists those commands, so the app can explain
 //! it next to the keys.
 
@@ -30,7 +30,7 @@ use tauri::AppHandle;
 
 use crate::settings::{self, AppSettings, KeyboardImplementation};
 
-/// Whether shortcuts pressed in other apps reach Zynveliq.
+/// Whether shortcuts pressed in other apps reach Talvio.
 #[derive(Serialize, Type, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ShortcutReach {
@@ -39,7 +39,7 @@ pub enum ShortcutReach {
     /// Wayland with the Tauri engine: heard only while an X11 window is in
     /// front, so in practice not at all.
     WaylandX11Only,
-    /// The Zynveliq keys engine cannot open the keyboard devices.
+    /// The Talvio keys engine cannot open the keyboard devices.
     NoKeyboardAccess,
 }
 
@@ -52,7 +52,7 @@ pub enum LinuxDesktop {
     Other,
 }
 
-/// What the Zynveliq keys engine is missing. Each needs its own fix.
+/// What the Talvio keys engine is missing. Each needs its own fix.
 #[derive(Serialize, Type, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum KeyboardAccessGap {
@@ -182,14 +182,17 @@ pub fn program_name(appimage: Option<&str>, current_exe: Option<&str>) -> String
                 shell_word(path)
             }
         }
-        None => "zynveliq".to_string(),
+        None => "talvio".to_string(),
     }
 }
 
 /// The terminal command that grants what is missing. The input group gives
 /// read access to the keyboards; a udev rule makes `/dev/uinput` writable by
 /// that group, which no distribution does by default. Both need a fresh login
-/// to apply to the running session.
+/// to apply to the running session. Access is judged by opening the devices
+/// (`keyboard_access_gaps`), not by looking for this rule file, so the
+/// `70-zynveliq-uinput.rules` an install from before the rename wrote keeps
+/// working and is never asked for again.
 pub fn access_command_for(missing: &[KeyboardAccessGap]) -> String {
     let mut steps: Vec<&str> = Vec::new();
     if missing.contains(&KeyboardAccessGap::InputDevices)
@@ -200,7 +203,7 @@ pub fn access_command_for(missing: &[KeyboardAccessGap]) -> String {
     }
     if missing.contains(&KeyboardAccessGap::Uinput) {
         steps.push(
-            "echo 'KERNEL==\"uinput\", GROUP=\"input\", MODE=\"0660\"' | sudo tee /etc/udev/rules.d/70-zynveliq-uinput.rules",
+            "echo 'KERNEL==\"uinput\", GROUP=\"input\", MODE=\"0660\"' | sudo tee /etc/udev/rules.d/70-talvio-uinput.rules",
         );
         steps.push("sudo udevadm control --reload");
         steps.push("sudo udevadm trigger /dev/uinput");
@@ -208,7 +211,7 @@ pub fn access_command_for(missing: &[KeyboardAccessGap]) -> String {
     steps.join(" && ")
 }
 
-/// What the Zynveliq keys engine would be missing on this machine right now.
+/// What the Talvio keys engine would be missing on this machine right now.
 #[cfg(target_os = "linux")]
 pub fn keyboard_access_gaps() -> Vec<KeyboardAccessGap> {
     use std::os::unix::fs::FileTypeExt;
@@ -297,7 +300,7 @@ pub fn log_startup_environment(app: &AppHandle) {
              the CLI flags work instead (see the Shortcuts card)."
         ),
         ShortcutReach::NoKeyboardAccess => log::warn!(
-            "Global shortcuts: the Zynveliq keys engine cannot read the keyboard ({:?}); \
+            "Global shortcuts: the Talvio keys engine cannot read the keyboard ({:?}); \
              no shortcut will fire",
             environment.missing
         ),
@@ -321,7 +324,7 @@ mod tests {
     }
 
     #[test]
-    fn zynveliq_keys_work_anywhere_with_access_and_nowhere_without() {
+    fn talvio_keys_work_anywhere_with_access_and_nowhere_without() {
         for wayland in [true, false] {
             assert_eq!(
                 reach_for(KeyboardImplementation::HandyKeys, wayland, &[]),
@@ -352,25 +355,25 @@ mod tests {
     fn an_appimage_is_named_by_its_own_file() {
         assert_eq!(
             program_name(
-                Some("/home/me/Apps/Zynveliq_1.5.0_amd64.AppImage"),
-                Some("/tmp/.mount_SpeakXYZ/usr/bin/zynveliq"),
+                Some("/home/me/Apps/Talvio_1.5.0_amd64.AppImage"),
+                Some("/tmp/.mount_SpeakXYZ/usr/bin/talvio"),
             ),
-            "/home/me/Apps/Zynveliq_1.5.0_amd64.AppImage"
+            "/home/me/Apps/Talvio_1.5.0_amd64.AppImage"
         );
         assert_eq!(
-            program_name(Some("/home/me/My Apps/Zynveliq.AppImage"), None),
-            "'/home/me/My Apps/Zynveliq.AppImage'"
+            program_name(Some("/home/me/My Apps/Talvio.AppImage"), None),
+            "'/home/me/My Apps/Talvio.AppImage'"
         );
     }
 
     #[test]
     fn an_installed_binary_is_named_bare() {
-        assert_eq!(program_name(None, Some("/usr/bin/zynveliq")), "zynveliq");
+        assert_eq!(program_name(None, Some("/usr/bin/talvio")), "talvio");
         assert_eq!(
-            program_name(None, Some("/opt/zynveliq/zynveliq")),
-            "/opt/zynveliq/zynveliq"
+            program_name(None, Some("/opt/talvio/talvio")),
+            "/opt/talvio/talvio"
         );
-        assert_eq!(program_name(None, None), "zynveliq");
+        assert_eq!(program_name(None, None), "talvio");
     }
 
     #[test]
@@ -383,20 +386,20 @@ mod tests {
         let mut settings = settings::get_default_settings();
         settings.assistant_enabled = true;
         settings.post_process_enabled = false;
-        let ids: Vec<String> = desktop_commands(&settings, "zynveliq")
+        let ids: Vec<String> = desktop_commands(&settings, "talvio")
             .into_iter()
             .map(|c| c.id)
             .collect();
         assert_eq!(ids, ["transcribe", "assistant", "assistant_call", "cancel"]);
 
         settings.assistant_enabled = false;
-        let commands = desktop_commands(&settings, "zynveliq");
+        let commands = desktop_commands(&settings, "talvio");
         assert_eq!(
             commands
                 .iter()
                 .map(|c| c.command.as_str())
                 .collect::<Vec<_>>(),
-            ["zynveliq --toggle-transcription", "zynveliq --cancel"]
+            ["talvio --toggle-transcription", "talvio --cancel"]
         );
     }
 

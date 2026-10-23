@@ -1,8 +1,8 @@
-# Home-manager module for Zynveliq voice assistant
+# Home-manager module for Talvio voice assistant
 #
 # Provides a systemd user service for autostart.
-# Usage: imports = [ zynveliq.homeManagerModules.default ];
-#        services.zynveliq.enable = true;
+# Usage: imports = [ talvio.homeManagerModules.default ];
+#        services.talvio.enable = true;
 {
   config,
   lib,
@@ -10,28 +10,34 @@
   ...
 }:
 let
-  cfg = config.services.zynveliq;
+  cfg = config.services.talvio;
 in
 {
-  options.services.zynveliq = {
-    enable = lib.mkEnableOption "Zynveliq voice assistant user service";
+  # Renamed from Zynveliq: old configurations keep working, with a warning.
+  imports = [
+    (lib.mkRenamedOptionModule [ "services" "zynveliq" "enable" ] [ "services" "talvio" "enable" ])
+    (lib.mkRenamedOptionModule [ "services" "zynveliq" "package" ] [ "services" "talvio" "package" ])
+  ];
+
+  options.services.talvio = {
+    enable = lib.mkEnableOption "Talvio voice assistant user service";
 
     package = lib.mkOption {
       type = lib.types.package;
-      defaultText = lib.literalExpression "zynveliq.packages.\${system}.zynveliq";
-      description = "The Zynveliq package to use.";
+      defaultText = lib.literalExpression "talvio.packages.\${system}.talvio";
+      description = "The Talvio package to use.";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    systemd.user.services.zynveliq = {
+    systemd.user.services.talvio = {
       Unit = {
-        Description = "Zynveliq voice assistant";
+        Description = "Talvio voice assistant";
         After = [ "graphical-session.target" ];
         PartOf = [ "graphical-session.target" ];
       };
       Service = {
-        ExecStart = "${cfg.package}/bin/zynveliq";
+        ExecStart = "${cfg.package}/bin/talvio";
         Restart = "on-failure";
         RestartSec = 5;
       };

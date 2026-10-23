@@ -296,7 +296,7 @@ pub async fn send_feedback(
     };
 
     let client = reqwest::Client::builder()
-        .user_agent(concat!("Zynveliq/", env!("CARGO_PKG_VERSION")))
+        .user_agent(concat!("Talvio/", env!("CARGO_PKG_VERSION")))
         .connect_timeout(Duration::from_secs(10))
         // Screenshots mean up to ~4 MB of upload and one GitHub commit each
         // on the Worker's side before the issue is filed.

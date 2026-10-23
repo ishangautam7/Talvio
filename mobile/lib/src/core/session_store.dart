@@ -13,15 +13,13 @@ import 'server_finder.dart';
 /// a feature that stores account data only has to use the prefix.
 const accountPrefsPrefix = 'account.';
 
-/// How the account server was chosen (PROTOCOL.md, "Finding the server").
+/// How the account server was found (PROTOCOL.md, "Finding the server").
+/// There is no user setting: a release build only ever uses discovery.
 enum ServerChoice {
-  /// Found through discovery: the default.
+  /// Named by discovery: always, in a release build.
   automatic,
 
-  /// Typed in the Server setting.
-  custom,
-
-  /// Built in with `--dart-define=ZYNVELIQ_SERVER_URL`.
+  /// A development build's `--dart-define=TALVIO_SERVER_URL`.
   pinned,
 }
 
@@ -46,7 +44,7 @@ class Session {
         serverUrl: serverUrl,
         deviceId: deviceId,
         user: User.fromJson(user),
-        // Sessions from before discovery have no flag and stay bound.
+        // Sessions from before discovery have no flag; `load` decides.
         automatic: (json as Map)['automatic'] == true,
       ),
     _ => throw const FormatException('Not a Session'),
@@ -62,9 +60,9 @@ class Session {
   final String deviceId;
   final User user;
 
-  /// Signed in on the Automatic server, so [serverUrl] follows discovery
+  /// Signed in on the discovered server, so [serverUrl] follows discovery
   /// (the server is the same, only its name moved). Otherwise the session is
-  /// bound to [serverUrl].
+  /// bound to [serverUrl]: a development build's pinned server.
   final bool automatic;
 
   Session withUser(User user) => Session(
@@ -83,6 +81,14 @@ class Session {
     automatic: automatic,
   );
 
+  Session withAutomatic() => Session(
+    token: token,
+    serverUrl: serverUrl,
+    deviceId: deviceId,
+    user: user,
+    automatic: true,
+  );
+
   Map<String, Object?> toJson() => {
     'token': token,
     'serverUrl': serverUrl,
@@ -96,18 +102,21 @@ class Session {
 /// profile changes, and whatever [finder] learns.
 class SessionStore extends ChangeNotifier {
   /// `pinned` is the build's server (`pinnedServerUrl` in config.dart);
-  /// `fallback` is where Automatic goes while discovery has never answered
+  /// `fallback` is where the app goes while discovery has never answered
   /// (`developmentServerUrl`).
   SessionStore(this._prefs, this.finder, {this._pinned, this._fallback}) {
     finder.addListener(_onFinder);
   }
 
   static const _sessionKey = 'session';
-  static const _serverKey = 'server_url';
+
+  /// Where older versions kept a server the user typed. Removed at load:
+  /// the server now only comes from discovery.
+  static const _legacyServerKey = 'server_url';
 
   final SharedPreferences _prefs;
 
-  /// Looks the server up while the choice is [ServerChoice.automatic].
+  /// Looks the server up unless a development build pins it.
   final ServerFinder finder;
   final String? _pinned;
   final String? _fallback;
@@ -124,24 +133,18 @@ class SessionStore extends ChangeNotifier {
   Session? get session => _session;
   bool get signedIn => _session != null;
 
-  /// The signed-in session's server; else the build's, the Custom one, the
-  /// one discovery found, or the [fallback], in that order. Null when there
-  /// is none: a release build whose discovery has never answered.
+  /// The signed-in session's server; else the development build's pinned
+  /// one, the one discovery found, or the [fallback], in that order. Null
+  /// when there is none: a release build whose discovery has never answered.
   String? get serverUrl =>
-      _session?.serverUrl ??
-      _pinned ??
-      _prefs.getString(_serverKey) ??
-      finder.server ??
-      _fallback;
+      _session?.serverUrl ?? _pinned ?? finder.server ?? _fallback;
 
   /// How [serverUrl] was chosen. A session keeps the choice it signed in
   /// with.
   ServerChoice get serverChoice => switch (_session) {
     Session(automatic: true) => ServerChoice.automatic,
     _ when _pinned != null => ServerChoice.pinned,
-    Session() => ServerChoice.custom,
-    null when _prefs.containsKey(_serverKey) => ServerChoice.custom,
-    null => ServerChoice.automatic,
+    _ => ServerChoice.automatic,
   };
 
   Future<void> load() async {
@@ -154,19 +157,21 @@ class SessionStore extends ChangeNotifier {
       _session = null;
       await _secure.delete(key: _sessionKey);
     }
-    _syncFinder();
-  }
-
-  /// Uses the Custom server [url], or Automatic when null.
-  Future<void> setServerUrl(String? url) async {
-    assert(!signedIn, 'The server can only change while signed out');
-    if (url == null) {
-      await _prefs.remove(_serverKey);
-    } else {
-      await _prefs.setString(_serverKey, url);
+    // A server typed into an older version is never used again.
+    await _prefs.remove(_legacyServerKey);
+    final session = _session;
+    if (session != null && !session.automatic && session.serverUrl != _pinned) {
+      if (session.serverUrl == finder.server) {
+        // Signed in before discovery, on the server it names: follow it.
+        _session = session.withAutomatic();
+        await _save();
+      } else {
+        // Bound to a server the user typed: its token belongs there, and
+        // there is no going there any more. Signed out.
+        await clear();
+      }
     }
     _syncFinder();
-    notifyListeners();
   }
 
   Future<void> signIn(AuthResponse auth) async {
@@ -206,7 +211,7 @@ class SessionStore extends ChangeNotifier {
 
   void _syncFinder() => finder.enabled = serverChoice == ServerChoice.automatic;
 
-  /// An Automatic session moves to the server's new address with the same
+  /// A discovered-server session moves to the server's new address with the same
   /// token; the socket reconnects there when it next connects.
   void _onFinder() {
     final session = _session;

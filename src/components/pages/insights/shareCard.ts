@@ -1,4 +1,4 @@
-import iconUrl from "../../../../Logo/final-v2/png/icon-256.png";
+import iconUrl from "../../../../Logo/talvio/png/icon-256.png";
 import jakartaUrl from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url";
 import jakartaExtUrl from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-wght-normal.woff2?url";
 import jakartaVietUrl from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-wght-normal.woff2?url";
@@ -11,11 +11,10 @@ import {
   type CardSlide,
 } from "./shareContent";
 import {
-  FLOW_PATH,
   LOCKUP_ICON,
   LOCKUP_WIDTH,
-  SPEAKO_PATH,
   WORDMARK_ORIGIN,
+  WORDMARK_PATH,
 } from "./wordmark";
 
 /**
@@ -34,7 +33,7 @@ import {
  * posts.
  */
 
-const FAMILY = "Zynveliq Card";
+const FAMILY = "Talvio Card";
 const FONT = `"${FAMILY}", "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif`;
 
 interface Palette {
@@ -52,78 +51,90 @@ interface Palette {
   flow: string;
 }
 
+/**
+ * Talvio's card set (docs/talvio-brand.md §5): every ground is a tone of the
+ * brand — ink navy, coral, rose, apricot, peach, lavender, the ink tile's
+ * indigo and the paper canvas — so a deck reads as one set and as Talvio,
+ * while light and dark grounds alternate so neighbouring cards never blur
+ * together. Checked for contrast with the ribbon at its strongest: the figure
+ * (`ink`) is at least 4.2:1 and the captions (`soft`) at least 3:1 wherever
+ * they can land, and 4.9:1 or more on the bare ground; captions are 26 px or
+ * larger, which is large text.
+ */
 const PALETTES: Record<CardKind, Palette> = {
+  // The headline card is the brand's ink tile: navy with an indigo ribbon,
+  // so the coral logo is the one warm thing on it.
   highlights: {
-    ground: "#0c7a6e",
-    band: "#7af7df",
-    steps: [0.14, 0.24, 0.34],
+    ground: "#1b1d4a",
+    band: "#7a80ff",
+    steps: [0.12, 0.2, 0.28],
     ink: "#ffffff",
     soft: "rgba(255, 255, 255, 0.8)",
     faint: "rgba(255, 255, 255, 0.24)",
-    flow: "#a8fff0",
+    flow: "#ff6a52",
   },
   words: {
-    ground: "#d8ccff",
-    band: "#6a46f2",
+    ground: "#ffd8cb",
+    band: "#e8432b",
     steps: [0.12, 0.2, 0.29],
-    ink: "#1c1050",
-    soft: "rgba(28, 16, 80, 0.72)",
-    faint: "rgba(28, 16, 80, 0.16)",
-    flow: "#0b7469",
+    ink: "#3a1209",
+    soft: "rgba(58, 18, 9, 0.74)",
+    faint: "rgba(58, 18, 9, 0.16)",
+    flow: "#c2402a",
   },
   speed: {
-    ground: "#2a4ee3",
-    band: "#a9bbff",
-    steps: [0.14, 0.23, 0.32],
+    ground: "#b03822",
+    band: "#ffb39e",
+    steps: [0.13, 0.21, 0.29],
     ink: "#ffffff",
-    soft: "rgba(255, 255, 255, 0.8)",
+    soft: "rgba(255, 255, 255, 0.9)",
     faint: "rgba(255, 255, 255, 0.26)",
-    flow: "#b3fff0",
+    flow: "#ffd2c4",
   },
   saved: {
-    ground: "#ffc387",
-    band: "#ff6a12",
+    ground: "#ffcf9a",
+    band: "#ff8f3f",
     steps: [0.13, 0.22, 0.31],
-    ink: "#3a1500",
-    soft: "rgba(58, 21, 0, 0.72)",
-    faint: "rgba(58, 21, 0, 0.16)",
-    flow: "#3a1500",
+    ink: "#3a1800",
+    soft: "rgba(58, 24, 0, 0.74)",
+    faint: "rgba(58, 24, 0, 0.16)",
+    flow: "#3a1800",
   },
   streak: {
-    ground: "#7a3fe0",
-    band: "#d8b8ff",
+    ground: "#b8284a",
+    band: "#ff9db2",
     steps: [0.14, 0.23, 0.32],
     ink: "#ffffff",
-    soft: "rgba(255, 255, 255, 0.8)",
+    soft: "rgba(255, 255, 255, 0.86)",
     faint: "rgba(255, 255, 255, 0.24)",
-    flow: "#c9fff4",
+    flow: "#ffd0da",
   },
   assistant: {
-    ground: "#bcdcff",
-    band: "#1f74f0",
+    ground: "#dcdcff",
+    band: "#3b40a8",
     steps: [0.12, 0.2, 0.29],
-    ink: "#06264d",
-    soft: "rgba(6, 38, 77, 0.72)",
-    faint: "rgba(6, 38, 77, 0.16)",
-    flow: "#06264d",
+    ink: "#13153a",
+    soft: "rgba(19, 21, 58, 0.74)",
+    faint: "rgba(19, 21, 58, 0.16)",
+    flow: "#13153a",
   },
   meetings: {
-    ground: "#b3256c",
-    band: "#ffa6d3",
+    ground: "#262b6b",
+    band: "#a4a9ff",
     steps: [0.14, 0.23, 0.32],
     ink: "#ffffff",
-    soft: "rgba(255, 255, 255, 0.8)",
+    soft: "rgba(255, 255, 255, 0.82)",
     faint: "rgba(255, 255, 255, 0.24)",
-    flow: "#ffd3e8",
+    flow: "#ff8f78",
   },
   activity: {
-    ground: "#bdf1da",
-    band: "#079a77",
+    ground: "#fbefe6",
+    band: "#f2543d",
     steps: [0.12, 0.2, 0.29],
-    ink: "#043a2d",
-    soft: "rgba(4, 58, 45, 0.72)",
-    faint: "rgba(4, 58, 45, 0.14)",
-    flow: "#087a66",
+    ink: "#1b1d33",
+    soft: "rgba(27, 29, 51, 0.74)",
+    faint: "rgba(27, 29, 51, 0.14)",
+    flow: "#c2402a",
   },
 };
 
@@ -526,9 +537,7 @@ const logo = (
   );
   ctx.scale(scale, scale);
   ctx.fillStyle = palette.ink;
-  ctx.fill(new Path2D(SPEAKO_PATH));
-  ctx.fillStyle = palette.flow;
-  ctx.fill(new Path2D(FLOW_PATH));
+  ctx.fill(new Path2D(WORDMARK_PATH));
   ctx.restore();
   return width;
 };
