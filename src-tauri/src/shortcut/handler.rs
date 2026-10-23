@@ -9,7 +9,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::actions::ACTION_MAP;
 use crate::managers::audio::AudioRecordingManager;
-use crate::settings::get_settings;
+use crate::settings::{command_binding_active, get_settings, AppSettings, COMMAND_BINDING_ID};
 use crate::transcription_coordinator::{is_transcribe_binding, recording_mode};
 use crate::TranscriptionCoordinator;
 
@@ -46,10 +46,11 @@ pub fn handle_shortcut_event(
         return;
     }
 
-    // The assistant is switched off: its hotkeys do nothing. They are also
-    // unregistered at the OS level when the setting changes, so this is the
-    // belt-and-braces path for a shortcut that was already in flight.
-    if crate::assistant::is_assistant_binding(base_id) && !get_settings(app).assistant_enabled {
+    // The assistant or command mode is switched off: its hotkeys do nothing.
+    // They are also unregistered at the OS level when the setting changes, so
+    // this is the belt-and-braces path for a shortcut that was already in
+    // flight.
+    if switched_off(&get_settings(app), base_id) {
         return;
     }
 
@@ -92,6 +93,8 @@ pub fn handle_shortcut_event(
             .try_state::<crate::assistant::AssistantConversation>()
             .map_or(false, |c| c.is_busy());
         let flow_busy = crate::flow::is_generation_active();
+        // A spoken command being transcribed or carried out: Esc stops it.
+        let command_busy = crate::command_mode::voice::is_busy();
         if is_pressed {
             // Esc during a call: stop the reply if there is one, hang up if
             // there isn't — unless a dictation is running beside the call, in
@@ -111,7 +114,12 @@ pub fn handle_shortcut_event(
             ) {
                 crate::assistant::hide_assistant_panel(app);
             }
-            if audio_manager.is_recording() || assistant_busy || flow_busy {
+            if cancel_has_work(
+                audio_manager.is_recording(),
+                assistant_busy,
+                flow_busy,
+                command_busy,
+            ) {
                 action.start(app, base_id, hotkey_string);
             }
         }
@@ -124,6 +132,25 @@ pub fn handle_shortcut_event(
     } else {
         action.stop(app, base_id, hotkey_string);
     }
+}
+
+/// Whether `binding_id` belongs to a feature that is switched off, so its
+/// press does nothing: the assistant's two shortcuts while the assistant is
+/// off, and the command shortcut while command mode is off.
+fn switched_off(settings: &AppSettings, binding_id: &str) -> bool {
+    (crate::assistant::is_assistant_binding(binding_id) && !settings.assistant_enabled)
+        || (binding_id == COMMAND_BINDING_ID && !command_binding_active(settings))
+}
+
+/// Whether Esc has something to stop: a recording, an assistant reply, a
+/// Flow generation, or a spoken command being transcribed or carried out.
+fn cancel_has_work(
+    recording: bool,
+    assistant_busy: bool,
+    flow_busy: bool,
+    command_busy: bool,
+) -> bool {
+    recording || assistant_busy || flow_busy || command_busy
 }
 
 /// A modifier-only shortcut that fired a moment ago was withdrawn by the
@@ -140,5 +167,46 @@ pub fn handle_shortcut_cancelled(app: &AppHandle, binding_id: &str) {
     }
     if let Some(coordinator) = app.try_state::<TranscriptionCoordinator>() {
         coordinator.notify_abort(binding_id);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::get_default_settings;
+
+    /// The command shortcut does nothing while command mode is off, and the
+    /// assistant's switch does not decide it.
+    #[test]
+    fn the_command_key_is_off_with_command_mode() {
+        let mut settings = get_default_settings();
+        settings.assistant_enabled = true;
+        settings.command_mode_enabled = false;
+        assert!(switched_off(&settings, COMMAND_BINDING_ID));
+        settings.command_mode_enabled = true;
+        assert!(!switched_off(&settings, COMMAND_BINDING_ID));
+        settings.assistant_enabled = false;
+        assert!(!switched_off(&settings, COMMAND_BINDING_ID));
+        assert!(switched_off(&settings, "assistant"));
+        assert!(switched_off(&settings, "assistant_call"));
+        // Dictation is never switched off here.
+        assert!(!switched_off(&settings, "transcribe"));
+    }
+
+    /// Esc stops a spoken command after its recording has ended, while it is
+    /// transcribed or carried out, and nothing at all when nothing runs.
+    #[test]
+    fn esc_has_a_running_command_to_stop() {
+        assert!(cancel_has_work(false, false, false, true));
+        assert!(cancel_has_work(true, false, false, false));
+        assert!(!cancel_has_work(false, false, false, false));
+    }
+
+    /// The command shortcut goes to the coordinator, so it records like the
+    /// ask and is never handed to `ACTION_MAP` directly on a press.
+    #[test]
+    fn the_command_key_goes_to_the_coordinator() {
+        assert!(is_transcribe_binding(COMMAND_BINDING_ID));
+        assert!(ACTION_MAP.contains_key(COMMAND_BINDING_ID));
     }
 }

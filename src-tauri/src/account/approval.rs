@@ -17,7 +17,11 @@
 //!
 //! The same window carries "Phone is viewing" while a live view runs
 //! ([`set_viewing`]), with Stop: a card that is up for as long as someone can
-//! see this computer, so it is never a surprise.
+//! see this computer, so it is never a surprise. And it carries a spoken
+//! command's card ([`set_command_card`], `command_mode::voice`): what was
+//! heard and what happened, with Send and Cancel or the choices when the
+//! command waits. It needs exactly this window's manners, since Send presses
+//! a key in the user's app.
 
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Mutex, MutexGuard};
@@ -26,6 +30,7 @@ use log::{debug, error, warn};
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindowBuilder};
 
 use super::remote::AccountPhone;
+use crate::command_mode::voice::CommandCard;
 
 pub const POPUP_LABEL: &str = "account_approval";
 /// The phones being asked about, sent to the popup whenever they change.
@@ -62,6 +67,42 @@ pub fn viewing() -> Option<ViewingCard> {
 pub fn set_viewing(app: &AppHandle, card: Option<ViewingCard>) {
     *VIEWING.lock().unwrap_or_else(|e| e.into_inner()) = card;
     refresh(app);
+}
+
+/// A spoken command's card (`command_mode::voice`), if one is up.
+static COMMAND: Mutex<Option<CommandCard>> = Mutex::new(None);
+/// The command card, sent to the popup whenever it changes.
+const COMMAND_EVENT: &str = "command-card-changed";
+
+fn command_slot() -> MutexGuard<'static, Option<CommandCard>> {
+    COMMAND.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// The command card, for a webview that just loaded.
+pub fn command_card() -> Option<CommandCard> {
+    command_slot().clone()
+}
+
+/// Show a command's card (replacing any earlier one), or take it down.
+pub fn set_command_card(app: &AppHandle, card: Option<CommandCard>) {
+    *command_slot() = card;
+    refresh(app);
+}
+
+/// Take command card `seq` down, if it is the one up. Answers whether it was.
+pub fn close_command_card(app: &AppHandle, seq: u32) -> bool {
+    let closed = {
+        let mut slot = command_slot();
+        let ours = slot.as_ref().is_some_and(|card| card.seq == seq);
+        if ours {
+            *slot = None;
+        }
+        ours
+    };
+    if closed {
+        refresh(app);
+    }
+    closed
 }
 /// The height the popup measured for its cards; 0 until it has.
 static HEIGHT: AtomicU32 = AtomicU32::new(0);
@@ -114,7 +155,8 @@ fn refresh(app: &AppHandle) {
     if let Err(e) = app.run_on_main_thread(move || {
         let asking = asking();
         let viewing = viewing();
-        if asking.is_empty() && viewing.is_none() {
+        let command = command_card();
+        if asking.is_empty() && viewing.is_none() && command.is_none() {
             HEIGHT.store(0, Ordering::SeqCst);
             if let Some(window) = handle.get_webview_window(POPUP_LABEL) {
                 let _ = window.hide();
@@ -138,6 +180,7 @@ fn refresh(app: &AppHandle) {
         // After the window exists; a webview still loading asks on mount.
         let _ = handle.emit_to(POPUP_LABEL, CHANGED_EVENT, &asking);
         let _ = handle.emit_to(POPUP_LABEL, VIEWING_EVENT, &viewing);
+        let _ = handle.emit_to(POPUP_LABEL, COMMAND_EVENT, &command);
     }) {
         warn!("Could not queue the phone approval popup onto the main thread: {e}");
     }
@@ -201,7 +244,12 @@ fn build(app: &AppHandle) {
                         }
                     }
                     let phones = asking().into_iter().map(|phone| phone.id).collect();
+                    // And Cancel for a spoken command waiting on its card.
+                    let command = command_card().map(|card| card.seq);
                     tauri::async_runtime::spawn(async move {
+                        if let Some(seq) = command {
+                            crate::command_mode::voice::dismiss_card(&app, seq).await;
+                        }
                         super::answer_from_popup(&app, phones, false).await;
                     });
                 }
@@ -368,7 +416,7 @@ fn watch_activation(app: &AppHandle) {
 /// False, and the watch ends, once nothing is asked.
 #[cfg(target_os = "macos")]
 fn look_at_activation(app: &AppHandle) -> bool {
-    if asking_list().is_empty() {
+    if asking_list().is_empty() && command_card().is_none() {
         WATCHING.store(false, Ordering::SeqCst);
         return false;
     }

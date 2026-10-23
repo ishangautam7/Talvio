@@ -58,7 +58,12 @@ pub mod llm;
 pub mod registry;
 pub mod router;
 pub mod schema;
+pub mod sites;
 pub mod tools;
+pub mod voice;
+
+#[cfg(test)]
+mod live_tests;
 
 use log::{debug, info, warn};
 use serde::Serialize;

@@ -124,6 +124,11 @@ pub fn arm_shortcut(app: &AppHandle, binding: &ShortcutBinding) -> combos::Armed
         debug!("Not registering '{}': it is not in use", binding.id);
         return combos::Armed::nothing();
     }
+    // And the command shortcut, which is only live while command mode is on.
+    if binding.id == settings::COMMAND_BINDING_ID && !settings::command_binding_active(&settings) {
+        debug!("Not registering '{}': command mode is off", binding.id);
+        return combos::Armed::nothing();
+    }
     match settings.keyboard_implementation {
         KeyboardImplementation::Tauri => tauri_impl::arm(app, binding),
         KeyboardImplementation::HandyKeys => handy_keys::arm(app, binding),
@@ -667,6 +672,12 @@ fn register_all_shortcuts_for_implementation(
         {
             continue;
         }
+        // Skip the command shortcut while command mode is off.
+        if id == settings::COMMAND_BINDING_ID
+            && !settings::command_binding_active(&current_settings)
+        {
+            continue;
+        }
 
         let mut binding = current_settings
             .bindings
@@ -824,6 +835,18 @@ pub fn change_dictation_silence_stop_setting(app: AppHandle, secs: u32) -> Resul
 pub fn change_assistant_ptt_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
     let mut settings = settings::get_settings(&app);
     settings.assistant_push_to_talk = enabled;
+    settings::write_settings(&app, settings);
+    handy_keys::apply_recording_mode(&app);
+    Ok(())
+}
+
+/// Hold to talk or Tap to toggle for the command shortcut, its own setting
+/// like the ask's (`settings::holds_to_record`).
+#[tauri::command]
+#[specta::specta]
+pub fn change_command_ptt_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let mut settings = settings::get_settings(&app);
+    settings.command_push_to_talk = enabled;
     settings::write_settings(&app, settings);
     handy_keys::apply_recording_mode(&app);
     Ok(())
@@ -1350,6 +1373,26 @@ fn sync_cleanup_binding(app: &AppHandle) {
     if settings::cleanup_binding_active(&settings) {
         if let Err(e) = register_shortcut(app, binding) {
             warn!("Could not register the cleanup shortcut: {e}");
+        }
+    }
+}
+
+/// Register or release the command shortcut to match `command_mode_enabled`,
+/// after that setting has been written. Releases first, as
+/// [`sync_cleanup_binding`] does, so repeating it never registers a second
+/// copy.
+pub fn sync_command_binding(app: &AppHandle) {
+    let settings = settings::get_settings(app);
+    let Some(binding) = settings.bindings.get(settings::COMMAND_BINDING_ID).cloned() else {
+        return;
+    };
+    if binding.current_binding.trim().is_empty() {
+        return;
+    }
+    let _ = unregister_shortcut(app, binding.clone());
+    if settings::command_binding_active(&settings) {
+        if let Err(e) = register_shortcut(app, binding) {
+            warn!("Could not register the command shortcut: {e}");
         }
     }
 }
