@@ -5,8 +5,8 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web_socket/web_socket.dart';
 import 'package:web_socket_channel/adapter_web_socket_channel.dart';
-import 'package:zynveliq_mobile/src/core/relay_client.dart';
-import 'package:zynveliq_mobile/src/core/session_store.dart';
+import 'package:talvio_mobile/src/core/relay_client.dart';
+import 'package:talvio_mobile/src/core/session_store.dart';
 
 import '../helpers.dart';
 

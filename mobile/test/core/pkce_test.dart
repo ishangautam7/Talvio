@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zynveliq_mobile/src/core/pkce.dart';
+import 'package:talvio_mobile/src/core/pkce.dart';
 
 void main() {
   test('S256 challenge matches RFC 7636 appendix B', () {

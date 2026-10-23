@@ -115,7 +115,7 @@ class ServerFinder extends ChangeNotifier {
     } else if (!_failing) {
       _failing = true;
       debugPrint(
-        'Zynveliq: no server address from $discoveryUrl; trying again later',
+        'Talvio: no server address from $discoveryUrl; trying again later',
       );
     }
     notifyListeners();

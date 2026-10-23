@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:zynveliq_mobile/src/core/api_client.dart';
-import 'package:zynveliq_mobile/src/core/config.dart';
+import 'package:talvio_mobile/src/core/api_client.dart';
+import 'package:talvio_mobile/src/core/config.dart';
 
 import '../helpers.dart';
 
@@ -212,7 +212,7 @@ void main() {
     expect(await api.googleEnabled(), isTrue);
 
     final start = api.googleStartUri(
-      redirectUri: 'zynveliq://auth/callback',
+      redirectUri: 'talvio://auth/callback',
       challenge: 'abc',
     );
     expect(
@@ -220,7 +220,7 @@ void main() {
       isTrue,
     );
     expect(start.queryParameters, {
-      'redirect_uri': 'zynveliq://auth/callback',
+      'redirect_uri': 'talvio://auth/callback',
       'code_challenge': 'abc',
       'code_challenge_method': 'S256',
     });

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zynveliq_mobile/src/core/relay_protocol.dart';
+import 'package:talvio_mobile/src/core/relay_protocol.dart';
 
 import '../helpers.dart';
 

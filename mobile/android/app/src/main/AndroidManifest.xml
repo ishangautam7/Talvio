@@ -4,9 +4,10 @@
     <!-- No backups: the session token is encrypted with a key that stays in
          this device's keystore, so a restored copy could never be read. -->
     <application
-        android:label="Zynveliq"
+        android:label="Talvio"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false">
         <activity
             android:name=".MainActivity"
@@ -30,7 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Receives zynveliq://auth/callback at the end of Google sign-in
+        <!-- Receives talvio://auth/callback at the end of Google sign-in
              (flutter_web_auth_2). -->
         <activity
             android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
@@ -40,7 +41,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="zynveliq"/>
+                <data android:scheme="talvio"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

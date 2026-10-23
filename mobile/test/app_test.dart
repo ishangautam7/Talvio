@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zynveliq_mobile/src/app.dart';
-import 'package:zynveliq_mobile/src/core/api_client.dart';
-import 'package:zynveliq_mobile/src/core/relay_client.dart';
+import 'package:talvio_mobile/src/app.dart';
+import 'package:talvio_mobile/src/core/api_client.dart';
+import 'package:talvio_mobile/src/core/relay_client.dart';
 
 import 'helpers.dart';
 
@@ -27,7 +27,7 @@ Future<(FakeServer, RelayClient)> pumpApp(
   // nothing (and has no microphone permission unless [recordEvents] is set).
   messenger.setMockMethodCallHandler(
     const MethodChannel('plugins.flutter.io/path_provider'),
-    (_) async => '/nonexistent-zynveliq-test',
+    (_) async => '/nonexistent-talvio-test',
   );
   messenger.setMockMethodCallHandler(
     const MethodChannel('com.llfbandit.record/messages'),
@@ -52,7 +52,7 @@ Future<(FakeServer, RelayClient)> pumpApp(
   final server = FakeServer();
   final relay = RelayClient(session, connectChannel: server.connect);
   await tester.pumpWidget(
-    ZynveliqApp(
+    TalvioApp(
       session: session,
       api: ApiClient(
         session,
@@ -408,7 +408,7 @@ void main() {
 
     expect(find.text('Allow this phone on ISHAN-PC'), findsOneWidget);
     expect(
-      find.text("Look at the computer's screen. Zynveliq is asking there."),
+      find.text("Look at the computer's screen. Talvio is asking there."),
       findsOneWidget,
     );
     final cancel = tester.widget<TextButton>(
@@ -521,7 +521,7 @@ void main() {
 
     expect(
       find.text(
-        "This phone isn't allowed on ISHAN-PC. Allow it in Zynveliq's "
+        "This phone isn't allowed on ISHAN-PC. Allow it in Talvio's "
         'Settings on that computer, under Account, then try again.',
       ),
       findsOneWidget,
@@ -584,7 +584,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Hello'), findsOneWidget);
-      expect(find.textContaining('Update Zynveliq'), findsNothing);
+      expect(find.textContaining('Update Talvio'), findsNothing);
     }
     await finish(tester, relay);
   });

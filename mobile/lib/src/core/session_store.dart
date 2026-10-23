@@ -21,7 +21,7 @@ enum ServerChoice {
   /// Typed in the Server setting.
   custom,
 
-  /// Built in with `--dart-define=ZYNVELIQ_SERVER_URL`.
+  /// Built in with `--dart-define=TALVIO_SERVER_URL`.
   pinned,
 }
 
