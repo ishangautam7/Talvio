@@ -11,7 +11,7 @@ use base64::Engine as _;
 use log::{debug, info};
 use serde_json::{json, Value};
 
-use super::{Pasted, Reply, Router};
+use super::{windows, Pasted, Reply, Router};
 
 const SAMPLE_RATE: u32 = 16_000;
 const MAX_SAMPLES: u32 = 5 * 60 * SAMPLE_RATE;
@@ -39,6 +39,14 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
         Some("paste") => Deliver::Paste,
         Some("return") => Deliver::Return,
         _ => return reply.fail("unsupported"),
+    };
+    // Checked before the transcription, so a stale window fails at once.
+    let target = match deliver {
+        Deliver::Paste => match windows::target(&router, &reply, &body) {
+            Ok(target) => target,
+            Err(code) => return reply.fail(code),
+        },
+        Deliver::Return => None,
     };
     if !host.speech_ready() {
         return reply.fail("no_speech_model");
@@ -88,11 +96,12 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
         Deliver::Return => reply.ok(json!({ "text": text, "pasted": false })),
         Deliver::Paste => {
             reply.progress("pasting");
-            match host.paste(text.clone()).await {
-                Pasted::Done => reply.ok(json!({ "text": text, "pasted": true })),
+            match windows::aim(&router, target.as_ref(), || host.paste(text.clone())).await {
+                Ok(Pasted::Done) => reply.ok(json!({ "text": text, "pasted": true })),
                 // Nothing is pasted on this computer: the phone gets the text.
-                Pasted::Off => reply.ok(json!({ "text": text, "pasted": false })),
-                Pasted::Failed => reply.fail("paste_failed"),
+                Ok(Pasted::Off) => reply.ok(json!({ "text": text, "pasted": false })),
+                Ok(Pasted::Failed) => reply.fail("paste_failed"),
+                Err(code) => reply.fail(code),
             }
         }
     }

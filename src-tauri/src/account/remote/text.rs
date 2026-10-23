@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use serde_json::{json, Value};
 
-use super::{Pasted, Reply, Router};
+use super::{windows, Pasted, Reply, Router};
 
 const MAX_CHARS: usize = 10_000;
 
@@ -23,13 +23,18 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
     else {
         return reply.fail("unsupported");
     };
+    let target = match windows::target(&router, &reply, &body) {
+        Ok(target) => target,
+        Err(code) => return reply.fail(code),
+    };
     if reply.is_cancelled() {
         return reply.fail("cancelled");
     }
     reply.progress("pasting");
-    match host.paste(text.to_string()).await {
-        Pasted::Done => reply.ok(json!({ "pasted": true })),
-        Pasted::Off => reply.fail("paste_off"),
-        Pasted::Failed => reply.fail("paste_failed"),
+    match windows::aim(&router, target.as_ref(), || host.paste(text.to_string())).await {
+        Ok(Pasted::Done) => reply.ok(json!({ "pasted": true })),
+        Ok(Pasted::Off) => reply.fail("paste_off"),
+        Ok(Pasted::Failed) => reply.fail("paste_failed"),
+        Err(code) => reply.fail(code),
     }
 }

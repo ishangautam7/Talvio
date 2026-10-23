@@ -11,6 +11,7 @@ use tokio::sync::oneshot;
 
 use super::{AccountPhone, APPROVAL_TIMEOUT};
 use crate::clipboard::PasteBehavior;
+use crate::command_mode::effects::{Effects as _, KeyCombo, SystemEffects, WindowEntry};
 use crate::managers::history::HistoryManager;
 use crate::managers::transcription::TranscriptionManager;
 use crate::settings::{get_settings, PasteMethod};
@@ -68,6 +69,16 @@ pub trait Host: Send + Sync + 'static {
     fn approval_timeout(&self) -> Duration {
         APPROVAL_TIMEOUT
     }
+    /// The "Let phones choose windows" switch.
+    fn windows_enabled(&self) -> bool;
+    /// Top-level windows a phone may aim at, front to back, never ours.
+    fn open_windows(&self) -> Vec<WindowEntry>;
+    /// The window that has the keyboard, when it is not ours.
+    fn foreground_window(&self) -> Option<WindowEntry>;
+    /// Bring `window` forward and give it the keyboard.
+    fn focus_window(&self, window: WindowEntry) -> BoxFuture<'static, Result<(), String>>;
+    /// Press each combo, in order, in the window that has the keyboard.
+    fn press_keys(&self, combos: Vec<KeyCombo>) -> BoxFuture<'static, Result<(), String>>;
 }
 
 /// The app itself.
@@ -178,6 +189,50 @@ impl Host for AppHost {
 
     fn close_approval(&self, phone: &str) {
         crate::account::approval::close(&self.0, phone);
+    }
+
+    fn windows_enabled(&self) -> bool {
+        get_settings(&self.0).remote_windows_enabled
+    }
+
+    fn open_windows(&self) -> Vec<WindowEntry> {
+        self.effects().open_windows()
+    }
+
+    fn foreground_window(&self) -> Option<WindowEntry> {
+        self.effects().foreground_window()
+    }
+
+    /// Command mode's window switch, which waits for the switch to land, so
+    /// it runs off the async runtime.
+    fn focus_window(&self, window: WindowEntry) -> BoxFuture<'static, Result<(), String>> {
+        let effects = self.effects();
+        Box::pin(async move {
+            tauri::async_runtime::spawn_blocking(move || effects.focus_window(&window))
+                .await
+                .map_err(|e| e.to_string())?
+        })
+    }
+
+    fn press_keys(&self, combos: Vec<KeyCombo>) -> BoxFuture<'static, Result<(), String>> {
+        let effects = self.effects();
+        Box::pin(async move {
+            tauri::async_runtime::spawn_blocking(move || {
+                combos
+                    .iter()
+                    .try_for_each(|combo| effects.press_keys(combo))
+            })
+            .await
+            .map_err(|e| e.to_string())?
+        })
+    }
+}
+
+impl AppHost {
+    /// Command mode's side effects, which already know how to list, raise
+    /// and type into windows on each platform.
+    fn effects(&self) -> SystemEffects {
+        SystemEffects::new(self.0.clone())
     }
 }
 
