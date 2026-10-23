@@ -33,6 +33,7 @@
 mod dictate;
 mod host;
 mod text;
+mod windows;
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -51,7 +52,7 @@ use super::api;
 pub use host::{AppHost, Host, Pasted};
 
 /// The kinds this computer handles, announced in `hello`.
-pub const CAPABILITIES: &[&str] = &["dictate", "text"];
+pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows"];
 
 /// How long the question about a new phone waits for an answer.
 pub const APPROVAL_TIMEOUT: Duration = Duration::from_secs(120);
@@ -73,6 +74,8 @@ fn handler(kind: &str) -> Option<Handler> {
     match kind {
         "dictate" => Some(|router, body, reply| dictate::handle(router, body, reply).boxed()),
         "text" => Some(|router, body, reply| text::handle(router, body, reply).boxed()),
+        "windows.list" => Some(|router, body, reply| windows::list(router, body, reply).boxed()),
+        "windows.keys" => Some(|router, body, reply| windows::keys(router, body, reply).boxed()),
         // A kind with no input slot, like the agent feature's, so the tests show
         // the gate holds for any kind. Outside `agent.`, which that feature owns.
         #[cfg(test)]
@@ -143,6 +146,8 @@ pub struct Router {
     /// Open approval questions, by phone id.
     questions: Mutex<HashMap<String, Question>>,
     question_serial: AtomicU64,
+    /// The windows each phone was last offered (`windows.list`), by phone id.
+    offered: Mutex<HashMap<String, windows::Offered>>,
 }
 
 impl Router {
@@ -158,6 +163,7 @@ impl Router {
             phones: Mutex::default(),
             questions: Mutex::default(),
             question_serial: AtomicU64::new(0),
+            offered: Mutex::default(),
         });
         (router, frames)
     }
@@ -331,6 +337,10 @@ impl Router {
             .unwrap_or_else(|e| e.into_inner())
             .get(id)
             .cloned()
+    }
+
+    fn offered(&self) -> MutexGuard<'_, HashMap<String, windows::Offered>> {
+        self.offered.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     fn questions(&self) -> MutexGuard<'_, HashMap<String, Question>> {
@@ -584,6 +594,7 @@ impl Drop for Reply {
 #[cfg(test)]
 pub(crate) mod testing {
     use super::{AccountPhone, Host, Pasted, Router, APPROVAL_TIMEOUT};
+    use crate::command_mode::effects::{KeyCombo, WindowEntry};
     use futures_util::future::BoxFuture;
     use std::collections::HashSet;
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -613,6 +624,18 @@ pub(crate) mod testing {
         /// Run once by `refused`, after it has read its answer: what happens
         /// while a request is being judged.
         pub while_judging: Mutex<Option<Box<dyn FnOnce() + Send>>>,
+        /// "Let phones choose windows".
+        pub windows_on: AtomicBool,
+        /// The open windows, and the id of the one in front.
+        pub windows: Mutex<Vec<WindowEntry>>,
+        pub front: Mutex<Option<i64>>,
+        /// Every window brought forward, in order.
+        pub focused: Mutex<Vec<i64>>,
+        pub focus_fails: Mutex<bool>,
+        /// Every combo pressed, as its label.
+        pub pressed: Mutex<Vec<String>>,
+        /// The window in front at each paste.
+        pub pasted_into: Mutex<Vec<Option<i64>>>,
     }
 
     impl Default for FakeHost {
@@ -631,6 +654,13 @@ pub(crate) mod testing {
                 open: Mutex::default(),
                 approval_timeout: APPROVAL_TIMEOUT,
                 while_judging: Mutex::default(),
+                windows_on: AtomicBool::new(true),
+                windows: Mutex::default(),
+                front: Mutex::default(),
+                focused: Mutex::default(),
+                focus_fails: Mutex::default(),
+                pressed: Mutex::default(),
+                pasted_into: Mutex::default(),
             }
         }
     }
@@ -654,6 +684,8 @@ pub(crate) mod testing {
         }
         fn paste(&self, text: String) -> BoxFuture<'static, Pasted> {
             self.pasted.lock().unwrap().push(text);
+            let front = *self.front.lock().unwrap();
+            self.pasted_into.lock().unwrap().push(front);
             let pasted = self.paste;
             Box::pin(async move { pasted })
         }
@@ -688,6 +720,33 @@ pub(crate) mod testing {
         }
         fn approval_timeout(&self) -> Duration {
             self.approval_timeout
+        }
+        fn windows_enabled(&self) -> bool {
+            self.windows_on.load(Ordering::SeqCst)
+        }
+        fn open_windows(&self) -> Vec<WindowEntry> {
+            self.windows.lock().unwrap().clone()
+        }
+        fn foreground_window(&self) -> Option<WindowEntry> {
+            let front = (*self.front.lock().unwrap())?;
+            self.open_windows().into_iter().find(|w| w.id == front)
+        }
+        fn focus_window(&self, window: WindowEntry) -> BoxFuture<'static, Result<(), String>> {
+            let result = if *self.focus_fails.lock().unwrap() {
+                Err("refused".to_string())
+            } else {
+                self.focused.lock().unwrap().push(window.id);
+                *self.front.lock().unwrap() = Some(window.id);
+                Ok(())
+            };
+            Box::pin(async move { result })
+        }
+        fn press_keys(&self, combos: Vec<KeyCombo>) -> BoxFuture<'static, Result<(), String>> {
+            self.pressed
+                .lock()
+                .unwrap()
+                .extend(combos.iter().map(KeyCombo::label));
+            Box::pin(async { Ok(()) })
         }
     }
 
