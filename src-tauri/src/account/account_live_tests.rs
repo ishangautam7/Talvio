@@ -325,3 +325,83 @@ async fn account_live_phone_requests_reach_the_computer() {
     }
     task.await.expect("the socket task ends after a revoke");
 }
+
+/// A computer that serves a live view of this machine's primary screen to a
+/// real phone app, for checking the phone side by hand (or on an emulator):
+/// it signs in to (or creates) the account in `TALVIO_LIVE_EMAIL` /
+/// `TALVIO_LIVE_PASSWORD`, allows every phone on it, and runs for
+/// `TALVIO_LIVE_MINUTES` (default 15). Only the capture is real; input is
+/// recorded, not delivered.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[ignore]
+async fn account_live_serve_a_live_view() {
+    use super::remote::screen::video::{self, CaptureTarget, VideoSettings};
+    use super::remote::testing::FakeVideo;
+    use crate::command_mode::effects::WindowEntry;
+    use std::sync::atomic::{AtomicBool, AtomicUsize};
+
+    let server = server();
+    let api = Api::new(&server).unwrap();
+    let email = std::env::var("TALVIO_LIVE_EMAIL").expect("TALVIO_LIVE_EMAIL");
+    let password = std::env::var("TALVIO_LIVE_PASSWORD").expect("TALVIO_LIVE_PASSWORD");
+    let minutes: u64 = std::env::var("TALVIO_LIVE_MINUTES")
+        .ok()
+        .and_then(|m| m.parse().ok())
+        .unwrap_or(15);
+    let pc = device("Live view test PC", "windows", "desktop");
+    let computer = match api.login(&email, &password, &pc).await {
+        Ok(auth) => auth,
+        Err(_) => api.signup(&email, &password, None, &pc).await.expect("sign up"),
+    };
+
+    let host = FakeHost {
+        approve_all: true,
+        ..FakeHost::default()
+    };
+    *host.windows.lock().unwrap() = vec![WindowEntry {
+        id: 1,
+        title: "Primary screen (as a window)".into(),
+        app: "LiveTest".into(),
+    }];
+    *host.front.lock().unwrap() = Some(1);
+    let host = Arc::new(host);
+    let (router, outbox) = Router::new(host.clone());
+    let (events_tx, mut events) = mpsc::unbounded_channel();
+    let _socket = tauri::async_runtime::spawn(socket::run(
+        socket::ws_url(&server).unwrap(),
+        computer.token.clone(),
+        router.clone(),
+        outbox,
+        events_tx,
+    ));
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(minutes * 60);
+    let mut streams = Vec::new();
+    loop {
+        // Each view takes the capture the fake hands out; keep one ready.
+        if host.video.lock().unwrap().is_none() {
+            let screen = video::list_screens().into_iter().next().expect("a screen");
+            let (stream, frames) =
+                video::start(CaptureTarget::Screen(screen.id), VideoSettings::default())
+                    .expect("capture starts");
+            *host.video.lock().unwrap() = Some(FakeVideo {
+                frames: Some(frames),
+                geometry: stream.geometry(),
+                keyframes: Arc::new(AtomicUsize::new(0)),
+                stopped: Arc::new(AtomicBool::new(false)),
+            });
+            streams.push(stream);
+            println!("serving: a capture is ready");
+        }
+        tokio::select! {
+            event = events.recv() => println!("socket: {event:?}"),
+            _ = tokio::time::sleep(Duration::from_secs(1)) => {}
+        }
+        if tokio::time::Instant::now() > deadline {
+            break;
+        }
+        let pressed = host.pressed.lock().unwrap().clone();
+        if !pressed.is_empty() {
+            println!("keys so far: {pressed:?}; clicks: {:?}", host.clicks.lock().unwrap());
+        }
+    }
+}

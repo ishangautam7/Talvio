@@ -63,6 +63,39 @@ impl Watched {
     }
 }
 
+/// How long a phone's new watch waits for its own previous one to end.
+const REPLACE_WAIT: Duration = Duration::from_secs(3);
+
+/// Take the one-view slot. A phone that asks again while its own view still
+/// runs replaces that view: the app was closed or crashed and lost it, and a
+/// view nobody can see would otherwise hold the slot until it timed out.
+/// Another phone's view is `busy`.
+async fn claim(router: &Router, phone: &str) -> bool {
+    let take = || {
+        router
+            .watching
+            .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+            .is_ok()
+    };
+    if take() {
+        return true;
+    }
+    let own = router.watches().values().any(|(owner, _)| owner == phone);
+    if !own {
+        return false;
+    }
+    info!("A phone asked to watch again; its earlier view ends");
+    router.replace_watch.store(true, Ordering::Release);
+    let deadline = Instant::now() + REPLACE_WAIT;
+    while Instant::now() < deadline {
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        if take() {
+            return true;
+        }
+    }
+    false
+}
+
 /// Keeps "one view at a time" true however the session ends.
 struct Watching(Arc<Router>, String);
 
@@ -87,11 +120,7 @@ pub(in crate::account::remote) async fn watch(router: Arc<Router>, body: Value, 
         .and_then(Value::as_bool)
         .unwrap_or(false);
     let audio_on = body.get("audio").and_then(Value::as_bool).unwrap_or(false);
-    if router
-        .watching
-        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-        .is_err()
-    {
+    if !claim(&router, &reply.to).await {
         return reply.fail("busy");
     }
     let (signals, signal_rx) = mpsc::channel(SIGNAL_CAPACITY);
@@ -100,6 +129,7 @@ pub(in crate::account::remote) async fn watch(router: Arc<Router>, body: Value, 
         .insert(reply.request_id.clone(), (reply.to.clone(), signals));
     let watching = Watching(router.clone(), reply.request_id.clone());
     router.stop_watch.store(false, Ordering::Release);
+    router.replace_watch.store(false, Ordering::Release);
 
     let outcome = run(
         &router,
@@ -279,6 +309,14 @@ async fn run(
                 }
                 if router.stop_watch.swap(false, Ordering::AcqRel) {
                     return Err("stopped");
+                }
+                if router.replace_watch.swap(false, Ordering::AcqRel) {
+                    return Err("replaced");
+                }
+                // A phone that went away before connecting (the app closed
+                // or crashed) will never answer.
+                if !live && !router.phone_online(&reply.to) {
+                    return Err("connect_failed");
                 }
                 if !live && started.elapsed() > CONNECT_TIMEOUT {
                     return Err("connect_failed");
@@ -612,6 +650,71 @@ mod tests {
         });
         watch_and_work(frames_out).await;
         drop(feed);
+    }
+
+    /// A phone that asks to watch again (its app crashed and lost the view)
+    /// replaces its own view instead of finding itself `busy`.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn the_same_phone_watching_again_replaces_its_view() {
+        let (_frames_in, frames_out) = mpsc::channel(4);
+        let host = FakeHost::default();
+        *host.windows.lock().unwrap() = vec![WindowEntry {
+            id: 2,
+            title: "Claude Code".into(),
+            app: "WindowsTerminal".into(),
+        }];
+        *host.video.lock().unwrap() = Some(FakeVideo {
+            frames: Some(frames_out),
+            geometry: None,
+            keyframes: Arc::new(AtomicUsize::new(0)),
+            stopped: Arc::new(AtomicBool::new(false)),
+        });
+        let host = Arc::new(host);
+        let (router, mut relay) = testing::router(host.clone());
+        router.handle(
+            "phone",
+            json!({ "kind": "windows.list", "requestId": "list" }),
+        );
+        let target = next(&mut relay).await["windows"][0]["id"].clone();
+        router.handle(
+            "phone",
+            json!({ "kind": "screen.watch", "requestId": "w1", "target": target }),
+        );
+        assert_eq!(next(&mut relay).await["stage"], "rtc.offer");
+
+        // Another phone cannot even name the window: ids are per phone.
+        router.handle(
+            "phone2",
+            json!({ "kind": "screen.watch", "requestId": "x", "target": target }),
+        );
+        let mut other = next(&mut relay).await;
+        if other["stage"] == "approval" {
+            router.answer("phone2", true);
+            other = next(&mut relay).await;
+        }
+        assert_eq!(other["error"], "target_gone", "{other}");
+
+        // The same phone again: w1 ends as replaced, and w2 gets the slot
+        // (the fake has no second capture to give, so it fails there).
+        router.handle(
+            "phone",
+            json!({ "kind": "screen.watch", "requestId": "w2", "target": target }),
+        );
+        let mut ends = Vec::new();
+        while ends.len() < 2 {
+            let body = next(&mut relay).await;
+            if body["kind"] == "result" {
+                ends.push((body["requestId"].clone(), body["error"].clone()));
+            }
+        }
+        ends.sort_by_key(|(id, _)| id.to_string());
+        assert_eq!(
+            ends,
+            [
+                (json!("w1"), json!("replaced")),
+                (json!("w2"), json!("capture_failed"))
+            ]
+        );
     }
 
     /// The same view of the real primary screen, captured and encoded on this

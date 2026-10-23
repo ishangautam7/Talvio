@@ -445,8 +445,11 @@ other), encrypted end to end by WebRTC (DTLS-SRTP).
 
 Screen ids follow the window id rules (made up per list, per phone, 30 minutes).
 
-**Starting** (phone → computer). One watch at a time per computer; a second
-one, from any phone, answers `busy`.
+**Starting** (phone → computer). One watch at a time per computer: a watch
+from another phone answers `busy`, and a watch from the phone whose view is
+running replaces it (that view ends with `replaced`), since a phone that asks
+again has lost its view (the app was closed or crashed). A view that is not
+live yet also ends (`connect_failed`) as soon as its phone is offline.
 
 ```jsonc
 { "kind": "screen.watch", "requestId": "uuid",
@@ -532,7 +535,7 @@ signing out, revoking the phone, or the target closing ends it too. After 10
 minutes with no input from the phone and no change in the picture the computer
 ends it. Every ending is the watch's one `result`: `ok: true` when the phone
 stopped it, otherwise an error: `stopped` (the computer's user pressed Stop),
-`target_gone`, `idle`, `connect_failed`, `capture_failed`, `cancelled`,
+`target_gone`, `idle`, `connect_failed`, `capture_failed`, `replaced`, `cancelled`,
 `remote_input_off`, `remote_windows_off`, `not_approved`.
 
 ### TURN: `GET /v1/turn` (authenticated)
