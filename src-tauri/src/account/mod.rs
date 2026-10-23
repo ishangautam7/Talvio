@@ -411,6 +411,8 @@ impl AccountManager {
             inner.session.take()
         };
         self.keep_approved(|_| false);
+        // What phones asked the assistant belonged to this session.
+        crate::assistant::phone::forget_all();
         session
     }
 

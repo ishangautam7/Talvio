@@ -30,6 +30,7 @@
 //! minutes run out, even when nothing waits on it any more, so a phone cannot
 //! flash it on and off with a request and a cancel.
 
+mod assistant;
 mod command;
 mod dictate;
 mod host;
@@ -58,9 +59,16 @@ pub use screen::session::Viewing;
 /// The kinds this computer handles, announced in `hello`. `screen` (live view)
 /// only where a window can be captured.
 #[cfg(target_os = "windows")]
-pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "screen", "command"];
+pub const CAPABILITIES: &[&str] = &[
+    "dictate",
+    "text",
+    "windows",
+    "screen",
+    "command",
+    "assistant",
+];
 #[cfg(not(target_os = "windows"))]
-pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "command"];
+pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "command", "assistant"];
 
 /// How long the question about a new phone waits for an answer.
 pub const APPROVAL_TIMEOUT: Duration = Duration::from_secs(120);
@@ -91,6 +99,7 @@ fn handler(kind: &str) -> Option<Handler> {
             Some(|router, body, reply| command::answer(router, body, reply).boxed())
         }
         "windows.keys" => Some(|router, body, reply| windows::keys(router, body, reply).boxed()),
+        "assistant.ask" => Some(|router, body, reply| assistant::ask(router, body, reply).boxed()),
         "screen.watch" if windows::CAN_WATCH => {
             Some(|router, body, reply| screen::session::watch(router, body, reply).boxed())
         }
@@ -178,6 +187,8 @@ pub struct Router {
     /// Where a running live view hears its phone's `rtc.*` messages, by the
     /// watch's `requestId`: the phone that asked, and the session's inbox.
     watches: Mutex<HashMap<String, (String, mpsc::Sender<Value>)>>,
+    /// Phones whose question to the assistant is being answered (one each).
+    asking: Mutex<std::collections::HashSet<String>>,
 }
 
 impl Router {
@@ -199,6 +210,7 @@ impl Router {
             replace_watch: AtomicBool::new(false),
             online: Mutex::default(),
             watches: Mutex::default(),
+            asking: Mutex::default(),
         });
         (router, frames)
     }
@@ -683,6 +695,7 @@ impl Drop for Reply {
 
 #[cfg(test)]
 pub(crate) mod testing {
+    use super::host::AssistantFuture;
     use super::host::{AudioStart, VideoStart};
     use super::screen::audio::StartError as AudioStartError;
     use super::screen::input::{Button, ControlInfo, Rect};
@@ -694,6 +707,9 @@ pub(crate) mod testing {
     };
     use super::{
         AccountPhone, Ask, CommandFuture, CommandOutcome, Host, Pasted, Router, APPROVAL_TIMEOUT,
+    };
+    use crate::assistant::phone::{
+        PhoneAction, PhoneAnswer, PhoneAsk, PhoneAskError, PhonePending, PhoneProgress,
     };
     use crate::command_mode::effects::{KeyCombo, WindowEntry};
     use futures_util::future::BoxFuture;
@@ -757,6 +773,14 @@ pub(crate) mod testing {
         pub commands: Mutex<Vec<String>>,
         pub command_waits: Mutex<bool>,
         pub command_unconfigured: Mutex<bool>,
+        /// The assistant: the switch, every question as `phone: text (conversation)`,
+        /// a gate that holds the answer until released, an error to answer
+        /// with, and whether the answer leaves a command waiting.
+        pub assistant_on: Mutex<bool>,
+        pub asks: Mutex<Vec<String>>,
+        pub assistant_gate: Mutex<Option<tokio::sync::oneshot::Receiver<()>>>,
+        pub assistant_error: Mutex<Option<PhoneAskError>>,
+        pub assistant_pending: Mutex<bool>,
     }
 
     /// A capture the test drives: frames go in through `frames`.
@@ -824,6 +848,11 @@ pub(crate) mod testing {
                 commands: Mutex::default(),
                 command_waits: Mutex::default(),
                 command_unconfigured: Mutex::default(),
+                assistant_on: Mutex::new(true),
+                asks: Mutex::default(),
+                assistant_gate: Mutex::default(),
+                assistant_error: Mutex::default(),
+                assistant_pending: Mutex::default(),
             }
         }
     }
@@ -1007,6 +1036,44 @@ pub(crate) mod testing {
                 not_configured: *self.command_unconfigured.lock().unwrap(),
             };
             Box::pin(async move { outcome })
+        }
+        fn assistant_enabled(&self) -> bool {
+            *self.assistant_on.lock().unwrap()
+        }
+        fn assistant_ask(&self, ask: PhoneAsk) -> AssistantFuture {
+            self.asks.lock().unwrap().push(format!(
+                "{}: {} ({})",
+                ask.phone,
+                ask.text,
+                ask.conversation.as_deref().unwrap_or("new")
+            ));
+            let gate = self.assistant_gate.lock().unwrap().take();
+            let error = self.assistant_error.lock().unwrap().take();
+            let pending = *self.assistant_pending.lock().unwrap();
+            Box::pin(async move {
+                let _ = ask
+                    .progress
+                    .send(PhoneProgress::Tool("Play believer".into()));
+                let _ = ask.progress.send(PhoneProgress::Answer("Answer".into()));
+                if let Some(gate) = gate {
+                    let _ = gate.await;
+                }
+                if let Some(error) = error {
+                    return Err(error);
+                }
+                Ok(PhoneAnswer {
+                    answer: format!("Answer to: {}", ask.text),
+                    conversation: ask.conversation.unwrap_or_else(|| "c1".into()),
+                    actions: vec![PhoneAction {
+                        label: "Played it".into(),
+                        status: "done".into(),
+                    }],
+                    pending: pending.then(|| PhonePending {
+                        id: 7,
+                        summary: "Send the email".into(),
+                    }),
+                })
+            })
         }
     }
 
