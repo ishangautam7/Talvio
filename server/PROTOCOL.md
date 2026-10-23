@@ -8,7 +8,8 @@ What it is for: one account signs in on a computer and a phone, and the phone
 can then use the computer as its speech engine. Speak on the phone, the computer
 transcribes with its own model and pastes at its cursor (or sends the text back);
 type on the phone, the computer pastes it. **The server stores accounts and
-devices only. It never stores a recording or a transcript**: relay messages pass
+devices, plus the provider API keys a user syncs (encrypted, see Secrets). It
+never stores a recording or a transcript**: relay messages pass
 through memory and are dropped.
 
 All JSON is UTF-8, field names are camelCase, times are Unix milliseconds.
@@ -52,10 +53,15 @@ message for a code they don't know.
 | 400  | `invalid_email`       | not an email address                                    |
 | 400  | `weak_password`       | shorter than 8 characters (max 256)                     |
 | 400  | `invalid_code`        | Google login code unknown, used, expired, or PKCE fails |
+| 400  | `invalid_name`        | secret name does not match the pattern (see Secrets)    |
+| 400  | `invalid_value`       | secret value not a string of 1–8192 chars               |
+| 400  | `invalid_time`        | secret `updatedAt` not integer ms, or > 5 min ahead     |
+| 400  | `too_many`            | account already holds 100 secret records                |
 | 401  | `invalid_credentials` | wrong email or password (also: account has no password) |
 | 401  | `unauthorized`        | missing, unknown, or revoked bearer token               |
 | 404  | `not_found`           | device id not on this account, unknown route            |
 | 409  | `email_taken`         | sign-up with an email that already has an account       |
+| 409  | `stale`               | secret write older than the stored record (see Secrets) |
 | 413  | `payload_too_large`   | HTTP body over 64 KiB                                   |
 | 429  | `rate_limited`        | too many attempts; `Retry-After` header in seconds      |
 | 503  | `google_unavailable`  | server has no Google credentials configured             |
@@ -123,6 +129,9 @@ Authenticated routes take `Authorization: Bearer <token>`.
 | `DELETE /v1/me`                | ✓    | → 204; deletes the account, every device, closes every socket       |
 | `GET /v1/devices`              | ✓    | → `{ devices: Device[] }` (current device first, then by name)      |
 | `DELETE /v1/devices/{id}`      | ✓    | → 204; signs that device out and closes its socket with 4401        |
+| `GET /v1/secrets`              | ✓    | → `{ secrets: Secret[] }`, see Secrets                              |
+| `PUT /v1/secrets/{name}`       | ✓    | `{ value, updatedAt }` → `{ secret: Secret }`                       |
+| `DELETE /v1/secrets/{name}`    | ✓    | query `updatedAt` → `{ secret: Secret }` (a tombstone)              |
 | `GET /v1/ws`                   | ✓    | WebSocket upgrade, see below                                        |
 
 Emails are trimmed and lower-cased. A token that has not been used for 180 days
@@ -130,6 +139,50 @@ is deleted and answers `unauthorized`. Rate limits (per server instance): 20
 auth requests per minute per IP (an IPv6 address counts by its /64; Google's
 callback is not counted), and 10 failed logins per 15 minutes per email (a login
 still being checked counts as failed until it succeeds).
+
+### Secrets: provider API keys that follow the account
+
+A user's provider API keys (OpenAI, Azure, ElevenLabs, web search, …) are kept
+per account so every computer they sign in on gets them. The account is always
+the bearer token's account; one account can never read or write another's.
+
+```jsonc
+// Secret
+{ "name": "post_process:openai", "value": "sk-…",
+  "updatedAt": 1761190000000,   // ms, the writing CLIENT's clock at write time
+  "deleted": false }            // a tombstone: deleted true, value ""
+```
+
+- `GET /v1/secrets` → 200 `{ "secrets": [Secret] }`, sorted by name, tombstones
+  included so deletions reach the other devices.
+- `PUT /v1/secrets/{name}` with `{ "value": "<string>", "updatedAt": <ms> }` →
+  200 `{ "secret": Secret }`.
+- `DELETE /v1/secrets/{name}?updatedAt=<ms>` → 200 `{ "secret": Secret }` with
+  `deleted: true` and `value: ""`. Deleting a name that was never stored still
+  creates a tombstone, so a device that comes back online later with an older
+  copy loses.
+- **Last writer wins by `updatedAt`.** When the stored record (live or tombstone)
+  has a larger `updatedAt` than the request, nothing is written and the answer is
+  409 `{ "error": { "code": "stale", "message": … }, "secret": Secret }` with the
+  current record. An equal `updatedAt` overwrites, so a retried write is
+  harmless.
+- Validation, checked after authentication: `name` matches
+  `^(post_process|cloud_stt|assistant_tts|web_search):[a-z0-9_.-]{1,64}$`
+  (it may be percent-encoded in the path, e.g. `%3A` for the colon) else
+  `invalid_name`; `value` is a string of 1–8192 characters else `invalid_value`
+  (DELETE has none); `updatedAt` is a non-negative integer of milliseconds no
+  more than 5 minutes ahead of the server's clock else `invalid_time` (a missing
+  or non-numeric query parameter on DELETE too). At most 100 records (live and
+  tombstones) per account: a write that would add a 101st name answers
+  `too_many`; rewriting an existing name is always allowed. Bodies over 64 KiB
+  answer `payload_too_large`.
+- Deleting the account deletes its secrets.
+- At rest each value is AES-256-GCM encrypted with a per-write random nonce and
+  `` `${accountId}\n${name}` `` (the account id, a line feed, the name) as
+  associated data. Values are never logged.
+- **Transport:** on a LAN deployment the server URL is plain `http://`, so API
+  keys cross the network unencrypted, exactly like passwords and tokens. Until
+  https is in front of the server, the network it runs on must be trusted.
 
 ### Google sign-in (both apps, same flow)
 
