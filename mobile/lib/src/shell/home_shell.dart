@@ -51,10 +51,14 @@ class _HomeShellState extends State<HomeShell> {
         final home = tabs.first.id;
         final rail = MediaQuery.sizeOf(context).width >= HomeShell.railWidth;
 
+        // Every page keeps its place in the stack, available or not:
+        // IndexedStack matches its children by position, so a page coming
+        // or going in front of another would throw that one's state away
+        // (a recording, typed text).
         final pages = IndexedStack(
-          index: shown,
+          index: widget.tabs.indexWhere((tab) => tab.id == tabs[shown].id),
           children: [
-            for (final tab in tabs)
+            for (final tab in widget.tabs)
               KeyedSubtree(
                 key: ValueKey(tab.id),
                 child: Builder(builder: tab.builder),

@@ -8,8 +8,6 @@ import '../../core/app_services.dart';
 import '../../core/models.dart';
 import '../../theme.dart';
 import '../dictate/dictate_controller.dart';
-import '../dictate/dictate_screen.dart' show typedTextLimit;
-import '../dictate/key_pad.dart';
 import '../dictate/remote_windows.dart';
 import '../dictate/strings.dart';
 import 'live_protocol.dart';
@@ -23,26 +21,22 @@ import 'webrtc_link.dart';
 String screenLabel(RemoteScreen screen) =>
     screen.name.isEmpty ? ScreenStrings.untitledScreen : screen.name;
 
-/// The route of live view. [dictate] is the Dictate tab's controller, whose
-/// chosen window is already the watched one, so the mic here records and
-/// sends exactly as that tab does.
+/// The route of live view: a window or screen of [computer], to watch.
 Route<void> watchRoute({
-  required DictateController dictate,
   required Device computer,
   required WatchTarget target,
   RtcLinkFactory? linkFactory,
 }) => MaterialPageRoute(
   builder: (_) => WatchScreen(
-    dictate: dictate,
     computer: computer,
     target: target,
     linkFactory: linkFactory ?? WebRtcLink.create,
   ),
 );
 
-/// Opens live view of [target] on [dictate]'s computer. What is watched is
-/// also where dictation and typing go: [window], or for a screen wherever
-/// the keyboard is. Completes when the viewer closes.
+/// Opens live view of [target] on [dictate]'s computer. The watched window
+/// is also where the Send page's dictation and typing go next: [window], or
+/// for a screen wherever the keyboard is. Completes when the viewer closes.
 Future<void> openWatch(
   BuildContext context,
   DictateController dictate,
@@ -54,19 +48,19 @@ Future<void> openWatch(
   dictate.chooseWindow(window);
   await Navigator.of(
     context,
-  ).push(watchRoute(dictate: dictate, computer: computer, target: target));
+  ).push(watchRoute(computer: computer, target: target));
 }
 
+/// Live view, to watch only: pinch and drag move around the picture, and
+/// nothing on the computer is clicked, scrolled or typed into from here.
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
     super.key,
-    required this.dictate,
     required this.computer,
     required this.target,
     required this.linkFactory,
   });
 
-  final DictateController dictate;
   final Device computer;
   final WatchTarget target;
   final RtcLinkFactory linkFactory;
@@ -85,15 +79,9 @@ class _WatchScreenState extends State<WatchScreen>
     duration: const Duration(milliseconds: 280),
   );
   Animation<Matrix4>? _moveTo;
-  final _text = TextEditingController();
-  final _textFocus = FocusNode();
 
   /// Keep the text cursor in view. Any pan or zoom by hand turns it off.
   var _follow = true;
-  var _typing = false;
-
-  /// The key pad is open (closed at first, so the picture gets the room).
-  var _keys = false;
 
   /// The picture fills the view, cropped, rather than fits in it whole.
   var _filled = false;
@@ -102,15 +90,9 @@ class _WatchScreenState extends State<WatchScreen>
   Orientation? _held;
   Size _viewport = Size.zero;
   Caret? _followed;
-  DictateOutcome? _shownOutcome;
 
-  // One pan, zoom or two-finger scroll in progress.
+  /// Where the view was when the pan or zoom in progress began.
   Matrix4? _gestureFrom;
-  Offset _gestureFocal = Offset.zero;
-  bool? _gestureScrolls;
-  int _scrolled = 0;
-  Offset? _scrollAt;
-  Offset? _doubleTapAt;
 
   @override
   void initState() {
@@ -121,8 +103,6 @@ class _WatchScreenState extends State<WatchScreen>
       target: widget.target,
       linkFactory: widget.linkFactory,
     )..addListener(_onWatch);
-    widget.dictate.addListener(_onDictate);
-    _shownOutcome = widget.dictate.outcome;
     _move.addListener(() {
       if (_moveTo case final to?) _transform.value = to.value;
     });
@@ -139,14 +119,11 @@ class _WatchScreenState extends State<WatchScreen>
     _keepAwake(false);
     if (_held != null) _hold(null);
     _lifecycle.dispose();
-    widget.dictate.removeListener(_onDictate);
     _watch
       ..removeListener(_onWatch)
       ..dispose();
     _move.dispose();
     _transform.dispose();
-    _text.dispose();
-    _textFocus.dispose();
     super.dispose();
   }
 
@@ -222,15 +199,6 @@ class _WatchScreenState extends State<WatchScreen>
     }
   }
 
-  void _onDictate() {
-    final outcome = widget.dictate.outcome;
-    if (identical(outcome, _shownOutcome)) return;
-    _shownOutcome = outcome;
-    if (outcome?.error case final error? when mounted) {
-      _snack(DictateStrings.error(error, _name));
-    }
-  }
-
   /// Moves the view to the caret, if Follow is on and there is one.
   void _applyFollow({bool animate = true}) {
     final caret = _watch.caret;
@@ -256,129 +224,9 @@ class _WatchScreenState extends State<WatchScreen>
     if (follow) _applyFollow();
   }
 
-  void _snack(String text) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text)));
-  }
-
-  void _showInputError(InputResult result) {
-    if (result.ok || !mounted) return;
-    _snack(ScreenStrings.error(result.error!, _name));
-  }
-
-  Future<void> _press(List<String> keys) async {
-    unawaited(HapticFeedback.lightImpact());
-    _showInputError(await _watch.keys(keys));
-  }
-
-  Future<void> _sendText() async {
-    final text = _text.text.trim();
-    if (text.isEmpty) return;
-    final result = await _watch.text(text);
-    if (!mounted) return;
-    if (result.ok) {
-      _text.clear();
-    } else {
-      _showInputError(result);
-    }
-  }
-
-  void _toggleKeyboard() {
-    setState(() => _typing = !_typing);
-    if (_typing) {
-      _textFocus.requestFocus();
-    } else {
-      _textFocus.unfocus();
-    }
-  }
-
-  Future<void> _setControl(bool control) async {
-    _snack(control ? ScreenStrings.controlHint : ScreenStrings.viewHint);
-    await _watch.setControl(control);
-  }
-
-  /// A click at [point] (viewport coordinates), asking first when the
-  /// computer says the control sends, buys, posts or deletes.
-  Future<void> _click(Offset point, {bool right = false, int count = 1}) async {
-    final at = pictureCoords(
-      point: point,
-      transform: _transform.value,
-      viewport: _viewport,
-      picture: _picture,
-    );
-    if (at == null) return;
-    unawaited(HapticFeedback.selectionClick());
-    var result = await _watch.tap(at, right: right, count: count);
-    if (result.needsConfirm) {
-      if (!mounted || !await _confirm(result.label)) return;
-      result = await _watch.tap(
-        at,
-        right: right,
-        count: count,
-        confirmed: true,
-      );
-    }
-    _showInputError(result);
-  }
-
-  Future<bool> _confirm(String? label) async {
-    final yes = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          label == null || label.isEmpty
-              ? ScreenStrings.confirmUnlabelled
-              : ScreenStrings.confirmTitle(label),
-        ),
-        content: const Text(ScreenStrings.confirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(ScreenStrings.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(ScreenStrings.press),
-          ),
-        ],
-      ),
-    );
-    return yes ?? false;
-  }
-
   void _onInteractionStart(ScaleStartDetails details) {
     _move.stop();
     _gestureFrom = _transform.value.clone();
-    _gestureFocal = details.localFocalPoint;
-    _gestureScrolls = null;
-    _scrolled = 0;
-    _scrollAt = pictureCoords(
-      point: details.localFocalPoint,
-      transform: _transform.value,
-      viewport: _viewport,
-      picture: _picture,
-    );
-  }
-
-  /// In Control, two fingers moving up or down together without pinching
-  /// scroll the computer instead of moving the view.
-  void _onInteractionUpdate(ScaleUpdateDetails details) {
-    final from = _gestureFrom;
-    if (!_watch.control || from == null || details.pointerCount < 2) return;
-    final moved = details.localFocalPoint - _gestureFocal;
-    _gestureScrolls ??= (details.scale - 1).abs() > 0.08
-        ? false
-        : (moved.dy.abs() > 24 && moved.dy.abs() > moved.dx.abs() * 1.5
-              ? true
-              : null);
-    if (_gestureScrolls != true) return;
-    _transform.value = from;
-    final notches = scrollNotches(moved.dy) - _scrolled;
-    final at = _scrollAt;
-    if (notches == 0 || at == null) return;
-    _scrolled += notches;
-    unawaited(_watch.scroll(at, dy: notches).then(_showInputError));
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
@@ -399,7 +247,7 @@ class _WatchScreenState extends State<WatchScreen>
       data: buildTheme(Brightness.dark),
       child: Builder(
         builder: (context) => ListenableBuilder(
-          listenable: Listenable.merge([_watch, widget.dictate]),
+          listenable: _watch,
           builder: (context, _) => Scaffold(
             backgroundColor: Colors.black,
             body: MediaQuery.orientationOf(context) == Orientation.landscape
@@ -425,7 +273,6 @@ class _WatchScreenState extends State<WatchScreen>
   Widget _buildStage(BuildContext context) {
     final w = _watch;
     final link = w.link;
-    final control = w.control && w.phase == WatchPhase.live;
     return Stack(
       children: [
         Positioned.fill(
@@ -439,49 +286,33 @@ class _WatchScreenState extends State<WatchScreen>
                   (_) => _applyFollow(animate: false),
                 );
               }
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: control ? (d) => _click(d.localPosition) : null,
-                onDoubleTapDown: control
-                    ? (d) => _doubleTapAt = d.localPosition
-                    : null,
-                onDoubleTap: control
-                    ? () {
-                        if (_doubleTapAt case final at?) _click(at, count: 2);
-                      }
-                    : null,
-                onLongPressStart: control
-                    ? (d) => _click(d.localPosition, right: true)
-                    : null,
-                child: InteractiveViewer(
-                  transformationController: _transform,
-                  minScale: 1,
-                  maxScale: 8,
-                  onInteractionStart: _onInteractionStart,
-                  onInteractionUpdate: _onInteractionUpdate,
-                  onInteractionEnd: _onInteractionEnd,
-                  child: SizedBox.fromSize(
-                    size: viewport,
-                    child: link == null || !w.foreground
-                        ? const ColoredBox(color: Colors.black)
-                        : ValueListenableBuilder(
-                            valueListenable: link.videoSize,
-                            builder: (context, size, child) {
-                              // The first frame sets the letterbox.
-                              if (size != null) {
-                                WidgetsBinding.instance.addPostFrameCallback(
-                                  (_) => _applyFollow(animate: false),
-                                );
-                              }
-                              return child!;
-                            },
-                            child: Semantics(
-                              label: ScreenStrings.watchItem(w.title),
-                              image: true,
-                              child: link.buildVideo(),
-                            ),
+              return InteractiveViewer(
+                transformationController: _transform,
+                minScale: 1,
+                maxScale: 8,
+                onInteractionStart: _onInteractionStart,
+                onInteractionEnd: _onInteractionEnd,
+                child: SizedBox.fromSize(
+                  size: viewport,
+                  child: link == null || !w.foreground
+                      ? const ColoredBox(color: Colors.black)
+                      : ValueListenableBuilder(
+                          valueListenable: link.videoSize,
+                          builder: (context, size, child) {
+                            // The first frame sets the letterbox.
+                            if (size != null) {
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => _applyFollow(animate: false),
+                              );
+                            }
+                            return child!;
+                          },
+                          child: Semantics(
+                            label: ScreenStrings.watchItem(w.title),
+                            image: true,
+                            child: link.buildVideo(),
                           ),
-                  ),
+                        ),
                 ),
               );
             },
@@ -518,9 +349,9 @@ class _WatchScreenState extends State<WatchScreen>
             },
           ),
         ),
-        if (w.phase == WatchPhase.ended && !w.restarting)
+        if (w.phase == WatchPhase.ended)
           Center(child: _endedCard(context))
-        else if (w.phase != WatchPhase.live || w.restarting)
+        else if (w.phase != WatchPhase.live)
           Center(child: _waiting(context)),
       ],
     );
@@ -528,7 +359,6 @@ class _WatchScreenState extends State<WatchScreen>
 
   String _statusText() {
     final w = _watch;
-    if (w.restarting) return ScreenStrings.switching;
     return switch (w.phase) {
       WatchPhase.starting => ScreenStrings.starting,
       WatchPhase.approval => ScreenStrings.approval,
@@ -612,199 +442,67 @@ class _WatchScreenState extends State<WatchScreen>
     );
   }
 
-  /// The mic: dictates into the watched window, always pasting.
-  Widget _mic(BuildContext context) {
+  /// Sound on or off.
+  Widget _sound() {
     final w = _watch;
-    final d = widget.dictate;
-    final canDictate =
-        w.phase == WatchPhase.live &&
-        widget.computer.capabilities.contains(DictateKind.dictate) &&
-        !w.restarting;
-    return switch (d.phase) {
-      DictatePhase.sending => const Padding(
-        padding: EdgeInsets.all(14),
-        child: SizedBox.square(
-          dimension: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      ),
-      DictatePhase.recording => IconButton.filled(
-        tooltip: ScreenStrings.stopDictating,
-        style: IconButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.error,
-          foregroundColor: Theme.of(context).colorScheme.onError,
-        ),
-        onPressed: () => d.stopAndSend(deliverAs: Deliver.paste),
-        icon: const Icon(Icons.stop_rounded),
-      ),
-      DictatePhase.idle => IconButton.filledTonal(
-        tooltip: ScreenStrings.dictate,
-        onPressed: canDictate ? d.startRecording : null,
-        icon: const Icon(Icons.mic),
-      ),
-    };
-  }
-
-  /// Mic, typing, the key pad and sound.
-  List<Widget> _buttons(BuildContext context) {
-    final w = _watch;
-    final live = w.phase == WatchPhase.live;
-    return [
-      _mic(context),
-      IconButton(
-        tooltip: _typing ? ScreenStrings.hideKeyboard : ScreenStrings.keyboard,
-        isSelected: _typing,
-        onPressed: live ? _toggleKeyboard : null,
-        icon: const Icon(Icons.keyboard_outlined),
-        selectedIcon: const Icon(Icons.keyboard_hide_outlined),
-      ),
-      IconButton(
-        tooltip: _keys ? ScreenStrings.hideKeys : ScreenStrings.keys,
-        isSelected: _keys,
-        onPressed: () => setState(() => _keys = !_keys),
-        icon: const Icon(Icons.keyboard_command_key),
-      ),
-      IconButton(
-        tooltip: w.soundOn ? ScreenStrings.soundOff : ScreenStrings.soundOn,
-        isSelected: w.soundOn,
-        onPressed: w.phase == WatchPhase.ended
-            ? null
-            : () => w.setSound(!w.soundOn),
-        icon: const Icon(Icons.volume_off_outlined),
-        selectedIcon: const Icon(Icons.volume_up),
-      ),
-    ];
-  }
-
-  Widget _mode() {
-    final w = _watch;
-    return SegmentedButton<bool>(
-      showSelectedIcon: false,
-      segments: const [
-        ButtonSegment(value: false, label: Text(ScreenStrings.view)),
-        ButtonSegment(value: true, label: Text(ScreenStrings.controlMode)),
-      ],
-      selected: {w.control},
-      onSelectionChanged: w.restarting
+    return IconButton(
+      tooltip: w.soundOn ? ScreenStrings.soundOff : ScreenStrings.soundOn,
+      isSelected: w.soundOn,
+      onPressed: w.phase == WatchPhase.ended
           ? null
-          : (value) => unawaited(_setControl(value.single)),
+          : () => w.setSound(!w.soundOn),
+      icon: const Icon(Icons.volume_off_outlined),
+      selectedIcon: const Icon(Icons.volume_up),
     );
   }
 
-  /// What sits above the buttons: the transcribing line, the text field and
-  /// the key pad, each only while it is wanted.
-  List<Widget> _panels() {
-    final w = _watch;
-    final live = w.phase == WatchPhase.live;
-    return [
-      if (widget.dictate.phase == DictatePhase.sending)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Semantics(
-            liveRegion: true,
-            child: Text(ScreenStrings.transcribing(_name)),
-          ),
-        ),
-      if (_typing)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: _TypeField(
-            controller: _text,
-            focusNode: _textFocus,
-            hint: ScreenStrings.typeHint(w.title),
-            enabled: live,
-            onSend: _sendText,
-          ),
-        ),
-      if (_keys)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: KeyPad(
-            platform: widget.computer.platform,
-            onPress: live ? _press : null,
-          ),
-        ),
-    ];
-  }
+  void _close() => unawaited(Navigator.maybePop(context));
 
-  /// Portrait: the controls under the picture.
+  /// Portrait: one slim row under the picture, sound and Stop.
   Widget _buildBar(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.surface,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 180),
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ..._panels(),
-                Row(
-                  children: [
-                    ..._buttons(context),
-                    const SizedBox(width: 8),
-                    // Shrinks rather than overflows on the smallest phones.
-                    Expanded(
-                      child: Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: FittedBox(fit: BoxFit.scaleDown, child: _mode()),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+          child: Row(
+            children: [
+              _sound(),
+              const Spacer(),
+              FilledButton.tonalIcon(
+                onPressed: _close,
+                icon: const Icon(Icons.stop_rounded),
+                label: const Text(ScreenStrings.stop),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  /// Landscape: the controls beside the picture, a slim column of buttons
-  /// until the key pad or the text field needs the width.
+  /// Landscape: the same two buttons in a slim column beside the picture.
   Widget _buildSide(BuildContext context) {
-    final w = _watch;
-    final wide = _keys || _typing;
     return Material(
       color: Theme.of(context).colorScheme.surface,
       child: SafeArea(
         left: false,
         child: SizedBox(
-          width: wide ? KeyPad.minWidth + 24 : 64,
+          width: 64,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(8),
-            child: wide
-                ? Column(
-                    children: [
-                      ..._panels(),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        children: _buttons(context),
-                      ),
-                      const SizedBox(height: 8),
-                      FittedBox(fit: BoxFit.scaleDown, child: _mode()),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      ..._buttons(context),
-                      const SizedBox(height: 8),
-                      IconButton(
-                        tooltip: w.control
-                            ? ScreenStrings.controlMode
-                            : ScreenStrings.view,
-                        isSelected: w.control,
-                        onPressed: w.restarting
-                            ? null
-                            : () => unawaited(_setControl(!w.control)),
-                        icon: const Icon(Icons.visibility_outlined),
-                        selectedIcon: const Icon(Icons.mouse),
-                      ),
-                    ],
-                  ),
+            child: Column(
+              children: [
+                _sound(),
+                const SizedBox(height: 8),
+                IconButton.filledTonal(
+                  tooltip: ScreenStrings.stop,
+                  onPressed: _close,
+                  icon: const Icon(Icons.stop_rounded),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -962,52 +660,6 @@ class _TopBar extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _TypeField extends StatelessWidget {
-  const _TypeField({
-    required this.controller,
-    required this.focusNode,
-    required this.hint,
-    required this.enabled,
-    required this.onSend,
-  });
-
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final String hint;
-  final bool enabled;
-  final VoidCallback onSend;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            minLines: 1,
-            maxLines: 3,
-            inputFormatters: [typedTextLimit],
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(hintText: hint, isDense: true),
-          ),
-        ),
-        const SizedBox(width: 8),
-        ValueListenableBuilder(
-          valueListenable: controller,
-          builder: (context, value, _) => IconButton.filled(
-            tooltip: ScreenStrings.send,
-            onPressed: enabled && value.text.trim().isNotEmpty ? onSend : null,
-            icon: const Icon(Icons.send),
-          ),
-        ),
-      ],
     );
   }
 }

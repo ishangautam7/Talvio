@@ -26,26 +26,6 @@ Rect containRect(Size picture, Size viewport) {
   );
 }
 
-/// The point of the picture under [point] (in viewport coordinates), in 0..1
-/// across the picture; null when it falls on a letterbox bar or [transform]
-/// cannot be inverted.
-Offset? pictureCoords({
-  required Offset point,
-  required Matrix4 transform,
-  required Size viewport,
-  required Size picture,
-}) {
-  final inverse = Matrix4.tryInvert(transform);
-  if (inverse == null) return null;
-  final child = MatrixUtils.transformPoint(inverse, point);
-  final rect = containRect(picture, viewport);
-  if (rect.isEmpty) return null;
-  final x = (child.dx - rect.left) / rect.width;
-  final y = (child.dy - rect.top) / rect.height;
-  if (x < 0 || x > 1 || y < 0 || y > 1) return null;
-  return Offset(x, y);
-}
-
 /// A uniform scale [scale] followed by a translation by [translation].
 Matrix4 scaleThenTranslate(double scale, Offset translation) => Matrix4(
   scale,
@@ -156,12 +136,6 @@ Matrix4 followTransform({
   );
   return scaleThenTranslate(scale, Offset(tx, ty));
 }
-
-/// Wheel notches for a two-finger drag of [dy] logical pixels: one per
-/// [perNotch], dragging up (negative) scrolling down (positive), as a finger
-/// moves a page on a touch screen.
-int scrollNotches(double dy, {double perNotch = 40}) =>
-    (-dy / perNotch).truncate();
 
 /// The zoom at which [picture] fills [viewport] with no bars, cropping the
 /// sides that do not fit (1 when it already fills it).

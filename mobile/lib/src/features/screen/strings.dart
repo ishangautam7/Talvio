@@ -47,21 +47,11 @@ abstract final class ScreenStrings {
   static const connecting = 'Connecting…';
   static const live = 'Live';
   static const reconnecting = 'Reconnecting…';
-  static const switching = 'Switching…';
   static const ended = 'Ended';
   static const stoppedByYou = 'You stopped watching.';
   static const watchAgain = 'Watch again';
   static const close = 'Close';
 
-  static const view = 'View';
-  static const controlMode = 'Control';
-  static const viewHint = 'View: pinch to zoom, drag to move around.';
-  static const controlHint =
-      'Control: tap to click, hold for right click, double tap to double '
-      'click, drag two fingers up or down to scroll.';
-
-  static const keys = 'Keys';
-  static const hideKeys = 'Hide keys';
   static const rotate = 'Turn sideways';
   static const unrotate = 'Turn upright';
   static const fill = 'Fill the screen';
@@ -71,26 +61,13 @@ abstract final class ScreenStrings {
   static const following = 'Following the cursor';
   static const soundOn = 'Turn sound on';
   static const soundOff = 'Turn sound off';
-  static const keyboard = 'Type';
-  static const hideKeyboard = 'Hide keyboard';
-  static const dictate = 'Dictate into this window';
-  static const stopDictating = 'Stop and send';
-  static String typeHint(String title) => 'Type into $title';
-  static const send = 'Send';
-  static String transcribing(String name) => 'Transcribing on $name…';
+  static const stop = 'Stop';
 
   static const minimized = 'This window is minimized on the computer.';
   static const covered = 'Another window covers this one on the computer.';
 
-  static String confirmTitle(String label) => 'Press "$label" on the computer?';
-  static const confirmBody =
-      'This button may send, buy, post or delete something.';
-  static const confirmUnlabelled = 'Press this button on the computer?';
-  static const cancel = 'Cancel';
-  static const press = 'Press';
-
-  /// Why a watch ended, or why an input was not delivered. Codes of the
-  /// other phone features fall through to [DictateStrings.error].
+  /// Why a watch ended. Codes of the other phone features fall through to
+  /// [DictateStrings.error].
   static String error(String code, String name) => switch (code) {
     'stopped' => 'Stopped on the computer.',
     'target_gone' =>
@@ -106,11 +83,7 @@ abstract final class ScreenStrings {
       "$name doesn't let phones see and use windows. Turn on \"Let phones "
           'see and use windows" in Talvio on that computer, under Settings, '
           'Account.',
-    'not_allowed' => 'Switch to Control to click and scroll.',
-    'password_field' => "Talvio doesn't type or click into password fields.",
-    'not_live' => 'Not connected to the window yet. Try again in a moment.',
     'timeout' => "$name didn't answer in time.",
-    'confirm' => 'Confirm on the phone first.',
     _ => DictateStrings.error(code, name),
   };
 }

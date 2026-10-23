@@ -2,13 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' show Offset;
 
 import '../../core/models.dart';
 import '../../core/relay_client.dart';
 import '../../core/relay_protocol.dart';
-import '../dictate/dictate_controller.dart' show DictateKind;
-import '../dictate/remote_windows.dart';
 import 'live_protocol.dart';
 import 'rtc_link.dart';
 
@@ -36,26 +33,19 @@ abstract final class WatchTimeouts {
 
   /// From the offer to `live`, after which the computer gives up too.
   static const connect = Duration(seconds: 30);
-
-  /// For an input message's `ack`.
-  static const ack = Duration(seconds: 15);
-
-  /// For the computer's result to a cancel before a new watch is sent, so
-  /// the new one does not find the old one still running (`busy`).
-  static const stopGrace = Duration(seconds: 5);
 }
 
 /// Runs one live view of [target] on [computer] at a time: the `screen.watch`
-/// request, its WebRTC handshake over the relay, and input over the
-/// `control` channel. Every way a watch ends goes through [_end], which
-/// closes the peer connection.
+/// request and its WebRTC handshake over the relay. Live view only watches:
+/// every watch is sent with `control: false`, and the `control` channel only
+/// carries sound on/off and keyframe requests. Every way a watch ends goes
+/// through [_end], which closes the peer connection.
 class WatchController extends ChangeNotifier {
   WatchController({
     required this._relay,
     required this.computer,
     required this.target,
     required this._linkFactory,
-    this._control = false,
   });
 
   final RelayClient _relay;
@@ -65,9 +55,7 @@ class WatchController extends ChangeNotifier {
 
   var _phase = WatchPhase.ended;
   String? _endError;
-  bool _control;
   var _sound = false;
-  var _restarting = false;
   var _reconnecting = false;
   var _foreground = true;
   var _disposed = false;
@@ -77,7 +65,6 @@ class WatchController extends ChangeNotifier {
   RelayRequest? _request;
   StreamSubscription<Map<String, Object?>>? _replies;
   Timer? _timer;
-  Completer<void>? _awaitingResult;
 
   RtcLink? _link;
 
@@ -95,9 +82,6 @@ class WatchController extends ChangeNotifier {
   /// carry a watch across a reconnect).
   var _signalLost = false;
 
-  var _inputSeq = 0;
-  final _acks = <String, ({Completer<InputResult> done, Timer timer})>{};
-
   Caret? _caret;
   WatchedTarget? _watched;
 
@@ -107,14 +91,8 @@ class WatchController extends ChangeNotifier {
   /// it (or it is still running).
   String? get endError => _endError;
 
-  /// Taps and scrolls are allowed (the watch was sent with `control: true`).
-  bool get control => _control;
-
   /// The computer's sound plays on this phone.
   bool get soundOn => _sound;
-
-  /// Ending the watch to start it again (View ↔ Control).
-  bool get restarting => _restarting;
 
   /// Live, but the media path is lost for the moment.
   bool get reconnecting => _reconnecting;
@@ -152,7 +130,8 @@ class WatchController extends ChangeNotifier {
     final request = _relay.request(computer.id, {
       'kind': ScreenKind.watch,
       'target': target.id,
-      'control': _control,
+      // Watch only: this phone never clicks, scrolls or types in a watch.
+      'control': false,
       'audio': _sound,
     });
     _request = request;
@@ -168,22 +147,6 @@ class WatchController extends ChangeNotifier {
   void stop() {
     if (_phase == WatchPhase.ended) return;
     _end(null, cancelRemote: true);
-  }
-
-  /// Switches between View and Control. The computer reads `control` only
-  /// from the watch, so a running watch is ended and sent again.
-  Future<void> setControl(bool control) async {
-    if (control == _control || _restarting) return;
-    _control = control;
-    if (_phase == WatchPhase.ended) {
-      _notify();
-      return;
-    }
-    _restarting = true;
-    _notify();
-    await _cancelAndWait();
-    _restarting = false;
-    if (!_disposed) start();
   }
 
   /// Turns the computer's sound on or off, here and on the computer (which
@@ -208,54 +171,9 @@ class WatchController extends ChangeNotifier {
     _notify();
   }
 
-  /// Presses [keys] in the watched window: over the channel while it is
-  /// open, else as `windows.keys`.
-  Future<InputResult> keys(List<String> keys) {
-    if (_channelOpen) return _input({'t': 'keys', 'keys': keys});
-    return _ask({'kind': WindowsKind.keys, 'keys': keys, ..._aim()});
-  }
-
-  /// Types [text] into the watched window: over the channel while it is
-  /// open, else as a `text` request.
-  Future<InputResult> text(String text) {
-    if (_channelOpen) return _input({'t': 'text', 'text': text});
-    return _ask({'kind': DictateKind.text, 'text': text, ..._aim()});
-  }
-
-  /// Clicks at [point] (0..1 of the picture).
-  Future<InputResult> tap(
-    Offset point, {
-    bool right = false,
-    int count = 1,
-    bool confirmed = false,
-  }) => _input({
-    't': 'tap',
-    'x': _round(point.dx),
-    'y': _round(point.dy),
-    'button': right ? 'right' : 'left',
-    'count': count,
-    'confirmed': confirmed,
-  });
-
-  /// Scrolls [dy] (and [dx]) wheel notches at [point].
-  Future<InputResult> scroll(Offset point, {int dy = 0, int dx = 0}) => _input({
-    't': 'scroll',
-    'x': _round(point.dx),
-    'y': _round(point.dy),
-    'dy': dy,
-    'dx': dx,
-  });
-
-  static double _round(double v) => (v * 10000).roundToDouble() / 10000;
-
   void _onReply(int run, Map<String, Object?> body) {
     if (run != _run) return;
     if (body['kind'] == RelayKind.result) {
-      if (_awaitingResult case final waiter?) {
-        _awaitingResult = null;
-        waiter.complete();
-        return;
-      }
       final error = body['ok'] == true
           ? null
           : (body['error'] is String ? body['error']! as String : 'unknown');
@@ -382,27 +300,15 @@ class WatchController extends ChangeNotifier {
       if (open) {
         // The watch carried the sound as it was when sent.
         if (_sound) _sendControl({'t': 'audio', 'on': true});
-      } else {
-        _failInputs('not_live');
-        if (_signalLost) {
-          _end('interrupted');
-          return;
-        }
+      } else if (_signalLost) {
+        _end('interrupted');
+        return;
       }
       _notify();
     },
     onMessage: (text) {
       if (run != _run || _phase == WatchPhase.ended) return;
       switch (ControlMessage.decode(text)) {
-        case AckMessage(:final id, :final ok, :final error, :final label):
-          final pending = _acks.remove(id);
-          if (pending == null) return;
-          pending.timer.cancel();
-          pending.done.complete(
-            ok
-                ? const InputResult.ok()
-                : InputResult.failed(error ?? 'unknown', label: label),
-          );
         case CaretMessage(:final caret):
           if (caret == _caret) return;
           _caret = caret;
@@ -418,11 +324,6 @@ class WatchController extends ChangeNotifier {
 
   void _onRelayError(int run, Object error) {
     if (run != _run) return;
-    if (_awaitingResult case final waiter?) {
-      _awaitingResult = null;
-      waiter.complete();
-      return;
-    }
     final code = switch (error) {
       RelayException(error: RelayError.offline) => 'offline',
       RelayException(error: RelayError.notConnected) => 'not_connected',
@@ -439,21 +340,6 @@ class WatchController extends ChangeNotifier {
     _end(code);
   }
 
-  /// Asks the computer to stop the watch and waits (briefly) for its result.
-  Future<void> _cancelAndWait() async {
-    final request = _request;
-    if (request == null || _phase == WatchPhase.ended) {
-      _end(null);
-      return;
-    }
-    final waiter = Completer<void>();
-    _awaitingResult = waiter;
-    _relay.cancel(request.id);
-    await waiter.future.timeout(WatchTimeouts.stopGrace, onTimeout: () {});
-    _awaitingResult = null;
-    _end(null);
-  }
-
   /// Ends the watch as [error] (null: this phone ended it). With
   /// [cancelRemote] the computer is told to stop too.
   void _end(String? error, {bool cancelRemote = false}) {
@@ -468,7 +354,6 @@ class WatchController extends ChangeNotifier {
     // Also ends the request on this phone, whatever the computer answers.
     unawaited(_replies?.cancel());
     _replies = null;
-    _failInputs('cancelled');
     final link = _link;
     _link = null;
     _offered = false;
@@ -498,96 +383,6 @@ class WatchController extends ChangeNotifier {
   bool _sendControl(Map<String, Object?> message) {
     if (!_channelOpen) return false;
     return _link?.send(jsonEncode(message)) ?? false;
-  }
-
-  Future<InputResult> _input(Map<String, Object?> message) {
-    final link = _link;
-    if (link == null || !_channelOpen || _phase == WatchPhase.ended) {
-      return Future.value(const InputResult.failed('not_live'));
-    }
-    final id = 'k${++_inputSeq}';
-    if (!link.send(jsonEncode({...message, 'id': id}))) {
-      return Future.value(const InputResult.failed('not_live'));
-    }
-    final done = Completer<InputResult>();
-    _acks[id] = (
-      done: done,
-      timer: Timer(WatchTimeouts.ack, () {
-        if (_acks.remove(id) != null) {
-          done.complete(const InputResult.failed('timeout'));
-        }
-      }),
-    );
-    return done.future;
-  }
-
-  void _failInputs(String error) {
-    final pending = [..._acks.values];
-    _acks.clear();
-    for (final ack in pending) {
-      ack.timer.cancel();
-      ack.done.complete(InputResult.failed(error));
-    }
-  }
-
-  /// The fields that aim a relay request at the watched window; none for a
-  /// screen, whose input goes wherever the keyboard is.
-  Map<String, Object?> _aim() =>
-      target.screen ? const {} : {'target': target.id, 'stay': true};
-
-  /// A relay request for input while the channel is not open.
-  Future<InputResult> _ask(Map<String, Object?> body) async {
-    final request = _relay.request(computer.id, body);
-    final result = Completer<InputResult>();
-    Timer? timer;
-    void wait(Duration limit) {
-      timer?.cancel();
-      timer = Timer(limit, () {
-        _relay.cancel(request.id);
-        if (!result.isCompleted) {
-          result.complete(const InputResult.failed('timeout'));
-        }
-      });
-    }
-
-    wait(WatchTimeouts.reply);
-    final subscription = request.replies.listen(
-      (reply) {
-        if (reply['kind'] == RelayKind.progress) {
-          wait(
-            reply['stage'] == ScreenKind.approvalStage
-                ? WatchTimeouts.approval
-                : WatchTimeouts.reply,
-          );
-        } else if (reply['kind'] == RelayKind.result && !result.isCompleted) {
-          result.complete(
-            reply['ok'] == true
-                ? const InputResult.ok()
-                : InputResult.failed(
-                    reply['error'] is String
-                        ? reply['error']! as String
-                        : 'unknown',
-                  ),
-          );
-        }
-      },
-      onError: (Object error) {
-        if (result.isCompleted) return;
-        result.complete(
-          InputResult.failed(switch (error) {
-            RelayException(error: RelayError.offline) => 'offline',
-            RelayException(error: RelayError.notConnected) => 'not_connected',
-            _ => 'interrupted',
-          }),
-        );
-      },
-    );
-    try {
-      return await result.future;
-    } finally {
-      timer?.cancel();
-      unawaited(subscription.cancel());
-    }
   }
 
   void _notify() {
