@@ -1,6 +1,6 @@
 abstract final class DictateStrings {
-  static const tab = 'Dictate';
-  static const title = 'Dictate';
+  static const tab = 'Send';
+  static const title = 'Send';
   static const chooseComputer = 'Send to';
   static const pickComputerTitle = 'Choose a computer';
   static const pickComputerBody =
@@ -48,6 +48,17 @@ abstract final class DictateStrings {
   static const tryAgain = 'Try again';
   static const dismiss = 'Dismiss';
   static const recent = 'Recent';
+
+  // History: what was dictated, on this phone only.
+  static const historyTab = 'History';
+  static const historyTitle = 'History';
+  static const historyEmptyTitle = 'Nothing dictated yet';
+  static const historyEmptyBody =
+      'What you dictate shows here, newest first, so you can copy it again. '
+      'It stays on this phone.';
+  static const historyNote = 'Your last 20 dictations, on this phone only.';
+  static const dictateNow = 'Dictate';
+  static String sendAgain(String name) => 'Paste on $name';
 
   // Choosing a window and pressing keys (capability `windows`).
   static const cursorWindow = 'Where the cursor is';

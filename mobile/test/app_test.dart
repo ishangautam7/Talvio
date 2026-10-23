@@ -12,15 +12,41 @@ import 'package:talvio_mobile/src/core/relay_client.dart';
 
 import 'helpers.dart';
 
+/// Shows [page] through the menu (or the rail, on a wide window).
+Future<void> goTo(WidgetTester tester, String page) async {
+  final menu = find.byTooltip('Open menu');
+  if (menu.evaluate().isNotEmpty) {
+    await tester.tap(menu);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationDrawer),
+        matching: find.text(page),
+      ),
+    );
+  } else {
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text(page),
+      ),
+    );
+  }
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
 /// The whole signed-in app on a small phone (iPhone SE size, 320×568), with
-/// [devices] on the account. With [recordEvents], the recorder records and
-/// its state events go to the sink; with [recording] too, stopping it
-/// answers that file.
+/// [devices] on the account, showing [page] (home when null). With
+/// [recordEvents], the recorder records and its state events go to the sink;
+/// with [recording] too, stopping it answers that file.
 Future<(FakeServer, RelayClient)> pumpApp(
   WidgetTester tester,
   List<Map<String, Object?>> devices, {
   void Function(MockStreamHandlerEventSink events)? recordEvents,
   String? recording,
+  String? page = 'Send',
 }) async {
   tester.view
     ..physicalSize = const Size(320, 568)
@@ -82,6 +108,7 @@ Future<(FakeServer, RelayClient)> pumpApp(
     });
   await tester.pump();
   await tester.pump();
+  if (page != null) await goTo(tester, page);
   return (server, relay);
 }
 
@@ -154,7 +181,7 @@ void main() {
     final (_, relay) = await pumpApp(tester, []);
     expect(find.text('Add your computer'), findsOneWidget);
     expect(find.textContaining('sign in with a@b.com'), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byTooltip('Open menu'), findsOneWidget);
     await finish(tester, relay);
   });
 
@@ -587,7 +614,7 @@ void main() {
       });
       await tester.pump();
       await tester.pump();
-      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byTooltip('Send'), findsOneWidget, reason: 'still on Send');
       expect(
         find.textContaining('on it and try again', skipOffstage: false),
         findsOneWidget,
@@ -598,13 +625,30 @@ void main() {
     await finish(tester, relay);
   });
 
-  testWidgets('an online computer without dictation hides the tab', (
+  testWidgets('an online computer without dictation hides Send', (
     tester,
   ) async {
     final (_, relay) = await pumpApp(tester, [
       deviceJson(capabilities: ['text']),
-    ]);
-    expect(find.byType(NavigationBar), findsNothing);
+    ], page: null);
+    expect(find.text('Dictate or type'), findsNothing);
+    await tester.tap(find.byTooltip('Open menu'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    final drawer = find.byType(NavigationDrawer);
+    expect(
+      find.descendant(of: drawer, matching: find.text('Send')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: drawer, matching: find.text('History')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.descendant(of: drawer, matching: find.text('Account')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Sign out'), findsOneWidget);
     await finish(tester, relay);
   });
@@ -789,6 +833,15 @@ void main() {
       expect(find.text('Press Enter'), findsOneWidget);
       await tester.pump(const Duration(seconds: 9));
       expect(find.text('Press Enter'), findsNothing, reason: 'it goes');
+
+      // The dictation is in History, not on Send.
+      expect(find.text('Recent'), findsNothing, reason: 'Send keeps no list');
+      await goTo(tester, 'History');
+      expect(find.text('ls'), findsOneWidget);
+      await tester.tap(find.text('ls'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Paste on ISHAN-PC'), findsOneWidget);
       await finish(tester, relay);
     });
 
@@ -973,10 +1026,202 @@ void main() {
     });
   });
 
+  group('home and menu', () {
+    final screenPc = deviceJson(
+      capabilities: ['dictate', 'text', 'windows', 'screen'],
+    );
+    final listing = {
+      'ok': true,
+      'windows': [
+        {'id': 'w2', 'title': 'notes.txt', 'app': 'Notepad', 'front': true},
+        {'id': 'w5', 'title': 'Inbox', 'app': 'Outlook', 'front': false},
+      ],
+      'screens': [
+        {
+          'id': 's4',
+          'name': 'Display 2',
+          'width': 1920,
+          'height': 1080,
+          'primary': false,
+        },
+        {
+          'id': 's3',
+          'name': 'Display 1',
+          'width': 2560,
+          'height': 1440,
+          'primary': true,
+        },
+      ],
+    };
+
+    Map<String, Object?> lastBody(FakeServer server) =>
+        server.relays.last['body']! as Map<String, Object?>;
+
+    /// Answers the latest `windows.list` with [listing].
+    Future<void> answerList(WidgetTester tester, FakeServer server) async {
+      final body = server.relays
+          .map((r) => r['body']! as Map<String, Object?>)
+          .lastWhere((body) => body['kind'] == 'windows.list');
+      server.relay('pc', {
+        'kind': 'result',
+        'requestId': body['requestId'],
+        ...listing,
+      });
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('the menu lists the pages under who and which computer', (
+      tester,
+    ) async {
+      final (_, relay) = await pumpApp(tester, [deviceJson()], page: null);
+      await tester.tap(find.byTooltip('Open menu'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      final drawer = find.byType(NavigationDrawer);
+      Finder inMenu(String text) =>
+          find.descendant(of: drawer, matching: find.text(text));
+      expect(inMenu('Talvio'), findsOneWidget);
+      expect(inMenu('a@b.com'), findsOneWidget);
+      expect(inMenu('ISHAN-PC'), findsOneWidget);
+      expect(inMenu('Online'), findsOneWidget);
+      final labels = [
+        for (final d in tester.widgetList<NavigationDrawerDestination>(
+          find.byType(NavigationDrawerDestination),
+        ))
+          (d.label as Text).data,
+      ];
+      expect(labels, ['Screen', 'Send', 'History', 'Account']);
+      expect(tester.takeException(), isNull, reason: 'fits a small phone');
+
+      await tester.tap(inMenu('History'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Nothing dictated yet'), findsOneWidget);
+
+      // Back goes home before it leaves the app.
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      expect(find.text('Nothing dictated yet'), findsNothing);
+      expect(find.text('View screen'), findsNothing, reason: 'no screen cap');
+      expect(find.text('Dictate or type'), findsOneWidget, reason: 'home');
+      await finish(tester, relay);
+    });
+
+    testWidgets('Send is its own page, not home', (tester) async {
+      final (_, relay) = await pumpApp(tester, [deviceJson()], page: null);
+      expect(find.widgetWithIcon(FilledButton, Icons.mic), findsNothing);
+      expect(find.byType(TextField), findsNothing);
+      // Home's shortcut opens it.
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text('Dictate or type'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.widgetWithIcon(FilledButton, Icons.mic), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      await finish(tester, relay);
+    });
+
+    testWidgets('home lists windows and screens, and opens live view', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final (server, relay) = await pumpApp(tester, [screenPc], page: null);
+      expect(find.text('Looking for windows and screens…'), findsOneWidget);
+      await answerList(tester, server);
+      expect(tester.takeException(), isNull, reason: 'fits a small phone');
+      expect(find.text('View screen'), findsOneWidget);
+      expect(find.text('Display 1 · 2560 × 1440'), findsOneWidget);
+      expect(find.text('Open windows'), findsOneWidget);
+      expect(find.text('Notepad'), findsOneWidget);
+      expect(find.text('In front'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Display 2'), 100);
+      expect(find.text('1920 × 1080'), findsOneWidget);
+
+      // View screen opens the main one, not the first listed.
+      await tester.scrollUntilVisible(find.text('View screen'), -100);
+      await tester.tap(find.text('View screen'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(lastBody(server)['kind'], 'screen.watch');
+      expect(lastBody(server)['target'], 's3');
+      expect(find.byTooltip('Stop watching'), findsOneWidget);
+      final watch = lastBody(server)['requestId'];
+      await tester.tap(find.byTooltip('Stop watching'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(
+        server.relays.map((r) => r['body']),
+        anyElement(equals({'kind': 'cancel', 'requestId': watch})),
+      );
+      // Back home it lists again, since windows come and go.
+      await answerList(tester, server);
+
+      // A window opens straight into live view, and aims input at it.
+      await tester.tap(find.text('Outlook'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(lastBody(server)['kind'], 'screen.watch');
+      expect(lastBody(server)['target'], 'w5');
+      await tester.tap(find.byTooltip('Stop watching'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await answerList(tester, server);
+      await goTo(tester, 'Send');
+      expect(find.text('Outlook'), findsOneWidget, reason: 'the target');
+      await finish(tester, relay);
+      handle.dispose();
+    });
+
+    testWidgets('home says how to turn on seeing the screen', (tester) async {
+      final (server, relay) = await pumpApp(tester, [
+        deviceJson(capabilities: ['dictate', 'text', 'windows']),
+      ], page: null);
+      expect(find.text("See ISHAN-PC's screen here"), findsOneWidget);
+      expect(
+        find.textContaining('"Let phones see and use windows"'),
+        findsOneWidget,
+      );
+      expect(find.text('View screen'), findsNothing);
+      expect(server.relays, isEmpty, reason: 'nothing to list');
+      await tester.tap(find.text('Dictate or type instead'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.widgetWithIcon(FilledButton, Icons.mic), findsOneWidget);
+      await finish(tester, relay);
+    });
+
+    testWidgets('home with the computer offline says to open Talvio', (
+      tester,
+    ) async {
+      final (_, relay) = await pumpApp(tester, [
+        deviceJson(online: false),
+      ], page: null);
+      expect(
+        find.text('Open Talvio on ISHAN-PC to see its screen and send to it.'),
+        findsOneWidget,
+      );
+      expect(find.text('Dictate or type'), findsNothing);
+      await finish(tester, relay);
+    });
+
+    testWidgets('a wide window shows the pages in a rail', (tester) async {
+      final (_, relay) = await pumpApp(tester, [deviceJson()], page: null);
+      tester.view.physicalSize = const Size(800, 400);
+      await tester.pump();
+      expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.byTooltip('Open menu'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await goTo(tester, 'History');
+      expect(find.text('Nothing dictated yet'), findsOneWidget);
+      await finish(tester, relay);
+    });
+  });
+
   testWidgets('account lists devices and confirms a removal', (tester) async {
-    final (_, relay) = await pumpApp(tester, [deviceJson(online: false)]);
-    await tester.tap(find.text('Account'));
-    await tester.pumpAndSettle();
+    final (_, relay) = await pumpApp(tester, [
+      deviceJson(online: false),
+    ], page: 'Account');
 
     expect(find.text('This phone'), findsOneWidget);
     expect(find.text('Ishan'), findsOneWidget);

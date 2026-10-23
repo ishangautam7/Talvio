@@ -6,27 +6,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/app_services.dart';
-import '../../core/device_icon.dart';
 import '../../core/models.dart';
-import '../../core/relay_client.dart';
 import '../../core/widgets.dart';
 import '../../shell/feature_tab.dart';
+import '../../shell/shell_scope.dart';
 import '../screen/live_protocol.dart';
 import '../screen/strings.dart';
 import '../screen/watch_screen.dart';
+import 'computer_widgets.dart';
 import 'dictate_controller.dart';
-import 'recent_dictations.dart';
+import 'dictate_scope.dart';
+import 'key_pad.dart';
 import 'remote_windows.dart';
 import 'strings.dart';
 
-final dictateTab = FeatureTab(
-  id: 'dictate',
+export 'computer_widgets.dart' show windowLabel;
+
+/// Dictating and typing into the computer, and pressing its keys.
+final sendTab = FeatureTab(
+  id: sendTabId,
   label: DictateStrings.tab,
-  icon: Icons.mic_none,
-  selectedIcon: Icons.mic,
+  icon: Icons.send_outlined,
+  selectedIcon: Icons.send,
   requires: DictateKind.dictate,
   builder: (_) => const DictateScreen(),
 );
+
+const sendTabId = 'send';
 
 class DictateScreen extends StatefulWidget {
   const DictateScreen({super.key});
@@ -37,16 +43,12 @@ class DictateScreen extends StatefulWidget {
 
 class _DictateScreenState extends State<DictateScreen> {
   late final AppServices _services = AppServices.of(context);
-  late final DictateController _controller = DictateController(
-    relay: _services.relay,
-    prefs: _services.prefs,
-  );
+  late final DictateController _controller = DictateScope.of(context);
   final _text = TextEditingController();
   final _textFocus = FocusNode();
 
   @override
   void dispose() {
-    _controller.dispose();
     _text.dispose();
     _textFocus.dispose();
     super.dispose();
@@ -64,34 +66,6 @@ class _DictateScreenState extends State<DictateScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(const SnackBar(content: Text(DictateStrings.copied)));
   }
-
-  Future<void> _chooseComputer() => showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    builder: (context) => SafeArea(
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-            child: Text(
-              DictateStrings.chooseComputer,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          for (final computer in _controller.computers)
-            _ComputerTile(
-              computer,
-              selected: computer.id == _controller.computer?.id,
-              onTap: () {
-                _controller.choose(computer.id);
-                Navigator.pop(context);
-              },
-            ),
-        ],
-      ),
-    ),
-  );
 
   Future<void> _chooseWindow() => showModalBottomSheet<void>(
     context: context,
@@ -119,18 +93,8 @@ class _DictateScreenState extends State<DictateScreen> {
       (_controller.computer?.capabilities.contains(ScreenKind.capability) ??
           false);
 
-  /// Opens live view of [target]. What is watched is also where dictation
-  /// and typing go: [window], or for a screen wherever the keyboard is.
-  void _watch(WatchTarget target, {RemoteWindow? window}) {
-    final computer = _controller.computer;
-    if (computer == null) return;
-    _controller.chooseWindow(window);
-    unawaited(
-      Navigator.of(context).push(
-        watchRoute(dictate: _controller, computer: computer, target: target),
-      ),
-    );
-  }
+  void _watch(WatchTarget target, {RemoteWindow? window}) =>
+      unawaited(openWatch(context, _controller, target, window: window));
 
   /// Presses [keys] in the chosen window; a failure shows as a snack bar,
   /// since the screen's card belongs to the last dictation.
@@ -174,48 +138,21 @@ class _DictateScreenState extends State<DictateScreen> {
         _textFocus,
       ]),
       builder: (context, _) {
-        final connected = relay.status.value == RelayStatus.connected;
-        final known = relay.devices.value != null;
-        final computers = _controller.computers;
         final computer = _controller.computer;
         return Scaffold(
           appBar: AppBar(
+            leading: shellLeading(context),
             title: computer == null
                 ? const Text(DictateStrings.title)
-                : _ComputerTitle(
+                : ComputerTitle(
                     computer,
                     // A recording or request keeps its computer to the end.
-                    onTap:
-                        computers.length > 1 &&
-                            _controller.phase == DictatePhase.idle
-                        ? _chooseComputer
+                    onTap: canChooseComputer(_controller)
+                        ? () => chooseComputer(context, _controller)
                         : null,
                   ),
           ),
-          body: Column(
-            children: [
-              if (!connected) const _ConnectionBanner(),
-              Expanded(
-                child: switch ((known, computer)) {
-                  (false, _) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  (true, null) when computers.isNotEmpty => _PickComputer(
-                    computers,
-                    onPick: _controller.choose,
-                  ),
-                  (true, null) => _NoComputer(
-                    email: _services.session.session?.user.email ?? '',
-                  ),
-                  (true, final Device computer) => _buildBody(
-                    context,
-                    computer,
-                    connected,
-                  ),
-                },
-              ),
-            ],
-          ),
+          body: ComputerGate(controller: _controller, builder: _buildBody),
         );
       },
     );
@@ -282,21 +219,12 @@ class _DictateScreenState extends State<DictateScreen> {
                         : null,
                     onDismiss: c.dismissOutcome,
                   ),
-                if (note == null &&
-                    outcome == null &&
-                    idle &&
-                    c.recents.items.isEmpty)
+                if (note == null && outcome == null && idle)
                   _Hint(
                     c.deliver == Deliver.keep
                         ? DictateStrings.hintKeep
                         : DictateStrings.hintPaste(computer.name),
                   ),
-                if (c.recents.items.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  SectionTitle(DictateStrings.recent),
-                  for (final item in c.recents.items)
-                    _RecentTile(item, onCopy: _copy),
-                ],
               ],
             ),
           ),
@@ -391,7 +319,7 @@ class _DictateScreenState extends State<DictateScreen> {
                               : Center(
                                   child: Text(
                                     idle ? DictateStrings.tapToSpeak : '',
-                                    style: _muted(context),
+                                    style: mutedText(context),
                                   ),
                                 ),
                         ),
@@ -407,7 +335,7 @@ class _DictateScreenState extends State<DictateScreen> {
                       // small phone; next to the field, where Enter is wanted.
                       if (hasWindows) ...[
                         const SizedBox(height: 8),
-                        KeyRow(
+                        KeyPad(
                           platform: computer.platform,
                           onPress: canAim ? _press : null,
                         ),
@@ -419,190 +347,6 @@ class _DictateScreenState extends State<DictateScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-TextStyle? _muted(BuildContext context) => Theme.of(context)
-    .textTheme
-    .bodyMedium
-    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
-
-class _ComputerTitle extends StatelessWidget {
-  const _ComputerTitle(this.computer, {required this.onTap});
-
-  final Device computer;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      button: onTap != null,
-      label: DictateStrings.chooseComputer,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DeviceIcon(computer),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      computer.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    Text(
-                      computer.online
-                          ? DictateStrings.online
-                          : DictateStrings.offline,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (onTap != null) const Icon(Icons.arrow_drop_down),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ConnectionBanner extends StatelessWidget {
-  const _ConnectionBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            const SizedBox.square(
-              dimension: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                DictateStrings.connecting,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ComputerTile extends StatelessWidget {
-  const _ComputerTile(
-    this.computer, {
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Device computer;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-      leading: DeviceIcon(computer),
-      title: Text(computer.name),
-      subtitle: Text(
-        computer.online ? DictateStrings.online : DictateStrings.offline,
-      ),
-      trailing: selected ? const Icon(Icons.check) : null,
-      onTap: onTap,
-    );
-  }
-}
-
-/// Several computers and no choice yet (or the chosen one left the account).
-class _PickComputer extends StatelessWidget {
-  const _PickComputer(this.computers, {required this.onPick});
-
-  final List<Device> computers;
-  final ValueChanged<String> onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
-          child: Text(
-            DictateStrings.pickComputerTitle,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-          child: Text(DictateStrings.pickComputerBody, style: _muted(context)),
-        ),
-        for (final computer in computers)
-          _ComputerTile(
-            computer,
-            selected: false,
-            onTap: () => onPick(computer.id),
-          ),
-      ],
-    );
-  }
-}
-
-class _NoComputer extends StatelessWidget {
-  const _NoComputer({required this.email});
-
-  final String email;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.computer_outlined,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              DictateStrings.noComputerTitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              DictateStrings.noComputerBody(email),
-              textAlign: TextAlign.center,
-              style: _muted(context),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -633,7 +377,7 @@ class _Hint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-      child: Text(text, textAlign: TextAlign.center, style: _muted(context)),
+      child: Text(text, textAlign: TextAlign.center, style: mutedText(context)),
     );
   }
 }
@@ -669,7 +413,7 @@ class _ProgressCard extends StatelessWidget {
                       children: [
                         Text(text),
                         if (detail case final detail?)
-                          Text(detail, style: _muted(context)),
+                          Text(detail, style: mutedText(context)),
                       ],
                     ),
                   ),
@@ -828,36 +572,6 @@ class _OutcomeCard extends StatelessWidget {
   }
 }
 
-class _RecentTile extends StatelessWidget {
-  const _RecentTile(this.item, {required this.onCopy});
-
-  final RecentDictation item;
-  final ValueChanged<String> onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = MaterialLocalizations.of(context);
-    final now = DateTime.now();
-    final today =
-        item.at.year == now.year &&
-        item.at.month == now.month &&
-        item.at.day == now.day;
-    return ListTile(
-      title: Text(item.text, maxLines: 3, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        today
-            ? localizations.formatTimeOfDay(TimeOfDay.fromDateTime(item.at))
-            : localizations.formatShortMonthDay(item.at),
-      ),
-      trailing: IconButton(
-        tooltip: DictateStrings.copy,
-        icon: const Icon(Icons.copy),
-        onPressed: () => onCopy(item.text),
-      ),
-    );
-  }
-}
-
 class _MicButton extends StatelessWidget {
   const _MicButton({
     required this.phase,
@@ -959,7 +673,7 @@ class _RecordingCaption extends StatelessWidget {
                   : '${value.inMinutes}:$seconds';
               return Text(
                 '$time · ${DictateStrings.tapToSend}',
-                style: _muted(
+                style: mutedText(
                   context,
                 )?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
               );
@@ -1037,15 +751,6 @@ class _Composer extends StatelessWidget {
   }
 }
 
-/// A window as two lines: the app, and its title (null when the app is all
-/// there is to say).
-(String, String?) windowLabel(RemoteWindow window) => switch (window) {
-  RemoteWindow(app: '', title: '') => (DictateStrings.untitled, null),
-  RemoteWindow(app: '', :final title) => (title, null),
-  RemoteWindow(:final app, title: '') => (app, null),
-  RemoteWindow(:final app, :final title) => (app, title),
-};
-
 /// Where input goes: the chosen window, or wherever the cursor is.
 class _WindowRow extends StatelessWidget {
   const _WindowRow({
@@ -1115,135 +820,6 @@ class _WindowRow extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// One key the key row presses, and how it is shown.
-typedef _Key = ({String combo, String label, IconData? icon, String? text});
-
-/// Keys to press in the chosen window: the common ones as buttons, the rest
-/// behind "More keys". Scrolls sideways when it does not fit.
-class KeyRow extends StatelessWidget {
-  const KeyRow({super.key, required this.platform, required this.onPress});
-
-  /// The computer's, for Ctrl or Cmd.
-  final String platform;
-  final ValueChanged<List<String>>? onPress;
-
-  static const List<_Key> _keys = [
-    (
-      combo: 'enter',
-      label: DictateStrings.keyEnter,
-      icon: Icons.keyboard_return,
-      text: null,
-    ),
-    (
-      combo: 'tab',
-      label: DictateStrings.keyTab,
-      icon: Icons.keyboard_tab,
-      text: null,
-    ),
-    (
-      combo: 'escape',
-      label: DictateStrings.keyEscapeLabel,
-      icon: null,
-      text: DictateStrings.keyEscape,
-    ),
-    (
-      combo: 'left',
-      label: DictateStrings.keyLeft,
-      icon: Icons.keyboard_arrow_left,
-      text: null,
-    ),
-    (
-      combo: 'up',
-      label: DictateStrings.keyUp,
-      icon: Icons.keyboard_arrow_up,
-      text: null,
-    ),
-    (
-      combo: 'down',
-      label: DictateStrings.keyDown,
-      icon: Icons.keyboard_arrow_down,
-      text: null,
-    ),
-    (
-      combo: 'right',
-      label: DictateStrings.keyRight,
-      icon: Icons.keyboard_arrow_right,
-      text: null,
-    ),
-    (
-      combo: 'backspace',
-      label: DictateStrings.keyBackspace,
-      icon: Icons.backspace_outlined,
-      text: null,
-    ),
-  ];
-
-  List<(String, String)> _more() {
-    final mod = DictateStrings.modifier(platform);
-    return [
-      ('shift+enter', DictateStrings.keyShiftEnter),
-      (commandCombo(platform, 'c'), DictateStrings.keyCopy(mod)),
-      (commandCombo(platform, 'v'), DictateStrings.keyPaste(mod)),
-      (commandCombo(platform, 'z'), DictateStrings.keyUndo(mod)),
-      (commandCombo(platform, 'a'), DictateStrings.keySelectAll(mod)),
-      ('space', DictateStrings.keySpace),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final onPress = this.onPress;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final key in _keys)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: key.icon == null
-                  ? Semantics(
-                      label: key.label,
-                      button: true,
-                      excludeSemantics: true,
-                      enabled: onPress != null,
-                      onTap: onPress == null
-                          ? null
-                          : () => onPress([key.combo]),
-                      child: OutlinedButton(
-                        onPressed: onPress == null
-                            ? null
-                            : () => onPress([key.combo]),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(48, 40),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        child: Text(key.text!),
-                      ),
-                    )
-                  : IconButton.outlined(
-                      tooltip: key.label,
-                      onPressed: onPress == null
-                          ? null
-                          : () => onPress([key.combo]),
-                      icon: Icon(key.icon),
-                    ),
-            ),
-          PopupMenuButton<String>(
-            tooltip: DictateStrings.moreKeys,
-            enabled: onPress != null,
-            icon: const Icon(Icons.more_horiz),
-            onSelected: (combo) => onPress?.call([combo]),
-            itemBuilder: (context) => [
-              for (final (combo, label) in _more())
-                PopupMenuItem(value: combo, child: Text(label)),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -1339,7 +915,7 @@ class _WindowPickerState extends State<_WindowPicker> {
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
               child: Text(
                 DictateStrings.pickWindowBody(name),
-                style: _muted(context),
+                style: mutedText(context),
               ),
             ),
             ListTile(
@@ -1379,7 +955,7 @@ class _WindowPickerState extends State<_WindowPicker> {
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                 child: Text(
                   DictateStrings.noWindows(name),
-                  style: _muted(context),
+                  style: mutedText(context),
                 ),
               ),
             if (onWatch != null && _screens.isNotEmpty && error == null) ...[

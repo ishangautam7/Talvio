@@ -162,3 +162,21 @@ Matrix4 followTransform({
 /// moves a page on a touch screen.
 int scrollNotches(double dy, {double perNotch = 40}) =>
     (-dy / perNotch).truncate();
+
+/// The zoom at which [picture] fills [viewport] with no bars, cropping the
+/// sides that do not fit (1 when it already fills it).
+double fillScale(Size picture, Size viewport) {
+  final rect = containRect(picture, viewport);
+  if (rect.isEmpty) return 1;
+  return math.max(viewport.width / rect.width, viewport.height / rect.height);
+}
+
+/// The transform that fills [viewport] with the middle of [picture]; the
+/// rest is a pan away.
+Matrix4 fillTransform(Size picture, Size viewport) {
+  final scale = fillScale(picture, viewport);
+  return scaleThenTranslate(
+    scale,
+    Offset(viewport.width * (1 - scale) / 2, viewport.height * (1 - scale) / 2),
+  );
+}

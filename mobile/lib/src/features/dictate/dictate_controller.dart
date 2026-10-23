@@ -150,6 +150,10 @@ class DictateController extends ChangeNotifier {
   var _keysPending = 0;
   Timer? _enterOffer;
 
+  /// The last `windows.list` that succeeded, and the computer it is of.
+  ({String computer, List<RemoteWindow> windows, List<RemoteScreen> screens})?
+  _listing;
+
   DictatePhase get phase => _phase;
 
   /// Recording, but paused by a call or another app's audio; it resumes on
@@ -176,6 +180,15 @@ class DictateController extends ChangeNotifier {
 
   /// The last request failed because its window is gone.
   bool get windowLost => _windowLost;
+
+  /// The windows and screens of the chosen computer's last list, so every
+  /// screen that shows them shows the ids that are valid now; null before
+  /// the first list.
+  ({List<RemoteWindow> windows, List<RemoteScreen> screens})? get listing {
+    final listing = _listing;
+    if (listing == null || listing.computer != computer?.id) return null;
+    return (windows: listing.windows, screens: listing.screens);
+  }
 
   /// Whether the "Press Enter" chip shows: a paste just finished.
   bool get offersEnter => _enterOffer != null;
@@ -245,6 +258,7 @@ class DictateController extends ChangeNotifier {
     final screens = computer.capabilities.contains(ScreenKind.capability)
         ? screensOf(reply.result!)
         : const <RemoteScreen>[];
+    _listing = (computer: computer.id, windows: windows, screens: screens);
     if (_window case (
       computer: final id,
       :final window,
@@ -253,8 +267,8 @@ class DictateController extends ChangeNotifier {
       _window = same.length == 1
           ? (computer: computer.id, window: same.single)
           : null;
-      _notify();
     }
+    _notify();
     return (windows: windows, screens: screens, error: null);
   }
 

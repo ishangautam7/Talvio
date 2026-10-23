@@ -7,7 +7,6 @@ import 'core/relay_client.dart';
 import 'core/session_store.dart';
 import 'features/auth/sign_in_screen.dart';
 import 'shell/features.dart';
-import 'shell/home_shell.dart';
 import 'theme.dart';
 
 class TalvioApp extends StatefulWidget {
@@ -88,9 +87,8 @@ class _TalvioAppState extends State<TalvioApp> {
         darkTheme: buildTheme(Brightness.dark),
         home: ListenableBuilder(
           listenable: widget.session,
-          builder: (context, _) => widget.session.signedIn
-              ? HomeShell(tabs: featureTabs)
-              : const SignInScreen(),
+          builder: (context, _) =>
+              widget.session.signedIn ? signedInHome() : const SignInScreen(),
         ),
       ),
     );

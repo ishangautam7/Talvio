@@ -74,6 +74,12 @@ void main() {
       expect(find.text('Live'), findsOneWidget);
       expect(tester.takeException(), isNull, reason: 'fits');
 
+      // The key pad is folded away until asked for.
+      expect(find.byTooltip('Enter'), findsNothing);
+      await tester.tap(find.byTooltip('Keys'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull, reason: 'fits with the pad');
       await tester.tap(find.byTooltip('Enter'));
       await tester.pump();
       expect(link.sent.last, {
@@ -171,6 +177,70 @@ void main() {
     await tester.longPressAt(center);
     await tester.pump();
     expect(link.sent.last['button'], 'right');
+  });
+
+  screenTest('a wide picture can fill the view, and the viewer turns', (
+    tester,
+  ) async {
+    final orientations = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'SystemChrome.setPreferredOrientations') {
+          orientations.add(call.arguments);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await pumpViewer(tester);
+
+    // 16:9 on a tall phone leaves bars; filling crops them away.
+    await tester.tap(find.byTooltip('Fill the screen'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(scale(tester), greaterThan(3));
+    await tester.tap(find.byTooltip('Show all of it'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(scale(tester), moreOrLessEquals(1));
+
+    await tester.tap(find.byTooltip('Turn sideways'));
+    await tester.pump();
+    expect(orientations.last, [
+      'DeviceOrientation.landscapeLeft',
+      'DeviceOrientation.landscapeRight',
+    ]);
+
+    // On its side the controls move beside the picture.
+    tester.view.physicalSize = const Size(800, 400);
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: 'fits sideways');
+    final stage = tester.getRect(find.byType(InteractiveViewer));
+    expect(stage.height, 400, reason: 'the picture has the full height');
+    expect(stage.width, greaterThan(650), reason: 'a slim column of buttons');
+    expect(find.byTooltip('Turn upright'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Keys'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull, reason: 'fits with the pad');
+    final up = tester.getRect(find.byTooltip('Up arrow'));
+    expect(up.left, greaterThan(stage.left + 400), reason: 'pad at the side');
+    expect(
+      tester.getRect(find.byType(InteractiveViewer)).height,
+      400,
+      reason: 'the pad takes width, not height',
+    );
+
+    // Leaving lets the phone decide again.
+    await tester.pumpWidget(const SizedBox());
+    expect(orientations.last, isEmpty);
   });
 
   screenTest('an ending says why, and can watch again', (tester) async {
