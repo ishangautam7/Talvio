@@ -2115,6 +2115,8 @@
         "title": "Teléfono",
         "remoteInput": "Dictado desde el teléfono",
         "remoteInputHint": "Permite que tu teléfono dicte y escriba en este equipo.",
+        "remoteWindows": "Permitir que los teléfonos elijan ventanas",
+        "remoteWindowsHint": "Tu teléfono puede ver los títulos de las ventanas abiertas, enviar dictado y texto a la que elijas y pulsar teclas como Intro en ella.",
         "install": "Instala la app Talvio en tu teléfono e inicia sesión como {{email}}."
       },
       "keys": {

@@ -2097,6 +2097,8 @@
         "title": "手机",
         "remoteInput": "手机语音输入",
         "remoteInputHint": "允许您的手机在这台电脑上语音输入和打字。",
+        "remoteWindows": "允许手机选择窗口",
+        "remoteWindowsHint": "您的手机可以看到已打开窗口的标题，将语音输入和文字发送到您选择的窗口，并在其中按下 Enter 等按键。",
         "install": "在手机上安装 Talvio 应用，并以 {{email}} 登录。"
       },
       "keys": {

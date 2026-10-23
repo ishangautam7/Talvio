@@ -2034,6 +2034,11 @@ pub struct AppSettings {
     /// dictate or type into this computer.
     #[serde(default = "default_true")]
     pub remote_input_enabled: bool,
+    /// "Let phones choose windows": an allowed phone may list this computer's
+    /// windows, aim its dictation and text at one, and press keys there
+    /// (`account/remote/windows.rs`). Off by default: window titles say a lot.
+    #[serde(default)]
+    pub remote_windows_enabled: bool,
     /// "Sync API keys": provider keys added on this computer are kept in the
     /// user's account and arrive on their other signed-in computers
     /// (`account/secrets_sync.rs`). Only while signed in.
@@ -4647,6 +4652,7 @@ pub fn get_default_settings() -> AppSettings {
         account_server_url: String::new(),
         account_discovered_server: String::new(),
         remote_input_enabled: true,
+        remote_windows_enabled: false,
         account_sync_secrets: true,
         account_approved_devices: Vec::new(),
         command_mode_enabled: false,

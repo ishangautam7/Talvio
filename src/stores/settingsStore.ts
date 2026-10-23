@@ -292,6 +292,8 @@ const settingUpdaters: {
     commands.changeExtraRecordingBufferSetting(value as number),
   remote_input_enabled: (value) =>
     commands.setRemoteInputEnabled(value as boolean),
+  remote_windows_enabled: (value) =>
+    commands.setRemoteWindowsEnabled(value as boolean),
   account_sync_secrets: (value) =>
     commands.setAccountSyncSecrets(value as boolean),
   command_mode_enabled: (value) =>

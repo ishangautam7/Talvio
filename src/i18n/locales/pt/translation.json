@@ -2115,6 +2115,8 @@
         "title": "Celular",
         "remoteInput": "Ditado pelo celular",
         "remoteInputHint": "Permite que seu celular dite e digite neste computador.",
+        "remoteWindows": "Permitir que celulares escolham janelas",
+        "remoteWindowsHint": "Seu celular pode ver os títulos das janelas abertas, enviar ditado e texto para a que você escolher e pressionar teclas como Enter nela.",
         "install": "Instale o app Talvio no celular e entre como {{email}}."
       },
       "keys": {

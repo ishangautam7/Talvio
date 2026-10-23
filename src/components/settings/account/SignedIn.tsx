@@ -35,6 +35,7 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
   const name = displayName(user);
   const remoteInput =
     getSetting("remote_input_enabled") ?? status.remote_input_enabled;
+  const remoteWindows = getSetting("remote_windows_enabled") ?? false;
   const syncKeys = getSetting("account_sync_secrets") ?? true;
 
   return (
@@ -90,6 +91,17 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
           isUpdating={isUpdating("remote_input_enabled")}
           label={t("settings.account.phone.remoteInput")}
           description={t("settings.account.phone.remoteInputHint")}
+          grouped
+        />
+        <ToggleSwitch
+          checked={remoteInput && remoteWindows}
+          onChange={(enabled) =>
+            void updateSetting("remote_windows_enabled", enabled)
+          }
+          isUpdating={isUpdating("remote_windows_enabled")}
+          disabled={!remoteInput}
+          label={t("settings.account.phone.remoteWindows")}
+          description={t("settings.account.phone.remoteWindowsHint")}
           grouped
         />
         {!status.devices.some(isPhone) && (

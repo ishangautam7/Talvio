@@ -2097,6 +2097,8 @@
         "title": "휴대폰",
         "remoteInput": "휴대폰으로 받아쓰기",
         "remoteInputHint": "휴대폰으로 이 컴퓨터에 받아쓰기하고 입력할 수 있게 합니다.",
+        "remoteWindows": "휴대폰에서 창 선택 허용",
+        "remoteWindowsHint": "휴대폰에서 열려 있는 창의 제목을 보고, 선택한 창으로 받아쓰기와 텍스트를 보내고, 그 창에서 Enter 같은 키를 누를 수 있습니다.",
         "install": "휴대폰에 Talvio 앱을 설치하고 {{email}}(으)로 로그인하세요."
       },
       "keys": {

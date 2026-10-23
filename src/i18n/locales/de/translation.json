@@ -2106,6 +2106,8 @@
         "title": "Smartphone",
         "remoteInput": "Diktieren vom Smartphone",
         "remoteInputHint": "Erlaubt deinem Smartphone, auf diesem Computer zu diktieren und zu tippen.",
+        "remoteWindows": "Smartphones dürfen Fenster wählen",
+        "remoteWindowsHint": "Dein Smartphone sieht die Titel offener Fenster, schickt Diktate und Text an das Fenster, das du auswählst, und kann dort Tasten wie Eingabe drücken.",
         "install": "Installiere die Talvio-App auf deinem Smartphone und melde dich als {{email}} an."
       },
       "keys": {
