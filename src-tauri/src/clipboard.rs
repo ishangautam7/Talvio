@@ -841,6 +841,9 @@ pub struct PasteBehavior {
     pub allow_auto_submit: bool,
     /// Set when Smart spacing shaped this dictation (see `smart_spacing`).
     pub smart_spacing: Option<SmartSpacingPaste>,
+    /// Hand the foreground back to the window the last dictation or ask
+    /// started in when one of our windows took it (`input::restore_paste_target`).
+    pub restore_target: bool,
 }
 
 /// What Smart spacing decided for one paste, beyond the text itself.
@@ -863,6 +866,7 @@ impl Default for PasteBehavior {
             allow_trailing_space: true,
             allow_auto_submit: true,
             smart_spacing: None,
+            restore_target: true,
         }
     }
 }
@@ -1002,10 +1006,12 @@ pub fn paste_rich_with_behavior(
     // foreground since recording started — most often the always-on-top recording
     // overlay catching a click in its transparent frame — the transcript would go
     // into that window and vanish. Hand the foreground back first.
-    if !matches!(
-        paste_method,
-        PasteMethod::None | PasteMethod::ExternalScript
-    ) {
+    if behavior.restore_target
+        && !matches!(
+            paste_method,
+            PasteMethod::None | PasteMethod::ExternalScript
+        )
+    {
         input::restore_paste_target();
     }
 

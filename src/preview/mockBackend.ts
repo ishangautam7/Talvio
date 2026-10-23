@@ -24,6 +24,8 @@
  *            &meeting=live (a meeting recording now) &sysaudio=0 &paused=1
  *            &ducking=off|lower|mute (other audio while recording)
  *            &notes=writing (the newest meeting's notes still being written)
+ *            &account=out|in|many (Settings → Account signed out, signed in
+ *                       with only this computer, or with several devices)
  *            &pill=collapsed|expanded|offer (only in src/preview/meeting.html)
  */
 import {
@@ -1555,7 +1557,84 @@ const readiness = (): Json => {
   };
 };
 
+const accountMode = params.get("account") ?? "out";
+const DAY_MS = 86_400_000;
+const accountStatus = (): Json => ({
+  signed_in: accountMode !== "out",
+  server_url: "https://sync.example.com",
+  server_automatic: true,
+  user:
+    accountMode === "out"
+      ? null
+      : {
+          id: "u1",
+          email:
+            accountMode === "many"
+              ? "a.very.long.address.for.testing.wrapping@subdomain.example-company.com"
+              : "ishan@example.com",
+          name: accountMode === "many" ? null : "Ishan",
+          has_password: true,
+          google_linked: false,
+        },
+  device_id: accountMode === "out" ? null : "d1",
+  connection: accountMode === "many" ? "offline" : "online",
+  google_available: true,
+  google_pending: false,
+  remote_input_enabled: true,
+  devices: [
+    {
+      id: "d1",
+      name: "ISHAN-PC",
+      platform: "windows",
+      kind: "desktop",
+      online: accountMode !== "many",
+      last_seen_at: Date.now(),
+      current: true,
+      capabilities: ["dictate", "text"],
+      approved: false,
+    },
+    ...(accountMode === "many"
+      ? [
+          {
+            id: "d2",
+            name: "Pixel 9 Pro",
+            platform: "android",
+            kind: "mobile",
+            online: true,
+            last_seen_at: Date.now(),
+            current: false,
+            capabilities: [],
+            approved: true,
+          },
+          {
+            id: "d3",
+            name: "Ishan's MacBook Pro with a very long name that keeps going on",
+            platform: "macos",
+            kind: "desktop",
+            online: false,
+            last_seen_at: Date.now() - 3 * DAY_MS,
+            current: false,
+            capabilities: [],
+            approved: false,
+          },
+          {
+            id: "d4",
+            name: "iPhone",
+            platform: "ios",
+            kind: "mobile",
+            online: false,
+            last_seen_at: Date.now() - 40 * DAY_MS,
+            current: false,
+            capabilities: [],
+            approved: false,
+          },
+        ]
+      : []),
+  ],
+});
+
 const handlers: Record<string, (args: Json) => unknown> = {
+  account_get_status: () => accountStatus(),
   get_app_settings: () => structuredClone(settings),
   get_default_settings: () => structuredClone(settings),
   get_available_models: () => structuredClone(models),
@@ -2118,7 +2197,8 @@ const handlers: Record<string, (args: Json) => unknown> = {
   },
   change_alternate_binding: ({ id, binding: keys }) => {
     const stored = (settings.bindings as Json)[id as string] as
-      Json | undefined;
+      | Json
+      | undefined;
     if (!stored) return { success: false, binding: null, error: "not found" };
     stored.alternate_binding = keys;
     return { success: true, binding: structuredClone(stored), error: null };

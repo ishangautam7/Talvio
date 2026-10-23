@@ -1,3 +1,4 @@
+mod account;
 mod actions;
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 mod apple_intelligence;
@@ -1328,6 +1329,20 @@ pub fn run(cli_args: CliArgs) {
             window_drag::start_window_resize,
             commands::get_settings_notices,
             commands::dismiss_settings_notice,
+            account::account_get_status,
+            account::account_sign_up,
+            account::account_sign_in,
+            account::account_sign_in_google,
+            account::account_cancel_google,
+            account::account_sign_out,
+            account::account_delete,
+            account::account_remove_device,
+            account::account_set_device_approved,
+            account::account_pending_approvals,
+            account::account_answer_approval,
+            account::fit_account_approval,
+            account::set_account_server_url,
+            account::set_remote_input_enabled,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 
@@ -1615,6 +1630,7 @@ pub fn run(cli_args: CliArgs) {
             app.manage(voice_conversation::VoiceConversation::default());
 
             initialize_core_logic(&app_handle);
+            account::init(&app_handle);
 
             // Create the assistant panel window (hidden until first use). Skipped
             // entirely when the assistant is switched off: that saves a whole
@@ -1674,6 +1690,14 @@ pub fn run(cli_args: CliArgs) {
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
+                // Only closing the main window can quit the app or hide the dock
+                // icon. Any other window (a popup, the panel, the overlay) only
+                // hides, and its own handler says what closing it means.
+                if window.label() != "main" {
+                    api.prevent_close();
+                    let _ = window.hide();
+                    return;
+                }
                 // Remember the size before hiding/quitting, so it reopens as left.
                 save_main_window_size(window);
 

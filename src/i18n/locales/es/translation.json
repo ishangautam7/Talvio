@@ -1989,6 +1989,94 @@
         "medium": "Medio",
         "high": "Alto"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Conecta tu teléfono",
+        "body": "Inicia sesión aquí y en la app Zynveliq de tu teléfono con la misma cuenta. Así podrás dictar y escribir en este equipo desde tu teléfono.",
+        "modeLabel": "Iniciar sesión o crear una cuenta",
+        "signIn": "Iniciar sesión",
+        "createAccount": "Crear cuenta",
+        "name": "Nombre (opcional)",
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "passwordHint": "Al menos 8 caracteres",
+        "signingIn": "Iniciando sesión…",
+        "creating": "Creando cuenta…",
+        "or": "o",
+        "google": "Continuar con Google",
+        "googleWaiting": "Termina de iniciar sesión en tu navegador.",
+        "privacy": "El servidor solo guarda tu cuenta y tu lista de dispositivos, nunca tus grabaciones ni tus textos.",
+        "serverUnsaved": "Guarda la nueva dirección del servidor abajo antes de iniciar sesión."
+      },
+      "signOut": "Cerrar sesión",
+      "signingOut": "Cerrando sesión…",
+      "connection": {
+        "online": "Conectado",
+        "connecting": "Conectando…",
+        "offline": "Sin conexión",
+        "offlineHint": "Zynveliq no puede contactar con el servidor ahora mismo y sigue intentándolo. Mientras tanto, tu teléfono no puede usar este equipo."
+      },
+      "phone": {
+        "title": "Teléfono",
+        "remoteInput": "Dictado desde el teléfono",
+        "remoteInputHint": "Permite que tu teléfono dicte y escriba en este equipo.",
+        "install": "Instala la app Zynveliq en tu teléfono e inicia sesión como {{email}}."
+      },
+      "devices": {
+        "title": "Dispositivos",
+        "empty": "Tus dispositivos aparecerán aquí cuando estés conectado.",
+        "thisComputer": "Este equipo",
+        "online": "En línea",
+        "lastSeen": "Última actividad: {{time}}",
+        "removeLabel": "Quitar {{name}}",
+        "removeTitle": "¿Quitar este dispositivo?",
+        "removeBody": "Se cerrará su sesión en tu cuenta y no podrá usar este equipo hasta que vuelvas a iniciar sesión en él.",
+        "removeConfirm": "Quitar dispositivo",
+        "allowed": "Puede usar este equipo",
+        "notAllowed": "Aún no puede usar este equipo",
+        "allow": "Permitir",
+        "allowLabel": "Permitir que {{name}} use este equipo",
+        "removeAccess": "Quitar acceso",
+        "removeAccessLabel": "Quitar el acceso a {{name}}"
+      },
+      "delete": {
+        "button": "Eliminar cuenta",
+        "title": "¿Eliminar tu cuenta?",
+        "body": "Se eliminará tu cuenta y se cerrará la sesión en todos tus dispositivos, incluidos este equipo y tu teléfono. Tu historial, tus grabaciones y tus ajustes se quedan en este equipo.",
+        "deleting": "Eliminando…"
+      },
+      "server": {
+        "title": "Servidor de cuentas",
+        "hint": "Dónde se guarda tu cuenta. Cámbialo solo si usas tu propio servidor.",
+        "locked": "Cierra sesión para cambiar el servidor.",
+        "automatic": "Automático",
+        "custom": "Personalizado",
+        "using": "Usando {{host}}",
+        "notFound": "No se encuentra el servidor ahora mismo. Zynveliq sigue intentándolo."
+      },
+      "errors": {
+        "generic": "Algo salió mal. Vuelve a intentarlo.",
+        "invalid_credentials": "Correo o contraseña incorrectos.",
+        "email_taken": "Ya existe una cuenta con este correo. Inicia sesión.",
+        "invalid_email": "Escribe un correo electrónico válido.",
+        "weak_password": "Usa al menos 8 caracteres para tu contraseña.",
+        "rate_limited": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
+        "invalid_code": "El inicio de sesión con Google caducó. Vuelve a intentarlo.",
+        "google_unavailable": "Este servidor no ofrece inicio de sesión con Google.",
+        "account_conflict": "La cuenta con este correo está vinculada a otra cuenta de Google. Inicia sesión con esa.",
+        "unauthorized": "Se cerró tu sesión. Vuelve a iniciar sesión.",
+        "not_found": "Ese dispositivo ya se quitó.",
+        "invalid_request": "El servidor no pudo aceptar la solicitud. Revisa lo que escribiste y vuelve a intentarlo.",
+        "network": "No se puede contactar con el servidor. Revisa tu conexión a internet y la dirección del servidor.",
+        "no_server": "No se encuentra el servidor de cuentas ahora mismo. Revisa tu conexión a internet e inténtalo de nuevo.",
+        "server": "El servidor envió una respuesta inesperada. Vuelve a intentarlo más tarde.",
+        "timeout": "El inicio de sesión con Google tardó demasiado. Vuelve a intentarlo.",
+        "signed_in": "Cierra sesión antes de cambiar el servidor.",
+        "invalid_url": "Escribe una dirección que empiece por https:// para que tu contraseña vaya cifrada. http:// solo funciona con un servidor en este ordenador.",
+        "keychain": "No se pudo guardar tu sesión de forma segura en este equipo. Vuelve a intentarlo.",
+        "wrongServer": "Esa dirección de servidor no parece correcta. Revísala abajo y vuelve a intentarlo."
+      }
     }
   },
   "footer": {
@@ -2358,6 +2446,12 @@
       "dueAt": "Para {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "¿Permitir este teléfono?",
+    "body": "Quiere dictar y escribir en las apps de este equipo, así que permite solo teléfonos que sean tuyos.",
+    "allow": "Permitir",
+    "deny": "No permitir"
+  },
   "assistant": {
     "conversation": {
       "title": "Conversación",
@@ -2613,6 +2707,7 @@
     "title": "Ajustes",
     "tabs": {
       "general": "General",
+      "account": "Cuenta",
       "shortcuts": "Atajos",
       "audio": "Audio",
       "dictation": "Dictado",

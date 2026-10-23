@@ -1980,6 +1980,94 @@
         "medium": "Mittel",
         "high": "Hoch"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Verbinde dein Smartphone",
+        "body": "Melde dich hier und in der Zynveliq-App auf deinem Smartphone mit demselben Konto an. Dann kannst du vom Smartphone aus auf diesem Computer diktieren und tippen.",
+        "modeLabel": "Anmelden oder Konto erstellen",
+        "signIn": "Anmelden",
+        "createAccount": "Konto erstellen",
+        "name": "Name (freiwillig)",
+        "email": "E-Mail",
+        "password": "Passwort",
+        "passwordHint": "Mindestens 8 Zeichen",
+        "signingIn": "Anmeldung läuft…",
+        "creating": "Konto wird erstellt…",
+        "or": "oder",
+        "google": "Weiter mit Google",
+        "googleWaiting": "Schließe die Anmeldung in deinem Browser ab.",
+        "privacy": "Der Server speichert nur dein Konto und deine Geräteliste, niemals deine Aufnahmen oder Texte.",
+        "serverUnsaved": "Speichere die neue Serveradresse unten, bevor du dich anmeldest."
+      },
+      "signOut": "Abmelden",
+      "signingOut": "Abmeldung läuft…",
+      "connection": {
+        "online": "Verbunden",
+        "connecting": "Verbindung wird hergestellt…",
+        "offline": "Nicht verbunden",
+        "offlineHint": "Zynveliq erreicht den Server gerade nicht und versucht es weiter. Bis dahin kann dein Smartphone diesen Computer nicht nutzen."
+      },
+      "phone": {
+        "title": "Smartphone",
+        "remoteInput": "Diktieren vom Smartphone",
+        "remoteInputHint": "Erlaubt deinem Smartphone, auf diesem Computer zu diktieren und zu tippen.",
+        "install": "Installiere die Zynveliq-App auf deinem Smartphone und melde dich als {{email}} an."
+      },
+      "devices": {
+        "title": "Geräte",
+        "empty": "Deine Geräte erscheinen hier, sobald du verbunden bist.",
+        "thisComputer": "Dieser Computer",
+        "online": "Aktiv",
+        "lastSeen": "Zuletzt aktiv {{time}}",
+        "removeLabel": "{{name}} entfernen",
+        "removeTitle": "Dieses Gerät entfernen?",
+        "removeBody": "Es wird von deinem Konto abgemeldet und kann diesen Computer erst wieder nutzen, wenn du dich darauf erneut anmeldest.",
+        "removeConfirm": "Gerät entfernen",
+        "allowed": "Darf diesen Computer nutzen",
+        "notAllowed": "Darf diesen Computer noch nicht nutzen",
+        "allow": "Erlauben",
+        "allowLabel": "{{name}} erlauben, diesen Computer zu nutzen",
+        "removeAccess": "Zugriff entziehen",
+        "removeAccessLabel": "Zugriff für {{name}} entziehen"
+      },
+      "delete": {
+        "button": "Konto löschen",
+        "title": "Dein Konto löschen?",
+        "body": "Dein Konto wird gelöscht und alle deine Geräte werden abgemeldet, auch dieser Computer und dein Smartphone. Verlauf, Aufnahmen und Einstellungen bleiben auf diesem Computer.",
+        "deleting": "Wird gelöscht…"
+      },
+      "server": {
+        "title": "Kontoserver",
+        "hint": "Wo dein Konto gespeichert ist. Ändere das nur, wenn du einen eigenen Server betreibst.",
+        "locked": "Melde dich ab, um den Server zu ändern.",
+        "automatic": "Automatisch",
+        "custom": "Eigener",
+        "using": "Verwendet: {{host}}",
+        "notFound": "Der Server ist gerade nicht auffindbar. Zynveliq versucht es weiter."
+      },
+      "errors": {
+        "generic": "Etwas ist schiefgelaufen. Versuche es erneut.",
+        "invalid_credentials": "E-Mail oder Passwort ist falsch.",
+        "email_taken": "Mit dieser E-Mail gibt es schon ein Konto. Melde dich stattdessen an.",
+        "invalid_email": "Gib eine gültige E-Mail-Adresse ein.",
+        "weak_password": "Dein Passwort muss mindestens 8 Zeichen lang sein.",
+        "rate_limited": "Zu viele Versuche. Warte ein paar Minuten und versuche es dann erneut.",
+        "invalid_code": "Die Google-Anmeldung ist abgelaufen. Versuche es erneut.",
+        "google_unavailable": "Dieser Server bietet keine Anmeldung mit Google an.",
+        "account_conflict": "Das Konto mit dieser E-Mail ist mit einem anderen Google-Konto verknüpft. Melde dich stattdessen mit diesem an.",
+        "unauthorized": "Du wurdest abgemeldet. Melde dich erneut an.",
+        "not_found": "Dieses Gerät wurde bereits entfernt.",
+        "invalid_request": "Der Server konnte das nicht annehmen. Prüfe deine Eingaben und versuche es erneut.",
+        "network": "Der Server ist nicht erreichbar. Prüfe deine Internetverbindung und die Serveradresse.",
+        "no_server": "Der Kontoserver ist gerade nicht auffindbar. Prüfe deine Internetverbindung und versuche es noch einmal.",
+        "server": "Der Server hat unerwartet geantwortet. Versuche es später erneut.",
+        "timeout": "Die Google-Anmeldung hat zu lange gedauert. Versuche es erneut.",
+        "signed_in": "Melde dich ab, bevor du den Server änderst.",
+        "invalid_url": "Gib eine Adresse ein, die mit https:// beginnt, damit dein Passwort verschlüsselt bleibt. http:// funktioniert nur für einen Server auf diesem Computer.",
+        "keychain": "Deine Anmeldung konnte auf diesem Computer nicht sicher gespeichert werden. Versuche es erneut.",
+        "wrongServer": "Diese Serveradresse scheint nicht zu stimmen. Prüfe sie unten und versuche es erneut."
+      }
     }
   },
   "footer": {
@@ -2344,6 +2432,12 @@
       "dueAt": "Fällig {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Dieses Smartphone erlauben?",
+    "body": "Es möchte in den Apps auf diesem Computer diktieren und tippen, also erlaube nur Smartphones, die dir gehören.",
+    "allow": "Erlauben",
+    "deny": "Nicht erlauben"
+  },
   "assistant": {
     "conversation": {
       "title": "Gespräch",
@@ -2595,6 +2689,7 @@
     "title": "Einstellungen",
     "tabs": {
       "general": "Allgemein",
+      "account": "Konto",
       "shortcuts": "Tastenkürzel",
       "audio": "Audio",
       "dictation": "Diktat",

@@ -18,6 +18,8 @@ src/bindings.ts
 # there), so a later sync stays a plain copy.
 src-tauri/src/catalog/catalog.json
 graphify-out
+# The Flutter app is formatted with `dart format`.
+mobile
 
 # Misc
 .DS_Store

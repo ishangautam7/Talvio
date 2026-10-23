@@ -45,6 +45,7 @@ export const MODEL_SLOTS: ModelSlot[] = [
 
 export type SettingsTab =
   | "general"
+  | "account"
   | "shortcuts"
   | "audio"
   | "dictation"
