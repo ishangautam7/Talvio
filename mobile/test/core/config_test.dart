@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zynveliq_mobile/src/core/config.dart';
+import 'package:talvio_mobile/src/core/config.dart';
 
 void main() {
   test('normalizeServerUrl keeps http(s) base URLs in one form', () {
@@ -14,8 +14,8 @@ void main() {
       'http://192.168.1.10:8787',
     );
     expect(
-      normalizeServerUrl('https://example.com/zynveliq//'),
-      'https://example.com/zynveliq',
+      normalizeServerUrl('https://example.com/talvio//'),
+      'https://example.com/talvio',
     );
     expect(normalizeServerUrl('sync.example.com'), 'https://sync.example.com');
     expect(

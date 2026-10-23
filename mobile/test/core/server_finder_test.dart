@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zynveliq_mobile/src/core/config.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/config.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
 
 /// A release build's reading of the answer [json].
 String? parse(Object? json, {bool release = true}) =>

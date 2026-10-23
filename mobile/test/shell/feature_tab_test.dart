@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zynveliq_mobile/src/shell/feature_tab.dart';
+import 'package:talvio_mobile/src/shell/feature_tab.dart';
 
 import '../helpers.dart';
 

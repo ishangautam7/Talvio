@@ -1,4 +1,4 @@
-package com.zynveliq.mobile
+package com.talvio.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -92,7 +92,7 @@ class _SignInScreenState extends State<SignInScreen> {
         setState(() => _google = google);
       }
     } on ApiException {
-      // Unreachable (a network still coming up at launch) or not a Zynveliq
+      // Unreachable (a network still coming up at launch) or not a Talvio
       // server: no Google button for now, and signing in says what is wrong.
       // Ask again, or someone who signed up with Google never sees it.
       if (mounted && session.serverUrl == server) {

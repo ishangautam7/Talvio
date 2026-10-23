@@ -10,17 +10,17 @@ const appVersion = '1.0.0';
 /// time to time, so it is never built in.
 const discoveryUrl = 'https://domain.gautamishan.com.np';
 
-/// The build's `--dart-define=ZYNVELIQ_SERVER_URL`, which pins the server
+/// The build's `--dart-define=TALVIO_SERVER_URL`, which pins the server
 /// (discovery and the Server setting are then off), or null without one. An
 /// invalid one throws: `main` calls this first, so such a build fails at
 /// launch.
 String? pinnedServerUrl() {
-  const fromBuild = String.fromEnvironment('ZYNVELIQ_SERVER_URL');
+  const fromBuild = String.fromEnvironment('TALVIO_SERVER_URL');
   if (fromBuild.isEmpty) return null;
   return normalizeServerUrl(fromBuild) ??
       (throw StateError(
-        'ZYNVELIQ_SERVER_URL is "$fromBuild". Build with '
-        '--dart-define=ZYNVELIQ_SERVER_URL=https://your-server',
+        'TALVIO_SERVER_URL is "$fromBuild". Build with '
+        '--dart-define=TALVIO_SERVER_URL=https://your-server',
       ));
 }
 

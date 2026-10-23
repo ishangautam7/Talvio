@@ -1,6 +1,6 @@
-# Zynveliq for phones
+# Talvio for phones
 
-The Android and iOS app. Sign in with the same account as Zynveliq on your
+The Android and iOS app. Sign in with the same account as Talvio on your
 computer, and the phone becomes a wireless mic and keyboard for it: speak on
 the phone, and the computer transcribes with its own speech model and pastes
 at its cursor (or sends the text back); type on the phone, and the computer
@@ -38,7 +38,7 @@ The server's address changes from time to time, so it is not built in
 - **Custom**: **Change** at the bottom of the sign-in screen takes an address;
   **Use automatic** there goes back. A session signed in this way stays on
   that address. It can only change while signed out.
-- At build time: `flutter run --dart-define=ZYNVELIQ_SERVER_URL=https://sync.example.com`
+- At build time: `flutter run --dart-define=TALVIO_SERVER_URL=https://sync.example.com`
   (also works with `flutter build`) pins the server; the sign-in screen then
   offers no Change.
 
@@ -50,7 +50,7 @@ development, the machine above.
 
 The phone cannot reach `localhost` on your computer. Start the server so it
 listens on your LAN address, then either build with
-`--dart-define=ZYNVELIQ_SERVER_URL=http://192.168.1.20:8787` or enter that
+`--dart-define=TALVIO_SERVER_URL=http://192.168.1.20:8787` or enter that
 address under **Change**.
 
 Plain `http://` only works in debug and profile builds. Release builds take
@@ -63,7 +63,7 @@ Transport Security.
 - No server address is needed: release builds use Automatic. Until
   discovery first answers, the sign-in screen says it can't find the server
   and keeps trying (it never falls back to the development machine). A
-  `ZYNVELIQ_SERVER_URL` that is not a valid `https://` address stops the app
+  `TALVIO_SERVER_URL` that is not a valid `https://` address stops the app
   at launch.
 - Android signs with the key named in `android/key.properties` (`storeFile`,
   `storePassword`, `keyAlias`, `keyPassword`; never committed). Without that
@@ -75,9 +75,12 @@ Shown only when the server says it is set up (`GET /v1/config` →
 `google: true`). The app opens an auth session (Custom Tabs on Android,
 `ASWebAuthenticationSession` on iOS) at
 `{server}/v1/auth/google/start` with a PKCE challenge, and the server sends the
-browser back to **`zynveliq://auth/callback`**. Android catches that scheme with
+browser back to **`talvio://auth/callback`**. Android catches that scheme with
 flutter_web_auth_2's `CallbackActivity` (in `AndroidManifest.xml`); iOS needs no
 registration because the auth session receives it directly.
+The scheme was `zynveliq://` before the rename to Talvio; the server accepts
+both, but a server older than the rename only accepts the old one, so update
+the server before shipping this app against it.
 
 ## How the code is laid out
 
@@ -115,7 +118,7 @@ removes it.
 
 ## App identity
 
-- Android `applicationId` / iOS bundle id: `com.zynveliq.mobile`
-- Name on the home screen: Zynveliq
+- Android `applicationId` / iOS bundle id: `com.talvio.mobile`
+- Name on the home screen: Talvio
 - `appVersion` sent to the server is `lib/src/core/config.dart`'s
   `appVersion`; keep it equal to `version` in `pubspec.yaml`.

@@ -8,11 +8,11 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket/web_socket.dart';
 import 'package:web_socket_channel/adapter_web_socket_channel.dart';
-import 'package:zynveliq_mobile/src/core/api_client.dart';
-import 'package:zynveliq_mobile/src/core/models.dart';
-import 'package:zynveliq_mobile/src/core/relay_client.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
-import 'package:zynveliq_mobile/src/core/session_store.dart';
+import 'package:talvio_mobile/src/core/api_client.dart';
+import 'package:talvio_mobile/src/core/models.dart';
+import 'package:talvio_mobile/src/core/relay_client.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/session_store.dart';
 
 import '../helpers.dart';
 
