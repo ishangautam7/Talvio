@@ -74,7 +74,7 @@ test("an error shows once the pipeline has stopped", () => {
   );
 });
 
-test("the waiting label is one of four short states", () => {
+test("the waiting label is one of a few short states", () => {
   expect(workingLabelKey("listening", "listening", null)).toBe(
     "assistant.status.listening",
   );
@@ -94,6 +94,12 @@ test("the waiting label is one of four short states", () => {
       detail: "",
     }),
   ).toBe("assistant.tool.screen");
+  expect(
+    workingLabelKey("working", "thinking", {
+      name: "do_on_computer",
+      detail: "play believer",
+    }),
+  ).toBe("assistant.tool.computer");
   // Transcription and every other tool are, to the person waiting, thinking.
   // A pill that flips through five labels in two seconds reads as noise.
   expect(workingLabelKey("transcribing", "transcribing", null)).toBe(

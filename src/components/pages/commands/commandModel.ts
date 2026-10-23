@@ -25,10 +25,23 @@ export function routerProviders(
 }
 
 /**
+ * A small, fast model that calls tools well, for providers where we know
+ * one; the id is the provider's own spelling. Only a starting point: the
+ * picker lists what the provider really offers.
+ */
+export const ROUTER_MODEL_DEFAULTS: Record<string, string> = {
+  anthropic: "claude-haiku-5-5",
+  openrouter: "anthropic/claude-haiku-4.5",
+  openai: "gpt-5-mini",
+  gemini: "gemini-2.5-flash",
+};
+
+/**
  * The model to pick with a provider chosen for commands: the one the
- * assistant already runs on it, else the one cleanup does, else none (the
- * model field is left as it is). A model set up for something else on the
- * same provider is one its key is known to reach.
+ * assistant already runs on it, else the one cleanup does, else a known fast
+ * one for that provider, else none (the model is left as it is). A model set
+ * up for something else on the same provider is one its key is known to
+ * reach.
  */
 export function suggestedRouterModel(
   settings: AppSettings | null | undefined,
@@ -37,7 +50,22 @@ export function suggestedRouterModel(
   const assistant = settings?.assistant_models?.[providerId]?.trim();
   if (assistant) return assistant;
   const cleanup = settings?.post_process_models?.[providerId]?.trim();
-  return cleanup || null;
+  return cleanup || ROUTER_MODEL_DEFAULTS[providerId] || null;
+}
+
+/**
+ * Whether the saved model plainly belongs to another provider: the shipped
+ * default is an Anthropic id, which no other provider serves under that name,
+ * so a store that switched provider without switching model is fixed.
+ */
+export function modelBelongsElsewhere(
+  providerId: string,
+  model: string,
+): boolean {
+  const value = model.trim();
+  return (
+    providerId !== "anthropic" && value === ROUTER_MODEL_DEFAULTS.anthropic
+  );
 }
 
 /** What the line under "Runs on" says, as a translation key and its values. */

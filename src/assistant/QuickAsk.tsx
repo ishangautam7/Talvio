@@ -7,6 +7,7 @@ import {
   CornerDownLeft,
   Eye,
   Loader2,
+  MessageSquarePlus,
   RotateCcw,
   Square,
   TextSelect,
@@ -92,6 +93,11 @@ export interface QuickAskProps {
 
   /** Put the surface away (nothing in flight). */
   onClose: () => void;
+  /**
+   * Forget the remembered conversation this answer continued, and start an
+   * empty one. Only given while the answer is a follow-up.
+   */
+  onNewConversation?: () => void;
   /** Stop whatever is in flight and put the surface away. */
   onCancel: () => void;
   /** Stop the answer where it is and keep what has been written. */
@@ -167,6 +173,7 @@ const QuickAsk: React.FC<QuickAskProps> = ({
   autoFocus = false,
   onRequestKeyboard,
   onClose,
+  onNewConversation,
   onCancel,
   onStop,
   onRetry,
@@ -361,6 +368,18 @@ const QuickAsk: React.FC<QuickAskProps> = ({
                     aria-label={t("assistant.conversation.retry")}
                   >
                     <RotateCcw size={13} strokeWidth={2.2} />
+                  </button>
+                )}
+                {onNewConversation && (
+                  <button
+                    type="button"
+                    className="qa-icon-btn"
+                    onClick={onNewConversation}
+                    onMouseDown={stopDrag}
+                    title={t("assistant.quick.newConversation")}
+                    aria-label={t("assistant.quick.newConversation")}
+                  >
+                    <MessageSquarePlus size={13} strokeWidth={2.2} />
                   </button>
                 )}
                 <span className="qa-actions-gap" />

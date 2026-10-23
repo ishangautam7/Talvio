@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AppSettings, CommandModelInUse } from "@/bindings";
 import {
+  modelBelongsElsewhere,
   modelInUseLine,
   routerProviders,
   suggestedRouterModel,
@@ -53,6 +54,25 @@ describe("suggestedRouterModel", () => {
     expect(suggestedRouterModel(s, "openai")).toBe("gpt-5-mini");
     expect(suggestedRouterModel(s, "anthropic")).toBe("claude-x");
     expect(suggestedRouterModel(s, "groq")).toBeNull();
+  });
+
+  test("falls back to a known fast model for the provider", () => {
+    expect(suggestedRouterModel(settings(), "openrouter")).toBe(
+      "anthropic/claude-haiku-4.5",
+    );
+    expect(suggestedRouterModel(settings(), "anthropic")).toBe(
+      "claude-haiku-5-5",
+    );
+  });
+});
+
+describe("modelBelongsElsewhere", () => {
+  test("only the Anthropic default under another provider", () => {
+    expect(modelBelongsElsewhere("openrouter", "claude-haiku-5-5")).toBe(true);
+    expect(modelBelongsElsewhere("anthropic", "claude-haiku-5-5")).toBe(false);
+    expect(
+      modelBelongsElsewhere("openrouter", "anthropic/claude-haiku-4.5"),
+    ).toBe(false);
   });
 });
 

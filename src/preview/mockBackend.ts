@@ -2134,6 +2134,11 @@ const handlers: Record<string, (args: Json) => unknown> = {
           "assistant_web_search_provider",
         ],
         ["set_assistant_search_depth", "depth", "assistant_search_depth"],
+        [
+          "set_assistant_quick_ask_memory",
+          "memory",
+          "assistant_quick_ask_memory",
+        ],
         ["set_assistant_thinking", "level", "assistant_thinking"],
         [
           "change_post_process_thinking_setting",
