@@ -2101,7 +2101,7 @@
         "or": "oppure",
         "google": "Continua con Google",
         "googleWaiting": "Completa l'accesso nel browser.",
-        "privacy": "Il server conserva solo il tuo account e l'elenco dei dispositivi, mai le tue registrazioni o i tuoi testi."
+        "privacy": "Il server conserva il tuo account, l'elenco dei dispositivi e, se le sincronizzi, le tue chiavi API (crittografate). Mai le tue registrazioni o i tuoi testi."
       },
       "signOut": "Esci",
       "signingOut": "Uscita in corso…",

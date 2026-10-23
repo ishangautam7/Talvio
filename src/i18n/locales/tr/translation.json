@@ -2092,7 +2092,7 @@
         "or": "veya",
         "google": "Google ile devam et",
         "googleWaiting": "Oturum açmayı tarayıcınızda tamamlayın.",
-        "privacy": "Sunucu yalnızca hesabınızı ve cihaz listenizi saklar; kayıtlarınızı veya metinlerinizi asla saklamaz."
+        "privacy": "Sunucu hesabınızı, cihaz listenizi ve eşitliyorsanız API anahtarlarınızı (şifrelenmiş olarak) saklar. Kayıtlarınızı veya metinlerinizi asla saklamaz."
       },
       "signOut": "Oturumu kapat",
       "signingOut": "Oturum kapatılıyor…",

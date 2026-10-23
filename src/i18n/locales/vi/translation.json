@@ -2083,7 +2083,7 @@
         "or": "hoặc",
         "google": "Tiếp tục với Google",
         "googleWaiting": "Hoàn tất đăng nhập trong trình duyệt.",
-        "privacy": "Máy chủ chỉ lưu tài khoản và danh sách thiết bị của bạn, không bao giờ lưu bản ghi âm hay văn bản."
+        "privacy": "Máy chủ lưu tài khoản, danh sách thiết bị và, nếu bạn đồng bộ, các khóa API của bạn (đã mã hóa). Không bao giờ lưu bản ghi âm hay văn bản."
       },
       "signOut": "Đăng xuất",
       "signingOut": "Đang đăng xuất…",
