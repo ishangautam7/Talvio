@@ -124,6 +124,19 @@ describe("handsFree", () => {
     ).toBe("ready");
   });
 
+  test("the command shortcut holds keys only while command mode is on", () => {
+    const onDictationKeys = { command: "super+ctrl+space" };
+    expect(handsFree(settings(onDictationKeys)).state).toBe("ready");
+    expect(
+      handsFree(settings(onDictationKeys, { command_mode_enabled: true })),
+    ).toEqual({
+      state: "taken",
+      keys: "ctrl_left+super+space",
+      key: "space",
+      by: "command",
+    });
+  });
+
   test("the cleanup shortcut has its own", () => {
     expect(handsFree(settings({}), "transcribe_with_post_process")).toEqual({
       state: "ready",

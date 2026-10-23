@@ -123,9 +123,10 @@ export const ShortcutsTab: React.FC = () => {
   const cleanupOnDictation =
     cleanupEnabled && (getSetting("post_process_on_dictation") ?? false);
   const assistantEnabled = getSetting("assistant_enabled") ?? true;
+  const commandsEnabled = getSetting("command_mode_enabled") ?? false;
   const info = (id: string) => shortcutInfo(t, settings, id);
 
-  const goTo = (page: "cleanup" | "assistant") => {
+  const goTo = (page: "cleanup" | "assistant" | "commands") => {
     closeSettings();
     navigate(page);
   };
@@ -198,6 +199,29 @@ export const ShortcutsTab: React.FC = () => {
             info={t("settingsDialog.shortcuts.assistantOff")}
           >
             <RowAction onClick={() => goTo("assistant")}>
+              {t("home.shortcuts.turnOn")}
+            </RowAction>
+          </ShortcutRow>
+        )}
+      </SettingsGroup>
+
+      <SettingsGroup title={t("settingsDialog.shortcuts.commands")}>
+        {commandsEnabled ? (
+          <>
+            <ShortcutRow
+              shortcutId="command"
+              title={t("commandsPage.shortcut.title")}
+              info={info("command")}
+            />
+            <PushToTalk grouped={true} setting="command_push_to_talk" />
+          </>
+        ) : (
+          <ShortcutRow
+            shortcutId="command"
+            title={t("commandsPage.shortcut.title")}
+            info={t("settingsDialog.shortcuts.commandsOff")}
+          >
+            <RowAction onClick={() => goTo("commands")}>
               {t("home.shortcuts.turnOn")}
             </RowAction>
           </ShortcutRow>

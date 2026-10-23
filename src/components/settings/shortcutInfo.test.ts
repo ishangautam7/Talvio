@@ -29,6 +29,19 @@ describe("shortcutInfo", () => {
     ).toBe("home.shortcuts.ask.whatTap");
   });
 
+  test("a spoken command says how it is pressed, on its own setting", () => {
+    expect(shortcutInfo(t, settings(), "command")).toBe(
+      "commandsPage.shortcut.whatHold",
+    );
+    expect(
+      shortcutInfo(
+        t,
+        settings({ command_push_to_talk: false, assistant_push_to_talk: true }),
+        "command",
+      ),
+    ).toBe("commandsPage.shortcut.whatTap");
+  });
+
   test("dictation that cleans up every time says so", () => {
     expect(
       shortcutInfo(

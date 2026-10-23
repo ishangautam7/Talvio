@@ -3,13 +3,19 @@ import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Eye, Smartphone } from "lucide-react";
-import { commands, type AccountPhone, type ViewingCard } from "@/bindings";
+import {
+  commands,
+  type AccountPhone,
+  type CommandCard,
+  type ViewingCard,
+} from "@/bindings";
 import { platformName } from "@/components/settings/account/account";
 import { preventBrowserContextMenu } from "@/lib/contextMenu";
 import { useSafeWindowDrag } from "@/lib/useSafeWindowDrag";
 // The assistant's own card, as the reminder popup uses it.
 import "@/assistant/AssistantPanel.css";
 import "./ApprovalPopup.css";
+import { CommandCardView } from "./CommandCardView";
 
 /**
  * How long the cards must sit still on screen before a click answers them.
@@ -26,13 +32,16 @@ const ARM_DELAY_MS = 750;
  * Allow lets through lands where the user's cursor is.
  *
  * The same window says "Phone is viewing" for as long as a phone watches a
- * window here (live view), with Stop.
+ * window here (live view), with Stop, and shows a spoken command's card
+ * (`CommandCardView`): what was heard and what happened, with Send and
+ * Cancel or the choices when the command waits.
  */
 const ApprovalPopup: React.FC = () => {
   const { t } = useTranslation();
   useSafeWindowDrag();
   const [phones, setPhones] = useState<AccountPhone[]>([]);
   const [viewing, setViewing] = useState<ViewingCard | null>(null);
+  const [command, setCommand] = useState<CommandCard | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const armedAt = useRef(0);
   const disarm = useCallback(() => {
@@ -58,9 +67,18 @@ const ApprovalPopup: React.FC = () => {
       "account-viewing-changed",
       (event) => setViewing(event.payload ?? null),
     );
+    void commands
+      .commandCard()
+      .then(setCommand)
+      .catch(() => setCommand(null));
+    const unlistenCommand = listen<CommandCard | null>(
+      "command-card-changed",
+      (event) => setCommand(event.payload ?? null),
+    );
     return () => {
       void unlisten.then((off) => off());
       void unlistenViewing.then((off) => off());
+      void unlistenCommand.then((off) => off());
     };
   }, []);
 
@@ -77,11 +95,11 @@ const ApprovalPopup: React.FC = () => {
     const observer = new ResizeObserver(report);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [phones.length, viewing, disarm]);
+  }, [phones.length, viewing, command, disarm]);
 
   // A card added or gone moves the others; the window moves when it is placed
   // again (a reminder taking the corner) or dragged.
-  useEffect(() => disarm(), [phones, disarm]);
+  useEffect(() => disarm(), [phones, command?.seq, disarm]);
   useEffect(() => {
     const unlisten = getCurrentWindow().onMoved(disarm);
     return () => {
@@ -113,7 +131,9 @@ const ApprovalPopup: React.FC = () => {
       void commands.accountStopViewing();
   };
 
-  if (phones.length === 0 && !viewing) return null;
+  const armed = () => performance.now() >= armedAt.current;
+
+  if (phones.length === 0 && !viewing && !command) return null;
 
   return (
     <div
@@ -121,6 +141,7 @@ const ApprovalPopup: React.FC = () => {
       ref={rootRef}
       onContextMenu={preventBrowserContextMenu}
     >
+      {command && <CommandCardView card={command} armed={armed} />}
       {viewing && (
         <section
           className="ask-card"
