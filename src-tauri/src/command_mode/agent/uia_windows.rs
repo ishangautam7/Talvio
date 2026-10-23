@@ -828,8 +828,9 @@ struct Can {
     focus: bool,
 }
 
-/// The contract's role word for a UIA control type.
-fn role_for(control_type: i32) -> &'static str {
+/// The contract's role word for a UIA control type. Also how a live view
+/// judges the control under a tap.
+pub(crate) fn role_for(control_type: i32) -> &'static str {
     match control_type {
         BUTTON | SPLIT_BUTTON => "button",
         EDIT => "edit",
