@@ -18,6 +18,7 @@ use super::screen::input::{self, Button, ControlInfo, Rect};
 use super::screen::rtc::IceServer;
 use super::screen::session::Viewing;
 use super::screen::video::{CaptureTarget, EncodedFrame, ScreenInfo, VideoSettings, VideoStream};
+use super::{Ask, CommandFuture};
 use crate::managers::history::HistoryManager;
 use crate::managers::transcription::TranscriptionManager;
 use crate::settings::{get_settings, PasteMethod};
@@ -114,6 +115,13 @@ pub trait Host: Send + Sync + 'static {
     fn caret(&self) -> BoxFuture<'static, Option<Rect>>;
     /// Show that a phone is watching (with Stop), or take that down.
     fn viewing(&self, notice: Option<Viewing>);
+
+    // ── Commands (`command.rs`) ────────────────────────────────────────────
+
+    /// The "Voice commands" switch (`command_mode_enabled`).
+    fn command_enabled(&self) -> bool;
+    /// Run, confirm or answer a command through command mode.
+    fn command(&self, ask: Ask) -> CommandFuture;
 }
 
 pub type VideoStart = Result<
@@ -328,6 +336,23 @@ impl Host for AppHost {
 
     fn viewing(&self, notice: Option<Viewing>) {
         crate::account::viewing::show(&self.0, notice);
+    }
+
+    fn command_enabled(&self) -> bool {
+        get_settings(&self.0).command_mode_enabled
+    }
+
+    fn command(&self, ask: Ask) -> CommandFuture {
+        use crate::command_mode::{answer_command, confirm_command, run_command, CommandOrigin};
+        let app = self.0.clone();
+        Box::pin(async move {
+            let report = match ask {
+                Ask::Run(text) => run_command(&app, &text, CommandOrigin::Voice, None, None).await,
+                Ask::Confirm { id, accept } => confirm_command(&app, id, accept).await,
+                Ask::Answer { id, answer } => answer_command(&app, id, &answer).await,
+            };
+            super::outcome_of(&report)
+        })
     }
 }
 

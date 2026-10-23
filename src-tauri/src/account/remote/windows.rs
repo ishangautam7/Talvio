@@ -55,7 +55,8 @@ static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
 /// The windows one phone was last offered, by id.
 pub(super) struct Offered {
-    issued: Instant,
+    /// When its ids stop working.
+    expires: Instant,
     windows: HashMap<String, WindowEntry>,
     /// Screens a live view can watch (`screen`), by id.
     screens: HashMap<String, ScreenInfo>,
@@ -148,7 +149,7 @@ pub(super) async fn list(router: Arc<Router>, _body: Value, reply: Reply) {
     table.insert(
         reply.to.clone(),
         Offered {
-            issued: Instant::now(),
+            expires: Instant::now() + ID_LIFETIME,
             windows: offered,
             screens: offered_screens,
         },
@@ -261,7 +262,7 @@ pub(super) fn target(
     let offered = router.offered();
     let window = offered
         .get(&reply.to)
-        .filter(|offered| offered.issued.elapsed() < ID_LIFETIME)
+        .filter(|offered| Instant::now() < offered.expires)
         .and_then(|offered| offered.windows.get(id))
         .ok_or("target_gone")?;
     Ok(Some(Target {
@@ -286,7 +287,7 @@ pub(super) fn watch_target(
         let table = router.offered();
         let offered = table
             .get(&reply.to)
-            .filter(|offered| offered.issued.elapsed() < ID_LIFETIME)
+            .filter(|offered| Instant::now() < offered.expires)
             .ok_or("target_gone")?;
         match offered.windows.get(id) {
             Some(window) => Ok(window.clone()),
@@ -587,7 +588,7 @@ mod tests {
 
         // Expired.
         let (_, inbox) = listed(&router, &mut frames, "Inbox").await;
-        router.offered().get_mut("phone").unwrap().issued -= ID_LIFETIME;
+        router.offered().get_mut("phone").unwrap().expires = Instant::now();
         router.handle(
             "phone",
             json!({ "kind": "windows.keys", "requestId": "r5", "target": inbox, "keys": ["enter"] }),
