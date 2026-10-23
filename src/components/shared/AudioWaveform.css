@@ -10,17 +10,18 @@
 .audio-waveform.md {
   height: 38px;
 }
+/* Talvio coral: deep at the centre line, lighter toward the tips. */
 .audio-waveform .wave-base {
-  stop-color: #c3a374;
+  stop-color: #ff6a52;
 }
 .audio-waveform .wave-tip {
-  stop-color: #f4e7ce;
+  stop-color: #ffb8a6;
 }
 :root[data-theme="light"] .audio-waveform .wave-base {
-  stop-color: #7d6242;
+  stop-color: #c2402a;
 }
 :root[data-theme="light"] .audio-waveform .wave-tip {
-  stop-color: #af9066;
+  stop-color: #f2543d;
 }
 .audio-waveform .wave-bar {
   transform-box: fill-box;

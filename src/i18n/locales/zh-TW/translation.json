@@ -35,10 +35,10 @@
     "downloading": "下載中… {{progress}}%",
     "downloadingUnknown": "下載中…",
     "installing": "安裝中…",
-    "reopening": "Zynveliq 將關閉以安裝更新，幾秒後會重新開啟。",
+    "reopening": "Talvio 將關閉以安裝更新，幾秒後會重新開啟。",
     "updatedTo": "已更新至版本 {{version}}",
     "restart": "立即重新啟動",
-    "readyToRestart": "更新已安裝。重新啟動 Zynveliq 即可開始使用。",
+    "readyToRestart": "更新已安裝。重新啟動 Talvio 即可開始使用。",
     "installFailed": "更新未能安裝。您可以再試一次，或下載安裝程式自行執行。",
     "downloadFailed": "下載未完成。請確認網路連線後再試一次。",
     "downloadInstaller": "下載安裝程式",
@@ -49,13 +49,13 @@
     "showInFolder": "在資料夾中顯示",
     "viewRelease": "在 GitHub 上查看",
     "hint": {
-      "windows": "Zynveliq 會關閉、安裝更新，然後重新開啟。您不需要再點任何按鈕。",
-      "macos": "Zynveliq 會以新版本重新啟動。之後 macOS 可能會再次要求您允許麥克風與輔助使用權限。",
-      "linux": "Zynveliq 會以新版本重新啟動。若是以 .deb 安裝，會先要求輸入您的密碼。"
+      "windows": "Talvio 會關閉、安裝更新，然後重新開啟。您不需要再點任何按鈕。",
+      "macos": "Talvio 會以新版本重新啟動。之後 macOS 可能會再次要求您允許麥克風與輔助使用權限。",
+      "linux": "Talvio 會以新版本重新啟動。若是以 .deb 安裝，會先要求輸入您的密碼。"
     },
     "modes": {
       "portable": "這是免安裝版，無法自行更新。請下載新版本，再將您的 Data 資料夾複製過去。",
-      "packageManager": "Zynveliq 是由您的套件管理工具安裝的，請透過它更新，例如執行 yay -Syu zynveliq-bin。",
+      "packageManager": "Talvio 是由您的套件管理工具安裝的，請透過它更新，例如執行 yay -Syu talvio-bin。",
       "download": "這個版本無法直接自行更新。請下載安裝程式並執行，以取得新版本。"
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "傳送意見回饋",
     "title": "傳送意見回饋",
-    "description": "每則訊息我都會親自閱讀，想到什麼就說什麼吧。感謝您協助讓 Zynveliq 變得更好。",
+    "description": "每則訊息我都會親自閱讀，想到什麼就說什麼吧。感謝您協助讓 Talvio 變得更好。",
     "kind": {
       "label": "回饋類型",
       "bug": "錯誤",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "發生了什麼事？您原本預期會怎樣？",
-      "idea": "怎樣能讓 Zynveliq 更符合您的需要？",
+      "idea": "怎樣能讓 Talvio 更符合您的需要？",
       "question": "您想了解什麼？"
     },
     "messageLabel": "訊息",
@@ -158,10 +158,10 @@
       "retry": "再試一次"
     },
     "tour": {
-      "features": "Zynveliq 能做什麼",
+      "features": "Talvio 能做什麼",
       "count": "{{current}} / {{total}}",
       "next": "下一步",
-      "finish": "開啟 Zynveliq",
+      "finish": "開啟 Talvio",
       "tabs": {
         "dictate": "語音輸入",
         "ask": "助理",
@@ -239,7 +239,7 @@
       "ready": "準備完成"
     },
     "speechToText": {
-      "title": "Zynveliq 該怎麼聽您說話？",
+      "title": "Talvio 該怎麼聽您說話？",
       "subtitle": "這會直接在您的裝置上把語音變成文字。先選一個，隨時可以更換。",
       "cards": {
         "fast": {
@@ -304,7 +304,7 @@
       "downloadingVoice": "您的語音模型即將就緒，已完成 {{percentage}}%。",
       "downloadingGeneric": "仍在下載，已完成 {{percentage}}%。",
       "signOff": "就是這樣。去說點什麼吧。",
-      "openApp": "開啟 Zynveliq"
+      "openApp": "開啟 Talvio"
     },
     "errors": {
       "selectModel": "無法選擇該模型，請重試。",
@@ -436,7 +436,7 @@
     },
     "permissions": {
       "title": "需要權限",
-      "description": "Zynveliq 需要一些權限才能正常運作",
+      "description": "Talvio 需要一些權限才能正常運作",
       "microphone": {
         "title": "麥克風存取權",
         "description": "需要聽取您的語音進行轉錄"
@@ -446,7 +446,7 @@
         "description": "需要將轉錄文字輸入到您的應用程式中",
         "stuckHint": "已在「系統設定」中開啟？更新後，macOS 可能會保留一個與此版本不再相符的權限。",
         "reset": "重設權限",
-        "resetDone": "現在請在「系統設定」中重新開啟 Zynveliq。"
+        "resetDone": "現在請在「系統設定」中重新開啟 Talvio。"
       },
       "grant": "授予權限",
       "granted": "已授予",
@@ -455,7 +455,7 @@
       "errors": {
         "checkFailed": "無法檢查權限，請再試一次。",
         "requestFailed": "無法請求權限，請再試一次。",
-        "resetFailed": "無法重設權限。請從「輔助使用」列表中移除 Zynveliq，再重新加入。"
+        "resetFailed": "無法重設權限。請從「輔助使用」列表中移除 Talvio，再重新加入。"
       }
     },
     "frame": {
@@ -682,7 +682,7 @@
       },
       "handsFree": {
         "unavailableKeys": "僅在聽寫快捷鍵只由輔助鍵組成時可用，例如 Ctrl + Win。使用 {{keys}} 時，請改為關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
-        "unavailableEngine": "需要 Zynveliq Keys 鍵盤引擎（{{where}}）。或關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
+        "unavailableEngine": "需要 Talvio Keys 鍵盤引擎（{{where}}）。或關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
         "taken": "{{name}} 已在使用 {{keys}}，在其中之一變更前，這個鍵不會有作用。",
         "needsKey": "請選擇一個鍵，例如空白鍵或 Enter。單獨的輔助鍵不能當作免持鍵。",
         "pressKey": "請按下一個鍵…",
@@ -739,9 +739,9 @@
       "clearSearch": "清除搜尋",
       "noSearchResults": "找不到名稱為「{{query}}」的模型。",
       "olderHint": "舊格式。{{model}}（{{size}}）是這個模型的新版本。",
-      "retiredHint": "使用的是 Zynveliq 已不再內含的舊引擎。請改為下載 {{model}}（{{size}}）。",
+      "retiredHint": "使用的是 Talvio 已不再內含的舊引擎。請改為下載 {{model}}（{{size}}）。",
       "retired": {
-        "notice": "這些模型使用的是 Zynveliq 已不再內含的舊引擎。",
+        "notice": "這些模型使用的是 Talvio 已不再內含的舊引擎。",
         "newVersion": "新版本：{{model}} · {{size}}",
         "getNewVersion": "取得新版本",
         "useNewVersion": "使用新版本",
@@ -796,7 +796,7 @@
         "rescan": "重新掃描",
         "rescanning": "正在重新掃描…",
         "rescanDone_other": "找到 {{count}} 個本機模型。",
-        "footnote": "Zynveliq 啟動時會重新掃描已連結的資料夾，因此你之後放進去的模型會自動出現。取消連結資料夾或移除模型，只會從這份清單中移除——你的檔案會留在原處。",
+        "footnote": "Talvio 啟動時會重新掃描已連結的資料夾，因此你之後放進去的模型會自動出現。取消連結資料夾或移除模型，只會從這份清單中移除——你的檔案會留在原處。",
         "removeTitle": "要從清單中移除嗎？",
         "removeConfirm": "要從模型清單中移除「{{modelName}}」嗎？\n\n檔案本身會留在原處：\n{{path}}",
         "missingBadge": "檔案遺失",
@@ -886,7 +886,7 @@
         "label": "將滑鼠按鈕當作快捷鍵",
         "description": "將滑鼠中鍵、上一頁鍵或下一頁鍵當作快捷鍵：點按快捷鍵的按鍵，然後按下該滑鼠按鈕。作為快捷鍵期間，該按鈕不會執行其他動作。",
         "linux": "在 Linux 上只有滑鼠中鍵可用。",
-        "needsEngine": "需要使用 Zynveliq Keys 鍵盤實作方式。"
+        "needsEngine": "需要使用 Talvio Keys 鍵盤實作方式。"
       },
       "longFormChunking": {
         "title": "分割長錄音",
@@ -904,11 +904,11 @@
       },
       "autostart": {
         "label": "開機時啟動",
-        "description": "登入時自動開啟 Zynveliq。"
+        "description": "登入時自動開啟 Talvio。"
       },
       "showTrayIcon": {
         "label": "顯示系統匣圖示",
-        "description": "將 Zynveliq 保留在系統匣中。"
+        "description": "將 Talvio 保留在系統匣中。"
       },
       "trayIconColor": {
         "label": "彩色系統匣圖示",
@@ -916,7 +916,7 @@
       },
       "closeBehavior": {
         "label": "關閉視窗時結束程式",
-        "description": "關閉此選項時，關閉視窗後 Zynveliq 會繼續在系統匣中執行，快捷鍵仍可使用。開啟時，關閉視窗會完全結束應用程式。"
+        "description": "關閉此選項時，關閉視窗後 Talvio 會繼續在系統匣中執行，快捷鍵仍可使用。開啟時，關閉視窗會完全結束應用程式。"
       },
       "overlayStyle": {
         "title": "懸浮窗",
@@ -1010,8 +1010,8 @@
       },
       "customWords": {
         "title": "自訂詞彙",
-        "description": "希望 Zynveliq 依照您的寫法拼寫的名稱、產品與詞句。",
-        "info": "範例：如果 Zynveliq 寫成「Coco row」，請新增「Kokoro」。",
+        "description": "希望 Talvio 依照您的寫法拼寫的名稱、產品與詞句。",
+        "info": "範例：如果 Talvio 寫成「Coco row」，請新增「Kokoro」。",
         "placeholder": "新增名稱、術語或短句",
         "add": "新增",
         "empty": "還沒有自訂詞彙。",
@@ -1020,7 +1020,7 @@
       },
       "autoLearn": {
         "label": "學習我修正的字詞",
-        "description": "當您修正 Zynveliq 聽錯的字詞時，記住您的寫法。",
+        "description": "當您修正 Talvio 聽錯的字詞時，記住您的寫法。",
         "info": "它只會讀取剛輸入文字的那個欄位，時間約一分鐘。不會上傳任何內容，學到的每個字詞都會列在這裡。",
         "unsupported": "目前只有 Windows 支援從修正中學習。您仍可在上方手動新增字詞。",
         "learnedTitle": "從您的修正中學到的字詞",
@@ -1034,7 +1034,7 @@
         "title": "文字替換",
         "description": "將轉錄結果中的某段語句替換成您常用的文字。範例：「我的信箱」會變成「alex@example.com」。",
         "rulesTitle": "替換規則",
-        "rulesHint": "設定 Zynveliq 聽到什麼，以及應該插入什麼。",
+        "rulesHint": "設定 Talvio 聽到什麼，以及應該插入什麼。",
         "empty": "為您常說的語句建立一條規則。",
         "addFirst": "建立第一條規則",
         "addRule": "新增替換",
@@ -1411,7 +1411,7 @@
       },
       "updateChecks": {
         "label": "自動檢查更新",
-        "description": "在 Zynveliq 啟動時及每 12 小時檢查一次新版本。您隨時都可以手動檢查。"
+        "description": "在 Talvio 啟動時及每 12 小時檢查一次新版本。您隨時都可以手動檢查。"
       },
       "soundTheme": {
         "label": "音效主題",
@@ -1467,7 +1467,7 @@
       "smartSpacing": {
         "label": "智慧空格",
         "description": "讓每次聽寫與輸入框中已有的文字銜接，停下再繼續時，單字不會黏在一起。",
-        "info": "貼上前，Zynveliq 會查看游標附近的幾個字元，只在需要的地方加空格。如果應用程式隱藏了文字，則改用自己上一次的聽寫來判斷。不會儲存或傳送任何內容。在 macOS 上使用 Zynveliq 已取得的輔助使用權限。在 Linux 上，Chrome、Electron 和 Qt 應用程式只有在開啟桌面輔助功能設定時才會提供文字。中文和日文之間不會加空格。"
+        "info": "貼上前，Talvio 會查看游標附近的幾個字元，只在需要的地方加空格。如果應用程式隱藏了文字，則改用自己上一次的聽寫來判斷。不會儲存或傳送任何內容。在 macOS 上使用 Talvio 已取得的輔助使用權限。在 Linux 上，Chrome、Electron 和 Qt 應用程式只有在開啟桌面輔助功能設定時才會提供文字。中文和日文之間不會加空格。"
       },
       "smartSpacingFixCase": {
         "label": "調整大小寫",
@@ -1475,7 +1475,7 @@
       },
       "smartSpacingJoin": {
         "label": "連接中途停下的句子",
-        "description": "在句子中途停下時，刪除 Zynveliq 加上的句點，例如「I went to the.」"
+        "description": "在句子中途停下時，刪除 Talvio 加上的句點，例如「I went to the.」"
       },
       "keyboardImplementation": {
         "title": "鍵盤實作方式",
@@ -1494,6 +1494,101 @@
       "recordingBuffer": {
         "title": "額外錄音緩衝",
         "description": "放開按鍵後繼續錄音的毫秒數。"
+      },
+      "commandMode": {
+        "title": "指令模式",
+        "description": "輸入指令，查看路由器選擇哪個工具，以及它會做什麼。快捷鍵將在之後的版本推出。",
+        "enabled": {
+          "title": "指令模式",
+          "description": "讓指令在您的應用程式中執行動作。--run-command 需要開啟此選項；下方的輸入框則不受影響。"
+        },
+        "input": {
+          "title": "試用指令",
+          "description": "將文字傳送給路由模型，就像您親口說出一樣。開啟「試運行」時，畫面上不會發生任何事，只會顯示原本會執行的動作。",
+          "placeholder": "寄一封電子郵件給 Ron，關於 9:00 的會議"
+        },
+        "dryRun": {
+          "label": "試運行"
+        },
+        "dryRunSetting": {
+          "title": "預設為試運行",
+          "description": "指令只顯示會執行的動作，而不實際執行。上方的輸入框與 --dry-run 仍可針對單一指令選擇。"
+        },
+        "delay": {
+          "label": "{{seconds}} 秒後執行",
+          "hint": "輸入的文字與按鍵會送到最前方的視窗，也就是您按下「執行」時的這個視窗。請開啟延遲並點進目標應用程式，或使用試運行。",
+          "countdown": "將在 {{seconds}} 秒後執行。請點進指令要操作的應用程式。",
+          "cancel": "取消（{{seconds}}）"
+        },
+        "run": "執行",
+        "running": "執行中…",
+        "invokeFailed": "無法傳送指令：{{error}}",
+        "status": {
+          "done": "完成",
+          "awaiting_confirmation": "等待確認",
+          "needs_answer": "需要回答",
+          "needs_computer_use": "需要電腦操作",
+          "cancelled": "已取消",
+          "failed": "失敗"
+        },
+        "dryRunBadge": "試運行",
+        "fromCli": "來自命令列",
+        "meta": "{{model}} · {{calls}} 次 LLM 呼叫 · token 輸入 {{input}}、輸出 {{output}}、快取 {{cached}} · {{ms}} ms",
+        "transcript": "指令：{{text}}",
+        "send": "傳送",
+        "cancel": "取消",
+        "answer": {
+          "placeholder": "您的回答",
+          "submit": "回答"
+        },
+        "escalation": "交由電腦操作的任務：{{task}}",
+        "error": "錯誤：{{error}}",
+        "steps": "步驟",
+        "dryRunActions": "原本會執行",
+        "provider": {
+          "title": "路由供應商",
+          "description": "為每個指令選擇工具的供應商 ID（例如 anthropic 或 openrouter）。會使用該供應商已儲存的 API 金鑰。留空則改回 anthropic。",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "路由模型",
+          "description": "負責選擇工具的模型。小而快的最好：每個指令都會呼叫一次。留空則改回預設值。",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google 帳戶",
+          "description": "Gmail 與 Calendar 開啟時使用的帳戶（電子郵件地址或帳戶編號）。留空則使用瀏覽器預設的 Google 帳戶。",
+          "placeholder": "預設帳戶"
+        },
+        "searchUrl": {
+          "title": "搜尋頁面",
+          "description": "網頁搜尋開啟的頁面。必須包含 {query}，它會被替換成您要搜尋的內容；否則會改回 Google。",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "聯絡人",
+          "description": "指令可以寄送電子郵件的對象名稱，存放在您可編輯的 JSON 檔案中。第一次會建立並附上一個範例。",
+          "open": "開啟聯絡人檔案",
+          "openFailed": "無法開啟聯絡人檔案：{{error}}"
+        },
+        "stop": "停止",
+        "autoEscalate": {
+          "title": "必要時控制畫面",
+          "description": "沒有適合指令的工具時，代理程式會讀取應用程式的控制項並替您操作；任何會傳送、購買或刪除內容的動作，都會先詢問您。目前僅支援 Windows。"
+        },
+        "agentModel": {
+          "title": "代理程式模型",
+          "description": "控制畫面的模型，使用路由的供應商。比路由模型更強的模型效果更好。留空則改回預設值。",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "代理程式步驟上限",
+          "description": "單一工作最多可使用的模型呼叫次數，範圍 1 到 60。達到上限後，代理程式會停止，並讓畫面維持原樣。"
+        },
+        "agentMaxCost": {
+          "title": "代理程式費用上限（US$）",
+          "description": "工作花費大約達到此金額時即停止。只有已知的 Claude 模型有價格；其他模型僅受步驟上限限制。"
+        }
       }
     },
     "about": {
@@ -1512,7 +1607,7 @@
       },
       "appDataDirectory": {
         "title": "應用程式資料資料夾",
-        "description": "Zynveliq 存放模型、歷史紀錄與設定的位置。"
+        "description": "Talvio 存放模型、歷史紀錄與設定的位置。"
       },
       "sourceCode": {
         "title": "原始碼",
@@ -1521,12 +1616,12 @@
       },
       "license": {
         "title": "授權",
-        "description": "Zynveliq 以 MIT 授權開放原始碼，並以 CJ Pais 的 Handy（同為 MIT 授權）為基礎。",
+        "description": "Talvio 以 MIT 授權開放原始碼，並以 CJ Pais 的 Handy（同為 MIT 授權）為基礎。",
         "button": "檢視授權"
       },
       "supportDevelopment": {
         "title": "支持開發",
-        "description": "幫助我們持續打造 Zynveliq",
+        "description": "幫助我們持續打造 Talvio",
         "button": "捐贈"
       }
     },
@@ -1534,7 +1629,7 @@
       "enable": {
         "title": "助理",
         "label": "啟用助理",
-        "description": "關閉後，Zynveliq 只做語音輸入。浮動面板會關閉且不再載入，它的快捷鍵會釋放，佔用的記憶體也會歸還。使用 Flow 生成 與 AI 整理仍可正常使用。"
+        "description": "關閉後，Talvio 只做語音輸入。浮動面板會關閉且不再載入，它的快捷鍵會釋放，佔用的記憶體也會歸還。使用 Flow 生成 與 AI 整理仍可正常使用。"
       },
       "shortcuts": {
         "title": "快捷鍵"
@@ -1573,7 +1668,7 @@
         "deleteModelFailed": "無法刪除模型。",
         "finderSectionTitle": "更多裝置端模型",
         "finderTitle": "瀏覽 Hugging Face",
-        "finderDescription": "搜尋數千個 GGUF 模型，直接下載到 Zynveliq。",
+        "finderDescription": "搜尋數千個 GGUF 模型，直接下載到 Talvio。",
         "finderAction": "尋找模型",
         "huggingFaceTitle": "我的模型",
         "catalogEmpty": "目前沒有可用的推薦本機模型。"
@@ -1696,7 +1791,7 @@
           "label": "擷取時機"
         },
         "screenRecording": {
-          "description": "螢幕視覺需要 macOS 的「螢幕錄製」權限。請在「系統設定」中授予權限，然後重新啟動 Zynveliq 才會生效。",
+          "description": "螢幕視覺需要 macOS 的「螢幕錄製」權限。請在「系統設定」中授予權限，然後重新啟動 Talvio 才會生效。",
           "grant": "開啟系統設定"
         }
       },
@@ -1873,7 +1968,7 @@
         "testGpuMoved": "您的顯示卡讓試聽音訊出現雜音，因此已將其靜音。Kokoro 現在改用處理器，請再測試一次來試聽。",
         "testGpuForced": "您的顯示卡讓試聽音訊出現雜音，因此已將其靜音。請將「執行於」設為「自動」或「處理器」。",
         "testGpuSuspect": "試聽音訊出現雜音，因此已將其靜音。請再測試一次，以檢查您的顯示卡。",
-        "testPhrase": "您好！這是 Zynveliq 語音輸出的測試。",
+        "testPhrase": "您好！這是 Talvio 語音輸出的測試。",
         "downloadStart": "正在下載 Kokoro 語音…",
         "downloadProgress": "正在下載 Kokoro 語音… {{progress}}%",
         "downloadReady": "Kokoro 語音已就緒 ✓",
@@ -1975,7 +2070,7 @@
     "account": {
       "signedOut": {
         "title": "連接您的手機",
-        "body": "在這台電腦和手機上的 Zynveliq App 登入同一個帳戶。之後就能用手機在這台電腦上語音輸入和打字。",
+        "body": "在這台電腦和手機上的 Talvio App 登入同一個帳戶。之後就能用手機在這台電腦上語音輸入和打字。",
         "modeLabel": "登入或建立帳戶",
         "signIn": "登入",
         "createAccount": "建立帳戶",
@@ -1988,8 +2083,7 @@
         "or": "或",
         "google": "使用 Google 繼續",
         "googleWaiting": "請在瀏覽器中完成登入。",
-        "privacy": "伺服器只會保存您的帳戶和裝置清單，絕不保存錄音或文字。",
-        "serverUnsaved": "登入前，請先在下方儲存新的伺服器位址。"
+        "privacy": "伺服器會保存您的帳戶和裝置清單；如果您同步 API 金鑰，也會保存它們（已加密）。絕不保存錄音或文字。"
       },
       "signOut": "登出",
       "signingOut": "正在登出…",
@@ -1997,13 +2091,18 @@
         "online": "已連線",
         "connecting": "正在連線…",
         "offline": "離線",
-        "offlineHint": "Zynveliq 暫時無法連上伺服器，正在持續重試。恢復之前，您的手機無法使用這台電腦。"
+        "offlineHint": "Talvio 暫時無法連上伺服器，正在持續重試。恢復之前，您的手機無法使用這台電腦。"
       },
       "phone": {
         "title": "手機",
         "remoteInput": "手機語音輸入",
         "remoteInputHint": "讓您的手機能在這台電腦上語音輸入和打字。",
-        "install": "在手機上安裝 Zynveliq App，並以 {{email}} 登入。"
+        "install": "在手機上安裝 Talvio App，並以 {{email}} 登入。"
+      },
+      "keys": {
+        "title": "API 金鑰",
+        "sync": "同步 API 金鑰",
+        "syncHint": "您在這台電腦上新增的金鑰會加密保存在您的 Talvio 帳戶中，並出現在您的其他電腦上。"
       },
       "devices": {
         "title": "裝置",
@@ -2030,12 +2129,8 @@
       },
       "server": {
         "title": "帳戶伺服器",
-        "hint": "保存您帳戶的地方。只有在您自行架設伺服器時才需要變更。",
-        "locked": "登出後才能變更伺服器。",
-        "automatic": "自動",
-        "custom": "自訂",
         "using": "正在使用 {{host}}",
-        "notFound": "暫時找不到伺服器，Zynveliq 正在持續重試。"
+        "notFound": "暫時找不到伺服器，Talvio 正在持續重試。"
       },
       "errors": {
         "generic": "發生問題。請再試一次。",
@@ -2055,9 +2150,7 @@
         "server": "伺服器傳回了非預期的回應。請稍後再試。",
         "timeout": "Google 登入花費太久時間。請再試一次。",
         "signed_in": "請先登出，再變更伺服器。",
-        "invalid_url": "請輸入以 https:// 開頭的位址，這樣密碼會加密傳送。http:// 只適用於這台電腦上的伺服器。",
-        "keychain": "無法在這台電腦上安全儲存您的登入資訊。請再試一次。",
-        "wrongServer": "該伺服器位址似乎不正確。請在下方檢查後再試一次。"
+        "keychain": "無法在這台電腦上安全儲存您的登入資訊。請再試一次。"
       }
     }
   },
@@ -2158,7 +2251,7 @@
     "list": {
       "title": "已錄製的會議",
       "emptyTitle": "還沒有會議",
-      "emptyHint": "在通話前開始錄製，Zynveliq 就會保留依說話者分段的逐字稿。",
+      "emptyHint": "在通話前開始錄製，Talvio 就會保留依說話者分段的逐字稿。",
       "loadMore": "載入更多",
       "speakers_other": "{{count}} 位說話者",
       "hasNotes": "已產生筆記"
@@ -2319,7 +2412,7 @@
   },
   "accessibility": {
     "permissionsRequired": "需要輔助使用權限",
-    "permissionsDescription": "Zynveliq 需要輔助使用權限才能輸入轉錄的文字",
+    "permissionsDescription": "Talvio 需要輔助使用權限才能輸入轉錄的文字",
     "openSettings": "開啟系統設定",
     "dismiss": "關閉"
   },
@@ -2348,7 +2441,7 @@
   },
   "appLanguage": {
     "title": "應用程式語言",
-    "description": "變更 Zynveliq 介面的語言"
+    "description": "變更 Talvio 介面的語言"
   },
   "overlay": {
     "preparing": "正在準備麥克風…",
@@ -2710,7 +2803,7 @@
       "performance": "效能"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "版本 {{version}}",
       "project": "專案",
       "docs": "說明文件",
@@ -2728,7 +2821,7 @@
     "subtitleTap": "在任何應用程式中按一下快捷鍵、說話，再按一下。您說的話會出現在游標所在位置。",
     "needsModel": {
       "title": "選擇語音模型，開始語音輸入。",
-      "description": "Zynveliq 需要一個語音轉文字模型，才能輸入您說的話。",
+      "description": "Talvio 需要一個語音轉文字模型，才能輸入您說的話。",
       "action": "選擇模型"
     },
     "stats": {
@@ -2801,8 +2894,8 @@
         "open": "鍵盤設定"
       },
       "linux": {
-        "wayland": "在 Wayland 下，只有 Zynveliq 的視窗在最前面時，桌面才會把這些按鍵交給 Zynveliq。若要在任何應用程式中使用，請在系統設定中將它們新增為快捷鍵。",
-        "noAccess": "Zynveliq Keys 無法在這台電腦上讀取鍵盤，因此這些快捷鍵暫時沒有作用。",
+        "wayland": "在 Wayland 下，只有 Talvio 的視窗在最前面時，桌面才會把這些按鍵交給 Talvio。若要在任何應用程式中使用，請在系統設定中將它們新增為快捷鍵。",
+        "noAccess": "Talvio Keys 無法在這台電腦上讀取鍵盤，因此這些快捷鍵暫時沒有作用。",
         "setUp": "設定",
         "where": {
           "gnome": "開啟「設定 → 鍵盤 → 檢視及自訂快捷鍵 → 自訂快捷鍵」，為下方每個指令各新增一個，然後按下想用的按鍵。",
@@ -2810,7 +2903,7 @@
           "other": "請為下方每個指令，在桌面的鍵盤設定中新增自訂快捷鍵，或在合成器設定中加入一行 bind。"
         },
         "tapOnly": "以這種方式新增的快捷鍵和「按一下切換」一樣：按一次開始，再按一次停止。",
-        "access": "或者允許 Zynveliq Keys 讀取鍵盤。在終端機中執行以下指令，然後登出再重新登入：",
+        "access": "或者允許 Talvio Keys 讀取鍵盤。在終端機中執行以下指令，然後登出再重新登入：",
         "copy": "複製",
         "copied": "已複製"
       }
@@ -2838,7 +2931,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} 使用的是 Zynveliq 已不再內含的舊引擎。",
+    "title": "{{model}} 使用的是 Talvio 已不再內含的舊引擎。",
     "newVersion": "它的新版本是 {{model}}。",
     "ready": "{{model}} 已下載，可以使用。",
     "noVersion": "請選擇其他模型以繼續聽寫。",
@@ -2847,12 +2940,12 @@
     "retry": "再試一次",
     "chooseAnother": "選擇其他模型",
     "progressLabel": "正在下載新版本",
-    "dialogTitle": "Zynveliq 換上了新的語音引擎",
+    "dialogTitle": "Talvio 換上了新的語音引擎",
     "dialogBody": "它更快、更穩定，遇到的問題會更少。{{model}} 執行於舊引擎，需要下載新版本才能繼續使用。",
     "later": "稍後"
   },
   "modelsHub": {
-    "description": "Zynveliq 的每項工作都由您選擇的模型完成。在這台電腦上執行可保護隱私，在雲端執行則速度更快。",
+    "description": "Talvio 的每項工作都由您選擇的模型完成。在這台電腦上執行可保護隱私，在雲端執行則速度更快。",
     "addLocal": "新增模型檔案",
     "privacyNote": "在這台電腦上執行的模型，絕不會將您的語音或文字傳送到任何地方。雲端模型則會使用您的 API 金鑰，將內容傳送給您選擇的供應商。",
     "inUse": "使用中",
@@ -3011,12 +3104,12 @@
     "shortcutRow": "快捷鍵"
   },
   "dictionary": {
-    "description": "教 Zynveliq 認識您常用的名稱與術語，並設定可展開成較長文字的縮寫。",
+    "description": "教 Talvio 認識您常用的名稱與術語，並設定可展開成較長文字的縮寫。",
     "words": {
       "title": "您的詞彙",
-      "description": "Zynveliq 應該永遠寫對的名稱、專業術語與拼寫。",
+      "description": "Talvio 應該永遠寫對的名稱、專業術語與拼寫。",
       "placeholder": "新增名稱、術語或拼寫…",
-      "empty": "這裡還沒有內容。請新增 Zynveliq 老是寫錯的詞彙。"
+      "empty": "這裡還沒有內容。請新增 Talvio 老是寫錯的詞彙。"
     },
     "replacements": {
       "title": "文字替換",
@@ -3397,7 +3490,7 @@
     "or": "或",
     "changeOther": "變更「{{name}}」快捷鍵的另一組按鍵",
     "pressKeysOrButton": "請按下按鍵或滑鼠按鈕…",
-    "mouseNeedsKeysEngine": "滑鼠按鈕需要使用 Zynveliq Keys 鍵盤實作方式（設定 → 進階 → 實驗性）。",
+    "mouseNeedsKeysEngine": "滑鼠按鈕需要使用 Talvio Keys 鍵盤實作方式（設定 → 進階 → 實驗性）。",
     "mouse": {
       "middle": "滑鼠中鍵",
       "back": "滑鼠上一頁鍵",
@@ -3476,7 +3569,7 @@
     }
   },
   "insights": {
-    "about": "您使用 Zynveliq 的情形，在這台電腦上統計。",
+    "about": "您使用 Talvio 的情形，在這台電腦上統計。",
     "nothingYet": "只要使用語音輸入、詢問助理或錄製會議，就會顯示您的使用分析。",
     "goHome": "查看快捷鍵",
     "figures": {
@@ -3528,7 +3621,7 @@
     },
     "share": {
       "button": "分享",
-      "nothingYet": "開始使用 Zynveliq 後，就有東西可以分享了。",
+      "nothingYet": "開始使用 Talvio 後，就有東西可以分享了。",
       "title": "分享您的使用分析",
       "private": "在這台電腦上製作，不會上傳任何內容。",
       "size": "尺寸",
@@ -3559,13 +3652,13 @@
       "openSite": "開啟 {{site}}",
       "openFailed": "無法開啟 {{site}}",
       "more": "更多應用程式",
-      "sheetTitle": "我的 Zynveliq 使用分析",
+      "sheetTitle": "我的 Talvio 使用分析",
       "shareFailed": "無法開啟分享",
       "drawFailed": "無法繪製卡片。請關閉後再試一次。",
       "tagline": "免費 · 開放原始碼 · 離線也能用",
       "cards": {
         "highlights": {
-          "title": "我的 Zynveliq 精彩紀錄",
+          "title": "我的 Talvio 精彩紀錄",
           "words_other": "說出的字",
           "streak_other": "連續天數",
           "wpm": "字/分鐘",
@@ -3614,9 +3707,9 @@
         }
       },
       "post": {
-        "dictation_other": "我用 Zynveliq 對著電腦說了 {{formatted}} 個字，一個字都不用打。",
-        "asks_other": "我問了 Zynveliq 的助理 {{formatted}} 個問題，完全不用切換分頁。",
-        "meetings_other": "Zynveliq 已經幫我錄了 {{formatted}} 場會議，還幫我寫好筆記。"
+        "dictation_other": "我用 Talvio 對著電腦說了 {{formatted}} 個字，一個字都不用打。",
+        "asks_other": "我問了 Talvio 的助理 {{formatted}} 個問題，完全不用切換分頁。",
+        "meetings_other": "Talvio 已經幫我錄了 {{formatted}} 場會議，還幫我寫好筆記。"
       }
     }
   },
@@ -3624,11 +3717,72 @@
     "restored": "你的設定已損毀，已從備份還原。",
     "restoredDescription": "最近的變更可能遺失。",
     "unrecoverableTitle": "無法還原你的設定",
-    "unrecoverableDescription": "Zynveliq 已使用預設設定啟動。損毀的檔案已保留為 {{file}}。",
+    "unrecoverableDescription": "Talvio 已使用預設設定啟動。損毀的檔案已保留為 {{file}}。",
     "notSavingTitle": "設定變更將不會儲存",
-    "notSavingDescription": "無法讀取設定檔，因此未做任何變動。請重新啟動 Zynveliq 再試一次。",
+    "notSavingDescription": "無法讀取設定檔，因此未做任何變動。請重新啟動 Talvio 再試一次。",
     "saveFailingTitle": "設定未能儲存",
-    "saveFailingDescription": "最近的變更尚未儲存。Zynveliq 會繼續嘗試。",
+    "saveFailingDescription": "最近的變更尚未儲存。Talvio 會繼續嘗試。",
     "dismiss": "關閉"
+  },
+  "commandMode": {
+    "feedback": {
+      "agentCancelled": "已停止，一切維持原樣。",
+      "agentConfirm": "{{window}} 中的「{{name}}」可能會傳送、購買或刪除內容。說「是」繼續，或取消。",
+      "agentConfirmed": "完成：「{{name}}」。",
+      "agentCostLimit": "再繼續就會花費超過 ${{limit}}，所以我停了下來，一切維持原樣。",
+      "agentDone": "{{summary}}",
+      "agentFailed": "我無法控制畫面：{{reason}}",
+      "agentGaveUp": "我沒能完成：{{reason}}",
+      "agentNotConfigured": "這需要我控制畫面，但代理程式尚未設定：{{why}}",
+      "agentOff": "我的工具都做不到這件事。開啟「必要時控制畫面」，我就能替您操作應用程式。",
+      "agentStepLimit": "這超過了 {{steps}} 個步驟，所以我停了下來，一切維持原樣。",
+      "agentWorking": "正在 {{app}} 中處理…",
+      "agentWorkingNoApp": "正在處理…",
+      "calendarDraft": "行事曆活動「{{title}}」已可儲存。",
+      "calendarDraftMissingGuests": "行事曆活動「{{title}}」已可儲存。我沒有加入 {{guests}}，因為我沒有他們的電子郵件地址，請在表單中自行新增。",
+      "cancelled": "已取消，沒有傳送任何內容。",
+      "confirmExpired": "等待時間太長，所以我沒有執行。請再告訴我一次。",
+      "confirmFailed": "這項動作已無法執行。",
+      "contactFound": "{{name}}：{{details}}。",
+      "contactNoDetails": "{{name}} 在您的聯絡人中，但沒有儲存電子郵件地址或電話號碼。",
+      "contactNotFound": "我找不到名為 {{name}} 的聯絡人。",
+      "emailDraft": "給 {{name}} 的草稿已開啟。請說「傳送」或「取消」。",
+      "emailDraftTruncated": "給 {{name}} 的草稿已開啟。訊息太長，無法完整傳給 Gmail，因此被截短了；傳送前請檢查結尾。請說「傳送」或「取消」。",
+      "emailSent": "已傳送給 {{name}}。",
+      "empty": "我沒有聽到指令。",
+      "failed": "{{reason}}",
+      "mediaNext": "已跳到下一首。",
+      "mediaPlayPause": "已按下播放／暫停。",
+      "mediaPrevious": "已回到上一首。",
+      "mediaStop": "已停止播放。",
+      "needsComputerUse": "我目前的工具都還做不到這件事。操控畫面來完成它的功能將在之後的版本推出。",
+      "notConfigured": "指令模式尚未設定：{{why}}",
+      "nothingWaitingAnswer": "目前沒有等待回答的項目。",
+      "nothingWaitingConfirmation": "目前沒有等待確認的項目。",
+      "openedInstead": "{{app}} 尚未開啟，所以我把它打開了。",
+      "openingApp": "正在開啟 {{app}}。",
+      "openingFile": "正在開啟 {{file}}。",
+      "planCapped": "一次的步驟太多，所以我略過了最後 {{count}} 個。",
+      "pressKeysConfirm": "{{keys}} 可能會在 {{window}} 中傳送或提交內容。請說「是」來按下，或說「取消」。",
+      "pressedKeys": "已按下 {{keys}}。",
+      "pressedKeysRepeat": "已按下 {{keys}} {{count}} 次。",
+      "question": "{{question}}",
+      "routeFailed": "我無法判斷該怎麼做：{{why}}",
+      "say": "{{text}}",
+      "searchOpened": "正在搜尋 {{query}}。",
+      "superseded": "較新的指令取代了這個指令，所以它不再等待。",
+      "switchedTo": "已切換到 {{title}}。",
+      "tooManyQuestions": "我還是無法判斷該怎麼做。請換個說法試試。",
+      "typedText": "已輸入。",
+      "unsupported": "在 {{os}} 上無法這麼做。",
+      "urlOpened": "已開啟 {{site}}。",
+      "volumeDown": "已調低音量。",
+      "volumeMute": "已靜音。",
+      "volumeSet": "音量已設為 {{percent}}%。",
+      "volumeUnmute": "已恢復聲音。",
+      "volumeUp": "已調高音量。",
+      "waitingForAnswer": "這個指令正在等待回答，而不是確認。",
+      "waitingForConfirmation": "這個指令正在等待您確認，而不是回答。"
+    }
   }
 }

@@ -6,7 +6,7 @@ product
 
 ## Users and purpose
 
-Zynveliq is a desktop voice assistant for dictation, spoken conversation, and optional screen context. It supports local models and user-selected cloud providers. The assistant panel lets users talk while working in other applications.
+Talvio is a desktop voice assistant for dictation, spoken conversation, and optional screen context. It supports local models and user-selected cloud providers. The assistant panel lets users talk while working in other applications.
 
 ## Product principles
 

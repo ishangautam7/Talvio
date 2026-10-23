@@ -6,9 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket/testing.dart';
 import 'package:web_socket/web_socket.dart';
 import 'package:web_socket_channel/adapter_web_socket_channel.dart';
-import 'package:zynveliq_mobile/src/core/models.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
-import 'package:zynveliq_mobile/src/core/session_store.dart';
+import 'package:talvio_mobile/src/core/models.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/session_store.dart';
 
 const server = 'http://sync.test:8787';
 
@@ -67,11 +67,11 @@ Map<String, Object?> authJson() => {
 /// [signedIn] is false.
 Future<SessionStore> sessionStore({bool signedIn = true}) async {
   TestWidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences.setMockInitialValues({'server_url': server});
+  SharedPreferences.setMockInitialValues({});
   FlutterSecureStorage.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
-  // A Custom server: discovery stays off.
-  final store = SessionStore(prefs, ServerFinder(prefs));
+  // A pinned server (a development build's): discovery stays off.
+  final store = SessionStore(prefs, ServerFinder(prefs), pinned: server);
   await store.load();
   if (signedIn) await store.signIn(AuthResponse.fromJson(authJson()));
   return store;

@@ -27,7 +27,7 @@ interface SignedInProps {
   user: AccountUser;
 }
 
-/** Signed in: who, whether the phone can reach this computer, and the devices. */
+/** Signed in: who, whether the phone can reach this computer, key sync, and the devices. */
 export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
   const { t } = useTranslation();
   const { getSetting, updateSetting, isUpdating } = useSettings();
@@ -35,6 +35,7 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
   const name = displayName(user);
   const remoteInput =
     getSetting("remote_input_enabled") ?? status.remote_input_enabled;
+  const syncKeys = getSetting("account_sync_secrets") ?? true;
 
   return (
     <>
@@ -102,6 +103,19 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
             </p>
           </div>
         )}
+      </SettingsGroup>
+
+      <SettingsGroup title={t("settings.account.keys.title")}>
+        <ToggleSwitch
+          checked={syncKeys}
+          onChange={(enabled) =>
+            void updateSetting("account_sync_secrets", enabled)
+          }
+          isUpdating={isUpdating("account_sync_secrets")}
+          label={t("settings.account.keys.sync")}
+          description={t("settings.account.keys.syncHint")}
+          grouped
+        />
       </SettingsGroup>
 
       <SettingsGroup title={t("settings.account.devices.title")}>

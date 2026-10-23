@@ -34,8 +34,6 @@ use tauri_nspanel::{tauri_panel, CollectionBehavior, PanelBuilder, PanelLevel};
 use gtk_layer_shell::{Edge as LayerEdge, KeyboardMode, Layer, LayerShell};
 
 #[cfg(target_os = "linux")]
-use std::env;
-
 #[cfg(target_os = "macos")]
 tauri_panel! {
     panel!(RecordingOverlayPanel {
@@ -668,13 +666,13 @@ fn update_gtk_layer_shell_anchors(overlay_window: &tauri::webview::WebviewWindow
 /// "0", "false", "no", "off" and empty string are treated as falsy (case-insensitive).
 /// Returns false when the variable is not set.
 #[cfg(target_os = "linux")]
-pub(crate) fn env_flag_enabled(name: &str) -> bool {
-    match env::var(name) {
-        Ok(v) => !matches!(
+pub(crate) fn env_flag_enabled(suffix: &str) -> bool {
+    match crate::rebrand::user_env_var(suffix) {
+        Some(v) => !matches!(
             v.trim().to_ascii_lowercase().as_str(),
             "" | "0" | "false" | "no" | "off"
         ),
-        Err(_) => false,
+        None => false,
     }
 }
 
@@ -716,8 +714,8 @@ pub(crate) fn realize_gtk_window(window: &tauri::webview::WebviewWindow) {
 /// Returns true if layer shell was successfully initialized, false otherwise
 #[cfg(target_os = "linux")]
 fn init_gtk_layer_shell(overlay_window: &tauri::webview::WebviewWindow) -> bool {
-    if env_flag_enabled("ZYNVELIQ_NO_GTK_LAYER_SHELL") {
-        debug!("Skipping GTK layer shell init (ZYNVELIQ_NO_GTK_LAYER_SHELL is enabled)");
+    if env_flag_enabled("NO_GTK_LAYER_SHELL") {
+        debug!("Skipping GTK layer shell init (TALVIO_NO_GTK_LAYER_SHELL is enabled)");
         return false;
     }
 
@@ -1637,7 +1635,7 @@ pub fn show_speech_download_overlay(app_handle: &AppHandle, model_id: &str) {
 
 /// "<Model> needs an update", with a line saying the new version is on the
 /// Models page, for a voice shortcut pressed while the selected speech model
-/// is one whose engine Zynveliq no longer includes (see
+/// is one whose engine Talvio no longer includes (see
 /// `speech_readiness`). Up as long as the download notice, because it is the
 /// only explanation the user gets where they are looking; the main window
 /// opens behind it with the way forward.

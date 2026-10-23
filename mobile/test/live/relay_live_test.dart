@@ -1,8 +1,8 @@
 // Live checks against a running account server, through the app's own
 // ApiClient, SessionStore and RelayClient, with a bare socket playing the
-// computer. Skipped unless ZYNVELIQ_LIVE_SERVER is set:
+// computer. Skipped unless TALVIO_LIVE_SERVER is set:
 //
-//   ZYNVELIQ_LIVE_SERVER=http://127.0.0.1:8787 flutter test test/live
+//   TALVIO_LIVE_SERVER=http://127.0.0.1:8787 flutter test test/live
 //
 // Each run signs up a throwaway account and deletes it at the end.
 
@@ -15,14 +15,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zynveliq_mobile/src/core/api_client.dart';
-import 'package:zynveliq_mobile/src/core/config.dart';
-import 'package:zynveliq_mobile/src/core/models.dart';
-import 'package:zynveliq_mobile/src/core/relay_client.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
-import 'package:zynveliq_mobile/src/core/session_store.dart';
+import 'package:talvio_mobile/src/core/api_client.dart';
+import 'package:talvio_mobile/src/core/config.dart';
+import 'package:talvio_mobile/src/core/models.dart';
+import 'package:talvio_mobile/src/core/relay_client.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/session_store.dart';
 
-final _server = Platform.environment['ZYNVELIQ_LIVE_SERVER'];
+final _server = Platform.environment['TALVIO_LIVE_SERVER'];
 const _wait = Duration(seconds: 10);
 
 DeviceInfo _computer(String name) => DeviceInfo(
@@ -106,10 +106,10 @@ void main() {
     'sign up, see the computer, request and reply, offline and revoked',
     () async {
       final server = _server!;
-      SharedPreferences.setMockInitialValues({'server_url': server});
+      SharedPreferences.setMockInitialValues({});
       FlutterSecureStorage.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      final session = SessionStore(prefs, ServerFinder(prefs));
+      final session = SessionStore(prefs, ServerFinder(prefs), pinned: server);
       await session.load();
       final api = ApiClient(session);
       final random = Random.secure();
@@ -287,6 +287,6 @@ void main() {
       await _until(relay.status, (s) => s == RelayStatus.disconnected);
       expect(session.signedIn, isFalse);
     },
-    skip: _server == null ? 'set ZYNVELIQ_LIVE_SERVER to run' : false,
+    skip: _server == null ? 'set TALVIO_LIVE_SERVER to run' : false,
   );
 }

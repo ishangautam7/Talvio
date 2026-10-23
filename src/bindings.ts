@@ -3838,6 +3838,167 @@ async getSettingsNotices() : Promise<SettingsNotice[]> {
 async dismissSettingsNotice(kind: SettingsNoticeKind) : Promise<void> {
     await TAURI_INVOKE("dismiss_settings_notice", { kind });
 },
+/**
+ * Run a command typed into Settings → Debug. `dry_run` overrides the saved
+ * `command_dry_run` setting for this one command; `null` uses the setting.
+ * 
+ * Not gated on `command_mode_enabled`: this box is the developer surface
+ * (the Debug tab is itself hidden behind debug mode), and testing a command
+ * must not require switching the feature on for the hotkey too.
+ */
+async commandRunText(text: string, dryRun: boolean | null) : Promise<CommandReport> {
+    return await TAURI_INVOKE("command_run_text", { text, dryRun });
+},
+/**
+ * Answer the question a command asked (`status: needs_answer`), by the
+ * report's `id`. The command carries on from where it stopped.
+ */
+async commandAnswer(id: number, answer: string) : Promise<CommandReport> {
+    return await TAURI_INVOKE("command_answer", { id, answer });
+},
+/**
+ * Accept (`true`, "send") or decline what a command left waiting for
+ * confirmation (`status: awaiting_confirmation`), by the report's `id`.
+ */
+async commandConfirm(id: number, accept: boolean) : Promise<CommandReport> {
+    return await TAURI_INVOKE("command_confirm", { id, accept });
+},
+/**
+ * Open the contacts file in the user's editor, creating it with one example
+ * contact first if there is none. A file that exists is never touched, even
+ * an empty or broken one: it is the user's, and the loader already says
+ * what is wrong with it.
+ */
+async commandOpenContactsFile() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("command_open_contacts_file") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Turn command mode on or off.
+ */
+async changeCommandModeEnabledSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_mode_enabled_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The provider (a `post_process_providers` id) that routes commands. Empty
+ * goes back to the default.
+ */
+async changeCommandRouterProviderIdSetting(providerId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_router_provider_id_setting", { providerId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The model that routes commands. Empty goes back to the default.
+ */
+async changeCommandRouterModelSetting(model: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_router_model_setting", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Whether commands show what they would do instead of doing it.
+ */
+async changeCommandDryRunSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_dry_run_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The Google account (`authuser=`) Gmail and Calendar links open in. Empty
+ * means the browser's default account.
+ */
+async changeCommandGoogleAccountSetting(account: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_google_account_setting", { account }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The search page a web search opens. It must contain `{query}`; anything
+ * else goes back to the default rather than opening a page that ignores
+ * what was asked.
+ */
+async changeCommandSearchUrlSetting(url: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_search_url_setting", { url }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Whether a command no tool fits is handed to the screen agent.
+ */
+async changeCommandAutoEscalateSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_auto_escalate_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The model the screen agent runs on. Empty goes back to the default.
+ */
+async changeCommandAgentModelSetting(model: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_agent_model_setting", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The most LLM rounds one agent task may use, kept within 1–60.
+ */
+async changeCommandAgentMaxStepsSetting(steps: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_agent_max_steps_setting", { steps }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * What one agent task may cost, in US dollars, kept within $0.01–$20.
+ */
+async changeCommandAgentMaxCostUsdSetting(usd: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_agent_max_cost_usd_setting", { usd }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stop the command that is running, if any: an agent task stops before its
+ * next request or action and leaves the screen as it is. Esc and `--cancel`
+ * do the same through `utils::cancel_current_operation`.
+ */
+async commandCancel() : Promise<void> {
+    await TAURI_INVOKE("command_cancel");
+},
 async accountGetStatus() : Promise<AccountStatus> {
     return await TAURI_INVOKE("account_get_status");
 },
@@ -3923,21 +4084,21 @@ async accountAnswerApproval(deviceId: string, allow: boolean) : Promise<void> {
 async fitAccountApproval(height: number) : Promise<void> {
     await TAURI_INVOKE("fit_account_approval", { height });
 },
-/**
- * A Custom server, or an empty `url` for Automatic. Only while signed out:
- * a session belongs to the server it signed in on.
- */
-async setAccountServerUrl(url: string) : Promise<Result<null, string>> {
+async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("set_account_server_url", { url }) };
+    return { status: "ok", data: await TAURI_INVOKE("set_remote_input_enabled", { enabled }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
+/**
+ * Settings → Account → Sync API keys. Turning it on syncs at once; turning
+ * it off stops syncing and leaves every key on this computer.
+ */
+async setAccountSyncSecrets(enabled: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("set_remote_input_enabled", { enabled }) };
+    return { status: "ok", data: await TAURI_INVOKE("set_account_sync_secrets", { enabled }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -3973,13 +4134,10 @@ approved: boolean }
 export type AccountPhone = { id: string; name: string; platform: string }
 export type AccountStatus = { signed_in: boolean; 
 /**
- * The server in use; empty while Automatic has found none.
+ * The server in use, as discovery found it; empty while it has found
+ * none.
  */
-server_url: string; 
-/**
- * Automatic (discovery) rather than a Custom server the user typed.
- */
-server_automatic: boolean; user: AccountUser | null; device_id: string | null; connection: AccountConnection; 
+server_url: string; user: AccountUser | null; device_id: string | null; connection: AccountConnection; 
 /**
  * `None` until the server has answered `/v1/config`.
  */
@@ -4320,7 +4478,7 @@ smart_spacing?: boolean;
  */
 smart_spacing_fix_case?: boolean; 
 /**
- * Smart spacing: remove the period Zynveliq itself pasted at the end of
+ * Smart spacing: remove the period Talvio itself pasted at the end of
  * an unfinished sentence ("I went to the.") when the next dictation
  * continues it.
  */
@@ -4328,7 +4486,7 @@ smart_spacing_join_sentences?: boolean; app_language?: string; experimental_enab
 /**
  * Experimental: let the middle, Back and Forward mouse buttons be a
  * shortcut's keys. Off, a stored mouse button is kept but not registered,
- * and the shortcut editor ignores the mouse. Only the Zynveliq Keys
+ * and the shortcut editor ignores the mouse. Only the Talvio Keys
  * engine can see mouse buttons at all.
  */
 mouse_button_shortcuts?: boolean; show_tray_icon?: boolean; 
@@ -4350,7 +4508,7 @@ transcribe_gpu_device?: string | null; extra_recording_buffer_ms?: number;
  * Master switch for the assistant experience: the floating panel window,
  * its two hotkeys, spoken replies, profiles and personal memory.
  * 
- * Off makes Zynveliq dictation-only and, crucially, never creates the
+ * Off makes Talvio dictation-only and, crucially, never creates the
  * always-on-top panel WebView — a whole renderer process plus whatever it
  * loads (the local TTS model above all) that otherwise lives for as long as
  * the app does. Kept separate from the provider/model settings on purpose:
@@ -4608,9 +4766,66 @@ web_search_api_keys?: SecretMap; theme?: Theme; ui_text_size?: UiTextSize;
  */
 main_window_width?: number | null; main_window_height?: number | null; 
 /**
- * The Custom account server this computer signs in to (`account`), or
- * empty for Automatic: the server discovery finds. Changed only while
- * signed out.
+ * Command mode: say what you want done and the app does it on screen
+ * (`command_mode/`). Off by default, because a command acts in the
+ * user's apps and sends the transcript to the router's provider.
+ */
+command_mode_enabled?: boolean;
+/**
+ * The provider (an id from `post_process_providers`) that routes a
+ * command to a tool. Its key is the one already saved for that provider.
+ */
+command_router_provider_id?: string;
+/**
+ * The model that routes a command: small and fast, since every command
+ * costs one call to it.
+ */
+command_router_model?: string;
+/**
+ * Show what a command would do instead of doing it. The Debug box and
+ * `--dry-run` can still override it for one command.
+ */
+command_dry_run?: boolean;
+/**
+ * The Google account Gmail and Calendar links open in, sent as
+ * `authuser=`. Empty means the browser's default Google account.
+ */
+command_google_account?: string;
+/**
+ * The search page a web search opens; `{query}` is replaced with the
+ * URL-encoded query.
+ */
+command_search_url?: string;
+/**
+ * When no tool fits a command (or a tool fails in a way another approach
+ * could fix), hand it to the tier-2 agent that works the app's controls
+ * through the accessibility tree (`command_mode/agent/`). On by default:
+ * the agent holds anything that sends, buys or deletes for the user, and
+ * the step and cost limits below bound it. Off reports that the command
+ * needs computer use instead.
+ */
+command_auto_escalate?: boolean;
+/**
+ * The model the agent runs on, on the router's provider. Stronger than
+ * the router's, since it plans over many steps.
+ */
+command_agent_model?: string;
+/**
+ * The most LLM rounds one agent task may use
+ * (`clamp_command_agent_max_steps`).
+ */
+command_agent_max_steps?: number;
+/**
+ * What one agent task may cost, in US dollars, priced from the agent's
+ * table (`command_mode::agent::price_per_mtok`). A model the table does
+ * not know is held to the step limit alone.
+ */
+command_agent_max_cost_usd?: number; 
+/**
+ * Deprecated and ignored: the Custom account server earlier versions let
+ * the user type. The account server now comes only from discovery
+ * (`account/discovery.rs`), so an install that had a custom server follows
+ * discovery too. Kept so existing stores still load.
  */
 account_server_url?: string; 
 /**
@@ -4622,6 +4837,12 @@ account_discovered_server?: string;
  * dictate or type into this computer.
  */
 remote_input_enabled?: boolean; 
+/**
+ * "Sync API keys": provider keys added on this computer are kept in the
+ * user's account and arrive on their other signed-in computers
+ * (`account/secrets_sync.rs`). Only while signed in.
+ */
+account_sync_secrets?: boolean; 
 /**
  * The account's phones (device ids) this computer's user allowed to
  * dictate and type here. Cleared when the computer signs out; ids that
@@ -5128,6 +5349,63 @@ export type CloudSttUnavailableReason = "not_enabled" | "selected_provider_missi
  */
 "unsupported_language"
 /**
+ * Where a command came from.
+ */
+export type CommandOrigin =
+/**
+ * Settings → Debug text box.
+ */
+"typed" |
+/**
+ * `--run-command` on the command line.
+ */
+"cli" |
+/**
+ * The command-mode hotkey (Phase 2).
+ */
+"voice"
+/**
+ * Everything about one command, for the UI, the CLI and the log.
+ */
+export type CommandReport = {
+/**
+ * Identifies the pending confirmation or question, if any.
+ */
+id: number; origin: CommandOrigin; transcript: string; status: CommandStatus;
+/**
+ * What to show and say, in order.
+ */
+feedback: Feedback[]; steps: StepReport[];
+/**
+ * What "send" will do, while awaiting confirmation.
+ */
+pending_summary: string | null; question: string | null; choices: string[];
+/**
+ * The task handed to computer use, when the router escalated.
+ */
+escalation: string | null; dry_run: boolean;
+/**
+ * In a dry run, every action that would have happened.
+ */
+dry_run_actions: string[]; model: string; llm_calls: number; usage: Usage; latency_ms: number; error: string | null }
+export type CommandStatus =
+/**
+ * Every call ran.
+ */
+"done" |
+/**
+ * A tool did its reversible half and waits for "send" / "cancel".
+ */
+"awaiting_confirmation" |
+/**
+ * The model or a tool needs an answer before going on.
+ */
+"needs_answer" |
+/**
+ * No tool fits; the computer-use fallback would take over (Phase 3).
+ */
+"needs_computer_use" | "cancelled" | "failed"
+/**
  * Where a conversation happened. The quick ask is one question and one answer;
  * a call is a back-and-forth conversation. History lists them separately and
  * the call's own history shows only calls.
@@ -5275,6 +5553,19 @@ export type EngineType = "Whisper" | "Parakeet" | "Moonshine" | "MoonshineStream
  * Not a transcription engine.
  */
 "NativeTts"
+/**
+ * What a user-facing message says, as a translation key plus parameters.
+ *
+ * Feedback is built from templates rather than a second LLM call. The key is
+ * looked up in the frontend's translations (`commandMode.feedback.*`), and
+ * [`Feedback::render_en`] gives the English text for logs, the CLI and
+ * anywhere without the frontend.
+ */
+export type Feedback = { key: string; params: [string, string][];
+/**
+ * The English rendering, so a surface without translations still has words.
+ */
+text: string }
 /**
  * One screenshot as the dialog hands it over: a MIME type and plain base64.
  */
@@ -5434,7 +5725,7 @@ active_days: number;
  */
 first_day: string | null }
 /**
- * What the Zynveliq keys engine is missing. Each needs its own fix.
+ * What the Talvio keys engine is missing. Each needs its own fix.
  */
 export type KeyboardAccessGap = 
 /**
@@ -6088,7 +6379,7 @@ access_command: string;
  */
 commands: DesktopShortcutCommand[] }
 /**
- * Whether shortcuts pressed in other apps reach Zynveliq.
+ * Whether shortcuts pressed in other apps reach Talvio.
  */
 export type ShortcutReach = 
 /**
@@ -6101,7 +6392,7 @@ export type ShortcutReach =
  */
 "wayland_x11_only" | 
 /**
- * The Zynveliq keys engine cannot open the keyboard devices.
+ * The Talvio keys engine cannot open the keyboard devices.
  */
 "no_keyboard_access"
 export type SkipReason = 
@@ -6119,7 +6410,7 @@ export type SkipReason =
 "model_unusable"
 export type SoundTheme = 
 /**
- * Zynveliq's own start/stop cues — the default. Ships a matching lock
+ * Talvio's own start/stop cues — the default. Ships a matching lock
  * cue (`popo_lock.wav`) used by every theme for tap-to-lock.
  */
 "dictation" | "marimba" | "pop" | "click" | "custom"
@@ -6146,6 +6437,18 @@ export type SpeakerSource =
  * System audio — the other participants.
  */
 "system"
+/**
+ * One tool call, as the report shows it.
+ */
+export type StepReport = { tool: string;
+/**
+ * The arguments as JSON text (the frontend only displays them).
+ */
+args_json: string;
+/**
+ * "done", "awaiting_confirmation", "asked", "failed", "skipped".
+ */
+result: string; detail: string }
 /**
  * Where speech-to-text runs. `Local` is the app's original behaviour and the
  * default: a Whisper/Parakeet/GGUF model on the user's own machine. `Cloud`
@@ -6270,6 +6573,10 @@ export type UpdateInstallMode =
  */
 "package_manager"
 export type UpdateSupport = { mode: UpdateInstallMode; release_page: string }
+/**
+ * Token counts for one request. Integers so outcomes can derive `Eq`.
+ */
+export type Usage = { input_tokens: number; output_tokens: number; cache_read_tokens: number; cache_write_tokens: number }
 /**
  * One local calendar day of dictation usage, as shown in the recent-activity
  * chart.

@@ -167,7 +167,7 @@ export const AutoLearnCorrections: React.FC<AutoLearnProps> = ({
                         aria-label={t("settings.advanced.autoLearn.keep", {
                           word,
                         })}
-                        className="cursor-pointer rounded p-0.5 text-muted-soft transition-colors hover:bg-ink/6 hover:text-teal-600"
+                        className="cursor-pointer rounded p-0.5 text-muted-soft transition-colors hover:bg-ink/6 hover:text-accent"
                       >
                         <Check size={11} />
                       </button>

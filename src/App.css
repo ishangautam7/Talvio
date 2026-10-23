@@ -7,106 +7,109 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * Design system — clean paper, one bright teal, one typeface.
+ * Design system — Talvio (docs/talvio-brand.md §5): warm paper, deep
+ * ink-navy, one coral.
  *
- * Neutrals are tinted a hair toward the brand teal (chroma ≈ 0.003–0.01 in
- * OKLCH), so the page reads as crisp white rather than grey, and the chrome —
- * title bar and sidebar — is one step deeper so the content pane floats as a
- * sheet. They used to lean warm (a beige-grey), which next to the teal read as
- * faintly dirty paper rather than as a clean surface.
+ * Neutrals lean warm on the light theme (a paper canvas with white cards on
+ * it and warm hairlines between them) and toward indigo on the dark one, the
+ * brand's ink. The chrome — title bar and sidebar — is one step deeper than
+ * the content pane, so the pane reads as a sheet laid on it.
  *
- * Type is Inter, everywhere. Hierarchy comes from size and weight inside one
- * family, the way a tool is expected to look. The one exception is a feature
- * banner's headline, set in Instrument Serif: a single editorial moment per
- * page, never a label or a control.
+ * Type: Inter for everything you read and operate; Plus Jakarta Sans (the
+ * logo's own face) for display — page titles, section titles, banner
+ * headlines, the wordmark and the Insights figures. The serif italics of the
+ * previous design are retired.
  *
- * Colour: ink is the primary action colour (dark buttons, like a pen); the
- * brand teal marks state — the page you are on, a switch that is on, the
- * selected option, a link. Feature banners (Assistant, Meetings) are a stage
- * of their own: near-black on the dark theme, a pale tinted surface on the
- * light one. Provider and model logos carry their own brand colours
- * (ProviderLogos.tsx), which is where the rest of the colour on a page comes
- * from.
+ * Colour: coral is used with restraint, for state and for the one primary
+ * action — the page you are on, a primary button, a switch that is on, the
+ * selected option, a link, a focus ring. Never a coral flood. Brand coral
+ * `#F2543D` is only 3.4:1 on white, so on the light theme it is a graphics
+ * colour (`--color-accent-fill`: switches, dots, bars, icons, focus rings);
+ * text, links and filled buttons use `#C2402A` (`--color-accent`), which
+ * holds white text. On the dark theme one coral, `#FF6A52`, does both, with
+ * ink-navy text on a fill. Provider and model logos carry their own brand
+ * colours (ProviderLogos.tsx).
  *
- * The light theme is paper, not a lightbox: the pane is a soft off-white so
- * the white cards on it are the brightest thing, and ink is a deep slate
- * rather than near-black (15:1 on a card instead of 18:1). At the old values
- * long passages such as the Recent list were stark enough to tire the eye,
- * which is the same reason the dark theme's text is a step below white.
- *
- * Every text pairing below was checked for WCAG AA: ink on a card 15:1,
- * muted on canvas 4.9:1 (on the chrome 4.6:1), accent on canvas 4.6:1, white
- * on accent 5.0:1.
+ * Every text pairing below was checked for WCAG AA: ink on canvas 15.5:1,
+ * muted on canvas 5.9:1 (on the chrome 5.6:1), accent on a card 5.2:1 (on
+ * canvas 4.9:1, on the chrome 4.6:1), white on accent 5.2:1; dark: muted on
+ * a card 7.1:1, accent on a card 6.1:1, ink navy on accent 6.6:1. A switch's
+ * off track is 3.5:1 against a card (3:1 is the bar for a control's edge).
  */
 @theme {
   /* === Surfaces === */
-  --color-canvas: #f3f6f6; /* content pane */
-  --color-canvas-soft: #eaeff0; /* chrome: title bar + sidebar */
+  --color-canvas: #fbf7f3; /* content pane: warm paper */
+  --color-canvas-soft: #f6f1eb; /* chrome: title bar + sidebar */
   --color-surface: #ffffff; /* cards */
-  --color-surface-strong: #ebf0f1; /* fills, hover, badges */
-  --color-surface-muted: #f5f8f8; /* quiet wells inside a card */
+  --color-surface-strong: #f4eee8; /* fills, hover, badges */
+  --color-surface-muted: #fcf9f6; /* quiet wells inside a card */
 
   /* === Ink / text === */
-  --color-ink: #1b292e;
-  --color-ink-soft: #26353a;
-  --color-body: #3d494d;
-  --color-muted: #616d70; /* ≥4.8:1 on every surface above */
-  --color-muted-soft: #99a4a6; /* decorative + disabled only */
+  --color-ink: #1b1d33;
+  --color-ink-soft: #2a2d47;
+  --color-body: #3e4159;
+  --color-muted: #5b5e78; /* ≥5.4:1 on every surface above */
+  --color-muted-soft: #a3a1b3; /* decorative + disabled only */
 
   /* === Hairlines === */
-  --color-hairline: #e3e8e8;
-  --color-hairline-strong: #d1d8da;
+  --color-hairline: #eae3dc;
+  --color-hairline-strong: #dcd3ca;
 
   /* === Feature banners ===
-   * The dark stage. It is also the default for anything drawn with the hero
-   * tokens outside a banner (the onboarding tour's keys, on its dark faux
-   * desktop); the light theme overrides them on `.hero-stage` only. */
-  --color-hero-surface: #0b0d0e; /* the art is rendered on exactly this */
-  --color-hero-ink: #f6f2ec; /* warm white, 17:1 on the stage */
-  --color-hero-muted: #aba7a0; /* 8.4:1 on the stage */
-  --color-hero-border: #ffffff24;
-  --color-hero-control: #1f2225;
+   * The dark stage: the brand's ink navy. It is also the default for
+   * anything drawn with the hero tokens outside a banner (the onboarding
+   * tour's keys, on its dark faux desktop); the light theme overrides them on
+   * `.hero-stage` only. `--color-hero-surface` must match `STAGE_DARK` in
+   * scripts/hero-art.py. */
+  --color-hero-surface: #13153a; /* the art is rendered on exactly this */
+  --color-hero-ink: #f2f1f7; /* 15.6:1 on the stage */
+  --color-hero-muted: #aeb0cc; /* 8.3:1 on the stage */
+  --color-hero-accent: #ff6a52; /* the headline's emphasis, 6.2:1 */
+  --color-hero-border: #ffffff26;
+  --color-hero-control: #23265a;
   --color-hero-hover: #ffffff17;
 
-  /* === Brand teal (state and links) === */
-  --color-accent: #007e70;
-  --color-accent-strong: #00675e;
-  /* A lighter teal for fills that carry no text (tiles, bars, dots). */
-  --color-accent-fill: #009684;
+  /* === Brand coral === */
+  /* Text, links and filled buttons (white text on it). */
+  --color-accent: #c2402a;
+  --color-accent-strong: #a3331f;
+  /* Brand coral itself, for fills that carry no text (switches, dots, bars,
+   * icon tiles, focus rings). */
+  --color-accent-fill: #f2543d;
 
   /* === Semantic === */
-  --color-success: #15803d;
-  --color-error: #c9372c;
-  --color-warning: #b45309;
+  --color-success: #1e7a3c;
+  --color-error: #b3261e;
+  --color-warning: #a44a06;
 
   /* === On-colour text === */
   --color-on-primary: #ffffff; /* text on accent fills */
-  --color-on-ink: #f9fcfc; /* text on ink (primary) buttons */
+  --color-on-ink: #fbf7f3; /* text on ink buttons */
 
   /* === Toggle switch === */
-  --color-toggle-track-on: var(--color-accent);
-  --color-toggle-track-off: #c9d1d2;
+  --color-toggle-track-on: var(--color-accent-fill);
+  --color-toggle-track-off: #8e8782;
   --color-toggle-knob-on: #ffffff;
 
   /* === Back-compat aliases (leaf components still use these names) === */
   --color-background: var(--color-canvas);
   --color-text: var(--color-ink);
   --color-background-ui: var(--color-accent);
-  --color-logo-primary: var(--color-accent);
-  --color-logo-stroke: #1e2b2f;
+  --color-logo-primary: var(--color-accent-fill);
+  --color-logo-stroke: #1b1d33;
   --color-text-stroke: #ffffff;
-  --color-mid-gray: #7f8a8d;
+  --color-mid-gray: #7f8196;
 
   /* === Type families === */
   --font-sans:
     "Inter Variable", -apple-system, BlinkMacSystemFont,
     "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  --font-brand:
-    "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
-    sans-serif;
-  /* Banner headlines only. */
-  --font-hero:
-    "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  /* Display: page and section titles, banner headlines, the wordmark. */
+  --font-display:
+    "Plus Jakarta Sans Variable", "Inter Variable", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-brand: var(--font-display);
+  --font-hero: var(--font-display);
 }
 
 :root[data-theme="light"] {
@@ -153,75 +156,90 @@
   font-size: 18px;
 }
 
-/* Headings. Inter at a heavier weight with slightly tightened tracking, so a
- * title reads as the same voice as the label under it, only louder. */
+/* Headings, in the logo's face: bold and tightly tracked, so a title reads
+ * as Talvio's voice while the labels and controls under it stay Inter. */
 .font-display {
-  font-family: var(--font-sans);
-  font-weight: 620;
-  letter-spacing: -0.021em;
+  font-family: var(--font-display);
+  font-weight: 720;
+  letter-spacing: -0.022em;
   line-height: 1.15;
   text-wrap: balance;
 }
 
-/* Brand wordmark. */
+/* Brand wordmark: Plus Jakarta Sans 800, −0.02em, as the logo sets it. */
 .font-brand {
   font-family: var(--font-brand);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.02em;
-  font-optical-sizing: auto;
+}
+
+/* Plus Jakarta Sans covers Latin, Latin Extended and Vietnamese only. Other
+ * scripts would mix two faces inside one title, so they set display text in
+ * the UI face at a heavy weight instead. */
+:root:is(
+    [lang|="ar"],
+    [lang|="bg"],
+    [lang|="he"],
+    [lang|="ja"],
+    [lang|="ko"],
+    [lang|="ru"],
+    [lang|="uk"],
+    [lang|="zh"]
+  )
+  :is(.font-display, .hero-title) {
+  font-family: var(--font-sans);
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 /* === Dark ===
- * A deep blue-green slate rather than near-black: the same faint teal tint as
- * the light theme, with each step lighter than the one under it (chrome →
- * pane → card → fill), because in the dark depth comes from lightness, not
- * shadow. The old ramp sat three near-identical blacks on top of each other,
- * so cards barely separated from the page and the whole window read as flat.
+ * The brand's ink navy, with each step lighter than the one under it
+ * (chrome → pane → card → fill), because in the dark depth comes from
+ * lightness, not shadow.
  *
- * Text is a step softer than white (13:1 on a card, not 17:1): light glyphs on
- * a dark ground bloom and look heavier than the same weight on paper, which is
- * also why the weights ease off a notch below. Every pairing stays above AA —
- * muted on a card 6.0:1, accent on a card 9.0:1. */
+ * Text is a step softer than white: light glyphs on a dark ground bloom and
+ * look heavier than the same weight on paper, which is also why the weights
+ * ease off a notch below. Every pairing stays above AA — muted on a card
+ * 7.1:1, coral on a card 6.1:1, ink navy on a coral fill 6.6:1. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-canvas: #121a1c;
-  --color-canvas-soft: #0c1315;
-  --color-surface: #1a2326;
-  --color-surface-strong: #263134;
+  --color-canvas: #101122;
+  --color-canvas-soft: #0b0c1a;
+  --color-surface: #17192f;
+  --color-surface-strong: #23263f;
   /* Lighter than a card, so a hovered row lifts instead of sinking. */
-  --color-surface-muted: #1e282b;
+  --color-surface-muted: #1c1e37;
 
-  --color-ink: #e4ebeb;
-  --color-ink-soft: #d6dedf;
-  --color-body: #bfcacb;
-  --color-muted: #94a1a4;
-  --color-muted-soft: #5f6c6e;
+  --color-ink: #f2f1f7;
+  --color-ink-soft: #e2e1ec;
+  --color-body: #cfd0de;
+  --color-muted: #a3a5bf;
+  --color-muted-soft: #5e6180;
 
-  --color-hairline: #273133;
-  --color-hairline-strong: #354144;
+  --color-hairline: #262944;
+  --color-hairline-strong: #343858;
 
-  --color-accent: #5cd6be;
-  --color-accent-strong: #90e8d4;
-  --color-accent-fill: #1ea28f;
+  --color-accent: #ff6a52;
+  --color-accent-strong: #ff8c78;
+  --color-accent-fill: #ff6a52;
 
-  --color-success: #4ade80;
-  --color-error: #f06a5f;
+  --color-success: #5edb8e;
+  --color-error: #ff8095;
   --color-warning: #f5a14a;
 
-  --color-on-primary: #04241f;
-  --color-on-ink: #121a1c;
+  --color-on-primary: #101122;
+  --color-on-ink: #101122;
 
-  /* The deeper teal, not the mint: a white knob on mint disappeared. */
   --color-toggle-track-on: var(--color-accent-fill);
-  --color-toggle-track-off: #414d50;
+  --color-toggle-track-off: #63668a;
   --color-toggle-knob-on: #ffffff;
 
   --color-background: var(--color-canvas);
   --color-text: var(--color-ink);
   --color-background-ui: var(--color-accent);
   --color-logo-primary: var(--color-accent);
-  --color-logo-stroke: #d6dedf;
-  --color-mid-gray: #94a1a4;
+  --color-logo-stroke: #e2e1ec;
+  --color-mid-gray: #a3a5bf;
 
   /* Light-on-dark reads heavier, so every weight eases off a notch (Inter is
    * variable, so these are real weights, not synthesized). */
@@ -233,7 +251,7 @@
   background-color: var(--color-canvas);
 }
 :root[data-theme="dark"] .font-display {
-  font-weight: 580;
+  font-weight: 680;
 }
 
 /* Pre-JS fallback: honour the OS preference only until data-theme is set (it is
@@ -241,23 +259,23 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --color-canvas: #121a1c;
-    --color-canvas-soft: #0c1315;
-    --color-surface: #1a2326;
-    --color-surface-strong: #263134;
-    --color-surface-muted: #1e282b;
-    --color-ink: #e4ebeb;
-    --color-ink-soft: #d6dedf;
-    --color-body: #bfcacb;
-    --color-muted: #94a1a4;
-    --color-muted-soft: #5f6c6e;
-    --color-hairline: #273133;
-    --color-hairline-strong: #354144;
-    --color-accent: #5cd6be;
-    --color-accent-strong: #90e8d4;
-    --color-accent-fill: #1ea28f;
-    --color-on-primary: #04241f;
-    --color-on-ink: #121a1c;
+    --color-canvas: #101122;
+    --color-canvas-soft: #0b0c1a;
+    --color-surface: #17192f;
+    --color-surface-strong: #23263f;
+    --color-surface-muted: #1c1e37;
+    --color-ink: #f2f1f7;
+    --color-ink-soft: #e2e1ec;
+    --color-body: #cfd0de;
+    --color-muted: #a3a5bf;
+    --color-muted-soft: #5e6180;
+    --color-hairline: #262944;
+    --color-hairline-strong: #343858;
+    --color-accent: #ff6a52;
+    --color-accent-strong: #ff8c78;
+    --color-accent-fill: #ff6a52;
+    --color-on-primary: #101122;
+    --color-on-ink: #101122;
     --color-background: var(--color-canvas);
     --color-text: var(--color-ink);
   }
@@ -310,7 +328,9 @@
   /* Cards carry their edge with a hairline; the shadow only lifts them a hair
    * off the pane. */
   .elev-card {
-    box-shadow: 0 1px 2px rgba(13, 24, 28, 0.035);
+    box-shadow:
+      0 1px 2px rgba(43, 28, 20, 0.04),
+      0 4px 14px -10px rgba(43, 28, 20, 0.12);
   }
 
   .elev-hover {
@@ -321,19 +341,19 @@
   }
   .elev-hover:hover {
     box-shadow:
-      0 1px 2px rgba(13, 24, 28, 0.04),
-      0 8px 24px -14px rgba(13, 24, 28, 0.18);
+      0 1px 2px rgba(43, 28, 20, 0.04),
+      0 8px 24px -14px rgba(43, 28, 20, 0.18);
   }
 
   .elev-chip {
     box-shadow:
-      0 1px 2px rgba(13, 24, 28, 0.06),
+      0 1px 2px rgba(43, 28, 20, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
   /* The content pane, lifted off the chrome toward the sidebar. */
   .elev-pane {
-    box-shadow: -1px 0 0 rgba(13, 24, 28, 0.02);
+    box-shadow: -1px 0 0 rgba(43, 28, 20, 0.02);
   }
 
   /* Floating menus overlay real content, so they are opaque. */
@@ -344,8 +364,8 @@
   /* Popover / menu shadow, shared by every floating surface. */
   .elev-float {
     box-shadow:
-      0 18px 44px -16px rgba(13, 24, 28, 0.3),
-      0 2px 6px rgba(13, 24, 28, 0.06);
+      0 18px 44px -16px rgba(43, 28, 20, 0.3),
+      0 2px 6px rgba(43, 28, 20, 0.06);
   }
 }
 
@@ -387,8 +407,8 @@
   color: var(--color-hero-ink);
   background-color: var(--color-hero-surface);
 }
-/* On the dark pane the stage sits a step below it, edged by a hairline of
- * light instead of a shadow that would not show. */
+/* On the dark pane the stage is the brand's ink navy, a step bluer than the
+ * pane, edged by a hairline of light instead of a shadow that would not show. */
 :root[data-theme="dark"] .hero-stage {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.07),
@@ -406,7 +426,7 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
-/* The light stage: a pale, faintly teal surface between the pane and a card,
+/* The light stage: a pale, warm peach surface a step deeper than the pane,
  * edged by a hairline, with the art drawn as ink on it. It was near-black in
  * both themes until it proved to be the most distracting thing in the light
  * window. Every hero token is redefined here, so the utilities and controls
@@ -416,13 +436,14 @@
  * faux desktop that stays dark. `--color-hero-surface` must match
  * `STAGE_LIGHT` in scripts/hero-art.py. */
 :root:not([data-theme="dark"]) .hero-stage {
-  --color-hero-surface: #e7eeec;
+  --color-hero-surface: #f7ebe2;
   --color-hero-ink: var(--color-ink);
-  --color-hero-muted: #57625f; /* 5.4:1 on the stage */
-  --color-hero-border: rgba(13, 24, 28, 0.14);
+  --color-hero-muted: #63554c; /* 6.1:1 on the stage */
+  --color-hero-accent: var(--color-accent); /* 4.4:1, display size only */
+  --color-hero-border: rgba(43, 28, 20, 0.14);
   --color-hero-control: #ffffff;
-  --color-hero-hover: rgba(13, 24, 28, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(13, 24, 28, 0.06);
+  --color-hero-hover: rgba(43, 28, 20, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(43, 28, 20, 0.06);
 }
 
 /* Narrow pages: the art fills the stage behind the text, faded well down. */
@@ -511,63 +532,33 @@
   transform-origin: left center;
 }
 
-/* The headline. Instrument Serif has no italic weight to fake, so emphasis
- * is the real italic. */
+/* The headline, in the logo's face. Emphasis (`<em>` in the translation
+ * string) is set in the stage's coral rather than in italics: the serif
+ * italics of the previous design are retired. Coral at this size is display
+ * text, where 3:1 is the bar (4.4:1 on the light stage, 6.2:1 on the dark). */
 .hero-title {
   font-family: var(--font-hero);
-  font-weight: 400;
-  font-size: 2.375rem;
-  line-height: 1.04;
-  letter-spacing: -0.012em;
+  font-weight: 800;
+  font-size: 2.125rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   color: var(--color-hero-ink);
   text-wrap: balance;
   font-synthesis: none;
 }
 .hero-title em {
-  font-style: italic;
-  letter-spacing: -0.02em;
-}
-/* Instrument Serif covers Latin only. Other scripts would fall back to
- * whatever serif the system has, which rarely matches, so they get the UI
- * face at display weight instead. */
-:root:is(
-    [lang|="ar"],
-    [lang|="bg"],
-    [lang|="he"],
-    [lang|="ja"],
-    [lang|="ko"],
-    [lang|="ru"],
-    [lang|="uk"],
-    [lang|="vi"],
-    [lang|="zh"]
-  )
-  .hero-title {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 1.875rem;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-:root:is(
-    [lang|="ar"],
-    [lang|="bg"],
-    [lang|="he"],
-    [lang|="ja"],
-    [lang|="ko"],
-    [lang|="ru"],
-    [lang|="uk"],
-    [lang|="vi"],
-    [lang|="zh"]
-  )
-  .hero-title
-  em {
   font-style: normal;
+  color: var(--color-hero-accent);
+}
+:root[data-theme="dark"] .hero-title {
+  font-weight: 760;
 }
 
-/* The one primary action on a stage: a warm white pill. */
+/* The one primary action on a stage: coral, like every primary button, with
+ * ink-navy text on it (6.6:1). */
 .hero-button {
-  background: var(--color-hero-ink);
-  color: #111315;
+  background: #ff6a52;
+  color: #101122;
   box-shadow:
     0 10px 24px -14px rgba(0, 0, 0, 0.9),
     inset 0 -1px 0 rgba(0, 0, 0, 0.12);
@@ -576,7 +567,7 @@
     transform 150ms ease;
 }
 .hero-button:hover:not(:disabled) {
-  background: #ffffff;
+  background: #ff8c78;
 }
 .hero-button:active:not(:disabled) {
   transform: scale(0.98);
@@ -679,8 +670,8 @@
   color: var(--color-hero-ink);
 }
 .rec-side[data-active="true"] .rec-side-light {
-  background: #5cd6be;
-  box-shadow: 0 0 0 3px rgba(92, 214, 190, 0.22);
+  background: #5edb8e;
+  box-shadow: 0 0 0 3px rgba(94, 219, 142, 0.22);
 }
 .rec-side[data-captured="false"] {
   color: #f5c46b;
@@ -701,7 +692,7 @@
  * own dark glass rather than relying on what is behind it. */
 .hero-corner {
   color: var(--color-hero-muted);
-  background: rgba(11, 13, 14, 0.45);
+  background: rgba(16, 17, 34, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.1);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
@@ -733,27 +724,28 @@
 /* ---------- The same controls on the light stage ----------
  * The tokens carry most of it; these are the surfaces that were drawn in
  * white-on-dark glass directly. The primary action becomes the app's own:
- * ink-filled, like every other primary button on a light page. */
+ * the text-safe coral with white text, like every other primary button on a
+ * light page. */
 :root:not([data-theme="dark"]) .hero-stage {
   & .hero-button {
-    background: var(--color-ink);
-    color: var(--color-on-ink);
-    box-shadow: 0 1px 2px rgba(13, 24, 28, 0.12);
+    background: var(--color-accent);
+    color: var(--color-on-primary);
+    box-shadow: 0 1px 2px rgba(43, 28, 20, 0.12);
   }
   & .hero-button:hover:not(:disabled) {
-    background: var(--color-ink-soft);
+    background: var(--color-accent-strong);
   }
   & .hero-glass {
     background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(13, 24, 28, 0.12);
+    border-color: rgba(43, 28, 20, 0.12);
   }
   & .hero-glass:hover:not(:disabled) {
     background: #ffffff;
-    border-color: rgba(13, 24, 28, 0.2);
+    border-color: rgba(43, 28, 20, 0.2);
   }
   & .hero-corner {
     background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(13, 24, 28, 0.1);
+    border-color: rgba(43, 28, 20, 0.1);
   }
   & .hero-corner:hover {
     background: #ffffff;
@@ -767,21 +759,21 @@
   & .hero-corner.hero-corner-plain[aria-pressed="true"]:hover {
     color: var(--color-ink);
     background: #ffffff;
-    border-color: rgba(13, 24, 28, 0.18);
+    border-color: rgba(43, 28, 20, 0.18);
   }
   & .rec-dot[data-paused="true"] {
-    box-shadow: 0 0 0 4px rgba(13, 24, 28, 0.06);
+    box-shadow: 0 0 0 4px rgba(43, 28, 20, 0.06);
   }
   & .rec-side {
-    border-color: rgba(13, 24, 28, 0.1);
+    border-color: rgba(43, 28, 20, 0.1);
     background: rgba(255, 255, 255, 0.6);
   }
   & .rec-side-light {
-    background: rgba(13, 24, 28, 0.2);
+    background: rgba(43, 28, 20, 0.2);
   }
   & .rec-side[data-active="true"] .rec-side-light {
-    background: var(--color-accent-fill);
-    box-shadow: 0 0 0 3px rgba(0, 150, 132, 0.18);
+    background: var(--color-success);
+    box-shadow: 0 0 0 3px rgba(30, 122, 60, 0.16);
   }
   & .rec-side[data-captured="false"] {
     color: var(--color-warning);
@@ -823,15 +815,15 @@
  * Keycaps
  * ==========================================================================*/
 .keycap {
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f5 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f2ed 100%);
   border: 1px solid var(--color-hairline-strong);
   box-shadow:
-    inset 0 -1.5px 0 rgba(13, 24, 28, 0.09),
-    0 1px 1.5px rgba(13, 24, 28, 0.05);
+    inset 0 -1.5px 0 rgba(43, 28, 20, 0.09),
+    0 1px 1.5px rgba(43, 28, 20, 0.05);
 }
 :root[data-theme="dark"] .keycap {
-  background: linear-gradient(180deg, #2c373a 0%, #222c2f 100%);
-  border-color: #3a474a;
+  background: linear-gradient(180deg, #2a2d4a 0%, #21243d 100%);
+  border-color: #3a3e62;
   box-shadow:
     inset 0 -1.5px 0 rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -854,11 +846,11 @@
 }
 /* On the light stage the keys are the app's ordinary keycaps. */
 :root:not([data-theme="dark"]) .hero-stage .keycap-hero {
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f5 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f2ed 100%);
   border-color: var(--color-hairline-strong);
   box-shadow:
-    inset 0 -1.5px 0 rgba(13, 24, 28, 0.09),
-    0 1px 1.5px rgba(13, 24, 28, 0.05);
+    inset 0 -1.5px 0 rgba(43, 28, 20, 0.09),
+    0 1px 1.5px rgba(43, 28, 20, 0.05);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -1025,7 +1017,7 @@
 }
 
 /* Insights summary: the share cards' flowing ribbon in tones of the brand
- * teal, pale on paper and deep on the dark theme, behind the page's one
+ * coral, pale on paper and deep on the dark theme, behind the page's one
  * large figure. The figure is set in the share cards' typeface (the logo's),
  * so the page and the cards it makes read as one thing. */
 .insights-summary {
@@ -1051,29 +1043,27 @@
   );
 }
 :root[data-theme="dark"] .insights-summary {
-  background-color: color-mix(
-    in oklab,
-    var(--color-accent-fill) 14%,
-    var(--color-surface)
-  );
+  /* On the dark theme the ground is the ink tile's indigo, with the ribbon
+   * leaning coral: a coral-on-navy wash read as a muddy maroon. */
+  background-color: color-mix(in oklab, #262b6b 42%, var(--color-surface));
   --insights-flow-1: color-mix(
     in oklab,
-    var(--color-accent-fill) 20%,
-    var(--color-surface)
+    var(--color-accent-fill) 9%,
+    color-mix(in oklab, #262b6b 42%, var(--color-surface))
   );
   --insights-flow-2: color-mix(
     in oklab,
-    var(--color-accent-fill) 26%,
-    var(--color-surface)
+    var(--color-accent-fill) 15%,
+    color-mix(in oklab, #262b6b 42%, var(--color-surface))
   );
   --insights-flow-3: color-mix(
     in oklab,
-    var(--color-accent-fill) 33%,
-    var(--color-surface)
+    var(--color-accent-fill) 22%,
+    color-mix(in oklab, #262b6b 42%, var(--color-surface))
   );
 }
 .insights-figure {
-  font-family: "Plus Jakarta Sans Variable", var(--font-sans);
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.04em;
 }
@@ -1107,11 +1097,11 @@
 .segmented-pill {
   background-color: var(--color-surface);
   box-shadow:
-    0 1px 2px rgba(13, 24, 28, 0.12),
-    0 0 0 0.5px rgba(13, 24, 28, 0.05);
+    0 1px 2px rgba(43, 28, 20, 0.12),
+    0 0 0 0.5px rgba(43, 28, 20, 0.05);
 }
 :root[data-theme="dark"] .segmented-pill {
-  background-color: #334044;
+  background-color: #30344f;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 1px 2px rgba(0, 0, 0, 0.45);

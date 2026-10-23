@@ -4,7 +4,7 @@
   test the "Built-in (Local)" assistant provider locally.
 
 .DESCRIPTION
-  Zynveliq's built-in LLM runs a small `llama-server` engine in the
+  Talvio's built-in LLM runs a small `llama-server` engine in the
   background. In production this binary is bundled in the installer; for local
   development you fetch it once with this script.
 
@@ -64,7 +64,7 @@ Write-Host "Fetching the asset list of llama.cpp $Tag..."
 try {
     $release = Invoke-RestMethod `
         -Uri "https://api.github.com/repos/ggml-org/llama.cpp/releases/tags/$Tag" `
-        -Headers @{ "User-Agent" = "zynveliq-setup" } `
+        -Headers @{ "User-Agent" = "talvio-setup" } `
         -TimeoutSec 60
 } catch {
     Write-Host "Could not read llama.cpp release $Tag ($($_.Exception.Message))." -ForegroundColor Red

@@ -2,12 +2,20 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- No backups: the session token is encrypted with a key that stays in
-         this device's keystore, so a restored copy could never be read. -->
+         this device's keystore, so a restored copy could never be read.
+         Cleartext allowed: the account server discovery names is a plain
+         http address on the local network (e.g. http://192.168.101.69:8787).
+         The app's own HTTP and WebSocket traffic goes through dart:io, which
+         does not consult this flag, but any platform networking (a plugin,
+         the system WebView) does, and its default refuses http. Only the
+         https discovery answer can name a server; the user cannot type one. -->
     <application
-        android:label="Zynveliq"
+        android:label="Talvio"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:allowBackup="false">
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -30,7 +38,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Receives zynveliq://auth/callback at the end of Google sign-in
+        <!-- Receives talvio://auth/callback at the end of Google sign-in
              (flutter_web_auth_2). -->
         <activity
             android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
@@ -40,7 +48,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="zynveliq"/>
+                <data android:scheme="talvio"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

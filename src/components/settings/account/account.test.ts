@@ -5,7 +5,6 @@ import {
   accountErrorKey,
   avatarLetter,
   displayName,
-  normalizeServerUrl as normalize,
   platformName,
   signInErrorKey,
 } from "./account";
@@ -45,7 +44,6 @@ describe("accountErrorKey", () => {
       "server",
       "timeout",
       "signed_in",
-      "invalid_url",
       "keychain",
     ]) {
       const key = accountErrorKey(code);
@@ -66,69 +64,14 @@ describe("accountErrorKey", () => {
 });
 
 describe("signInErrorKey", () => {
-  test("a 404 on sign-in is the server address, not a device", () => {
+  test("a 404 on sign-in is the server not being found, not a device", () => {
     const key = signInErrorKey("not_found");
-    expect(key).toBe("settings.account.errors.wrongServer");
+    expect(key).toBe("settings.account.errors.no_server");
     expect(hasKey(key!)).toBe(true);
     expect(signInErrorKey("invalid_credentials")).toBe(
       accountErrorKey("invalid_credentials"),
     );
     expect(signInErrorKey("cancelled")).toBeNull();
-  });
-});
-
-// The same cases as `normalize_server_url` in src-tauri/src/account/mod.rs.
-describe("normalizeServerUrl", () => {
-  // Debug builds' rule; release builds are below.
-  const normalizeServerUrl = (input: string) => normalize(input, false);
-
-  test("keeps http and https, without trailing slashes or spaces", () => {
-    expect(normalizeServerUrl(" https://sync.example.com/ ")).toBe(
-      "https://sync.example.com",
-    );
-    expect(normalizeServerUrl("http://localhost:8787//")).toBe(
-      "http://localhost:8787",
-    );
-    expect(normalizeServerUrl("https://example.com/zynveliq")).toBe(
-      "https://example.com/zynveliq",
-    );
-    expect(normalizeServerUrl("HTTPS://Sync.Example.com")).toBe(
-      "https://sync.example.com",
-    );
-  });
-
-  test("refuses anything that is not a plain web address", () => {
-    expect(normalizeServerUrl("")).toBeNull();
-    expect(normalizeServerUrl("sync.example.com")).toBeNull();
-    expect(normalizeServerUrl("ftp://example.com")).toBeNull();
-    expect(normalizeServerUrl("javascript:alert(1)")).toBeNull();
-    expect(normalizeServerUrl("file:///etc/passwd")).toBeNull();
-    expect(normalizeServerUrl("https://")).toBeNull();
-    expect(normalizeServerUrl("https://user:pw@example.com")).toBeNull();
-    expect(normalizeServerUrl("https://example.com/?a=1")).toBeNull();
-    expect(normalizeServerUrl("https://example.com/#top")).toBeNull();
-    expect(normalizeServerUrl("https://example.com/?")).toBeNull();
-    expect(normalizeServerUrl("https://example.com#")).toBeNull();
-  });
-
-  test("a release build takes http only for this computer", () => {
-    for (const good of [
-      "https://sync.example.com",
-      "http://localhost:8787",
-      "http://127.0.0.1:8787",
-      "http://127.1.2.3",
-      "http://[::1]:8787",
-    ]) {
-      expect(normalize(good, true)).not.toBeNull();
-    }
-    for (const bad of [
-      "http://sync.example.com",
-      "http://192.168.1.20:8787",
-      "http://localhost.example.com",
-      "http://[::2]",
-    ]) {
-      expect(normalize(bad, true)).toBeNull();
-    }
   });
 });
 

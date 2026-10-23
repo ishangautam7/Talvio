@@ -19,12 +19,18 @@ const conf = JSON.parse(
     "utf8",
   ),
 ) as { plugins: { updater: { pubkey: string; endpoints: string[] } } };
-const PUBKEY = conf.plugins.updater.pubkey;
+// The key the test vector was signed with (key id 73D1FDFF87780381). A
+// private build ships no updater key, so the vector is checked against the
+// key that made it rather than the build's configuration.
+const PUBKEY =
+  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDczRDFGREZGODc3ODAzODEKUldTQkEzaUgvLzNSYzRMakMrcU5PNGRWOHZZTFJzZUx1dWE0Wi9kNjViRUZheWhSU2pOcnRIeVMK";
+const CONFIGURED_PUBKEY = conf.plugins.updater.pubkey;
 
-// Produced once with `tauri signer sign` and the real Zynveliq updater key
-// over the 16 bytes "hello zynveliq". A known-good vector ties the verifier
+// Produced once with `tauri signer sign` and the real Talvio updater key
+// over the 16 bytes "hello speakoflow". These bytes were signed; never
+// rename them with the product (a renamed payload no longer verifies). A known-good vector ties the verifier
 // to the exact format the Tauri CLI writes, not to our reading of the spec.
-const PAYLOAD = new TextEncoder().encode("hello zynveliq");
+const PAYLOAD = new TextEncoder().encode("hello speakoflow");
 const SIGNATURE =
   "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQkEzaUgvLzNSYzJ0dVM1emFGdGtKaGEzUVpHRU9YY253VWtmR0dyUUtQUFc2eDhsQzZCRGs1czVvTXY3NnAxdlVVeTdVSUZDd3BzbldpM2RLYkhLbHVwQzlZRVJVdEF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTkxMjU5CWZpbGU6c2Ytc2lnbi10ZXN0LmJpbgpnQlRzTm9HZGtFcjVvNEVKay9WUlJKVWpVSUxBSktZRklQMGRzeDJwSUhlWEFydUNGODJzRlVpYVkyNDYvT3BlcTQ1SEU0R0R3eUFpZ2RHMTJmbDNBQT09Cg==";
 
@@ -34,7 +40,7 @@ const HANDY_PUBKEY =
   "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJBQjcyMDk1MjA2NjAxRjkKUldUNUFXWWdsU0MzdXRRZi8zYzhqV2FaNUVDbDd2Rk5VM1IvWWowVXdmRFNKQ1BrMXF5RFFsLy8K";
 
 describe("verifyUpdaterSignature", () => {
-  test("accepts a signature made by the Zynveliq key", () => {
+  test("accepts a signature made by the Talvio key", () => {
     expect(verifyUpdaterSignature(PAYLOAD, SIGNATURE, PUBKEY)).toEqual({
       ok: true,
     });
@@ -72,70 +78,73 @@ describe("verifyUpdaterSignature", () => {
 
 describe("the shipped config", () => {
   test("no longer trusts upstream Handy's updater key", () => {
-    expect(PUBKEY).not.toBe(HANDY_PUBKEY);
+    expect(CONFIGURED_PUBKEY).not.toBe(HANDY_PUBKEY);
   });
 
-  test("polls this repository's latest release", () => {
-    expect(conf.plugins.updater.endpoints).toEqual([
-      "https://github.com/ishangautam7/zynveliq/releases/latest/download/latest.json",
-    ]);
+  // The private build ships with self-update off (PRIVATE_BUILD in
+  // updates.rs): no endpoint and no key, so nothing is ever fetched or
+  // trusted. Turning updates on means setting both here, and this test is
+  // where that choice gets made on purpose.
+  test("ships with self-update switched off", () => {
+    expect(conf.plugins.updater.endpoints).toEqual([]);
+    expect(CONFIGURED_PUBKEY).toBe("");
   });
 });
 
 describe("classifyUpdaterAsset", () => {
   test.each([
-    ["Zynveliq_1.5.0_x64-setup.exe", "windows", "x86_64", "nsis"],
-    ["Zynveliq_1.5.0_arm64-setup.exe", "windows", "aarch64", "nsis"],
-    ["Zynveliq_1.5.0_x64_en-US.msi", "windows", "x86_64", "msi"],
-    ["Zynveliq_aarch64.app.tar.gz", "darwin", "aarch64", "app"],
-    ["Zynveliq_x64.app.tar.gz", "darwin", "x86_64", "app"],
-    ["Zynveliq_1.5.0_amd64.AppImage", "linux", "x86_64", "appimage"],
-    ["Zynveliq_1.5.0_aarch64.AppImage", "linux", "aarch64", "appimage"],
-    ["Zynveliq_1.5.0_amd64.deb", "linux", "x86_64", "deb"],
-    ["Zynveliq_1.5.0_arm64.deb", "linux", "aarch64", "deb"],
-    ["Zynveliq-1.5.0-1.x86_64.rpm", "linux", "x86_64", "rpm"],
+    ["Talvio_1.5.0_x64-setup.exe", "windows", "x86_64", "nsis"],
+    ["Talvio_1.5.0_arm64-setup.exe", "windows", "aarch64", "nsis"],
+    ["Talvio_1.5.0_x64_en-US.msi", "windows", "x86_64", "msi"],
+    ["Talvio_aarch64.app.tar.gz", "darwin", "aarch64", "app"],
+    ["Talvio_x64.app.tar.gz", "darwin", "x86_64", "app"],
+    ["Talvio_1.5.0_amd64.AppImage", "linux", "x86_64", "appimage"],
+    ["Talvio_1.5.0_aarch64.AppImage", "linux", "aarch64", "appimage"],
+    ["Talvio_1.5.0_amd64.deb", "linux", "x86_64", "deb"],
+    ["Talvio_1.5.0_arm64.deb", "linux", "aarch64", "deb"],
+    ["Talvio-1.5.0-1.x86_64.rpm", "linux", "x86_64", "rpm"],
   ])("%s → %s-%s-%s", (name, os, arch, bundle) => {
     expect(classifyUpdaterAsset(name)).toEqual({ os, arch, bundle } as never);
   });
 
   test.each([
-    "Zynveliq_1.5.0_x64-setup.exe.sig",
-    "Zynveliq_1.5.0_aarch64.dmg",
+    "Talvio_1.5.0_x64-setup.exe.sig",
+    "Talvio_1.5.0_aarch64.dmg",
     "latest.json",
-    "Zynveliq_1.5.0_amd64.AppImage.tar.gz",
+    "Talvio_1.5.0_amd64.AppImage.tar.gz",
   ])("%s is not an updater bundle", (name) => {
     expect(classifyUpdaterAsset(name)).toBeNull();
   });
 
   test("dmg is a download, not an update", () => {
-    expect(classifyDmg("Zynveliq_1.5.0_aarch64.dmg")).toEqual({
+    expect(classifyDmg("Talvio_1.5.0_aarch64.dmg")).toEqual({
       arch: "aarch64",
     });
-    expect(classifyDmg("Zynveliq_1.5.0_x64.dmg")).toEqual({ arch: "x86_64" });
+    expect(classifyDmg("Talvio_1.5.0_x64.dmg")).toEqual({ arch: "x86_64" });
   });
 });
 
 // What a 1.5.0 release carries: the v1.4.0 asset list plus the .sig files a
 // signed build now uploads beside each updater bundle.
 const V140_ASSETS = [
-  "Zynveliq_1.5.0_aarch64.AppImage",
-  "Zynveliq_1.5.0_aarch64.AppImage.sig",
-  "Zynveliq_1.5.0_aarch64.dmg",
-  "Zynveliq_1.5.0_amd64.AppImage",
-  "Zynveliq_1.5.0_amd64.AppImage.sig",
-  "Zynveliq_1.5.0_amd64.deb",
-  "Zynveliq_1.5.0_amd64.deb.sig",
-  "Zynveliq_1.5.0_arm64.deb",
-  "Zynveliq_1.5.0_arm64.deb.sig",
-  "Zynveliq_1.5.0_x64-setup.exe",
-  "Zynveliq_1.5.0_x64-setup.exe.sig",
-  "Zynveliq_1.5.0_x64.dmg",
-  "Zynveliq_1.5.0_x64_en-US.msi",
-  "Zynveliq_1.5.0_x64_en-US.msi.sig",
-  "Zynveliq_aarch64.app.tar.gz",
-  "Zynveliq_aarch64.app.tar.gz.sig",
-  "Zynveliq_x64.app.tar.gz",
-  "Zynveliq_x64.app.tar.gz.sig",
+  "Talvio_1.5.0_aarch64.AppImage",
+  "Talvio_1.5.0_aarch64.AppImage.sig",
+  "Talvio_1.5.0_aarch64.dmg",
+  "Talvio_1.5.0_amd64.AppImage",
+  "Talvio_1.5.0_amd64.AppImage.sig",
+  "Talvio_1.5.0_amd64.deb",
+  "Talvio_1.5.0_amd64.deb.sig",
+  "Talvio_1.5.0_arm64.deb",
+  "Talvio_1.5.0_arm64.deb.sig",
+  "Talvio_1.5.0_x64-setup.exe",
+  "Talvio_1.5.0_x64-setup.exe.sig",
+  "Talvio_1.5.0_x64.dmg",
+  "Talvio_1.5.0_x64_en-US.msi",
+  "Talvio_1.5.0_x64_en-US.msi.sig",
+  "Talvio_aarch64.app.tar.gz",
+  "Talvio_aarch64.app.tar.gz.sig",
+  "Talvio_x64.app.tar.gz",
+  "Talvio_x64.app.tar.gz.sig",
 ];
 
 function signaturesFor(names: string[]): Map<string, string> {
@@ -177,10 +186,10 @@ describe("buildManifest", () => {
 
   test("an NSIS install and an MSI install each update with their own installer", () => {
     expect(manifest.platforms["windows-x86_64-nsis"].url).toEndWith(
-      "Zynveliq_1.5.0_x64-setup.exe",
+      "Talvio_1.5.0_x64-setup.exe",
     );
     expect(manifest.platforms["windows-x86_64-msi"].url).toEndWith(
-      "Zynveliq_1.5.0_x64_en-US.msi",
+      "Talvio_1.5.0_x64_en-US.msi",
     );
     // An install with no recorded bundle type gets the NSIS installer.
     expect(manifest.platforms["windows-x86_64"]).toEqual(
@@ -190,29 +199,29 @@ describe("buildManifest", () => {
 
   test("links pin the tag, so a draft's untagged URL never leaks in", () => {
     expect(manifest.platforms["linux-x86_64-deb"]).toEqual({
-      url: "https://github.com/ishangautam7/zynveliq/releases/download/v1.5.0/Zynveliq_1.5.0_amd64.deb",
-      signature: "sig-of-Zynveliq_1.5.0_amd64.deb",
+      url: "https://github.com/ishangautam7/zynveliq/releases/download/v1.5.0/Talvio_1.5.0_amd64.deb",
+      signature: "sig-of-Talvio_1.5.0_amd64.deb",
     });
   });
 
   test("manual downloads point macOS at the .dmg, not the updater tarball", () => {
-    expect(manifest.zynveliq.downloads["darwin-aarch64"]).toEndWith(
-      "Zynveliq_1.5.0_aarch64.dmg",
+    expect(manifest.talvio.downloads["darwin-aarch64"]).toEndWith(
+      "Talvio_1.5.0_aarch64.dmg",
     );
-    expect(manifest.zynveliq.downloads["windows-x86_64"]).toEndWith(
-      "Zynveliq_1.5.0_x64-setup.exe",
+    expect(manifest.talvio.downloads["windows-x86_64"]).toEndWith(
+      "Talvio_1.5.0_x64-setup.exe",
     );
-    expect(manifest.zynveliq.downloads["linux-x86_64-deb"]).toEndWith(
-      "Zynveliq_1.5.0_amd64.deb",
+    expect(manifest.talvio.downloads["linux-x86_64-deb"]).toEndWith(
+      "Talvio_1.5.0_amd64.deb",
     );
-    expect(manifest.zynveliq.release_url).toBe(
+    expect(manifest.talvio.release_url).toBe(
       "https://github.com/ishangautam7/zynveliq/releases/tag/v1.5.0",
     );
   });
 
   test("an unsigned bundle is downloadable but never offered as an update", () => {
     const names = V140_ASSETS.filter(
-      (name) => name !== "Zynveliq_1.5.0_amd64.deb.sig",
+      (name) => name !== "Talvio_1.5.0_amd64.deb.sig",
     );
     const partial = buildManifest({
       version: "1.5.0",
@@ -224,11 +233,11 @@ describe("buildManifest", () => {
       signatures: signaturesFor(names),
     });
     expect(partial.platforms["linux-x86_64-deb"]).toBeUndefined();
-    expect(partial.zynveliq.downloads["linux-x86_64-deb"]).toBeDefined();
+    expect(partial.talvio.downloads["linux-x86_64-deb"]).toBeDefined();
   });
 
   test("an MSI-only Windows release still has a primary entry, a deb-only Linux one does not", () => {
-    const names = ["Zynveliq_1.5.0_x64_en-US.msi", "Zynveliq_1.5.0_amd64.deb"];
+    const names = ["Talvio_1.5.0_x64_en-US.msi", "Talvio_1.5.0_amd64.deb"];
     const partial = buildManifest({
       version: "1.5.0",
       notes: "",
@@ -292,7 +301,7 @@ describe("notesForApp (the update card renders markdown with HTML off)", () => {
   });
 
   test("notes without HTML pass through unchanged", () => {
-    const body = "## Zynveliq 2.0.1\n\n- **Fixed** a thing.\n\n---\n";
+    const body = "## Talvio 2.0.1\n\n- **Fixed** a thing.\n\n---\n";
     expect(notesForApp(body)).toBe(body);
   });
 
@@ -319,7 +328,7 @@ describe("appNotes (the card's own text in the release body)", () => {
     "- **Mouse buttons** are a normal setting now.",
     "-->",
     "",
-    "## Zynveliq 2.2.0",
+    "## Talvio 2.2.0",
     "",
     "Everything, in detail.",
     "",
@@ -327,7 +336,7 @@ describe("appNotes (the card's own text in the release body)", () => {
     "| --- | --- |",
     "",
     "```bash",
-    "xattr -dr com.apple.quarantine /Applications/Zynveliq.app",
+    "xattr -dr com.apple.quarantine /Applications/Talvio.app",
     "```",
   ].join("\n");
 
@@ -338,7 +347,7 @@ describe("appNotes (the card's own text in the release body)", () => {
   });
 
   test("a body without the block is used whole, as before", () => {
-    const body = "## Zynveliq 2.1.0\n\n- A thing.\n";
+    const body = "## Talvio 2.1.0\n\n- A thing.\n";
     expect(appNotes(body)).toBe(body);
   });
 
@@ -409,9 +418,9 @@ describe("removing the .sig files after the manifest is written", () => {
 
   test("a .sig for a bundle left out of the manifest stays", () => {
     const partial = new Map(signatures);
-    partial.delete("Zynveliq_1.5.0_x64-setup.exe");
+    partial.delete("Talvio_1.5.0_x64-setup.exe");
     expect(sigAssetsToRemove(V140_ASSETS, partial)).not.toContain(
-      "Zynveliq_1.5.0_x64-setup.exe.sig",
+      "Talvio_1.5.0_x64-setup.exe.sig",
     );
   });
 
@@ -437,7 +446,7 @@ describe("removing the .sig files after the manifest is written", () => {
       signatures: signaturesFromManifest(manifest, repo, "v1.5.0"),
     });
     expect(again.platforms).toEqual(manifest.platforms);
-    expect(again.zynveliq).toEqual(manifest.zynveliq);
+    expect(again.talvio).toEqual(manifest.talvio);
   });
 
   test("signatures for another tag or repository are not reused", () => {

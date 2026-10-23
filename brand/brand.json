@@ -1,10 +1,10 @@
 {
-  "company": "Zynveliq",
-  "product": "Zynveliq",
+  "company": "Talvio",
+  "product": "Talvio",
   "status": "private-development",
-  "applicationId": "com.zynveliq.desktop",
+  "applicationId": "com.talvio.desktop",
   "mark": "brand/mark.svg",
-  "colors": { "primary": "#153e47", "accent": "#adf5cf" },
+  "colors": { "primary": "#F2543D", "accent": "#FF8F3F", "ink": "#1B1D33" },
   "website": null,
   "additionalBrands": []
 }

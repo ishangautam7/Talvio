@@ -1,6 +1,6 @@
 ---
 title: "Output and pasting"
-description: "How Zynveliq inserts transcribed text into the active app. Covers paste methods, clipboard handling, auto submit, trailing spaces, spoken emoji, filler removal, and paste-target restore."
+description: "How Talvio inserts transcribed text into the active app. Covers paste methods, clipboard handling, auto submit, trailing spaces, spoken emoji, filler removal, and paste-target restore."
 icon: "clipboard"
 ---
 
@@ -37,17 +37,17 @@ The default is `Clipboard (Ctrl+V)` on Windows, `Clipboard (Cmd+V)` on macOS, an
 
 ## Spoken emoji
 
-Under _Settings → Dictation → Extras_. Say "happy emoji" or "thumbs up emoji" and Zynveliq inserts 😊 or 👍. Common aliases and minor speech-to-text errors are handled on your device. Unknown names stay as text. Off by default.
+Under _Settings → Dictation → Extras_. Say "happy emoji" or "thumbs up emoji" and Talvio inserts 😊 or 👍. Common aliases and minor speech-to-text errors are handled on your device. Unknown names stay as text. Off by default.
 
 ## Filler-word removal
 
-On a local speech engine, Zynveliq removes filler words ("um", "uh", false starts, repeated words) automatically on every dictation. The local engines have always done this, and there is no switch on the local side.
+On a local speech engine, Talvio removes filler words ("um", "uh", false starts, repeated words) automatically on every dictation. The local engines have always done this, and there is no switch on the local side.
 
 On a cloud provider, the **Remove filler words** switch controls both layers: it asks the provider to strip fillers server-side and runs the app's own filter as a backstop. Turn it off to get verbatim output, word for word. See [Cloud transcription](/dictation/cloud-transcription).
 
 ## Paste-target restore (Windows)
 
-On Windows, Zynveliq remembers which window was in the foreground when you started recording. If one of its own windows takes the foreground during the recording (because the overlay or the assistant panel appeared), it hands focus back to that window before pasting. This only happens when a Zynveliq window is what took focus. If you alt-tab to a different app during the recording, Zynveliq respects that and pastes into the new app.
+On Windows, Talvio remembers which window was in the foreground when you started recording. If one of its own windows takes the foreground during the recording (because the overlay or the assistant panel appeared), it hands focus back to that window before pasting. This only happens when a Talvio window is what took focus. If you alt-tab to a different app during the recording, Talvio respects that and pastes into the new app.
 
 ## The order things happen
 

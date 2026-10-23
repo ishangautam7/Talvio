@@ -35,10 +35,10 @@
     "downloading": "Đang tải xuống… {{progress}}%",
     "downloadingUnknown": "Đang tải xuống…",
     "installing": "Đang cài đặt…",
-    "reopening": "Zynveliq sẽ đóng để cài đặt bản cập nhật và mở lại sau vài giây.",
+    "reopening": "Talvio sẽ đóng để cài đặt bản cập nhật và mở lại sau vài giây.",
     "updatedTo": "Đã cập nhật lên phiên bản {{version}}",
     "restart": "Khởi động lại ngay",
-    "readyToRestart": "Bản cập nhật đã được cài. Hãy khởi động lại Zynveliq để bắt đầu sử dụng.",
+    "readyToRestart": "Bản cập nhật đã được cài. Hãy khởi động lại Talvio để bắt đầu sử dụng.",
     "installFailed": "Bản cập nhật chưa cài được. Bạn có thể thử lại, hoặc tải bộ cài về và tự chạy.",
     "downloadFailed": "Chưa tải xuống xong. Hãy kiểm tra kết nối rồi thử lại.",
     "downloadInstaller": "Tải bộ cài",
@@ -49,13 +49,13 @@
     "showInFolder": "Hiện trong thư mục",
     "viewRelease": "Xem trên GitHub",
     "hint": {
-      "windows": "Zynveliq sẽ đóng, cài bản cập nhật rồi tự mở lại. Bạn không cần nhấp gì thêm.",
-      "macos": "Zynveliq sẽ khởi động lại với phiên bản mới. Sau đó macOS có thể yêu cầu bạn cho phép lại quyền Micrô và Trợ năng.",
-      "linux": "Zynveliq sẽ khởi động lại với phiên bản mới. Bản cài .deb sẽ hỏi mật khẩu của bạn trước."
+      "windows": "Talvio sẽ đóng, cài bản cập nhật rồi tự mở lại. Bạn không cần nhấp gì thêm.",
+      "macos": "Talvio sẽ khởi động lại với phiên bản mới. Sau đó macOS có thể yêu cầu bạn cho phép lại quyền Micrô và Trợ năng.",
+      "linux": "Talvio sẽ khởi động lại với phiên bản mới. Bản cài .deb sẽ hỏi mật khẩu của bạn trước."
     },
     "modes": {
       "portable": "Đây là bản di động, không thể tự thay thế chính nó. Hãy tải phiên bản mới và sao chép thư mục Data của bạn vào đó.",
-      "packageManager": "Zynveliq được cài bằng trình quản lý gói, nên hãy cập nhật ở đó, ví dụ bằng yay -Syu zynveliq-bin.",
+      "packageManager": "Talvio được cài bằng trình quản lý gói, nên hãy cập nhật ở đó, ví dụ bằng yay -Syu talvio-bin.",
       "download": "Bản này không thể tự cập nhật tại chỗ. Hãy tải bộ cài và chạy nó để có phiên bản mới."
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "Gửi góp ý",
     "title": "Gửi góp ý",
-    "description": "Tôi tự đọc từng tin nhắn, nên bạn cứ viết theo cách tự nhiên nhất. Cảm ơn bạn đã giúp Zynveliq tốt hơn.",
+    "description": "Tôi tự đọc từng tin nhắn, nên bạn cứ viết theo cách tự nhiên nhất. Cảm ơn bạn đã giúp Talvio tốt hơn.",
     "kind": {
       "label": "Loại góp ý",
       "bug": "Lỗi",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "Chuyện gì đã xảy ra, và bạn mong đợi điều gì?",
-      "idea": "Điều gì sẽ giúp Zynveliq tốt hơn cho bạn?",
+      "idea": "Điều gì sẽ giúp Talvio tốt hơn cho bạn?",
       "question": "Bạn muốn biết điều gì?"
     },
     "messageLabel": "Tin nhắn",
@@ -158,10 +158,10 @@
       "retry": "Thử lại"
     },
     "tour": {
-      "features": "Zynveliq làm được gì",
+      "features": "Talvio làm được gì",
       "count": "{{current}}/{{total}}",
       "next": "Tiếp",
-      "finish": "Mở Zynveliq",
+      "finish": "Mở Talvio",
       "tabs": {
         "dictate": "Đọc chính tả",
         "ask": "Trợ lý",
@@ -239,7 +239,7 @@
       "ready": "Sẵn sàng"
     },
     "speechToText": {
-      "title": "Zynveliq nên nghe bạn thế nào?",
+      "title": "Talvio nên nghe bạn thế nào?",
       "subtitle": "Phần này biến giọng nói của bạn thành văn bản, ngay trên máy của bạn. Chọn một mô hình, đổi bất cứ lúc nào.",
       "cards": {
         "fast": {
@@ -304,7 +304,7 @@
       "downloadingVoice": "Mô hình giọng nói đang cập bến. Đã được {{percentage}}%.",
       "downloadingGeneric": "Vẫn đang tải xuống. Đã được {{percentage}}%.",
       "signOff": "Vậy là xong. Nói gì đi nào.",
-      "openApp": "Mở Zynveliq"
+      "openApp": "Mở Talvio"
     },
     "errors": {
       "selectModel": "Không thể chọn mô hình đó. Vui lòng thử lại.",
@@ -436,7 +436,7 @@
     },
     "permissions": {
       "title": "Cần cấp quyền",
-      "description": "Zynveliq cần một số quyền để hoạt động bình thường.",
+      "description": "Talvio cần một số quyền để hoạt động bình thường.",
       "microphone": {
         "title": "Quyền truy cập micrô",
         "description": "Cần thiết để nghe giọng nói của bạn để chuyển đổi."
@@ -446,7 +446,7 @@
         "description": "Cần thiết để nhập văn bản đã chuyển đổi vào các ứng dụng của bạn.",
         "stuckHint": "Đã bật trong Cài đặt hệ thống? Sau khi cập nhật, macOS có thể giữ một quyền không còn khớp với phiên bản này.",
         "reset": "Đặt lại quyền",
-        "resetDone": "Giờ hãy bật lại Zynveliq trong Cài đặt hệ thống."
+        "resetDone": "Giờ hãy bật lại Talvio trong Cài đặt hệ thống."
       },
       "grant": "Cấp quyền",
       "granted": "Đã cấp",
@@ -455,7 +455,7 @@
       "errors": {
         "checkFailed": "Không thể kiểm tra quyền. Vui lòng thử lại.",
         "requestFailed": "Không thể yêu cầu quyền. Vui lòng thử lại.",
-        "resetFailed": "Không thể đặt lại quyền. Hãy xóa Zynveliq khỏi danh sách Trợ năng rồi thêm lại."
+        "resetFailed": "Không thể đặt lại quyền. Hãy xóa Talvio khỏi danh sách Trợ năng rồi thêm lại."
       }
     },
     "frame": {
@@ -682,7 +682,7 @@
       },
       "handsFree": {
         "unavailableKeys": "Hoạt động khi phím đọc chính tả chỉ gồm phím bổ trợ, như Ctrl + Win. Với {{keys}}, hãy tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
-        "unavailableEngine": "Cần bộ xử lý bàn phím Zynveliq Keys ({{where}}). Hoặc tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
+        "unavailableEngine": "Cần bộ xử lý bàn phím Talvio Keys ({{where}}). Hoặc tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
         "taken": "{{name}} đã dùng {{keys}}, nên phím này không có tác dụng cho đến khi một trong hai thay đổi.",
         "needsKey": "Hãy chọn một phím, như phím cách hoặc Enter. Một phím bổ trợ riêng lẻ không thể là phím rảnh tay.",
         "pressKey": "Nhấn một phím…",
@@ -739,9 +739,9 @@
       "clearSearch": "Xóa tìm kiếm",
       "noSearchResults": "Không có mô hình nào tên “{{query}}”.",
       "olderHint": "Định dạng cũ. {{model}} ({{size}}) là phiên bản mới của mô hình này.",
-      "retiredHint": "Dùng công cụ cũ mà Zynveliq không còn đi kèm. Hãy tải {{model}} ({{size}}) thay thế.",
+      "retiredHint": "Dùng công cụ cũ mà Talvio không còn đi kèm. Hãy tải {{model}} ({{size}}) thay thế.",
       "retired": {
-        "notice": "Các mô hình này dùng công cụ cũ mà Zynveliq không còn đi kèm.",
+        "notice": "Các mô hình này dùng công cụ cũ mà Talvio không còn đi kèm.",
         "newVersion": "Phiên bản mới: {{model}} · {{size}}",
         "getNewVersion": "Tải phiên bản mới",
         "useNewVersion": "Dùng phiên bản mới",
@@ -796,7 +796,7 @@
         "rescan": "Quét lại",
         "rescanning": "Đang quét lại…",
         "rescanDone_other": "Tìm thấy {{count}} mô hình trên máy.",
-        "footnote": "Các thư mục đã liên kết sẽ được quét lại mỗi khi Zynveliq khởi động, nên những mô hình bạn thêm vào sau đó sẽ tự xuất hiện. Bỏ liên kết một thư mục hoặc xóa một mô hình chỉ loại nó khỏi danh sách này — các tệp của bạn vẫn ở nguyên chỗ cũ.",
+        "footnote": "Các thư mục đã liên kết sẽ được quét lại mỗi khi Talvio khởi động, nên những mô hình bạn thêm vào sau đó sẽ tự xuất hiện. Bỏ liên kết một thư mục hoặc xóa một mô hình chỉ loại nó khỏi danh sách này — các tệp của bạn vẫn ở nguyên chỗ cũ.",
         "removeTitle": "Xóa khỏi danh sách?",
         "removeConfirm": "Xóa “{{modelName}}” khỏi danh sách mô hình của bạn?\n\nBản thân tệp vẫn ở nguyên chỗ cũ:\n{{path}}",
         "missingBadge": "Thiếu tệp",
@@ -886,7 +886,7 @@
         "label": "Dùng nút chuột làm phím tắt",
         "description": "Dùng nút giữa, nút Lùi hoặc nút Tiến của chuột làm phím tắt: bấm vào phím của một phím tắt rồi nhấn nút đó. Khi đã là phím tắt, nút đó không làm gì khác.",
         "linux": "Trên Linux chỉ nút giữa hoạt động.",
-        "needsEngine": "Cần cơ chế bàn phím Zynveliq Keys."
+        "needsEngine": "Cần cơ chế bàn phím Talvio Keys."
       },
       "longFormChunking": {
         "title": "Chia nhỏ bản ghi dài",
@@ -904,11 +904,11 @@
       },
       "autostart": {
         "label": "Khởi động cùng hệ thống",
-        "description": "Tự động mở Zynveliq khi bạn đăng nhập."
+        "description": "Tự động mở Talvio khi bạn đăng nhập."
       },
       "showTrayIcon": {
         "label": "Hiện biểu tượng khay",
-        "description": "Giữ Zynveliq trong khay hệ thống."
+        "description": "Giữ Talvio trong khay hệ thống."
       },
       "trayIconColor": {
         "label": "Biểu tượng khay có màu",
@@ -916,7 +916,7 @@
       },
       "closeBehavior": {
         "label": "Thoát khi tôi đóng cửa sổ",
-        "description": "Khi tắt, đóng cửa sổ vẫn giữ Zynveliq chạy trong khay hệ thống để phím tắt của bạn tiếp tục hoạt động. Khi bật, đóng cửa sổ sẽ thoát hẳn ứng dụng."
+        "description": "Khi tắt, đóng cửa sổ vẫn giữ Talvio chạy trong khay hệ thống để phím tắt của bạn tiếp tục hoạt động. Khi bật, đóng cửa sổ sẽ thoát hẳn ứng dụng."
       },
       "overlayStyle": {
         "title": "Lớp phủ",
@@ -1010,8 +1010,8 @@
       },
       "customWords": {
         "title": "Từ tùy chỉnh",
-        "description": "Tên riêng, sản phẩm và cụm từ mà Zynveliq nên viết theo cách của bạn.",
-        "info": "Ví dụ: thêm “Kokoro” nếu Zynveliq viết thành “Coco row.”",
+        "description": "Tên riêng, sản phẩm và cụm từ mà Talvio nên viết theo cách của bạn.",
+        "info": "Ví dụ: thêm “Kokoro” nếu Talvio viết thành “Coco row.”",
         "placeholder": "Thêm tên riêng, thuật ngữ hoặc cụm từ ngắn",
         "add": "Thêm",
         "empty": "Chưa có từ tùy chỉnh nào.",
@@ -1020,7 +1020,7 @@
       },
       "autoLearn": {
         "label": "Học các từ tôi sửa",
-        "description": "Ghi nhớ cách viết của bạn khi bạn sửa một từ Zynveliq nhận sai.",
+        "description": "Ghi nhớ cách viết của bạn khi bạn sửa một từ Talvio nhận sai.",
         "info": "Nó chỉ đọc ô vừa được gõ vào, trong khoảng một phút. Không có gì được tải lên, và mọi từ nó học được đều liệt kê ở đây.",
         "unsupported": "Hiện tính năng học từ các lần sửa chỉ có trên Windows. Bạn vẫn có thể tự thêm từ ở phía trên.",
         "learnedTitle": "Học được từ các lần sửa của bạn",
@@ -1034,7 +1034,7 @@
         "title": "Thay thế văn bản",
         "description": "Thay một cụm từ trong bản chuyển đổi bằng đoạn văn bản bạn hay dùng. Ví dụ: “email của tôi” thành “alex@example.com”.",
         "rulesTitle": "Quy tắc thay thế",
-        "rulesHint": "Chọn điều Zynveliq nghe được và điều nó nên chèn vào.",
+        "rulesHint": "Chọn điều Talvio nghe được và điều nó nên chèn vào.",
         "empty": "Hãy tạo một quy tắc cho cụm từ bạn thường nói.",
         "addFirst": "Tạo quy tắc đầu tiên",
         "addRule": "Thêm thay thế",
@@ -1411,7 +1411,7 @@
       },
       "updateChecks": {
         "label": "Tự động kiểm tra cập nhật",
-        "description": "Tìm phiên bản mới khi Zynveliq khởi động và cứ 12 giờ một lần. Bạn luôn có thể tự kiểm tra."
+        "description": "Tìm phiên bản mới khi Talvio khởi động và cứ 12 giờ một lần. Bạn luôn có thể tự kiểm tra."
       },
       "soundTheme": {
         "label": "Chủ đề âm thanh",
@@ -1467,7 +1467,7 @@
       "smartSpacing": {
         "label": "Khoảng cách thông minh",
         "description": "Khớp mỗi lần đọc chính tả với văn bản đã có trong ô, để bạn có thể dừng rồi nói tiếp mà các từ không bị dính vào nhau.",
-        "info": "Trước khi dán, Zynveliq xem vài ký tự quanh con trỏ và chỉ thêm dấu cách ở chỗ cần. Khi ứng dụng ẩn văn bản của mình, nó dùng lần đọc chính tả gần nhất của chính nó. Không có gì được lưu hay gửi đi đâu. Trên macOS, tính năng này dùng quyền Trợ năng mà Zynveliq đã có. Trên Linux, ứng dụng Chrome, Electron và Qt chỉ chia sẻ văn bản khi cài đặt trợ năng của màn hình nền được bật."
+        "info": "Trước khi dán, Talvio xem vài ký tự quanh con trỏ và chỉ thêm dấu cách ở chỗ cần. Khi ứng dụng ẩn văn bản của mình, nó dùng lần đọc chính tả gần nhất của chính nó. Không có gì được lưu hay gửi đi đâu. Trên macOS, tính năng này dùng quyền Trợ năng mà Talvio đã có. Trên Linux, ứng dụng Chrome, Electron và Qt chỉ chia sẻ văn bản khi cài đặt trợ năng của màn hình nền được bật."
       },
       "smartSpacingFixCase": {
         "label": "Sửa chữ hoa",
@@ -1475,7 +1475,7 @@
       },
       "smartSpacingJoin": {
         "label": "Nối câu bị ngắt giữa chừng",
-        "description": "Xóa dấu chấm mà Zynveliq đã thêm khi bạn dừng giữa câu, như trong \"I went to the.\""
+        "description": "Xóa dấu chấm mà Talvio đã thêm khi bạn dừng giữa câu, như trong \"I went to the.\""
       },
       "keyboardImplementation": {
         "title": "Cơ chế bàn phím",
@@ -1494,6 +1494,101 @@
       "recordingBuffer": {
         "title": "Bộ đệm ghi âm bổ sung",
         "description": "Số mili giây tiếp tục ghi âm sau khi bạn nhả phím."
+      },
+      "commandMode": {
+        "title": "Chế độ lệnh",
+        "description": "Gõ một lệnh để xem bộ định tuyến chọn công cụ nào và công cụ đó làm gì. Phím tắt sẽ có trong phiên bản sau.",
+        "enabled": {
+          "title": "Chế độ lệnh",
+          "description": "Cho phép lệnh thao tác trong các ứng dụng của bạn. Cần cho --run-command; ô này vẫn hoạt động dù bật hay tắt."
+        },
+        "input": {
+          "title": "Thử một lệnh",
+          "description": "Gửi văn bản tới mô hình định tuyến như thể bạn đã nói ra. Khi bật Chạy thử, không có gì xảy ra trên màn hình: bạn thấy những gì lẽ ra sẽ xảy ra.",
+          "placeholder": "Gửi email cho Ron về cuộc họp lúc 9:00"
+        },
+        "dryRun": {
+          "label": "Chạy thử"
+        },
+        "dryRunSetting": {
+          "title": "Mặc định chạy thử",
+          "description": "Lệnh chỉ hiển thị những gì chúng sẽ làm thay vì thực hiện. Ô phía trên và --dry-run vẫn có thể chọn riêng cho từng lệnh."
+        },
+        "delay": {
+          "label": "Chạy sau {{seconds}} giây",
+          "hint": "Thao tác gõ và nhấn phím sẽ đi tới cửa sổ ở phía trước, tức là cửa sổ này khi bạn nhấn Chạy. Hãy bật độ trễ rồi nhấp vào ứng dụng bạn muốn, hoặc dùng Chạy thử.",
+          "countdown": "Sẽ chạy sau {{seconds}} giây. Hãy nhấp vào ứng dụng mà lệnh hướng tới.",
+          "cancel": "Hủy ({{seconds}})"
+        },
+        "run": "Chạy",
+        "running": "Đang chạy…",
+        "invokeFailed": "Không thể gửi lệnh: {{error}}",
+        "status": {
+          "done": "Xong",
+          "awaiting_confirmation": "Đang chờ xác nhận",
+          "needs_answer": "Cần câu trả lời",
+          "needs_computer_use": "Cần điều khiển máy tính",
+          "cancelled": "Đã hủy",
+          "failed": "Thất bại"
+        },
+        "dryRunBadge": "Chạy thử",
+        "fromCli": "Từ dòng lệnh",
+        "meta": "{{model}} · {{calls}} lệnh gọi LLM · token: {{input}} vào, {{output}} ra, {{cached}} đã lưu đệm · {{ms}} ms",
+        "transcript": "Lệnh: {{text}}",
+        "send": "Gửi",
+        "cancel": "Hủy",
+        "answer": {
+          "placeholder": "Câu trả lời của bạn",
+          "submit": "Trả lời"
+        },
+        "escalation": "Tác vụ cho điều khiển máy tính: {{task}}",
+        "error": "Lỗi: {{error}}",
+        "steps": "Các bước",
+        "dryRunActions": "Lẽ ra sẽ làm",
+        "provider": {
+          "title": "Nhà cung cấp định tuyến",
+          "description": "Mã nhà cung cấp chọn công cụ cho mỗi lệnh (ví dụ anthropic hoặc openrouter). Dùng khóa API đã lưu cho nhà cung cấp đó. Để trống sẽ quay về anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Mô hình định tuyến",
+          "description": "Mô hình chọn công cụ. Nhỏ và nhanh là tốt nhất: mỗi lệnh tốn một lần gọi. Để trống sẽ quay về mặc định.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Tài khoản Google",
+          "description": "Tài khoản dùng để mở Gmail và Calendar (địa chỉ email hoặc số thứ tự tài khoản). Để trống sẽ dùng tài khoản Google mặc định của trình duyệt.",
+          "placeholder": "Tài khoản mặc định"
+        },
+        "searchUrl": {
+          "title": "Trang tìm kiếm",
+          "description": "Trang được mở khi tìm kiếm trên web. Trang phải chứa {query}, sẽ được thay bằng nội dung bạn hỏi; nếu không sẽ quay về Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Danh bạ",
+          "description": "Những người mà lệnh có thể gửi email, trong một tệp JSON bạn tự chỉnh sửa. Lần đầu, tệp được tạo với một ví dụ.",
+          "open": "Mở tệp danh bạ",
+          "openFailed": "Không thể mở tệp danh bạ: {{error}}"
+        },
+        "stop": "Dừng",
+        "autoEscalate": {
+          "title": "Điều khiển màn hình khi cần",
+          "description": "Khi không có công cụ nào phù hợp với lệnh, một tác tử sẽ đọc các điều khiển của ứng dụng và thao tác giúp bạn, đồng thời hỏi trước mọi việc gửi, mua hoặc xóa. Hiện chỉ có trên Windows."
+        },
+        "agentModel": {
+          "title": "Mô hình tác tử",
+          "description": "Mô hình điều khiển màn hình, trên nhà cung cấp của bộ định tuyến. Một mô hình mạnh hơn mô hình định tuyến sẽ hoạt động tốt hơn. Để trống sẽ quay về mặc định.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Giới hạn bước của tác tử",
+          "description": "Số lần gọi mô hình tối đa một tác vụ được dùng, từ 1 đến 60. Đến đó tác tử sẽ dừng và để nguyên màn hình."
+        },
+        "agentMaxCost": {
+          "title": "Giới hạn chi phí của tác tử (US$)",
+          "description": "Dừng tác vụ khi nó đã tốn khoảng số tiền này. Chỉ các mô hình Claude đã biết mới có giá; mọi mô hình khác chỉ bị giới hạn bởi số bước."
+        }
       }
     },
     "about": {
@@ -1512,7 +1607,7 @@
       },
       "appDataDirectory": {
         "title": "Thư mục dữ liệu ứng dụng",
-        "description": "Nơi Zynveliq lưu mô hình, lịch sử và cài đặt của bạn."
+        "description": "Nơi Talvio lưu mô hình, lịch sử và cài đặt của bạn."
       },
       "sourceCode": {
         "title": "Mã nguồn",
@@ -1521,12 +1616,12 @@
       },
       "license": {
         "title": "Giấy phép",
-        "description": "Zynveliq là mã nguồn mở theo Giấy phép MIT, dựa trên Handy (cũng MIT) của CJ Pais.",
+        "description": "Talvio là mã nguồn mở theo Giấy phép MIT, dựa trên Handy (cũng MIT) của CJ Pais.",
         "button": "Xem giấy phép"
       },
       "supportDevelopment": {
         "title": "Hỗ trợ phát triển",
-        "description": "Giúp chúng tôi tiếp tục xây dựng Zynveliq",
+        "description": "Giúp chúng tôi tiếp tục xây dựng Talvio",
         "button": "Quyên góp"
       }
     },
@@ -1534,7 +1629,7 @@
       "enable": {
         "title": "Trợ lý",
         "label": "Bật trợ lý",
-        "description": "Tắt tùy chọn này để Zynveliq chỉ làm việc đọc chính tả. Bảng nổi sẽ đóng và không bao giờ được nạp, các phím tắt của nó được giải phóng, và bộ nhớ nó dùng được trả lại. Tạo nội dung với Flow và dọn dẹp bằng AI vẫn hoạt động."
+        "description": "Tắt tùy chọn này để Talvio chỉ làm việc đọc chính tả. Bảng nổi sẽ đóng và không bao giờ được nạp, các phím tắt của nó được giải phóng, và bộ nhớ nó dùng được trả lại. Tạo nội dung với Flow và dọn dẹp bằng AI vẫn hoạt động."
       },
       "shortcuts": {
         "title": "Phím tắt"
@@ -1573,7 +1668,7 @@
         "deleteModelFailed": "Không thể xóa mô hình.",
         "finderSectionTitle": "Thêm mô hình chạy trên thiết bị",
         "finderTitle": "Xem trên Hugging Face",
-        "finderDescription": "Tìm trong hàng nghìn mô hình GGUF và tải một mô hình trực tiếp vào Zynveliq.",
+        "finderDescription": "Tìm trong hàng nghìn mô hình GGUF và tải một mô hình trực tiếp vào Talvio.",
         "finderAction": "Tìm một mô hình",
         "huggingFaceTitle": "Mô hình của bạn",
         "catalogEmpty": "Hiện không có mô hình cục bộ được đề xuất nào."
@@ -1696,7 +1791,7 @@
           "label": "Thời điểm chụp"
         },
         "screenRecording": {
-          "description": "Khả năng xem màn hình cần quyền Ghi màn hình của macOS. Hãy cấp quyền trong Cài đặt Hệ thống, rồi khởi động lại Zynveliq để có hiệu lực.",
+          "description": "Khả năng xem màn hình cần quyền Ghi màn hình của macOS. Hãy cấp quyền trong Cài đặt Hệ thống, rồi khởi động lại Talvio để có hiệu lực.",
           "grant": "Mở Cài đặt Hệ thống"
         }
       },
@@ -1873,7 +1968,7 @@
         "testGpuMoved": "Card đồ họa của bạn làm méo mẫu âm thanh, nên nó đã bị tắt tiếng. Kokoro giờ dùng bộ xử lý, hãy kiểm tra lại để nghe.",
         "testGpuForced": "Card đồ họa của bạn làm méo mẫu âm thanh, nên nó đã bị tắt tiếng. Hãy đặt Chạy trên thành Tự động hoặc Bộ xử lý.",
         "testGpuSuspect": "Mẫu âm thanh bị méo, nên đã bị tắt tiếng. Hãy kiểm tra lại để xem card đồ họa của bạn.",
-        "testPhrase": "Xin chào! Đây là bản thử đầu ra giọng nói của Zynveliq.",
+        "testPhrase": "Xin chào! Đây là bản thử đầu ra giọng nói của Talvio.",
         "downloadStart": "Đang tải giọng Kokoro…",
         "downloadProgress": "Đang tải giọng Kokoro… {{progress}}%",
         "downloadReady": "Giọng Kokoro đã sẵn sàng ✓",
@@ -1975,7 +2070,7 @@
     "account": {
       "signedOut": {
         "title": "Kết nối điện thoại",
-        "body": "Đăng nhập ở đây và trong ứng dụng Zynveliq trên điện thoại bằng cùng một tài khoản. Sau đó bạn có thể đọc chính tả và gõ chữ trên máy tính này từ điện thoại.",
+        "body": "Đăng nhập ở đây và trong ứng dụng Talvio trên điện thoại bằng cùng một tài khoản. Sau đó bạn có thể đọc chính tả và gõ chữ trên máy tính này từ điện thoại.",
         "modeLabel": "Đăng nhập hoặc tạo tài khoản",
         "signIn": "Đăng nhập",
         "createAccount": "Tạo tài khoản",
@@ -1988,8 +2083,7 @@
         "or": "hoặc",
         "google": "Tiếp tục với Google",
         "googleWaiting": "Hoàn tất đăng nhập trong trình duyệt.",
-        "privacy": "Máy chủ chỉ lưu tài khoản và danh sách thiết bị của bạn, không bao giờ lưu bản ghi âm hay văn bản.",
-        "serverUnsaved": "Hãy lưu địa chỉ máy chủ mới bên dưới trước khi đăng nhập."
+        "privacy": "Máy chủ lưu tài khoản, danh sách thiết bị và, nếu bạn đồng bộ, các khóa API của bạn (đã mã hóa). Không bao giờ lưu bản ghi âm hay văn bản."
       },
       "signOut": "Đăng xuất",
       "signingOut": "Đang đăng xuất…",
@@ -1997,13 +2091,18 @@
         "online": "Đã kết nối",
         "connecting": "Đang kết nối…",
         "offline": "Ngoại tuyến",
-        "offlineHint": "Zynveliq hiện không kết nối được với máy chủ và vẫn đang thử lại. Trong lúc đó, điện thoại của bạn không thể dùng máy tính này."
+        "offlineHint": "Talvio hiện không kết nối được với máy chủ và vẫn đang thử lại. Trong lúc đó, điện thoại của bạn không thể dùng máy tính này."
       },
       "phone": {
         "title": "Điện thoại",
         "remoteInput": "Đọc chính tả từ điện thoại",
         "remoteInputHint": "Cho phép điện thoại đọc chính tả và gõ chữ trên máy tính này.",
-        "install": "Cài ứng dụng Zynveliq trên điện thoại và đăng nhập bằng {{email}}."
+        "install": "Cài ứng dụng Talvio trên điện thoại và đăng nhập bằng {{email}}."
+      },
+      "keys": {
+        "title": "Khóa API",
+        "sync": "Đồng bộ khóa API",
+        "syncHint": "Các khóa bạn thêm trên máy tính này được lưu, đã mã hóa, trong tài khoản Talvio của bạn và xuất hiện trên các máy tính khác của bạn."
       },
       "devices": {
         "title": "Thiết bị",
@@ -2030,12 +2129,8 @@
       },
       "server": {
         "title": "Máy chủ tài khoản",
-        "hint": "Nơi lưu tài khoản của bạn. Chỉ đổi nếu bạn tự chạy máy chủ riêng.",
-        "locked": "Đăng xuất để đổi máy chủ.",
-        "automatic": "Tự động",
-        "custom": "Tùy chỉnh",
         "using": "Đang dùng {{host}}",
-        "notFound": "Hiện không tìm thấy máy chủ. Zynveliq vẫn đang thử lại."
+        "notFound": "Hiện không tìm thấy máy chủ. Talvio vẫn đang thử lại."
       },
       "errors": {
         "generic": "Đã xảy ra lỗi. Hãy thử lại.",
@@ -2055,9 +2150,7 @@
         "server": "Máy chủ trả về phản hồi không mong muốn. Hãy thử lại sau.",
         "timeout": "Đăng nhập bằng Google mất quá nhiều thời gian. Hãy thử lại.",
         "signed_in": "Đăng xuất trước khi đổi máy chủ.",
-        "invalid_url": "Nhập địa chỉ bắt đầu bằng https:// để mật khẩu của bạn được mã hóa. http:// chỉ dùng được với máy chủ trên máy tính này.",
-        "keychain": "Không thể lưu thông tin đăng nhập an toàn trên máy tính này. Hãy thử lại.",
-        "wrongServer": "Địa chỉ máy chủ có vẻ không đúng. Hãy kiểm tra bên dưới rồi thử lại."
+        "keychain": "Không thể lưu thông tin đăng nhập an toàn trên máy tính này. Hãy thử lại."
       }
     }
   },
@@ -2158,7 +2251,7 @@
     "list": {
       "title": "Các cuộc họp đã ghi",
       "emptyTitle": "Chưa có cuộc họp nào",
-      "emptyHint": "Bắt đầu ghi âm trước cuộc gọi và Zynveliq sẽ lưu bản chép lời, chia theo người nói.",
+      "emptyHint": "Bắt đầu ghi âm trước cuộc gọi và Talvio sẽ lưu bản chép lời, chia theo người nói.",
       "loadMore": "Tải thêm",
       "speakers_other": "{{count}} người nói",
       "hasNotes": "Đã tạo ghi chú"
@@ -2319,7 +2412,7 @@
   },
   "accessibility": {
     "permissionsRequired": "Cần quyền Trợ năng",
-    "permissionsDescription": "Zynveliq cần quyền truy cập để gõ văn bản đã chuyển đổi.",
+    "permissionsDescription": "Talvio cần quyền truy cập để gõ văn bản đã chuyển đổi.",
     "openSettings": "Mở Cài đặt Hệ thống",
     "dismiss": "Bỏ qua"
   },
@@ -2348,7 +2441,7 @@
   },
   "appLanguage": {
     "title": "Ngôn ngữ ứng dụng",
-    "description": "Thay đổi ngôn ngữ giao diện của Zynveliq"
+    "description": "Thay đổi ngôn ngữ giao diện của Talvio"
   },
   "overlay": {
     "preparing": "Đang chuẩn bị micrô…",
@@ -2710,7 +2803,7 @@
       "performance": "Hiệu năng"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "Phiên bản {{version}}",
       "project": "Dự án",
       "docs": "Tài liệu",
@@ -2728,7 +2821,7 @@
     "subtitleTap": "Nhấn phím tắt trong bất kỳ ứng dụng nào, nói, rồi nhấn lại. Lời bạn nói sẽ xuất hiện tại vị trí con trỏ.",
     "needsModel": {
       "title": "Chọn một mô hình giọng nói để bắt đầu đọc chính tả.",
-      "description": "Zynveliq cần một mô hình chuyển giọng nói thành văn bản trước khi có thể gõ những gì bạn nói.",
+      "description": "Talvio cần một mô hình chuyển giọng nói thành văn bản trước khi có thể gõ những gì bạn nói.",
       "action": "Chọn mô hình"
     },
     "stats": {
@@ -2801,8 +2894,8 @@
         "open": "Cài đặt bàn phím"
       },
       "linux": {
-        "wayland": "Trên Wayland, màn hình nền chỉ chuyển các phím này cho Zynveliq khi một cửa sổ của nó đang ở phía trước. Để dùng chúng trong mọi ứng dụng, hãy thêm chúng làm phím tắt trong cài đặt hệ thống.",
-        "noAccess": "Zynveliq Keys không đọc được bàn phím trên máy tính này, nên các phím tắt này chưa có tác dụng.",
+        "wayland": "Trên Wayland, màn hình nền chỉ chuyển các phím này cho Talvio khi một cửa sổ của nó đang ở phía trước. Để dùng chúng trong mọi ứng dụng, hãy thêm chúng làm phím tắt trong cài đặt hệ thống.",
+        "noAccess": "Talvio Keys không đọc được bàn phím trên máy tính này, nên các phím tắt này chưa có tác dụng.",
         "setUp": "Thiết lập",
         "where": {
           "gnome": "Mở Cài đặt → Bàn phím → Xem và tùy chỉnh phím tắt → Phím tắt tùy chỉnh, thêm một phím tắt cho mỗi lệnh bên dưới rồi nhấn các phím bạn muốn.",
@@ -2810,7 +2903,7 @@
           "other": "Với mỗi lệnh bên dưới, hãy thêm một phím tắt tùy chỉnh trong cài đặt bàn phím của màn hình nền, hoặc một dòng bind trong cấu hình compositor."
         },
         "tapOnly": "Phím tắt thêm theo cách này hoạt động như “Nhấn để bật/tắt”: nhấn một lần để bắt đầu và nhấn lần nữa để dừng.",
-        "access": "Hoặc cho phép Zynveliq Keys đọc bàn phím. Chạy lệnh này trong terminal, rồi đăng xuất và đăng nhập lại:",
+        "access": "Hoặc cho phép Talvio Keys đọc bàn phím. Chạy lệnh này trong terminal, rồi đăng xuất và đăng nhập lại:",
         "copy": "Sao chép",
         "copied": "Đã sao chép"
       }
@@ -2838,7 +2931,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} dùng công cụ cũ mà Zynveliq không còn đi kèm.",
+    "title": "{{model}} dùng công cụ cũ mà Talvio không còn đi kèm.",
     "newVersion": "Phiên bản mới của nó là {{model}}.",
     "ready": "{{model}} đã được tải về và sẵn sàng.",
     "noVersion": "Hãy chọn mô hình khác để tiếp tục đọc chính tả.",
@@ -2847,12 +2940,12 @@
     "retry": "Thử lại",
     "chooseAnother": "Chọn mô hình khác",
     "progressLabel": "Đang tải phiên bản mới",
-    "dialogTitle": "Zynveliq có công cụ giọng nói mới",
+    "dialogTitle": "Talvio có công cụ giọng nói mới",
     "dialogBody": "Nó nhanh hơn và ổn định hơn, nên bạn sẽ ít gặp sự cố hơn. {{model}} chạy trên công cụ cũ và cần phiên bản mới để tiếp tục hoạt động.",
     "later": "Để sau"
   },
   "modelsHub": {
-    "description": "Mỗi việc trong Zynveliq do một mô hình bạn chọn đảm nhận. Chạy trên máy tính này để riêng tư, hoặc trên đám mây để nhanh hơn.",
+    "description": "Mỗi việc trong Talvio do một mô hình bạn chọn đảm nhận. Chạy trên máy tính này để riêng tư, hoặc trên đám mây để nhanh hơn.",
     "addLocal": "Thêm tệp mô hình",
     "privacyNote": "Mô hình trên máy tính này không bao giờ gửi giọng nói hay văn bản của bạn đi đâu cả. Mô hình đám mây gửi chúng tới nhà cung cấp bạn đã chọn, bằng khóa API của bạn.",
     "inUse": "Đang dùng",
@@ -3011,12 +3104,12 @@
     "shortcutRow": "Phím tắt"
   },
   "dictionary": {
-    "description": "Dạy Zynveliq những tên riêng và thuật ngữ bạn hay dùng, và đặt các cụm viết tắt để mở rộng thành văn bản dài hơn.",
+    "description": "Dạy Talvio những tên riêng và thuật ngữ bạn hay dùng, và đặt các cụm viết tắt để mở rộng thành văn bản dài hơn.",
     "words": {
       "title": "Từ của bạn",
-      "description": "Tên riêng, thuật ngữ chuyên ngành và cách viết mà Zynveliq luôn phải viết đúng.",
+      "description": "Tên riêng, thuật ngữ chuyên ngành và cách viết mà Talvio luôn phải viết đúng.",
       "placeholder": "Thêm tên, thuật ngữ hoặc cách viết…",
-      "empty": "Chưa có gì ở đây. Hãy thêm những từ Zynveliq hay viết sai."
+      "empty": "Chưa có gì ở đây. Hãy thêm những từ Talvio hay viết sai."
     },
     "replacements": {
       "title": "Thay thế",
@@ -3397,7 +3490,7 @@
     "or": "hoặc",
     "changeOther": "Đổi phím khác của phím tắt {{name}}",
     "pressKeysOrButton": "Nhấn phím hoặc một nút chuột…",
-    "mouseNeedsKeysEngine": "Nút chuột cần cơ chế bàn phím Zynveliq Keys (Cài đặt → Nâng cao → Thử nghiệm).",
+    "mouseNeedsKeysEngine": "Nút chuột cần cơ chế bàn phím Talvio Keys (Cài đặt → Nâng cao → Thử nghiệm).",
     "mouse": {
       "middle": "Nút giữa chuột",
       "back": "Nút Lùi của chuột",
@@ -3476,7 +3569,7 @@
     }
   },
   "insights": {
-    "about": "Cách bạn dùng Zynveliq, được đếm trên máy tính này.",
+    "about": "Cách bạn dùng Talvio, được đếm trên máy tính này.",
     "nothingYet": "Thống kê của bạn sẽ hiện ra khi bạn đọc chính tả, hỏi trợ lý hoặc ghi âm một cuộc họp.",
     "goHome": "Xem phím tắt",
     "figures": {
@@ -3528,7 +3621,7 @@
     },
     "share": {
       "button": "Chia sẻ",
-      "nothingYet": "Sẽ có thứ để chia sẻ khi bạn đã dùng Zynveliq.",
+      "nothingYet": "Sẽ có thứ để chia sẻ khi bạn đã dùng Talvio.",
       "title": "Chia sẻ thống kê của bạn",
       "private": "Được tạo trên máy tính này. Không có gì được tải lên.",
       "size": "Kích thước",
@@ -3559,13 +3652,13 @@
       "openSite": "Mở {{site}}",
       "openFailed": "Không mở được {{site}}",
       "more": "Ứng dụng khác",
-      "sheetTitle": "Thống kê Zynveliq của mình",
+      "sheetTitle": "Thống kê Talvio của mình",
       "shareFailed": "Không mở được Chia sẻ",
       "drawFailed": "Không vẽ được thẻ. Hãy đóng lại và thử lại.",
       "tagline": "Miễn phí · Mã nguồn mở · Chạy ngoại tuyến",
       "cards": {
         "highlights": {
-          "title": "Dấu ấn Zynveliq của mình",
+          "title": "Dấu ấn Talvio của mình",
           "words_other": "từ đã nói",
           "streak_other": "ngày liên tiếp",
           "wpm": "từ mỗi phút",
@@ -3614,9 +3707,9 @@
         }
       },
       "post": {
-        "dictation_other": "Mình đã nói {{formatted}} từ với máy tính thay vì gõ, nhờ Zynveliq.",
-        "asks_other": "Mình đã hỏi trợ lý của Zynveliq {{formatted}} câu mà không cần chuyển tab.",
-        "meetings_other": "Zynveliq đã ghi âm {{formatted}} cuộc họp và viết ghi chú giúp mình."
+        "dictation_other": "Mình đã nói {{formatted}} từ với máy tính thay vì gõ, nhờ Talvio.",
+        "asks_other": "Mình đã hỏi trợ lý của Talvio {{formatted}} câu mà không cần chuyển tab.",
+        "meetings_other": "Talvio đã ghi âm {{formatted}} cuộc họp và viết ghi chú giúp mình."
       }
     }
   },
@@ -3624,11 +3717,72 @@
     "restored": "Cài đặt của bạn bị hỏng và đã được khôi phục từ bản sao lưu.",
     "restoredDescription": "Những thay đổi gần đây có thể bị thiếu.",
     "unrecoverableTitle": "Không thể khôi phục cài đặt của bạn",
-    "unrecoverableDescription": "Zynveliq đã khởi động với cài đặt mặc định. Tệp bị hỏng được giữ lại với tên {{file}}.",
+    "unrecoverableDescription": "Talvio đã khởi động với cài đặt mặc định. Tệp bị hỏng được giữ lại với tên {{file}}.",
     "notSavingTitle": "Các thay đổi cài đặt sẽ không được lưu",
-    "notSavingDescription": "Không thể đọc tệp cài đặt nên tệp được giữ nguyên. Hãy khởi động lại Zynveliq để thử lại.",
+    "notSavingDescription": "Không thể đọc tệp cài đặt nên tệp được giữ nguyên. Hãy khởi động lại Talvio để thử lại.",
     "saveFailingTitle": "Cài đặt không được lưu",
-    "saveFailingDescription": "Các thay đổi gần đây của bạn chưa được lưu. Zynveliq sẽ tiếp tục thử.",
+    "saveFailingDescription": "Các thay đổi gần đây của bạn chưa được lưu. Talvio sẽ tiếp tục thử.",
     "dismiss": "Đóng"
+  },
+  "commandMode": {
+    "feedback": {
+      "agentCancelled": "Đã dừng. Tôi để nguyên mọi thứ.",
+      "agentConfirm": "“{{name}}” trong {{window}} có thể gửi, mua hoặc xóa thứ gì đó. Hãy nói có để tiếp tục, hoặc hủy.",
+      "agentConfirmed": "Xong: “{{name}}”.",
+      "agentCostLimit": "Việc đó sắp tốn hơn ${{limit}}, nên tôi đã dừng và để nguyên mọi thứ.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Tôi không thể điều khiển màn hình: {{reason}}",
+      "agentGaveUp": "Tôi không thể hoàn thành việc đó: {{reason}}",
+      "agentNotConfigured": "Việc đó cần tôi điều khiển màn hình, nhưng tác tử chưa được thiết lập: {{why}}",
+      "agentOff": "Không công cụ nào của tôi làm được việc đó. Hãy bật “Điều khiển màn hình khi cần” để tôi thao tác ứng dụng giúp bạn.",
+      "agentStepLimit": "Việc đó mất hơn {{steps}} bước, nên tôi đã dừng và để nguyên mọi thứ.",
+      "agentWorking": "Đang thực hiện trong {{app}}…",
+      "agentWorkingNoApp": "Đang thực hiện…",
+      "calendarDraft": "Sự kiện lịch “{{title}}” đã sẵn sàng để lưu.",
+      "calendarDraftMissingGuests": "Sự kiện lịch “{{title}}” đã sẵn sàng để lưu. Tôi chưa thêm {{guests}} vì không có địa chỉ email của họ, bạn hãy thêm trong biểu mẫu.",
+      "cancelled": "Đã hủy. Chưa có gì được gửi.",
+      "confirmExpired": "Chờ quá lâu nên tôi đã không thực hiện. Hãy yêu cầu lại nhé.",
+      "confirmFailed": "Việc đó không còn thực hiện được nữa.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} có trong danh bạ của bạn, nhưng chưa lưu địa chỉ email hay số điện thoại.",
+      "contactNotFound": "Tôi không có liên hệ nào tên {{name}}.",
+      "emailDraft": "Bản nháp gửi {{name}} đã mở. Hãy nói gửi hoặc hủy.",
+      "emailDraftTruncated": "Bản nháp gửi {{name}} đã mở. Tin nhắn quá dài để chuyển sang Gmail nên đã bị cắt bớt; hãy kiểm tra phần cuối trước khi gửi. Hãy nói gửi hoặc hủy.",
+      "emailSent": "Đã gửi cho {{name}}.",
+      "empty": "Tôi chưa nghe rõ lệnh.",
+      "failed": "{{reason}}",
+      "mediaNext": "Đã chuyển sang bài tiếp theo.",
+      "mediaPlayPause": "Đã nhấn phát/tạm dừng.",
+      "mediaPrevious": "Đã quay lại bài trước.",
+      "mediaStop": "Đã dừng phát.",
+      "needsComputerUse": "Chưa có công cụ nào của tôi làm được việc đó. Khả năng điều khiển màn hình cho việc này sẽ có trong phiên bản sau.",
+      "notConfigured": "Chế độ lệnh chưa được thiết lập: {{why}}",
+      "nothingWaitingAnswer": "Không có gì đang chờ câu trả lời.",
+      "nothingWaitingConfirmation": "Không có gì đang chờ xác nhận.",
+      "openedInstead": "{{app}} chưa mở nên tôi đã mở nó.",
+      "openingApp": "Đang mở {{app}}.",
+      "openingFile": "Đang mở {{file}}.",
+      "planCapped": "Quá nhiều bước cùng lúc nên tôi đã bỏ {{count}} bước cuối.",
+      "pressKeysConfirm": "{{keys}} có thể gửi hoặc nộp nội dung trong {{window}}. Nói có để nhấn, hoặc hủy.",
+      "pressedKeys": "Đã nhấn {{keys}}.",
+      "pressedKeysRepeat": "Đã nhấn {{keys}} {{count}} lần.",
+      "question": "{{question}}",
+      "routeFailed": "Tôi không xác định được cần làm gì: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Đang tìm kiếm {{query}}.",
+      "superseded": "Một lệnh mới hơn đã thay thế lệnh này, nên nó không còn chờ nữa.",
+      "switchedTo": "Đã chuyển sang {{title}}.",
+      "tooManyQuestions": "Tôi vẫn chưa xác định được cần làm gì. Hãy thử nói theo cách khác.",
+      "typedText": "Đã gõ xong.",
+      "unsupported": "Việc đó không thể thực hiện trên {{os}}.",
+      "urlOpened": "Đã mở {{site}}.",
+      "volumeDown": "Đã giảm âm lượng.",
+      "volumeMute": "Đã tắt tiếng.",
+      "volumeSet": "Đã đặt âm lượng thành {{percent}}%.",
+      "volumeUnmute": "Đã bật lại âm thanh.",
+      "volumeUp": "Đã tăng âm lượng.",
+      "waitingForAnswer": "Lệnh đó đang chờ câu trả lời, không phải xác nhận.",
+      "waitingForConfirmation": "Lệnh đó đang chờ bạn xác nhận, không phải câu trả lời."
+    }
   }
 }

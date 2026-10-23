@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zynveliq_mobile/src/features/dictate/dictate_controller.dart';
-import 'package:zynveliq_mobile/src/features/dictate/dictate_screen.dart';
-import 'package:zynveliq_mobile/src/features/dictate/recent_dictations.dart';
+import 'package:talvio_mobile/src/features/dictate/dictate_controller.dart';
+import 'package:talvio_mobile/src/features/dictate/dictate_screen.dart';
+import 'package:talvio_mobile/src/features/dictate/recent_dictations.dart';
 
 import '../../helpers.dart';
 

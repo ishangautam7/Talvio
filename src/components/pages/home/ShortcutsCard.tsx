@@ -25,7 +25,7 @@ interface ShortcutRow {
 }
 
 /** Set once the hands-free hint is closed, so it never comes back. */
-const HINT_CLOSED_KEY = "zynveliq.home.handsFreeHintClosed";
+const HINT_CLOSED_KEY = "talvio.home.handsFreeHintClosed";
 
 const hintClosed = () => {
   try {

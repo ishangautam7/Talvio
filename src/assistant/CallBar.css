@@ -217,7 +217,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(15, 18, 19, 0.45);
+  background: rgba(16, 17, 34, 0.5);
   color: #fff;
   opacity: 0;
   transform: scale(0.85);
@@ -264,7 +264,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--as-ink);
-  color: #111415;
+  color: #101122;
   cursor: pointer;
   transition:
     opacity 140ms ease,
@@ -1088,7 +1088,7 @@
   padding: 7px 9px;
   border: 1px solid var(--as-hairline-strong);
   border-radius: 7px;
-  background: #111415;
+  background: #101122;
   color: var(--as-ink);
   font: inherit;
   font-size: 12px;
@@ -1163,8 +1163,11 @@
 }
 
 /* =========================================================================
- * The orb itself: a softly lit glass sphere. The flowing light represents an
- * active call; movement quickens while the assistant speaks and follows the
+ * The orb itself: a softly lit glass sphere in the brand's colours, the one
+ * place the call draws them: warm paper light at the top, the icon's coral
+ * gradient (#FF8F3F → #EE3A5C) through the middle, sinking into the ink tile's
+ * blue-violet (#262B6B → #11122E). The flowing light represents an active
+ * call; movement quickens while the assistant speaks and follows the
  * microphone while the user does.
  * ========================================================================= */
 
@@ -1185,16 +1188,16 @@
   overflow: hidden;
   background: radial-gradient(
     circle at 34% 23%,
-    #eef9ff 0%,
-    #c7e5e9 20%,
-    #9eb9cd 42%,
-    #7774a1 65%,
-    #3d425d 85%,
-    #303b4e 100%
+    #fff5ee 0%,
+    #ffc7a8 18%,
+    #ff8f5c 38%,
+    #e2475e 58%,
+    #4a2f6e 80%,
+    #1d1f4f 100%
   );
   box-shadow:
-    inset 0 0 2px 1px #e1f2ff66,
-    inset -8px -12px 24px #27324b55;
+    inset 0 0 2px 1px #fff1e866,
+    inset -8px -12px 24px #11122e66;
   transform: scale(calc(1 + var(--voice-energy, 0) * 0.12));
   transition:
     transform 120ms ease-out,
@@ -1209,11 +1212,11 @@
   background: conic-gradient(
     from 40deg,
     transparent 8%,
-    #def7edbb 24%,
-    #6777a855 38%,
+    #ffe3d3bb 24%,
+    #262b6b55 38%,
     transparent 47%,
-    #c9bdecbf 64%,
-    #b7e7eabf 80%,
+    #ff8f3fa6 64%,
+    #ffcdbfb3 80%,
     transparent 94%
   );
   filter: blur(13px);
@@ -1225,11 +1228,11 @@
   inset: 0;
   border-radius: 50%;
   background:
-    radial-gradient(ellipse at 30% 19%, #faffffb3, transparent 43%),
-    radial-gradient(ellipse at 74% 87%, #e5d3ff77, transparent 37%);
+    radial-gradient(ellipse at 30% 19%, #fffaf5b3, transparent 43%),
+    radial-gradient(ellipse at 74% 87%, #ee3a5c55, transparent 37%);
   box-shadow:
-    inset 1px 1px 5px #f4ffff77,
-    inset -2px -4px 8px #1e284866;
+    inset 1px 1px 5px #fff4ec77,
+    inset -2px -4px 8px #11122e66;
 }
 
 .voice-orb.speaking {

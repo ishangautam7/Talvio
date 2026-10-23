@@ -1,7 +1,7 @@
 //! The speech models that came from Handy's first catalog, and what replaced
 //! them.
 //!
-//! Before transcribe.cpp, Handy (and so Zynveliq) shipped speech models in
+//! Before transcribe.cpp, Handy (and so Talvio) shipped speech models in
 //! two older formats: whisper.cpp `.bin` files, and ONNX directories run by
 //! `transcribe-rs`. Every one of them now has a GGUF twin in the bundled
 //! catalog (`crate::catalog`): the same model, packaged for transcribe.cpp.

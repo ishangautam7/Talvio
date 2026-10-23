@@ -27,11 +27,17 @@ use log::{debug, warn};
 
 /// Keyring *service* name. Matches the app's bundle identifier so all secrets
 /// are grouped under the app in the OS credential viewer.
-const SERVICE: &str = "com.zynveliq.desktop";
+const SERVICE: &str = "com.talvio.desktop";
+
+/// The service secrets were stored under while the app was called Zynveliq.
+/// A secret missing under [`SERVICE`] is looked for here, moved to
+/// [`SERVICE`] and deleted here (see [`read_with_carry_over`]), so an update
+/// from Zynveliq keeps every API key without the user typing it again.
+const LEGACY_SERVICE: &str = "com.zynveliq.desktop";
 
 /// Account used only to detect whether the keychain backend works at all. It is
 /// never written, so the probe is non-destructive.
-const PROBE_ACCOUNT: &str = "__zynveliq_keychain_probe__";
+const PROBE_ACCOUNT: &str = "__talvio_keychain_probe__";
 
 /// Account name for the single assistant TTS API key.
 pub const ACCOUNT_ASSISTANT_TTS: &str = "assistant_tts";
@@ -62,6 +68,27 @@ pub fn account_web_search(provider_id: &str) -> String {
 /// not necessarily the same one.
 pub fn account_cloud_stt(provider_id: &str) -> String {
     format!("cloud_stt:{provider_id}")
+}
+
+/// Told about every credential this app changes on the user's behalf, with
+/// whether it now exists. Account sync (`account/secrets_sync.rs`) uses it to
+/// time-stamp a key the moment it is added, changed or cleared.
+type ChangeListener = Box<dyn Fn(&str, bool) + Send + Sync>;
+
+fn change_listener() -> &'static OnceLock<ChangeListener> {
+    static LISTENER: OnceLock<ChangeListener> = OnceLock::new();
+    &LISTENER
+}
+
+/// Install the one change listener. Later calls are ignored.
+pub fn set_change_listener(listener: impl Fn(&str, bool) + Send + Sync + 'static) {
+    let _ = change_listener().set(Box::new(listener));
+}
+
+fn notify_change(account: &str, present: bool) {
+    if let Some(listener) = change_listener().get() {
+        listener(account, present);
+    }
 }
 
 /// account -> cached value. `Some(None)` means "known to be absent" so repeated
@@ -98,6 +125,64 @@ where
     }
 }
 
+/// Read one credential of one service. Runs on the caller's thread.
+fn read_entry(service: &str, account: &str) -> Result<Option<String>, ()> {
+    let entry = keyring::Entry::new(service, account).map_err(|e| {
+        debug!("secret_store: entry('{service}', '{account}') error: {e}");
+    })?;
+    match entry.get_password() {
+        Ok(value) => Ok(Some(value)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => {
+            debug!("secret_store: get('{service}', '{account}') failed: {e}");
+            Err(())
+        }
+    }
+}
+
+/// Read `account` under the current service and, when it is not there, under
+/// the service of the app's previous name.
+///
+/// A secret found only under the old service is written under the new one and
+/// then deleted from the old one, so the move happens once per secret. The old
+/// copy is deleted only after the write succeeded: a failed write still
+/// returns the value (this session works) and leaves the old copy for the next
+/// launch to try again. A failed read of the new service is reported as a
+/// failure without looking further, because "absent" there is not known.
+///
+/// The keychain steps are parameters so the decision is testable without one.
+fn read_with_carry_over(
+    read_new: impl FnOnce() -> Result<Option<String>, ()>,
+    read_old: impl FnOnce() -> Result<Option<String>, ()>,
+    write_new: impl FnOnce(&str) -> bool,
+    delete_old: impl FnOnce() -> bool,
+) -> Result<Option<String>, ()> {
+    match read_new()? {
+        Some(value) => Ok(Some(value)),
+        None => match read_old() {
+            Ok(Some(value)) => {
+                if write_new(&value) {
+                    if !delete_old() {
+                        warn!(
+                            "secret_store: moved a secret to the new keychain service \
+                             but could not delete the old copy"
+                        );
+                    }
+                } else {
+                    warn!(
+                        "secret_store: could not move a secret from the old keychain \
+                         service; it will be tried again next launch"
+                    );
+                }
+                Ok(Some(value))
+            }
+            // Nothing under the old name either, or the old service cannot be
+            // read: the new service's answer stands.
+            Ok(None) | Err(()) => Ok(None),
+        },
+    }
+}
+
 /// Low-level read straight from the keychain (no cache).
 ///
 /// * `Ok(Some(v))` — a credential exists.
@@ -106,17 +191,26 @@ where
 fn keyring_get(account: &str) -> Result<Option<String>, ()> {
     let account = account.to_string();
     run_on_thread("get", move || {
-        let entry = keyring::Entry::new(SERVICE, &account).map_err(|e| {
-            debug!("secret_store: entry('{account}') error: {e}");
-        })?;
-        match entry.get_password() {
-            Ok(value) => Ok(Some(value)),
-            Err(keyring::Error::NoEntry) => Ok(None),
-            Err(e) => {
-                debug!("secret_store: get('{account}') failed: {e}");
-                Err(())
-            }
-        }
+        read_with_carry_over(
+            || read_entry(SERVICE, &account),
+            || read_entry(LEGACY_SERVICE, &account),
+            |value| {
+                let moved = keyring::Entry::new(SERVICE, &account)
+                    .and_then(|entry| entry.set_password(value))
+                    .is_ok();
+                if moved {
+                    debug!("secret_store: moved '{account}' to {SERVICE}");
+                }
+                moved
+            },
+            || {
+                matches!(
+                    keyring::Entry::new(LEGACY_SERVICE, &account)
+                        .and_then(|entry| entry.delete_credential()),
+                    Ok(()) | Err(keyring::Error::NoEntry)
+                )
+            },
+        )
     })
     .unwrap_or(Err(()))
 }
@@ -125,7 +219,8 @@ fn keyring_get(account: &str) -> Result<Option<String>, ()> {
 /// result is cached for the lifetime of the app.
 pub fn is_available() -> bool {
     static AVAILABLE: OnceLock<bool> = OnceLock::new();
-    *AVAILABLE.get_or_init(|| match keyring_get(PROBE_ACCOUNT) {
+    let probe = || run_on_thread("probe", || read_entry(SERVICE, PROBE_ACCOUNT)).unwrap_or(Err(()));
+    *AVAILABLE.get_or_init(|| match probe() {
         Ok(_) => {
             debug!("secret_store: OS keychain is available");
             true
@@ -167,6 +262,16 @@ pub fn get(account: &str) -> Option<String> {
 /// Write a secret to the keychain and update the cache. Returns `false` if the
 /// keychain is unavailable or the write failed.
 pub fn set(account: &str, value: &str) -> bool {
+    set_inner(account, value, true)
+}
+
+/// [`set`] for a value that came from the account's key sync, which must not
+/// be reported back to it as a change made on this computer.
+pub fn set_from_sync(account: &str, value: &str) -> bool {
+    set_inner(account, value, false)
+}
+
+fn set_inner(account: &str, value: &str, notify: bool) -> bool {
     if !is_available() {
         return false;
     }
@@ -190,10 +295,13 @@ pub fn set(account: &str, value: &str) -> bool {
     })
     .unwrap_or(false);
     if ok {
-        cache()
+        let previous = cache()
             .lock()
             .unwrap()
             .insert(account.to_string(), Some(value.to_string()));
+        if notify && previous != Some(Some(value.to_string())) {
+            notify_change(account, true);
+        }
     }
     ok
 }
@@ -202,6 +310,15 @@ pub fn set(account: &str, value: &str) -> bool {
 /// counts as success. Returns `false` only if the keychain is unavailable or
 /// the delete failed for another reason.
 pub fn delete(account: &str) -> bool {
+    delete_inner(account, true)
+}
+
+/// [`delete`] for a removal that came from the account's key sync.
+pub fn delete_from_sync(account: &str) -> bool {
+    delete_inner(account, false)
+}
+
+fn delete_inner(account: &str, notify: bool) -> bool {
     if !is_available() {
         return false;
     }
@@ -225,7 +342,10 @@ pub fn delete(account: &str) -> bool {
     })
     .unwrap_or(false);
     if ok {
-        cache().lock().unwrap().insert(account.to_string(), None);
+        let previous = cache().lock().unwrap().insert(account.to_string(), None);
+        if notify && previous != Some(None) {
+            notify_change(account, false);
+        }
     }
     ok
 }
@@ -299,5 +419,77 @@ mod tests {
         assert_eq!(ACCOUNT_ASSISTANT_TTS, "assistant_tts");
         // Different kinds with the same provider id must not collide.
         assert_ne!(account_post_process("groq"), account_web_search("groq"));
+    }
+
+    #[test]
+    fn services_follow_the_rename() {
+        assert_eq!(SERVICE, "com.talvio.desktop");
+        assert_eq!(LEGACY_SERVICE, "com.zynveliq.desktop");
+    }
+
+    use std::cell::RefCell;
+
+    /// What [`read_with_carry_over`] returned, what it wrote under the new
+    /// service, and whether it deleted the old copy.
+    type Carried = (Result<Option<String>, ()>, Option<String>, bool);
+
+    fn carry(
+        new: Result<Option<&str>, ()>,
+        old: Result<Option<&str>, ()>,
+        write_ok: bool,
+    ) -> Carried {
+        let written = RefCell::new(None);
+        let deleted = RefCell::new(false);
+        let result = read_with_carry_over(
+            || new.map(|v| v.map(str::to_string)),
+            || old.map(|v| v.map(str::to_string)),
+            |value| {
+                *written.borrow_mut() = Some(value.to_string());
+                write_ok
+            },
+            || {
+                *deleted.borrow_mut() = true;
+                true
+            },
+        );
+        (result, written.into_inner(), deleted.into_inner())
+    }
+
+    #[test]
+    fn a_secret_under_the_new_service_is_used_as_is() {
+        let (result, written, deleted) = carry(Ok(Some("new")), Ok(Some("old")), true);
+        assert_eq!(result, Ok(Some("new".to_string())));
+        assert_eq!(written, None);
+        assert!(!deleted, "the old copy is only touched when it is moved");
+    }
+
+    #[test]
+    fn a_secret_only_under_the_old_service_moves_once() {
+        let (result, written, deleted) = carry(Ok(None), Ok(Some("sk-1")), true);
+        assert_eq!(result, Ok(Some("sk-1".to_string())));
+        assert_eq!(written.as_deref(), Some("sk-1"));
+        assert!(deleted);
+    }
+
+    #[test]
+    fn a_failed_move_keeps_the_old_copy_and_still_answers() {
+        let (result, written, deleted) = carry(Ok(None), Ok(Some("sk-1")), false);
+        assert_eq!(result, Ok(Some("sk-1".to_string())));
+        assert_eq!(written.as_deref(), Some("sk-1"));
+        assert!(!deleted, "never delete the only copy");
+    }
+
+    #[test]
+    fn absent_everywhere_is_absent() {
+        assert_eq!(carry(Ok(None), Ok(None), true), (Ok(None), None, false));
+        assert_eq!(carry(Ok(None), Err(()), true), (Ok(None), None, false));
+    }
+
+    #[test]
+    fn a_failed_read_of_the_new_service_is_a_failure() {
+        assert_eq!(
+            carry(Err(()), Ok(Some("old")), true),
+            (Err(()), None, false)
+        );
     }
 }

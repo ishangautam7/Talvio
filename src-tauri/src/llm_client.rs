@@ -240,9 +240,9 @@ fn build_headers(provider: &PostProcessProvider, api_key: &str) -> Result<Header
     );
     headers.insert(
         USER_AGENT,
-        HeaderValue::from_static("Zynveliq/1.0 (+https://github.com/ishangautam7/zynveliq)"),
+        HeaderValue::from_static("Talvio/1.0 (+https://github.com/ishangautam7/zynveliq)"),
     );
-    headers.insert("X-Title", HeaderValue::from_static("Zynveliq"));
+    headers.insert("X-Title", HeaderValue::from_static("Talvio"));
 
     // Provider-specific auth headers
     if !api_key.is_empty() {

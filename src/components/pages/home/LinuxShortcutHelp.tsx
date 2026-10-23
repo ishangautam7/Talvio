@@ -13,7 +13,7 @@ import { useSettings } from "@/hooks/useSettings";
  *
  * On a Wayland session (GNOME, KDE Plasma, Hyprland, Sway, COSMIC) the Tauri
  * engine is only told about a key while an X11 window is in front, and the
- * Zynveliq keys engine needs keyboard permissions most systems do not grant.
+ * Talvio keys engine needs keyboard permissions most systems do not grant.
  * Both used to fail silently, showing the keys as if they worked. A shortcut
  * the desktop owns always works, so this lists the command for each action
  * (see `shortcut::environment`). Renders nothing when shortcuts work.

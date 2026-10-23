@@ -290,9 +290,30 @@ const settingUpdaters: {
     commands.changeTranscribeGpuDevice(value as string | null),
   extra_recording_buffer_ms: (value) =>
     commands.changeExtraRecordingBufferSetting(value as number),
-  account_server_url: (value) => commands.setAccountServerUrl(value as string),
   remote_input_enabled: (value) =>
     commands.setRemoteInputEnabled(value as boolean),
+  account_sync_secrets: (value) =>
+    commands.setAccountSyncSecrets(value as boolean),
+  command_mode_enabled: (value) =>
+    commands.changeCommandModeEnabledSetting(value as boolean),
+  command_router_provider_id: (value) =>
+    commands.changeCommandRouterProviderIdSetting(value as string),
+  command_router_model: (value) =>
+    commands.changeCommandRouterModelSetting(value as string),
+  command_dry_run: (value) =>
+    commands.changeCommandDryRunSetting(value as boolean),
+  command_google_account: (value) =>
+    commands.changeCommandGoogleAccountSetting(value as string),
+  command_search_url: (value) =>
+    commands.changeCommandSearchUrlSetting(value as string),
+  command_auto_escalate: (value) =>
+    commands.changeCommandAutoEscalateSetting(value as boolean),
+  command_agent_model: (value) =>
+    commands.changeCommandAgentModelSetting(value as string),
+  command_agent_max_steps: (value) =>
+    commands.changeCommandAgentMaxStepsSetting(value as number),
+  command_agent_max_cost_usd: (value) =>
+    commands.changeCommandAgentMaxCostUsdSetting(value as number),
 };
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -897,6 +918,11 @@ export const useSettingsStore = create<SettingsStore>()(
         // Re-fetch settings when the backend changes them (e.g. language
         // reset during model switch). The backend is the source of truth.
         listen("model-state-changed", () => {
+          get().refreshSettings();
+        });
+        // API keys that arrived from the account (Settings → Account → Sync
+        // API keys) and other changes the backend makes on its own.
+        listen("settings-changed", () => {
           get().refreshSettings();
         });
       };

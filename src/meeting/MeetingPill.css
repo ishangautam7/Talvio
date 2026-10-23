@@ -5,9 +5,9 @@
  * it, whereas the pill is a different object — a status indicator that expands —
  * and inheriting a stylesheet built around `.ask-card` would mean fighting its
  * layout on every rule. The tokens below are the assistant's own values
- * (`--as-*` in `AssistantPanel.css`), copied so the two windows read as one
- * application. They used to be a warm brown-black with an amber waveform, which
- * beside the graphite call bar looked like a different product.
+ * (`--as-*` in `AssistantPanel.css`, Talvio's dark card and ink), copied so the
+ * two windows read as one application. They used to be a warm brown-black with
+ * an amber waveform, which beside the call bar looked like a different product.
  *
  * Three rules here are load-bearing rather than cosmetic:
  *
@@ -24,22 +24,23 @@
  */
 
 :root {
-  --mp-surface: rgba(19, 22, 23, 0.97);
-  --mp-surface-hover: rgba(25, 29, 30, 0.98);
+  --mp-surface: rgba(23, 25, 47, 0.97);
+  --mp-surface-hover: rgba(30, 33, 60, 0.98);
   --mp-raise: rgba(255, 255, 255, 0.06);
   --mp-raise-strong: rgba(255, 255, 255, 0.11);
   --mp-inset: rgba(0, 0, 0, 0.28);
-  --mp-ink: #eef2f2;
-  --mp-body: #d2d8d8;
-  --mp-muted: #9ba5a6;
-  --mp-faint: #6e797a;
+  --mp-ink: #f2f1f7;
+  --mp-body: #d6d5e2;
+  --mp-muted: #a3a5bf;
+  --mp-faint: #8083a2;
   --mp-hairline: rgba(255, 255, 255, 0.08);
   --mp-hairline-strong: rgba(255, 255, 255, 0.14);
   --mp-inner:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     inset 0 0 0 0.5px rgba(0, 0, 0, 0.5);
-  --mp-live: #ff5a52;
-  --mp-accent: #5cd6be;
+  /* The recording dot is Talvio coral (dark-mode value), the pill's one spot of
+     colour. Nothing else here may be coral, so the dot keeps meaning "live". */
+  --mp-live: #ff6a52;
   --mp-warn: #f5c46b;
   --mp-error: #fda4af;
   --mp-ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -92,7 +93,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--mp-live);
-  box-shadow: 0 0 0 3px rgba(255, 90, 82, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 106, 82, 0.18);
   transition:
     background 160ms ease,
     box-shadow 160ms ease;
@@ -107,7 +108,7 @@
 @keyframes pill-breathe {
   50% {
     opacity: 0.55;
-    box-shadow: 0 0 0 5px rgba(255, 90, 82, 0.04);
+    box-shadow: 0 0 0 5px rgba(255, 106, 82, 0.05);
   }
 }
 
@@ -220,11 +221,11 @@
 /* Grey, like the dictation overlay's: the shared waveform is amber by default,
  * and state is not where colour belongs. */
 .mpill .audio-waveform .wave-base {
-  stop-color: #8f9a9b;
+  stop-color: #9496b3;
 }
 
 .mpill .audio-waveform .wave-tip {
-  stop-color: #e4e9e9;
+  stop-color: #e2e1ec;
 }
 
 .mpill-controls {
@@ -301,12 +302,12 @@
 }
 
 .pill-action[data-variant="stop"] {
-  background: rgba(255, 90, 82, 0.16);
-  color: #ffb0ab;
+  background: rgba(255, 106, 82, 0.16);
+  color: #ffb4a8;
 }
 
 .pill-action[data-variant="stop"]:hover:not(:disabled) {
-  background: rgba(255, 90, 82, 0.3);
+  background: rgba(255, 106, 82, 0.3);
   color: #fff;
 }
 
@@ -346,7 +347,7 @@
 /* The one primary action, ink-filled like the call's send button. */
 .pill-btn[data-variant="primary"] {
   background: var(--mp-ink);
-  color: #111415;
+  color: #101122;
 }
 
 .pill-btn[data-variant="primary"]:hover:not(:disabled) {
@@ -365,12 +366,12 @@
 }
 
 .pill-btn[data-variant="stop"] {
-  background: rgba(255, 90, 82, 0.15);
-  color: #ffb0ab;
+  background: rgba(255, 106, 82, 0.15);
+  color: #ffb4a8;
 }
 
 .pill-btn[data-variant="stop"]:hover:not(:disabled) {
-  background: rgba(255, 90, 82, 0.28);
+  background: rgba(255, 106, 82, 0.28);
   color: #fff;
 }
 
@@ -420,16 +421,17 @@
   gap: 10px;
 }
 
-/* A hollow, static ring — deliberately a shape the live recorder can never take.
- * A filled breathing red dot here read as "this app began recording my call by
- * itself" on a card that has started nothing. */
+/* A hollow, static grey ring — deliberately a shape and a colour the live
+ * recorder can never take. A filled breathing red dot here read as "this app
+ * began recording my call by itself" on a card that has started nothing, and a
+ * coral ring beside the coral recording dot would say the same more quietly. */
 .pill-offer-ring {
   flex: none;
   width: 10px;
   height: 10px;
   margin-block-start: 4px;
   border-radius: 50%;
-  border: 1.5px solid var(--mp-accent);
+  border: 1.5px solid var(--mp-muted);
   background: transparent;
 }
 
@@ -632,8 +634,8 @@
 }
 
 .pill-side[data-active="true"] .pill-side-light {
-  background: var(--mp-accent);
-  box-shadow: 0 0 0 3px rgba(92, 214, 190, 0.2);
+  background: var(--mp-ink);
+  box-shadow: 0 0 0 3px rgba(242, 241, 247, 0.16);
 }
 
 /* Not being recorded at all — different from quiet, and it must look it. */
@@ -952,7 +954,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--mp-ink);
-  color: #111415;
+  color: #101122;
   cursor: pointer;
   transition:
     background 140ms ease,

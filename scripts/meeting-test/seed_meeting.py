@@ -35,7 +35,7 @@ import time
 from pathlib import Path
 
 TEST_PREFIX = "[TEST]"
-IDENTIFIER = "com.zynveliq.desktop"
+IDENTIFIER = "com.talvio.desktop"
 SPEAKER_MODEL = "wespeaker_en_voxceleb_resnet34_LM.onnx"
 # `diarize::model::MIN_PLAUSIBLE_BYTES` -- a shorter file is a truncated download
 # that reports "not installed" rather than failing to load.

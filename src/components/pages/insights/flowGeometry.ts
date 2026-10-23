@@ -1,6 +1,6 @@
 /**
  * The flowing bands behind the share cards and the Insights summary: the
- * layered waves of the Zynveliq icon, drawn as a ribbon of tonal bands that
+ * layered waves of the Talvio icon, drawn as a ribbon of tonal bands that
  * fans out as it crosses the frame. One geometry serves the canvas and SVG,
  * so the page and the cards are visibly the same mark.
  */

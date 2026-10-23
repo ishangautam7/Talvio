@@ -421,8 +421,8 @@ fn where_does_the_latency_go() {
 #[test]
 #[ignore = "live network test; needs an OpenRouter key; takes ~20 minutes"]
 fn the_shipped_prewarm_warms_the_provider_route() {
-    let model = std::env::var("ZYNVELIQ_BENCH_MODEL")
-        .unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
+    let model =
+        std::env::var("TALVIO_BENCH_MODEL").unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
     let cfg = require!(openrouter_config(&model), "no OpenRouter API key available");
     let wav_path = require!(sample_wav(), "no recording found");
     let samples = read_wav(&wav_path);
@@ -438,13 +438,13 @@ fn the_shipped_prewarm_warms_the_provider_route() {
         .cloud_stt_models
         .insert("openrouter".to_string(), cfg.model.clone());
 
-    let gap = std::env::var("ZYNVELIQ_BENCH_GAP_SECS")
+    let gap = std::env::var("TALVIO_BENCH_GAP_SECS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(240u64);
     // How long the user speaks for. The warm-up only helps if it lands inside the
     // recording, so this is a real parameter of the fix, not test scaffolding.
-    let speech = std::env::var("ZYNVELIQ_BENCH_SPEECH_SECS")
+    let speech = std::env::var("TALVIO_BENCH_SPEECH_SECS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(4u64);
@@ -530,8 +530,8 @@ fn the_shipped_prewarm_warms_the_provider_route() {
 #[test]
 #[ignore = "live network test; needs an OpenRouter key; takes ~20 minutes"]
 fn does_a_tiny_warmup_request_beat_a_cold_provider_route() {
-    let model = std::env::var("ZYNVELIQ_BENCH_MODEL")
-        .unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
+    let model =
+        std::env::var("TALVIO_BENCH_MODEL").unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
     let cfg = require!(openrouter_config(&model), "no OpenRouter API key available");
     let wav_path = require!(sample_wav(), "no recording found");
     let samples = read_wav(&wav_path);
@@ -540,7 +540,7 @@ fn does_a_tiny_warmup_request_beat_a_cold_provider_route() {
     // it should be as small as the endpoint will accept.
     let warm: Vec<f32> = samples.iter().copied().take(16_000 / 4).collect();
 
-    let gap = std::env::var("ZYNVELIQ_BENCH_GAP_SECS")
+    let gap = std::env::var("TALVIO_BENCH_GAP_SECS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(240u64);
@@ -615,8 +615,8 @@ fn does_a_tiny_warmup_request_beat_a_cold_provider_route() {
 #[test]
 #[ignore = "live network test; needs an OpenRouter key; takes ~1 minute"]
 fn is_the_apps_request_slower_than_a_bare_one() {
-    let model = std::env::var("ZYNVELIQ_BENCH_MODEL")
-        .unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
+    let model =
+        std::env::var("TALVIO_BENCH_MODEL").unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
     let cfg = require!(openrouter_config(&model), "no OpenRouter API key available");
     let wav_path = require!(sample_wav(), "no recording found");
     let samples = read_wav(&wav_path);
@@ -705,8 +705,8 @@ fn is_the_apps_request_slower_than_a_bare_one() {
 #[test]
 #[ignore = "live network test; needs an OpenRouter key; takes ~3 minutes"]
 fn does_an_idle_gap_cost_latency() {
-    let model = std::env::var("ZYNVELIQ_BENCH_MODEL")
-        .unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
+    let model =
+        std::env::var("TALVIO_BENCH_MODEL").unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
     let cfg = require!(openrouter_config(&model), "no OpenRouter API key available");
     let wav_path = require!(sample_wav(), "no recording found");
     let samples = read_wav(&wav_path);
@@ -747,8 +747,8 @@ fn does_an_idle_gap_cost_latency() {
 #[test]
 #[ignore = "live network test; needs an OpenRouter key"]
 fn how_much_of_the_request_is_upload() {
-    let model = std::env::var("ZYNVELIQ_BENCH_MODEL")
-        .unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
+    let model =
+        std::env::var("TALVIO_BENCH_MODEL").unwrap_or_else(|_| "microsoft/mai-transcribe-2".into());
     let cfg = require!(openrouter_config(&model), "no OpenRouter API key available");
     let wav_path = require!(sample_wav(), "no recording found");
     let samples = read_wav(&wav_path);

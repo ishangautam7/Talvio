@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zynveliq_mobile/src/core/config.dart';
-import 'package:zynveliq_mobile/src/core/server_finder.dart';
+import 'package:talvio_mobile/src/core/config.dart';
+import 'package:talvio_mobile/src/core/server_finder.dart';
 
 /// A release build's reading of the answer [json].
 String? parse(Object? json, {bool release = true}) =>
@@ -29,7 +29,20 @@ Future<ServerFinder> finder(
 }
 
 void main() {
-  test('reads domain, else the only string field', () {
+  test('reads apiBaseUrl, else the legacy domain, else the only string '
+      'field', () {
+    // What the discovery address answers today.
+    expect(
+      parse({'apiBaseUrl': 'http://192.168.101.69:8787'}),
+      'http://192.168.101.69:8787',
+    );
+    expect(
+      parse({
+        'apiBaseUrl': 'https://sync.example.com',
+        'domain': 'old.example',
+      }),
+      'https://sync.example.com',
+    );
     expect(parse({'domain': 'sync.example.com'}), 'https://sync.example.com');
     expect(
       parse({'domain': 'sync.example.com', 'note': 'moved'}),
@@ -41,9 +54,11 @@ void main() {
     );
     expect(parse({'a': 'one.example.com', 'b': 'two.example.com'}), isNull);
     expect(parse({'domain': 42, 'host': 'sync.example.com'}), isNull);
+    expect(parse({'apiBaseUrl': 42, 'domain': 'sync.example.com'}), isNull);
   });
 
-  test('takes a bare host, host:port, or an https URL of one', () {
+  test('takes a bare host, host:port, or an http(s) URL of one, as its '
+      'origin', () {
     expect(parse({'domain': ' Sync.Example.com '}), 'https://sync.example.com');
     expect(
       parse({'domain': 'sync.example.com:8443'}),
@@ -53,13 +68,21 @@ void main() {
       parse({'domain': 'https://sync.example.com:8443/some/path?q=1#top'}),
       'https://sync.example.com:8443',
     );
+    expect(
+      parse({'apiBaseUrl': 'http://192.168.101.69:8787/v1/'}),
+      'http://192.168.101.69:8787',
+    );
     expect(parse({'domain': '203.0.113.7'}), 'https://203.0.113.7');
   });
 
-  test('takes an http URL only in development builds', () {
-    const lan = {'domain': 'http://192.168.1.5:8787'};
+  test('takes http in every build: the server is on the local network', () {
+    const lan = {'apiBaseUrl': 'http://192.168.1.5:8787'};
+    expect(parse(lan), 'http://192.168.1.5:8787');
     expect(parse(lan, release: false), 'http://192.168.1.5:8787');
-    expect(parse(lan), isNull);
+    expect(
+      parse({'apiBaseUrl': 'https://sync.example.com'}),
+      'https://sync.example.com',
+    );
   });
 
   test('takes a loopback host only in development builds', () {
@@ -67,19 +90,25 @@ void main() {
       'localhost:8787',
       'api.localhost',
       '127.0.0.1',
+      'http://127.0.0.1:8787',
       'https://[::1]:8787',
     ]) {
-      expect(parse({'domain': host}), isNull, reason: host);
+      expect(parse({'apiBaseUrl': host}), isNull, reason: host);
     }
     expect(
       parse({'domain': 'localhost:8787'}, release: false),
       'https://localhost:8787',
+    );
+    expect(
+      parse({'apiBaseUrl': 'http://10.0.2.2:8787'}, release: false),
+      'http://10.0.2.2:8787',
     );
   });
 
   test('rejects a user part, other schemes, and garbage', () {
     for (final value in [
       'https://user:pw@sync.example.com',
+      'http://user@192.168.1.5:8787',
       'user@sync.example.com',
       'ftp://sync.example.com',
       'wss://sync.example.com',
@@ -88,11 +117,18 @@ void main() {
       'https://',
       'not a host',
       'sync.example.com:99999',
+      'http://192.168.1.5:0',
     ]) {
-      expect(parse({'domain': value}, release: false), isNull, reason: value);
+      for (final release in [true, false]) {
+        expect(
+          parse({'apiBaseUrl': value}, release: release),
+          isNull,
+          reason: value,
+        );
+      }
     }
     for (final body in ['not json', '', '[]', '"sync.example.com"', '{}']) {
-      expect(serverFromDiscovery(body, release: false), isNull, reason: body);
+      expect(serverFromDiscovery(body, release: true), isNull, reason: body);
     }
   });
 
@@ -140,7 +176,8 @@ void main() {
   test('a failed or unusable answer keeps the last good server', () async {
     for (final response in [
       http.Response('', 503),
-      answer('http://sync.example.com'),
+      answer('ftp://sync.example.com'),
+      answer('127.0.0.1:8787'),
       http.Response('<html>', 200),
     ]) {
       final f = await finder(
@@ -194,11 +231,116 @@ void main() {
     await tester.pump(const Duration(seconds: 30));
     expect(lookups, 5);
 
-    // Off (Custom mode): nothing at all.
+    // Off (a development build's pinned server): nothing at all.
     f.enabled = false;
     f.unreachable();
     await f.lookUp();
     await tester.pump(const Duration(minutes: 2));
     expect(lookups, 5);
+  });
+  group('when the phone cannot look the discovery host up', () {
+    final apiAnswer = jsonEncode({'apiBaseUrl': 'http://192.168.101.69:8787'});
+
+    Future<ServerFinder> failingDns({
+      required Future<List<String>> Function(String host) resolve,
+      http.Client Function(String host, String ip)? pinned,
+    }) async {
+      SharedPreferences.setMockInitialValues({});
+      return ServerFinder(
+        await SharedPreferences.getInstance(),
+        httpClient: MockClient(
+          (_) async => throw http.ClientException(
+            "Failed host lookup: 'domain.gautamishan.com.np' (OS Error: No "
+            'address associated with hostname, errno = 7)',
+          ),
+        ),
+        release: true,
+        resolveFallback: resolve,
+        pinnedClient: pinned,
+      );
+    }
+
+    /// Android's Private DNS (or a resolver that does not know the name yet)
+    /// answered nothing on a real phone while the browser loaded the page:
+    /// secure DNS finds the address and discovery goes there.
+    test('secure DNS finds it and discovery succeeds', () async {
+      final asked = <String>[];
+      final finder = await failingDns(
+        resolve: (host) async {
+          asked.add(host);
+          return ['104.21.38.165'];
+        },
+        pinned: (host, ip) {
+          expect(host, 'domain.gautamishan.com.np');
+          expect(ip, '104.21.38.165');
+          return MockClient((_) async => http.Response(apiAnswer, 200));
+        },
+      );
+      finder.enabled = true;
+      await pumpEventQueue();
+      expect(asked, ['domain.gautamishan.com.np']);
+      expect(finder.server, 'http://192.168.101.69:8787');
+      expect(finder.lastError, isNull);
+    });
+
+    /// Both failing says so, with the first reason kept for diagnosis.
+    test('both failing reports both reasons', () async {
+      final finder = await failingDns(resolve: (_) async => const []);
+      finder.enabled = true;
+      await pumpEventQueue();
+      expect(finder.server, isNull);
+      expect(finder.lastError, contains('Failed host lookup'));
+      expect(finder.lastError, contains('secure DNS found no address'));
+    });
+
+    /// Only a lookup failure takes the detour: an HTTP error from the real
+    /// host is the real answer.
+    test('an HTTP error does not try secure DNS', () async {
+      var resolved = false;
+      SharedPreferences.setMockInitialValues({});
+      final finder = ServerFinder(
+        await SharedPreferences.getInstance(),
+        httpClient: MockClient((_) async => http.Response('nope', 403)),
+        release: true,
+        resolveFallback: (_) async {
+          resolved = true;
+          return ['1.2.3.4'];
+        },
+      );
+      finder.enabled = true;
+      await pumpEventQueue();
+      expect(resolved, isFalse);
+      expect(finder.lastError, 'HTTP 403');
+    });
+  });
+
+  test('reads A records from a DNS-over-HTTPS JSON answer', () {
+    expect(
+      parseDnsJsonAnswer(
+        jsonEncode({
+          'Status': 0,
+          'Answer': [
+            {'name': 'x', 'type': 5, 'data': 'alias.example.'},
+            {'name': 'x', 'type': 1, 'data': '104.21.38.165'},
+            {'name': 'x', 'type': 1, 'data': '172.67.136.119'},
+            {'name': 'x', 'type': 1, 'data': 'not-an-ip'},
+          ],
+        }),
+      ),
+      ['104.21.38.165', '172.67.136.119'],
+    );
+    expect(parseDnsJsonAnswer('{"Status":3}'), isEmpty);
+    expect(parseDnsJsonAnswer('garbage'), isEmpty);
+  });
+
+  test('recognises the phone\'s DNS failing', () {
+    expect(
+      isHostLookupFailure(
+        "ClientException with SocketException: Failed host lookup: 'x' "
+        '(OS Error: No address associated with hostname, errno = 7)',
+      ),
+      isTrue,
+    );
+    expect(isHostLookupFailure('Connection refused'), isFalse);
   });
 }

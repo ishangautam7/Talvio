@@ -24,7 +24,7 @@ Three cloud providers stream: **ElevenLabs** (with `scribe_v2_realtime`), **Deep
 
 Turn this on with the **Transcribe as I speak** switch in the cloud transcription settings. For ElevenLabs you need to select a realtime model; the batch model (`scribe_v2`) only transcribes after you stop. Amazon Transcribe always streams, because it has no batch endpoint.
 
-If the live stream fails or produces nothing, Zynveliq falls back to transcribing the full recording in one batch request. You never lose your words. The batch and realtime models can produce slightly different wording for the same audio, and the substitution is logged.
+If the live stream fails or produces nothing, Talvio falls back to transcribing the full recording in one batch request. You never lose your words. The batch and realtime models can produce slightly different wording for the same audio, and the substitution is logged.
 
 See [Cloud transcription](/dictation/cloud-transcription) for setup.
 

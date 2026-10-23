@@ -15,7 +15,7 @@
 //! The key is read from `ELEVENLABS_API_KEY`, falling back to whatever the app
 //! already has in the OS keychain for its own cloud-STT or TTS slot, so a user
 //! who has configured ElevenLabs in the UI can run these with no extra setup.
-//! Audio comes from `ZYNVELIQ_TEST_WAV`, or the newest recording the app has
+//! Audio comes from `TALVIO_TEST_WAV`, or the newest recording the app has
 //! saved — real dictation at the pipeline's own 16 kHz mono, which is exactly
 //! what the production path would send.
 
@@ -59,13 +59,13 @@ pub(crate) fn recordings_dir() -> Option<PathBuf> {
             .ok()
             .map(|home| PathBuf::from(home).join(".local/share"))
     }?;
-    let dir = base.join("com.zynveliq.desktop").join("recordings");
+    let dir = base.join("com.talvio.desktop").join("recordings");
     dir.is_dir().then_some(dir)
 }
 
 /// Newest saved recording, or an explicit override.
 pub(crate) fn sample_wav() -> Option<PathBuf> {
-    if let Ok(path) = std::env::var("ZYNVELIQ_TEST_WAV") {
+    if let Ok(path) = std::env::var("TALVIO_TEST_WAV") {
         let path = PathBuf::from(path);
         if path.is_file() {
             return Some(path);
@@ -202,7 +202,7 @@ fn azure_config() -> Option<ResolvedCloudStt> {
 ///
 /// ```text
 /// $env:AZURE_SPEECH_ENDPOINT = "https://<resource>.cognitiveservices.azure.com"
-/// $env:ZYNVELIQ_TEST_WAV = "<16 kHz mono wav>"
+/// $env:TALVIO_TEST_WAV = "<16 kHz mono wav>"
 /// cargo test --lib azure_mai_transcribes -- --ignored --nocapture
 /// ```
 #[test]

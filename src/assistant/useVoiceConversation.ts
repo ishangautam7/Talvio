@@ -529,7 +529,7 @@ export function useVoiceConversation(callbacks: VoiceCallbacks) {
       // Release it with the session, including failed or cancelled startup.
       void navigator.locks
         ?.request(
-          "zynveliq-voice-conversation",
+          "talvio-voice-conversation",
           { ifAvailable: true },
           async (lock) => {
             if (!lock || sessionRef.current !== session) return;

@@ -11,7 +11,7 @@ import 'src/shell/features.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // A build made with an invalid ZYNVELIQ_SERVER_URL stops here.
+  // A build made with an invalid TALVIO_SERVER_URL stops here.
   final pinned = pinnedServerUrl();
   final prefs = await SharedPreferences.getInstance();
   final session = SessionStore(
@@ -22,7 +22,7 @@ Future<void> main() async {
   );
   await session.load();
   runApp(
-    ZynveliqApp(
+    TalvioApp(
       session: session,
       api: ApiClient(session),
       relay: RelayClient(session, handlers: relayHandlers),

@@ -76,6 +76,7 @@ import { LogLevelSelector } from "@/components/settings/debug/LogLevelSelector";
 import { WordCorrectionThreshold } from "@/components/settings/debug/WordCorrectionThreshold";
 import { PasteDelay } from "@/components/settings/debug/PasteDelay";
 import { RecordingBuffer } from "@/components/settings/debug/RecordingBuffer";
+import { CommandModeTester } from "@/components/settings/debug/CommandModeTester";
 import { ClamshellMicrophoneSelector } from "@/components/settings/ClamshellMicrophoneSelector";
 
 /**
@@ -229,7 +230,7 @@ export const AudioTab: React.FC = () => {
         <AlwaysOnMicrophone descriptionMode="tooltip" grouped={true} />
       </SettingsGroup>
 
-      {/* Playback that is not Zynveliq's own: what a recording does to it. */}
+      {/* Playback that is not Talvio's own: what a recording does to it. */}
       <SettingsGroup
         title={t("settingsDialog.audio.otherAudio")}
         description={t("settingsDialog.audio.otherAudioHint")}
@@ -459,7 +460,7 @@ export const AboutTab: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => void openUrl("https://zynveliq.invalid/docs")}
+            onClick={() => void openUrl("https://talvio.invalid/docs")}
           >
             {t("settingsDialog.about.openDocs")}
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -484,6 +485,12 @@ export const DebugTab: React.FC = () => {
         <PasteDelay descriptionMode="tooltip" grouped={true} />
         <RecordingBuffer descriptionMode="tooltip" grouped={true} />
         <ClamshellMicrophoneSelector descriptionMode="tooltip" grouped={true} />
+      </SettingsGroup>
+      <SettingsGroup
+        title={t("settings.debug.commandMode.title")}
+        description={t("settings.debug.commandMode.description")}
+      >
+        <CommandModeTester />
       </SettingsGroup>
     </>
   );

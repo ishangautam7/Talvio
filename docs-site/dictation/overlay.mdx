@@ -1,10 +1,10 @@
 ---
 title: "The recording overlay"
-description: "The on-screen indicator that shows Zynveliq is listening. Covers the None, Minimal, and Live styles, position, the working indicator, and platform behavior."
+description: "The on-screen indicator that shows Talvio is listening. Covers the None, Minimal, and Live styles, position, the working indicator, and platform behavior."
 icon: "window-maximize"
 ---
 
-A small on-screen indicator that shows Zynveliq is recording, so you never have to guess whether it heard you. It appears on the monitor your mouse cursor is on.
+A small on-screen indicator that shows Talvio is recording, so you never have to guess whether it heard you. It appears on the monitor your mouse cursor is on.
 
 All overlay settings live in _Settings → Dictation → Dictation overlay_.
 
@@ -63,7 +63,7 @@ When a conversation is active, the recording overlay rises above the conversatio
 | "Writing with Flow..."      | A Generate with Flow command is being generated. |
 | "Looking at your screen..." | A screen capture is being taken for Flow.        |
 
-A short notice appears when something did not work, for example "Flow needs an assistant model, pasted as dictation." It auto-hides after a moment. If your speech model ran on the engine Zynveliq no longer includes, a voice shortcut shows "_model_ needs an update" instead of recording, and the Models page opens on its new version. See [Models from an earlier version](/models/transcription-models#models-from-an-earlier-version).
+A short notice appears when something did not work, for example "Flow needs an assistant model, pasted as dictation." It auto-hides after a moment. If your speech model ran on the engine Talvio no longer includes, a voice shortcut shows "_model_ needs an update" instead of recording, and the Models page opens on its new version. See [Models from an earlier version](/models/transcription-models#models-from-an-earlier-version).
 
 <AccordionGroup>
   <Accordion title="Cancelling from the overlay">
@@ -73,9 +73,9 @@ A short notice appears when something did not work, for example "Flow needs an a
   <Accordion title="Linux: keeping the overlay on top">
     On a native GNOME/Wayland session the overlay cannot stay above other windows. Mutter does not implement `wlr-layer-shell`, and Wayland gives apps no way to raise themselves.
 
-    Zynveliq detects GNOME on Wayland and runs under XWayland, where "keep above" works. That is automatic and needs no setup. X11 and KDE/wlroots Wayland sessions already work.
+    Talvio detects GNOME on Wayland and runs under XWayland, where "keep above" works. That is automatic and needs no setup. X11 and KDE/wlroots Wayland sessions already work.
 
-    To force native Wayland anyway, launch with `ZYNVELIQ_ALLOW_WAYLAND=1`. To disable GTK layer shell under a layer-shell compositor, use `ZYNVELIQ_NO_GTK_LAYER_SHELL=1`. More in [Troubleshooting](/reference/troubleshooting).
+    To force native Wayland anyway, launch with `TALVIO_ALLOW_WAYLAND=1`. To disable GTK layer shell under a layer-shell compositor, use `TALVIO_NO_GTK_LAYER_SHELL=1`. More in [Troubleshooting](/reference/troubleshooting).
 
   </Accordion>
 </AccordionGroup>

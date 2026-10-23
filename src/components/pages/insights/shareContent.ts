@@ -49,7 +49,7 @@ export type CardKind =
 
 /** Where a post links to. The cards themselves carry only the logo: an
  *  address printed on an image cannot be clicked. */
-export const SHARE_URL = "https://zynveliq.invalid";
+export const SHARE_URL = "https://talvio.invalid";
 
 /** Words in a novel, near enough, for "as long as a novel". */
 export const NOVEL_WORDS = 80_000;

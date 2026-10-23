@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Zynveliq",
+  "productName": "Talvio",
   "version": "2.2.0",
-  "identifier": "com.zynveliq.desktop",
+  "identifier": "com.talvio.desktop",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",

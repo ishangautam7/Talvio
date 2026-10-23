@@ -70,13 +70,13 @@ Leave translation off and you get a transcript in the language you spoke. Turn i
 
 Cloud providers that use the OpenAI multipart format (OpenAI, Groq, and any OpenAI-compatible server you set up yourself) support translation to English through a separate `/audio/translations` endpoint. Other cloud providers do not.
 
-If translation is on but the selected cloud provider does not support it, Zynveliq transcribes normally and logs a warning. The setting row in the cloud section says so in place of a switch that would do nothing.
+If translation is on but the selected cloud provider does not support it, Talvio transcribes normally and logs a warning. The setting row in the cloud section says so in place of a switch that would do nothing.
 
 ## Simplified and Traditional Chinese
 
 There are two ways to get the script you write in.
 
-**Pick it as the language.** The language list has both Simplified Chinese and Traditional Chinese. The model is told `zh` either way, and Zynveliq converts every transcript into the script you picked afterwards, with OpenCC, on your computer.
+**Pick it as the language.** The language list has both Simplified Chinese and Traditional Chinese. The model is told `zh` either way, and Talvio converts every transcript into the script you picked afterwards, with OpenCC, on your computer.
 
 **Use Chinese script.** With the language on Auto or Cantonese, the **Chinese script** row picks Simplified, Traditional, or As transcribed (the default, which leaves the text as the model wrote it). It converts Chinese only. On Auto, a dictation that comes out in English or Japanese is left alone, so you can switch languages freely and only your Chinese is converted. Traditional Cantonese follows Hong Kong's character conventions, Traditional Mandarin Taiwan's.
 

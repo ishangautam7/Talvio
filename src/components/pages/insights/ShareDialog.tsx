@@ -49,7 +49,7 @@ import {
 
 /** The size last used, so a second share starts where the first left off.
  *  A convenience: losing it costs nothing. */
-const PREFS_KEY = "zynveliq.insights.share";
+const PREFS_KEY = "talvio.insights.share";
 
 const readFormat = (): CardFormat => {
   try {
@@ -103,7 +103,7 @@ const roundButton =
   "grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-full border border-hairline bg-surface text-ink transition-[transform,background-color] duration-150 hover:bg-surface-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-default disabled:opacity-40";
 
 const arrowButton =
-  "z-10 grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full border border-hairline bg-surface text-ink shadow-[0_4px_14px_-6px_rgba(10,20,24,0.3)] transition-[opacity,background-color] hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:pointer-events-none disabled:opacity-0";
+  "z-10 grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full border border-hairline bg-surface text-ink shadow-[0_4px_14px_-6px_rgba(27,29,51,0.3)] transition-[opacity,background-color] hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:pointer-events-none disabled:opacity-0";
 
 interface Rendered {
   url: string;
@@ -287,7 +287,7 @@ export const ShareDialog: React.FC<{
     setBusy("save");
     try {
       const path = await save({
-        defaultPath: `zynveliq-${slide.kind}-${format}.png`,
+        defaultPath: `talvio-${slide.kind}-${format}.png`,
         filters: [{ name: "PNG", extensions: ["png"] }],
       });
       if (!path) return;
@@ -505,7 +505,7 @@ export const ShareDialog: React.FC<{
                         src={image.url}
                         alt={position === current ? item.alt : ""}
                         draggable={false}
-                        className="max-h-full max-w-full rounded-[1.125rem] shadow-[0_28px_56px_-26px_rgba(10,20,24,0.55),0_2px_6px_rgba(10,20,24,0.08)] select-none"
+                        className="max-h-full max-w-full rounded-[1.125rem] shadow-[0_28px_56px_-26px_rgba(27,29,51,0.55),0_2px_6px_rgba(27,29,51,0.08)] select-none"
                         style={{ aspectRatio: `${width} / ${height}` }}
                       />
                     ) : (
@@ -568,7 +568,7 @@ export const ShareDialog: React.FC<{
             >
               <span
                 className={`block h-2 rounded-full transition-[width,background-color] duration-200 ${
-                  position === current ? "w-5 bg-ink" : "w-2 bg-ink/20"
+                  position === current ? "w-5 bg-accent-fill" : "w-2 bg-ink/20"
                 }`}
               />
             </button>
@@ -582,7 +582,7 @@ export const ShareDialog: React.FC<{
             onClick={() => void copyImage()}
             disabled={disabled}
             data-autofocus
-            className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-canvas transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-default disabled:opacity-40"
+            className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-on-primary transition-[transform,background-color] duration-150 hover:bg-accent-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-default disabled:opacity-40"
             aria-live="polite"
           >
             {copied ? (

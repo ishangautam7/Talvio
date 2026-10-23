@@ -6,7 +6,7 @@
 //! WhatsApp, Messenger. That list is wrong the moment it is written. It cannot
 //! know about the meeting tool a company built in-house, it cannot see a call
 //! taken inside a browser tab (where the process is `chrome.exe` whether the
-//! user is in a standup or reading the news), and it turns "does Zynveliq
+//! user is in a standup or reading the news), and it turns "does Talvio
 //! support my call app" into a support question with a different answer every
 //! week.
 //!

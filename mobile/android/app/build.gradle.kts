@@ -15,7 +15,7 @@ val keyProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.zynveliq.mobile"
+    namespace = "com.talvio.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.zynveliq.mobile"
+        applicationId = "com.talvio.mobile"
         // flutter_secure_storage, record and shared_preferences need API 24,
         // which is also Flutter's default.
         minSdk = flutter.minSdkVersion

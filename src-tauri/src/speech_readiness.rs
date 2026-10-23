@@ -42,7 +42,7 @@ pub enum SpeechReadiness {
     Downloading { model_id: String },
     /// No speech model on disk and none coming.
     Missing,
-    /// The selected model used an engine Zynveliq no longer includes, and
+    /// The selected model used an engine Talvio no longer includes, and
     /// nothing that could replace it is downloading. Carries the name the
     /// pill shows and the catalog id of its new version, when there is one.
     NeedsUpdate {

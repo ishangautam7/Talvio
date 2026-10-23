@@ -1,10 +1,10 @@
 ---
-title: "Install Zynveliq"
-description: "How to install Zynveliq on Windows, macOS, or Linux, including the one-time Terminal command that clears the macOS quarantine message, and how updates work."
+title: "Install Talvio"
+description: "How to install Talvio on Windows, macOS, or Linux, including the one-time Terminal command that clears the macOS quarantine message, and how updates work."
 icon: "download"
 ---
 
-Download Zynveliq for your operating system from the [Releases page](https://github.com/ishangautam7/zynveliq/releases), then follow the section for your platform.
+Download Talvio for your operating system from the [Releases page](https://github.com/ishangautam7/zynveliq/releases), then follow the section for your platform.
 
 | Platform    | Files                                               |
 | ----------- | --------------------------------------------------- |
@@ -24,7 +24,7 @@ Run the `.exe` installer. Use the `.msi` instead if you deploy with one.
 ## macOS
 
 <Steps>
-  <Step title="Drag Zynveliq into Applications">
+  <Step title="Drag Talvio into Applications">
     Open the `.dmg` for your Mac (`aarch64` for Apple silicon, `x64` for Intel) and drag the app across.
   </Step>
 
@@ -32,7 +32,7 @@ Run the `.exe` installer. Use the `.msi` instead if you deploy with one.
     Open Terminal (press `Cmd` + `Space`, type *Terminal*) and run:
 
     ```bash
-    xattr -dr com.apple.quarantine /Applications/Zynveliq.app
+    xattr -dr com.apple.quarantine /Applications/Talvio.app
     ```
 
   </Step>
@@ -71,9 +71,9 @@ You run the `xattr` command once per version you install from a `.dmg`, not once
 
 | Your distro                                    | Install                                           |
 | ---------------------------------------------- | ------------------------------------------------- |
-| Arch and derivatives                           | `yay -S zynveliq-bin` (or `paru -S zynveliq-bin`) |
-| Debian 13+, Ubuntu 24.04+, Mint 22+, Pop!\_OS  | `sudo apt install ./Zynveliq_*_amd64.deb`         |
-| Everything else, including Fedora and openSUSE | `chmod +x Zynveliq_*.AppImage`, then run it       |
+| Arch and derivatives                           | `yay -S talvio-bin` (or `paru -S talvio-bin`) |
+| Debian 13+, Ubuntu 24.04+, Mint 22+, Pop!\_OS  | `sudo apt install ./Talvio_*_amd64.deb`         |
+| Everything else, including Fedora and openSUSE | `chmod +x Talvio_*.AppImage`, then run it       |
 
 Prefer the `.deb` where there is one. It registers the app icon and menu entry, which the AppImage cannot do on its own.
 
@@ -94,7 +94,7 @@ Prefer the `.deb` where there is one. It registers the app icon and menu entry, 
 
 ## Updates
 
-Zynveliq checks for new versions in the background (8 seconds after launch, then every 12 hours) and shows available updates in _Settings → About_. Each update is verified against the project's signing key before it is applied.
+Talvio checks for new versions in the background (8 seconds after launch, then every 12 hours) and shows available updates in _Settings → About_. Each update is verified against the project's signing key before it is applied.
 
 How the update reaches you depends on how you installed:
 

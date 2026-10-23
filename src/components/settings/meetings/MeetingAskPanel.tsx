@@ -220,7 +220,7 @@ export const MeetingAskPanel: React.FC<MeetingAskPanelProps> = ({
                 disabled={!draft.trim()}
                 title={t("meetings.ask.send")}
                 aria-label={t("meetings.ask.send")}
-                className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg bg-ink text-on-ink transition-[background-color,opacity] hover:bg-ink-soft disabled:cursor-not-allowed disabled:bg-surface-strong disabled:text-muted-soft"
+                className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg bg-accent text-on-primary transition-[background-color,opacity] hover:bg-accent-strong disabled:cursor-not-allowed disabled:bg-surface-strong disabled:text-muted-soft"
               >
                 <ArrowUp className="h-4 w-4" aria-hidden="true" />
               </button>

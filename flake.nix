@@ -1,5 +1,5 @@
 {
-  description = "Zynveliq - A free, open source, local-first voice assistant (dictation, AI chat panel, screen vision) that works completely offline";
+  description = "Talvio - A free, open source, local-first voice assistant (dictation, AI chat panel, screen vision) that works completely offline";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -86,8 +86,8 @@
           };
         in
         {
-          zynveliq = pkgs.rustPlatform.buildRustPackage {
-            pname = "zynveliq";
+          talvio = pkgs.rustPlatform.buildRustPackage {
+            pname = "talvio";
             inherit version;
             src = self;
 
@@ -176,12 +176,14 @@
               description = "A free, open source, local-first voice assistant (dictation, AI chat panel, screen vision) that works completely offline";
               homepage = "https://github.com/ishangautam7/zynveliq";
               license = lib.licenses.mit;
-              mainProgram = "zynveliq";
+              mainProgram = "talvio";
               platforms = supportedSystems;
             };
           };
 
-          default = self.packages.${system}.zynveliq;
+          # The package was called zynveliq before the rename to Talvio.
+          zynveliq = self.packages.${system}.talvio;
+          default = self.packages.${system}.talvio;
         }
       );
 
@@ -190,7 +192,7 @@
         { lib, pkgs, ... }:
         {
           imports = [ ./nix/module.nix ];
-          programs.zynveliq.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.zynveliq;
+          programs.talvio.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.talvio;
         };
 
       # Home-manager module for per-user service
@@ -198,7 +200,7 @@
         { lib, pkgs, ... }:
         {
           imports = [ ./nix/hm-module.nix ];
-          services.zynveliq.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.zynveliq;
+          services.talvio.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.talvio;
         };
 
       # Development shell for building from source
@@ -238,7 +240,7 @@
             XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:${pkgs.hicolor-icon-theme}/share";
 
             shellHook = ''
-              echo "Zynveliq development environment"
+              echo "Talvio development environment"
               bun install
               echo "Run 'bun run tauri dev' to start"
             '';

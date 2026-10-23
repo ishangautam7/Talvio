@@ -235,7 +235,7 @@ const FakePointer: React.FC<{ pointer: Pointer }> = ({ pointer }) => (
         <path
           d="M5 2.5h6M8 2.5v17M5 19.5h6"
           fill="none"
-          stroke="#0d181c"
+          stroke="#1b1d33"
           strokeWidth="3.6"
           strokeLinecap="round"
         />
@@ -257,7 +257,7 @@ const FakePointer: React.FC<{ pointer: Pointer }> = ({ pointer }) => (
         <path
           d="M3 2.2v17.3l4.6-4.3 3 6.6 3-1.3-3-6.5h6.2z"
           fill="#ffffff"
-          stroke="#0d181c"
+          stroke="#1b1d33"
           strokeWidth="1.4"
           strokeLinejoin="round"
         />
@@ -496,13 +496,7 @@ const EXAMPLES: Example[] = [
 ];
 
 type AskBeat =
-  | "select"
-  | "listen"
-  | "think"
-  | "answer"
-  | "read"
-  | "click"
-  | "applied";
+  "select" | "listen" | "think" | "answer" | "read" | "click" | "applied";
 const ASK_BEAT_MS: Record<AskBeat, number> = {
   select: 1300,
   listen: 1800,

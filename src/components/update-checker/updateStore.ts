@@ -111,7 +111,7 @@ export const useUpdateStore = create<UpdateState>((set, get) => ({
 
   check: async ({ manual = false } = {}) => {
     // Private builds have no update service or signing key.
-    if (!import.meta.env.VITE_ZYNVELIQ_UPDATES_ENABLED) return;
+    if (!import.meta.env.VITE_TALVIO_UPDATES_ENABLED) return;
     const { phase } = get();
     if (BUSY.includes(phase)) return;
     // A found update stays found; a background re-check must not hide the pill.

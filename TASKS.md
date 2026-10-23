@@ -3,7 +3,7 @@
 ## Completed foundation
 
 - [x] Create an isolated local derivative and retain upstream history.
-- [x] Apply the working Zynveliq identity to app, package, installer and storage namespaces.
+- [x] Apply the working Talvio identity to app, package, installer and storage namespaces.
 - [x] Create a new mark and wordmark.
 - [x] Preserve MIT notices and third-party model download coordinates.
 - [x] Disable upstream feedback, updater and signing integrations.

@@ -1,3 +1,6 @@
+// Must be first: copies storage from before the rename to Talvio, ahead of
+// any module that reads it (see lib/storageMigration.ts).
+import "./lib/storageMigration";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { platform } from "@tauri-apps/plugin-os";
@@ -13,11 +16,11 @@ suppressCaretBrowsing();
 // text fields and on selected text (see lib/contextMenu.ts).
 suppressBrowserContextMenu();
 
-// Fonts — Inter (variable) carries every heading, label, control, and sentence;
-// Instrument Serif is only the feature banners' headline (ui/Hero.tsx).
+// Fonts — Inter (variable) carries every label, control, and sentence; Plus
+// Jakarta Sans, the logo's face, sets display type (titles, banner headlines,
+// the wordmark, the Insights figures).
 import "@fontsource-variable/inter";
-import "@fontsource/instrument-serif/400.css";
-import "@fontsource/instrument-serif/400-italic.css";
+import "@fontsource-variable/plus-jakarta-sans";
 
 // Set platform before render so CSS can scope per-platform (e.g. scrollbar styles)
 document.documentElement.dataset.platform = platform();

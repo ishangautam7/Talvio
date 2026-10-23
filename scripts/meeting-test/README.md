@@ -150,7 +150,7 @@ Reading your lines aloud is fine for a smoke test and useless for comparing two
 runs. For a byte-identical mic track:
 
 1. Install a virtual audio cable (VB-CABLE is the usual free one).
-2. Set Zynveliq's input device to **CABLE Output**.
+2. Set Talvio's input device to **CABLE Output**.
 3. `pip install sounddevice soundfile`
 4. `python play_fixture.py --devices` to find **CABLE Input**'s index.
 5. `python play_fixture.py --mic-device <index>`

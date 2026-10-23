@@ -34,11 +34,11 @@ function request(
   body: unknown,
   init: { headers?: Record<string, string>; method?: string } = {},
 ) {
-  return new Request("https://zynveliq.invalid/v1/feedback", {
+  return new Request("https://talvio.invalid/v1/feedback", {
     method: init.method ?? "POST",
     headers: {
       "Content-Type": "application/json",
-      "User-Agent": "Zynveliq/1.5.0",
+      "User-Agent": "Talvio/2.2.0",
       "CF-Connecting-IP": "203.0.113.7",
       ...init.headers,
     },
@@ -197,8 +197,24 @@ describe("handle", () => {
     expect(sent.body).toContain("| Version | 1.5.0 |");
   });
 
+  test.each(["Talvio/2.2.0", "Zynveliq/1.5.0"])(
+    "accepts the app's User-Agent %p, before and after the rename",
+    async (agent) => {
+      const gh = github([[201, { number: 42 }]]);
+      const response = await handle(
+        request(valid, { headers: { "User-Agent": agent } }),
+        PAT_ENV,
+        { fetch: gh.fetch, now: () => NOW },
+      );
+      expect(response.status).toBe(201);
+      expect(gh.calls).toHaveLength(1);
+    },
+  );
+
   test.each([
     ["a browser (no app User-Agent)", { "User-Agent": "Mozilla/5.0" }, 403],
+    ["another app", { "User-Agent": "Talvio-Clone/1.0" }, 403],
+    ["a lowercase app name", { "User-Agent": "talvio/2.2.0" }, 403],
     [
       "a form post",
       { "Content-Type": "application/x-www-form-urlencoded" },

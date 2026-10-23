@@ -11,12 +11,12 @@ abstract final class DictateStrings {
 
   static const noComputerTitle = 'Add your computer';
   static String noComputerBody(String email) =>
-      'Open Zynveliq on your computer and sign in with $email. '
+      'Open Talvio on your computer and sign in with $email. '
       'It shows up here once it is signed in.';
   static String offlineNote(String name) =>
-      '$name is offline. Open Zynveliq on it to dictate from your phone.';
+      '$name is offline. Open Talvio on it to dictate from your phone.';
   static String updateNote(String name) =>
-      'Update Zynveliq on $name to dictate from your phone.';
+      'Update Talvio on $name to dictate from your phone.';
   static String hintPaste(String name) =>
       'Tap the mic and speak. The text goes wherever the cursor is on $name.';
   static const hintKeep =
@@ -37,7 +37,7 @@ abstract final class DictateStrings {
   static String pasting(String name) => 'Pasting on $name…';
   static String approval(String name) => 'Allow this phone on $name';
   static const approvalDetail =
-      "Look at the computer's screen. Zynveliq is asking there.";
+      "Look at the computer's screen. Talvio is asking there.";
   static const cancelling = 'Cancelling…';
   static const cancel = 'Cancel';
   static String pasted(String name) => 'Pasted on $name';
@@ -53,11 +53,11 @@ abstract final class DictateStrings {
   /// phone sets itself (offline, not_connected, interrupted, timeout, mic_*).
   static String error(String code, String name) => switch (code) {
     'remote_input_off' =>
-      'Phone dictation is off on $name. Turn it on in Zynveliq on that '
+      'Phone dictation is off on $name. Turn it on in Talvio on that '
           'computer, then try again.',
     'busy' => '$name is busy with another request. Try again in a moment.',
     'no_speech_model' =>
-      '$name has no speech model yet. Download one in Zynveliq on that '
+      '$name has no speech model yet. Download one in Talvio on that '
           'computer.',
     'bad_audio' => "$name couldn't read that recording. Record it again.",
     'no_speech' => "Nothing was heard. Try again a bit closer to the phone.",
@@ -66,14 +66,14 @@ abstract final class DictateStrings {
       "$name couldn't paste the text. Click into a text field there and try "
           'again.',
     'paste_off' =>
-      "Pasting is turned off on $name. Turn it on in Zynveliq's Settings, "
+      "Pasting is turned off on $name. Turn it on in Talvio's Settings, "
           'under Dictation, Paste method.',
-    'unsupported' => 'Update Zynveliq on $name to use this.',
+    'unsupported' => 'Update Talvio on $name to use this.',
     'cancelled' => 'Cancelled.',
     'not_approved' =>
-      "This phone isn't allowed on $name. Allow it in Zynveliq's Settings on "
+      "This phone isn't allowed on $name. Allow it in Talvio's Settings on "
           'that computer, under Account, then try again.',
-    'offline' => '$name is offline. Open Zynveliq on it and try again.',
+    'offline' => '$name is offline. Open Talvio on it and try again.',
     'not_connected' =>
       "You're not connected to the server. Check your connection and try "
           'again.',
@@ -82,7 +82,7 @@ abstract final class DictateStrings {
           'anyway. Check $name before you try again.',
     'timeout' => "$name didn't answer in time. Try again.",
     'mic_denied' =>
-      'Zynveliq needs the microphone to hear you. Allow it for Zynveliq in '
+      'Talvio needs the microphone to hear you. Allow it for Talvio in '
           "your phone's Settings, then try again.",
     'mic_failed' => "Couldn't use the microphone. Try again.",
     _ => 'Something went wrong. Try again.',

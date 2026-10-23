@@ -367,7 +367,7 @@ pub fn assistant_insert_text(
     // deferred one every other path uses.
     assistant::hide_assistant_panel_now(&app);
 
-    // On macOS the click on Insert made Zynveliq the active app, and ordering a
+    // On macOS the click on Insert made Talvio the active app, and ordering a
     // window out does not give activation back (`restore_paste_target` is
     // Windows-only), so Cmd+V would land in our own app. `hide:` is AppKit's way of
     // handing activation to the app that had it before us. Queued behind the panel
@@ -418,7 +418,7 @@ pub fn assistant_insert_text(
     // Bring back whatever `hide:` took down (an open Settings window) without
     // taking activation back from the paste target. An app left hidden cannot be
     // relied on to show its next window — the recording overlay, the next quick
-    // ask — until the user activates Zynveliq themselves.
+    // ask — until the user activates Talvio themselves.
     // Queued after the hide, so it runs after it even if that was delayed.
     #[cfg(target_os = "macos")]
     if yield_queued {
@@ -1140,7 +1140,7 @@ pub async fn assistant_test_tts(app: AppHandle, text: String) -> Result<(), Stri
     // sample lines) so the spoken test matches the kokoro path. Fall back to a
     // sensible default if the caller passes nothing.
     let sample = if text.trim().is_empty() {
-        "Hi! This is a test of Zynveliq's voice output.".to_string()
+        "Hi! This is a test of Talvio's voice output.".to_string()
     } else {
         text
     };

@@ -3,7 +3,7 @@
 //! Everything here is pure: text in, text out. The platform readers decide what
 //! the field holds; this module decides what to paste. Only the inserted text is
 //! ever shaped. The user's own text is never touched, with one guarded
-//! exception: a period Zynveliq itself pasted a moment ago, at the end of an
+//! exception: a period Talvio itself pasted a moment ago, at the end of an
 //! unfinished sentence ("I went to the."), which a continuing dictation removes
 //! with one Backspace.
 //!
@@ -26,7 +26,7 @@ pub enum Context<'a> {
     },
     /// The field was read and is empty.
     EmptyField,
-    /// The field could not be read, but Zynveliq pasted `last` into the same
+    /// The field could not be read, but Talvio pasted `last` into the same
     /// place moments ago. Only a leading space may be added on this basis:
     /// anything more would be a guess about text nobody has seen.
     Remembered { last: &'a str },
@@ -40,11 +40,11 @@ pub struct Options<'a> {
     /// Lowercase the first word when the dictation continues a sentence (and
     /// match the case of a replaced selection).
     pub fix_case: bool,
-    /// Remove Zynveliq's own stray period when a dictation continues an
+    /// Remove Talvio's own stray period when a dictation continues an
     /// unfinished sentence. Requires `previous_is_ours`.
     pub join_sentences: bool,
     /// The caller verified that the text before the caret ends with exactly
-    /// what Zynveliq pasted last, into this same field, moments ago.
+    /// what Talvio pasted last, into this same field, moments ago.
     pub previous_is_ours: bool,
     /// The dictation language as configured (`"auto"`, `"en"`, `"de"`, ...).
     pub language: &'a str,
@@ -70,7 +70,7 @@ impl Default for Options<'_> {
 pub struct Fitted {
     pub text: String,
     /// Characters to remove with Backspace before pasting. Only ever 0 or 1:
-    /// the stray period Zynveliq itself pasted.
+    /// the stray period Talvio itself pasted.
     pub erase_before: usize,
     /// Whether anything was known about the field. When not, the text is the
     /// transcript unchanged and the paste behaves as if Smart spacing were off.
@@ -100,7 +100,7 @@ pub fn fit(transcript: &str, context: Context<'_>, options: &Options<'_>) -> Fit
     fitted
 }
 
-/// Whether the text before the caret ends with exactly what Zynveliq pasted
+/// Whether the text before the caret ends with exactly what Talvio pasted
 /// last: the caret is still right after it, and nobody has typed since.
 pub fn ends_with_pasted(before: &str, last: &str) -> bool {
     let last = last.trim();
@@ -436,7 +436,7 @@ fn is_greek(c: char) -> bool {
     matches!(c, '\u{0370}'..='\u{03FF}' | '\u{1F00}'..='\u{1FFF}')
 }
 
-/// Characters that end a sentence, in the scripts Zynveliq transcribes.
+/// Characters that end a sentence, in the scripts Talvio transcribes.
 fn is_terminator(c: char) -> bool {
     matches!(
         c,
@@ -1084,7 +1084,7 @@ fn never_final(language: &str) -> &'static [&'static str] {
     }
 }
 
-/// Whether the period that ends `before` is Zynveliq's own, left in the
+/// Whether the period that ends `before` is Talvio's own, left in the
 /// middle of a sentence the new dictation continues.
 fn own_period_continues(before: &str, transcript: &str, language: &str) -> bool {
     let Some(body) = before.strip_suffix('.') else {

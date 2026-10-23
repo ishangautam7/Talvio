@@ -1,13 +1,13 @@
 import 'api_client.dart';
 import 'session_store.dart';
 
-/// The account server as screens show it: how it was chosen, then its host.
+/// The account server as screens show it: its host, marked when a
+/// development build pins it.
 String serverText(ServerChoice choice, String url) {
   final host = Uri.parse(url).authority;
   return switch (choice) {
-    ServerChoice.automatic => 'Automatic · $host',
-    ServerChoice.custom => 'Custom · $host',
-    ServerChoice.pinned => 'Server: $host',
+    ServerChoice.automatic => 'Server · $host',
+    ServerChoice.pinned => 'Development server · $host',
   };
 }
 

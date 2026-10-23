@@ -12,7 +12,9 @@ import {
   PUBLIC_URL,
 } from "./helpers";
 
-const PHONE_REDIRECT = "zynveliq://auth/callback";
+const PHONE_REDIRECT = "talvio://auth/callback";
+/** The phone redirect from before the rename to Talvio. */
+const LEGACY_PHONE_REDIRECT = "zynveliq://auth/callback";
 
 let h: Harness;
 beforeEach(async () => {
@@ -100,6 +102,16 @@ describe("start", () => {
     });
   });
 
+  test("accepts both phone schemes, the current and the pre-rename one", async () => {
+    for (const redirectUri of [PHONE_REDIRECT, LEGACY_PHONE_REDIRECT]) {
+      const { location } = await throughGoogle(
+        googleClaims(h.now()),
+        redirectUri,
+      );
+      expect(location).toStartWith(`${redirectUri}?code=`);
+    }
+  });
+
   test("accepts a desktop loopback redirect", async () => {
     for (const port of [1024, 53682, 65535]) {
       const redirectUri = `http://127.0.0.1:${port}/callback`;
@@ -122,10 +134,16 @@ describe("start", () => {
     "http://127.0.0.1:5000/callback/",
     "http://127.0.0.1:5000/callback?x=1",
     "http://127.0.0.1:5000@evil.example/callback",
+    "talvio://auth/callback/",
+    "talvio://auth/callback?next=x",
+    "TALVIO://auth/callback",
+    "talvio://auth/other",
     "zynveliq://auth/callback/",
     "zynveliq://auth/callback?next=x",
     "ZYNVELIQ://auth/callback",
     "https://evil.example/callback",
+    "speakoflow://auth/callback",
+    "evil://auth/callback",
   ])(
     "refuses redirect_uri %p with a page and no redirect",
     async (redirectUri) => {

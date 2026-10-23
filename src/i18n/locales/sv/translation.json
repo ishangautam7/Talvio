@@ -35,10 +35,10 @@
     "downloading": "Laddar ner… {{progress}}%",
     "downloadingUnknown": "Laddar ner…",
     "installing": "Installerar…",
-    "reopening": "Zynveliq stängs för att installera uppdateringen och öppnas igen om några sekunder.",
+    "reopening": "Talvio stängs för att installera uppdateringen och öppnas igen om några sekunder.",
     "updatedTo": "Uppdaterad till version {{version}}",
     "restart": "Starta om nu",
-    "readyToRestart": "Uppdateringen är installerad. Starta om Zynveliq för att börja använda den.",
+    "readyToRestart": "Uppdateringen är installerad. Starta om Talvio för att börja använda den.",
     "installFailed": "Uppdateringen installerades inte. Du kan försöka igen, eller ladda ner installationsprogrammet och köra det själv.",
     "downloadFailed": "Nedladdningen blev inte klar. Kontrollera anslutningen och försök igen.",
     "downloadInstaller": "Ladda ner installationsprogram",
@@ -49,13 +49,13 @@
     "showInFolder": "Visa i mapp",
     "viewRelease": "Visa på GitHub",
     "hint": {
-      "windows": "Zynveliq stängs, installerar uppdateringen och öppnas igen. Du behöver inte klicka på något mer.",
-      "macos": "Zynveliq startar om med den nya versionen. macOS kan be dig tillåta Mikrofon och Hjälpmedel igen efteråt.",
-      "linux": "Zynveliq startar om med den nya versionen. En .deb-installation ber först om ditt lösenord."
+      "windows": "Talvio stängs, installerar uppdateringen och öppnas igen. Du behöver inte klicka på något mer.",
+      "macos": "Talvio startar om med den nya versionen. macOS kan be dig tillåta Mikrofon och Hjälpmedel igen efteråt.",
+      "linux": "Talvio startar om med den nya versionen. En .deb-installation ber först om ditt lösenord."
     },
     "modes": {
       "portable": "Det här är den portabla versionen, som inte kan ersätta sig själv. Ladda ner den nya versionen och kopiera din Data-mapp till den.",
-      "packageManager": "Zynveliq installerades av din pakethanterare, så uppdatera den där, till exempel med yay -Syu zynveliq-bin.",
+      "packageManager": "Talvio installerades av din pakethanterare, så uppdatera den där, till exempel med yay -Syu talvio-bin.",
       "download": "Den här kopian kan inte uppdatera sig själv på plats. Ladda ner installationsprogrammet och kör det för att få den nya versionen."
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "Skicka feedback",
     "title": "Skicka feedback",
-    "description": "Jag läser varje meddelande själv, så skriv precis som det blir. Tack för att du hjälper till att göra Zynveliq bättre.",
+    "description": "Jag läser varje meddelande själv, så skriv precis som det blir. Tack för att du hjälper till att göra Talvio bättre.",
     "kind": {
       "label": "Typ av feedback",
       "bug": "Fel",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "Vad hände, och vad förväntade du dig i stället?",
-      "idea": "Vad skulle göra Zynveliq bättre för dig?",
+      "idea": "Vad skulle göra Talvio bättre för dig?",
       "question": "Vad vill du veta?"
     },
     "messageLabel": "Meddelande",
@@ -159,10 +159,10 @@
       "retry": "Försök igen"
     },
     "tour": {
-      "features": "Vad Zynveliq gör",
+      "features": "Vad Talvio gör",
       "count": "{{current}} av {{total}}",
       "next": "Nästa",
-      "finish": "Öppna Zynveliq",
+      "finish": "Öppna Talvio",
       "tabs": {
         "dictate": "Diktering",
         "ask": "Assistent",
@@ -240,7 +240,7 @@
       "ready": "Du är klar"
     },
     "speechToText": {
-      "title": "Hur ska Zynveliq höra dig?",
+      "title": "Hur ska Talvio höra dig?",
       "subtitle": "Det här förvandlar din röst till text, direkt på din dator. Välj en, byt när du vill.",
       "cards": {
         "fast": {
@@ -305,7 +305,7 @@
       "downloadingVoice": "Din röstmodell landar. {{percentage}}% klart.",
       "downloadingGeneric": "Laddar fortfarande ner. {{percentage}}% klart.",
       "signOff": "Det var allt. Säg något nu.",
-      "openApp": "Öppna Zynveliq"
+      "openApp": "Öppna Talvio"
     },
     "errors": {
       "selectModel": "Kunde inte välja den modellen. Försök igen.",
@@ -437,7 +437,7 @@
     },
     "permissions": {
       "title": "Behörigheter krävs",
-      "description": "Zynveliq behöver ett par behörigheter för att fungera korrekt.",
+      "description": "Talvio behöver ett par behörigheter för att fungera korrekt.",
       "microphone": {
         "title": "Mikrofonåtkomst",
         "description": "Krävs för att höra din röst för transkription."
@@ -447,7 +447,7 @@
         "description": "Krävs för att skriva transkriberad text i dina program.",
         "stuckHint": "Redan påslaget i Systeminställningar? Efter en uppdatering kan macOS behålla en behörighet som inte längre matchar den här versionen.",
         "reset": "Återställ behörighet",
-        "resetDone": "Slå nu på Zynveliq igen i Systeminställningar."
+        "resetDone": "Slå nu på Talvio igen i Systeminställningar."
       },
       "grant": "Bevilja behörighet",
       "granted": "Beviljad",
@@ -456,7 +456,7 @@
       "errors": {
         "checkFailed": "Det gick inte att kontrollera behörigheterna. Försök igen.",
         "requestFailed": "Det gick inte att begära behörighet. Försök igen.",
-        "resetFailed": "Det gick inte att återställa behörigheten. Ta bort Zynveliq från listan Hjälpmedel och lägg till det igen."
+        "resetFailed": "Det gick inte att återställa behörigheten. Ta bort Talvio från listan Hjälpmedel och lägg till det igen."
       }
     },
     "frame": {
@@ -684,7 +684,7 @@
       },
       "handsFree": {
         "unavailableKeys": "Fungerar när diktering bara består av modifierartangenter, som Ctrl + Win. Med {{keys}}, stäng av ”Håll för att prata” i stället: varje diktering fortsätter då tills du trycker på tangenterna igen.",
-        "unavailableEngine": "Kräver tangentbordsmotorn Zynveliq Keys ({{where}}). Eller stäng av ”Håll för att prata”: varje diktering fortsätter då tills du trycker på tangenterna igen.",
+        "unavailableEngine": "Kräver tangentbordsmotorn Talvio Keys ({{where}}). Eller stäng av ”Håll för att prata”: varje diktering fortsätter då tills du trycker på tangenterna igen.",
         "taken": "{{name}} använder redan {{keys}}, så den här tangenten gör ingenting förrän en av dem ändras.",
         "needsKey": "Välj en tangent, till exempel mellanslag eller Enter. En modifierartangent ensam kan inte vara handsfree-tangenten.",
         "pressKey": "Tryck på en tangent…",
@@ -741,9 +741,9 @@
       "clearSearch": "Rensa sökning",
       "noSearchResults": "Inga modeller heter ”{{query}}”.",
       "olderHint": "Äldre format. {{model}} ({{size}}) är den nyare versionen av den här modellen.",
-      "retiredHint": "Använder en äldre motor som Zynveliq inte längre har. Hämta {{model}} ({{size}}) i stället.",
+      "retiredHint": "Använder en äldre motor som Talvio inte längre har. Hämta {{model}} ({{size}}) i stället.",
       "retired": {
-        "notice": "De här modellerna använde en äldre motor som Zynveliq inte längre har.",
+        "notice": "De här modellerna använde en äldre motor som Talvio inte längre har.",
         "newVersion": "Ny version: {{model}} · {{size}}",
         "getNewVersion": "Hämta ny version",
         "useNewVersion": "Använd ny version",
@@ -802,7 +802,7 @@
         "rescanning": "Söker igen…",
         "rescanDone_one": "{{count}} lokal modell hittad.",
         "rescanDone_other": "{{count}} lokala modeller hittade.",
-        "footnote": "Länkade mappar genomsöks igen när Zynveliq startar, så modeller du lägger till i dem senare dyker upp av sig själva. Att ta bort länken till en mapp eller ta bort en modell tar bara bort den från den här listan — dina filer ligger kvar där de är.",
+        "footnote": "Länkade mappar genomsöks igen när Talvio startar, så modeller du lägger till i dem senare dyker upp av sig själva. Att ta bort länken till en mapp eller ta bort en modell tar bara bort den från den här listan — dina filer ligger kvar där de är.",
         "removeTitle": "Ta bort från listan?",
         "removeConfirm": "Ta bort ”{{modelName}}” från din modellista?\n\nSjälva filen ligger kvar där den är:\n{{path}}",
         "missingBadge": "Filen saknas",
@@ -892,7 +892,7 @@
         "label": "Musknappar som kortkommandon",
         "description": "Använd musens mittenknapp, Bakåt eller Framåt som kortkommando: klicka på kortkommandots tangenter och tryck sedan på knappen. Så länge den är ett kortkommando gör knappen inget annat.",
         "linux": "På Linux fungerar bara mittenknappen.",
-        "needsEngine": "Kräver tangentbordsimplementeringen Zynveliq Keys."
+        "needsEngine": "Kräver tangentbordsimplementeringen Talvio Keys."
       },
       "longFormChunking": {
         "title": "Dela upp långa inspelningar",
@@ -910,11 +910,11 @@
       },
       "autostart": {
         "label": "Starta vid uppstart",
-        "description": "Öppna Zynveliq automatiskt när du loggar in."
+        "description": "Öppna Talvio automatiskt när du loggar in."
       },
       "showTrayIcon": {
         "label": "Visa ikon i systemfältet",
-        "description": "Behåll Zynveliq i systemfältet."
+        "description": "Behåll Talvio i systemfältet."
       },
       "trayIconColor": {
         "label": "Färgad ikon i systemfältet",
@@ -922,7 +922,7 @@
       },
       "closeBehavior": {
         "label": "Avsluta när jag stänger fönstret",
-        "description": "När det är av fortsätter Zynveliq att köras i systemfältet när du stänger fönstret, så att dina kortkommandon fortfarande fungerar. När det är på avslutas appen helt när du stänger fönstret."
+        "description": "När det är av fortsätter Talvio att köras i systemfältet när du stänger fönstret, så att dina kortkommandon fortfarande fungerar. När det är på avslutas appen helt när du stänger fönstret."
       },
       "overlayStyle": {
         "title": "Överlagring",
@@ -1016,8 +1016,8 @@
       },
       "customWords": {
         "title": "Anpassade ord",
-        "description": "Namn, produkter och fraser som Zynveliq ska stava på ditt sätt.",
-        "info": "Exempel: lägg till ”Kokoro” om Zynveliq skriver ”Coco row”.",
+        "description": "Namn, produkter och fraser som Talvio ska stava på ditt sätt.",
+        "info": "Exempel: lägg till ”Kokoro” om Talvio skriver ”Coco row”.",
         "placeholder": "Lägg till ett namn, en term eller en kort fras",
         "add": "Lägg till",
         "empty": "Inga anpassade ord ännu.",
@@ -1026,7 +1026,7 @@
       },
       "autoLearn": {
         "label": "Lär dig ord jag rättar",
-        "description": "Kommer ihåg din stavning när du rättar ett ord som Zynveliq uppfattade fel.",
+        "description": "Kommer ihåg din stavning när du rättar ett ord som Talvio uppfattade fel.",
         "info": "Den läser bara fältet den just skrev i, under ungefär en minut. Inget laddas upp, och varje ord den lär sig visas här.",
         "unsupported": "Att lära sig av rättningar finns än så länge bara på Windows. Du kan fortfarande lägga till ord för hand ovan.",
         "learnedTitle": "Inlärt från dina rättningar",
@@ -1040,7 +1040,7 @@
         "title": "Textersättningar",
         "description": "Ersätt en fras i din transkribering med text du använder ofta. Exempel: ”min e-post” blir ”alex@example.com”.",
         "rulesTitle": "Ersättningsregler",
-        "rulesHint": "Välj vad Zynveliq hör och vad som ska infogas.",
+        "rulesHint": "Välj vad Talvio hör och vad som ska infogas.",
         "empty": "Skapa en regel för en fras du säger ofta.",
         "addFirst": "Skapa första regeln",
         "addRule": "Lägg till ersättning",
@@ -1418,7 +1418,7 @@
       },
       "updateChecks": {
         "label": "Sök efter uppdateringar automatiskt",
-        "description": "Letar efter en ny version när Zynveliq startar och var 12:e timme. Du kan alltid söka manuellt."
+        "description": "Letar efter en ny version när Talvio startar och var 12:e timme. Du kan alltid söka manuellt."
       },
       "soundTheme": {
         "label": "Ljudtema",
@@ -1476,7 +1476,7 @@
       "smartSpacing": {
         "label": "Smart mellanrum",
         "description": "Anpassar varje diktering till texten som redan finns i fältet, så att du kan pausa och fortsätta utan att orden klistras ihop.",
-        "info": "Innan inklistring tittar Zynveliq på de få tecknen runt markören och lägger bara till ett mellanslag där det behövs. Om en app döljer sin text används i stället den egna senaste dikteringen. Inget sparas eller skickas någonstans. På macOS används behörigheten för hjälpmedel som Zynveliq redan har. På Linux delar Chrome-, Electron- och Qt-appar bara sin text när skrivbordets hjälpmedelsinställning är på."
+        "info": "Innan inklistring tittar Talvio på de få tecknen runt markören och lägger bara till ett mellanslag där det behövs. Om en app döljer sin text används i stället den egna senaste dikteringen. Inget sparas eller skickas någonstans. På macOS används behörigheten för hjälpmedel som Talvio redan har. På Linux delar Chrome-, Electron- och Qt-appar bara sin text när skrivbordets hjälpmedelsinställning är på."
       },
       "smartSpacingFixCase": {
         "label": "Rätta versaler",
@@ -1484,7 +1484,7 @@
       },
       "smartSpacingJoin": {
         "label": "Sätt ihop avbrutna meningar",
-        "description": "Tar bort punkten som Zynveliq lade till när du stannade mitt i en mening, som i \"I went to the.\""
+        "description": "Tar bort punkten som Talvio lade till när du stannade mitt i en mening, som i \"I went to the.\""
       },
       "keyboardImplementation": {
         "title": "Tangentbordsimplementering",
@@ -1503,6 +1503,101 @@
       "recordingBuffer": {
         "title": "Extra inspelningsbuffert",
         "description": "Millisekunder att fortsätta spela in efter att du släppt tangenten."
+      },
+      "commandMode": {
+        "title": "Kommandoläge",
+        "description": "Skriv ett kommando för att se vilket verktyg routern väljer och vad det gör. Kortkommandot kommer i en senare version.",
+        "enabled": {
+          "title": "Kommandoläge",
+          "description": "Låter kommandon agera i dina appar. Krävs för --run-command; den här rutan fungerar ändå."
+        },
+        "input": {
+          "title": "Testa ett kommando",
+          "description": "Skickar texten till routermodellen som om du hade sagt den. Med Testkörning på händer inget på skärmen: du ser vad som skulle ha hänt.",
+          "placeholder": "Skicka ett mejl till Ron om ett möte kl. 9:00"
+        },
+        "dryRun": {
+          "label": "Testkörning"
+        },
+        "dryRunSetting": {
+          "title": "Testkörning som standard",
+          "description": "Kommandon visar vad de skulle göra i stället för att göra det. Rutan ovan och --dry-run kan fortfarande välja för ett enskilt kommando."
+        },
+        "delay": {
+          "label": "Kör efter {{seconds}} sekunder",
+          "hint": "Text och tangenttryckningar går till fönstret som ligger överst, vilket är det här när du trycker på Kör. Slå på fördröjningen och klicka i appen du vill använda, eller använd Testkörning.",
+          "countdown": "Körs om {{seconds}} s. Klicka i appen som kommandot gäller.",
+          "cancel": "Avbryt ({{seconds}})"
+        },
+        "run": "Kör",
+        "running": "Kör…",
+        "invokeFailed": "Kommandot kunde inte skickas: {{error}}",
+        "status": {
+          "done": "Klar",
+          "awaiting_confirmation": "Väntar på bekräftelse",
+          "needs_answer": "Behöver ett svar",
+          "needs_computer_use": "Behöver datorstyrning",
+          "cancelled": "Avbrutet",
+          "failed": "Misslyckades"
+        },
+        "dryRunBadge": "Testkörning",
+        "fromCli": "Från kommandoraden",
+        "meta": "{{model}} · {{calls}} LLM-anrop · tokens {{input}} in, {{output}} ut, {{cached}} cachade · {{ms}} ms",
+        "transcript": "Kommando: {{text}}",
+        "send": "Skicka",
+        "cancel": "Avbryt",
+        "answer": {
+          "placeholder": "Ditt svar",
+          "submit": "Svara"
+        },
+        "escalation": "Uppgift för datorstyrning: {{task}}",
+        "error": "Fel: {{error}}",
+        "steps": "Steg",
+        "dryRunActions": "Skulle ha gjort",
+        "provider": {
+          "title": "Routerleverantör",
+          "description": "Leverantörs-id:t som väljer verktyget för varje kommando (till exempel anthropic eller openrouter). Den använder API-nyckeln som redan är sparad för leverantören. Tomt återgår till anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Routermodell",
+          "description": "Modellen som väljer verktyget. Liten och snabb är bäst: varje kommando kostar ett anrop. Tomt återgår till standard.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google-konto",
+          "description": "Kontot som Gmail och Kalender öppnas i (en e-postadress eller ett kontonummer). Tomt använder webbläsarens standardkonto för Google.",
+          "placeholder": "Standardkonto"
+        },
+        "searchUrl": {
+          "title": "Söksida",
+          "description": "Sidan som en webbsökning öppnar. Den måste innehålla {query}, som ersätts med det du frågade efter; allt annat återgår till Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kontakter",
+          "description": "Namnen som kommandon kan mejla, i en JSON-fil som du redigerar. Den skapas med ett exempel första gången.",
+          "open": "Öppna kontaktfilen",
+          "openFailed": "Kunde inte öppna kontaktfilen: {{error}}"
+        },
+        "stop": "Stoppa",
+        "autoEscalate": {
+          "title": "Styr skärmen vid behov",
+          "description": "När inget verktyg passar ett kommando läser en agent appens kontroller och använder dem åt dig, och frågar innan allt som skickar, köper eller raderar. Endast Windows än så länge."
+        },
+        "agentModel": {
+          "title": "Agentmodell",
+          "description": "Modellen som styr skärmen, hos routerns leverantör. En starkare modell än routerns fungerar bättre. Tomt återgår till standard.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Stegbegränsning för agenten",
+          "description": "Det högsta antalet modellanrop en uppgift får använda, från 1 till 60. Där stannar agenten och lämnar skärmen som den är."
+        },
+        "agentMaxCost": {
+          "title": "Kostnadsgräns för agenten (US$)",
+          "description": "Stoppar en uppgift när den har kostat ungefär så här mycket. Bara kända Claude-modeller har ett pris; alla andra modeller begränsas endast av stegbegränsningen."
+        }
       }
     },
     "about": {
@@ -1521,7 +1616,7 @@
       },
       "appDataDirectory": {
         "title": "Mapp för appdata",
-        "description": "Där Zynveliq sparar dina modeller, din historik och dina inställningar."
+        "description": "Där Talvio sparar dina modeller, din historik och dina inställningar."
       },
       "sourceCode": {
         "title": "Källkod",
@@ -1530,12 +1625,12 @@
       },
       "license": {
         "title": "Licens",
-        "description": "Zynveliq är öppen källkod under MIT-licensen och bygger på Handy (också MIT) av CJ Pais.",
+        "description": "Talvio är öppen källkod under MIT-licensen och bygger på Handy (också MIT) av CJ Pais.",
         "button": "Visa licensen"
       },
       "supportDevelopment": {
         "title": "Stöd utvecklingen",
-        "description": "Hjälp oss att fortsätta bygga Zynveliq",
+        "description": "Hjälp oss att fortsätta bygga Talvio",
         "button": "Donera"
       }
     },
@@ -1543,7 +1638,7 @@
       "enable": {
         "title": "Assistent",
         "label": "Aktivera assistenten",
-        "description": "Stäng av det här för att göra Zynveliq till enbart diktering. Den flytande panelen stängs och laddas aldrig, dess kortkommandon frigörs och minnet den använder lämnas tillbaka. Generera med Flow och AI-rensning fortsätter att fungera."
+        "description": "Stäng av det här för att göra Talvio till enbart diktering. Den flytande panelen stängs och laddas aldrig, dess kortkommandon frigörs och minnet den använder lämnas tillbaka. Generera med Flow och AI-rensning fortsätter att fungera."
       },
       "shortcuts": {
         "title": "Kortkommandon"
@@ -1582,7 +1677,7 @@
         "deleteModelFailed": "Kunde inte ta bort modellen.",
         "finderSectionTitle": "Fler modeller på enheten",
         "finderTitle": "Utforska Hugging Face",
-        "finderDescription": "Sök bland tusentals GGUF-modeller och ladda ner en direkt till Zynveliq.",
+        "finderDescription": "Sök bland tusentals GGUF-modeller och ladda ner en direkt till Talvio.",
         "finderAction": "Hitta en modell",
         "huggingFaceTitle": "Dina modeller",
         "catalogEmpty": "Inga rekommenderade lokala modeller är tillgängliga just nu."
@@ -1705,7 +1800,7 @@
           "label": "När skärmen fångas"
         },
         "screenRecording": {
-          "description": "Skärmvisning kräver behörigheten Skärminspelning i macOS. Bevilja den i Systeminställningar och starta sedan om Zynveliq för att den ska börja gälla.",
+          "description": "Skärmvisning kräver behörigheten Skärminspelning i macOS. Bevilja den i Systeminställningar och starta sedan om Talvio för att den ska börja gälla.",
           "grant": "Öppna systeminställningar"
         }
       },
@@ -1882,7 +1977,7 @@
         "testGpuMoved": "Grafikkortet förvrängde provet, så det tystades. Kokoro använder nu processorn, så testa igen för att höra det.",
         "testGpuForced": "Grafikkortet förvrängde provet, så det tystades. Ställ in Körs på till Automatiskt eller Processor.",
         "testGpuSuspect": "Provet blev förvrängt, så det tystades. Testa igen för att kontrollera grafikkortet.",
-        "testPhrase": "Hej! Det här är ett test av Zynveliqs röstuppläsning.",
+        "testPhrase": "Hej! Det här är ett test av Talvios röstuppläsning.",
         "downloadStart": "Laddar ner Kokoro-rösten…",
         "downloadProgress": "Laddar ner Kokoro-rösten… {{progress}}%",
         "downloadReady": "Kokoro-rösten är klar ✓",
@@ -1984,7 +2079,7 @@
     "account": {
       "signedOut": {
         "title": "Anslut din telefon",
-        "body": "Logga in här och i Zynveliq-appen på telefonen med samma konto. Sedan kan du diktera och skriva på den här datorn från telefonen.",
+        "body": "Logga in här och i Talvio-appen på telefonen med samma konto. Sedan kan du diktera och skriva på den här datorn från telefonen.",
         "modeLabel": "Logga in eller skapa ett konto",
         "signIn": "Logga in",
         "createAccount": "Skapa konto",
@@ -1997,8 +2092,7 @@
         "or": "eller",
         "google": "Fortsätt med Google",
         "googleWaiting": "Slutför inloggningen i webbläsaren.",
-        "privacy": "Servern sparar bara ditt konto och din enhetslista, aldrig dina inspelningar eller texter.",
-        "serverUnsaved": "Spara den nya serveradressen nedan innan du loggar in."
+        "privacy": "Servern sparar ditt konto, din enhetslista och, om du synkar dem, dina API-nycklar (krypterade). Aldrig dina inspelningar eller texter."
       },
       "signOut": "Logga ut",
       "signingOut": "Loggar ut…",
@@ -2006,13 +2100,18 @@
         "online": "Ansluten",
         "connecting": "Ansluter…",
         "offline": "Inte ansluten",
-        "offlineHint": "Zynveliq når inte servern just nu och fortsätter att försöka. Tills dess kan telefonen inte använda den här datorn."
+        "offlineHint": "Talvio når inte servern just nu och fortsätter att försöka. Tills dess kan telefonen inte använda den här datorn."
       },
       "phone": {
         "title": "Telefon",
         "remoteInput": "Diktering från telefonen",
         "remoteInputHint": "Låter telefonen diktera och skriva på den här datorn.",
-        "install": "Installera Zynveliq-appen på telefonen och logga in som {{email}}."
+        "install": "Installera Talvio-appen på telefonen och logga in som {{email}}."
+      },
+      "keys": {
+        "title": "API-nycklar",
+        "sync": "Synka API-nycklar",
+        "syncHint": "Nycklar du lägger till på den här datorn sparas krypterade i ditt Talvio-konto och dyker upp på dina andra datorer."
       },
       "devices": {
         "title": "Enheter",
@@ -2039,12 +2138,8 @@
       },
       "server": {
         "title": "Kontoserver",
-        "hint": "Där ditt konto sparas. Ändra bara om du kör en egen server.",
-        "locked": "Logga ut för att byta server.",
-        "automatic": "Automatisk",
-        "custom": "Egen",
         "using": "Använder {{host}}",
-        "notFound": "Servern går inte att hitta just nu. Zynveliq fortsätter att försöka."
+        "notFound": "Servern går inte att hitta just nu. Talvio fortsätter att försöka."
       },
       "errors": {
         "generic": "Något gick fel. Försök igen.",
@@ -2064,9 +2159,7 @@
         "server": "Servern skickade ett oväntat svar. Försök igen senare.",
         "timeout": "Inloggningen med Google tog för lång tid. Försök igen.",
         "signed_in": "Logga ut innan du byter server.",
-        "invalid_url": "Ange en adress som börjar med https:// så att ditt lösenord skickas krypterat. http:// fungerar bara för en server på den här datorn.",
-        "keychain": "Det gick inte att spara inloggningen säkert på den här datorn. Försök igen.",
-        "wrongServer": "Serveradressen verkar inte stämma. Kontrollera den nedan och försök igen."
+        "keychain": "Det gick inte att spara inloggningen säkert på den här datorn. Försök igen."
       }
     }
   },
@@ -2167,7 +2260,7 @@
     "list": {
       "title": "Inspelade möten",
       "emptyTitle": "Inga möten än",
-      "emptyHint": "Starta inspelningen före ett samtal så sparar Zynveliq transkriptionen, uppdelad efter vem som pratade.",
+      "emptyHint": "Starta inspelningen före ett samtal så sparar Talvio transkriptionen, uppdelad efter vem som pratade.",
       "loadMore": "Ladda fler",
       "speakers_one": "{{count}} talare",
       "speakers_other": "{{count}} talare",
@@ -2331,7 +2424,7 @@
   },
   "accessibility": {
     "permissionsRequired": "Behörigheter för hjälpmedel krävs",
-    "permissionsDescription": "Zynveliq behöver behörighet för hjälpmedel för att kunna skriva transkriberad text.",
+    "permissionsDescription": "Talvio behöver behörighet för hjälpmedel för att kunna skriva transkriberad text.",
     "openSettings": "Öppna systeminställningar",
     "dismiss": "Avvisa"
   },
@@ -2360,7 +2453,7 @@
   },
   "appLanguage": {
     "title": "Appens språk",
-    "description": "Ändra språket i Zynveliq-gränssnittet"
+    "description": "Ändra språket i Talvio-gränssnittet"
   },
   "overlay": {
     "preparing": "Förbereder mikrofonen…",
@@ -2728,7 +2821,7 @@
       "performance": "Prestanda"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "Version {{version}}",
       "project": "Projekt",
       "docs": "Dokumentation",
@@ -2746,7 +2839,7 @@
     "subtitleTap": "Tryck på ditt kortkommando i valfri app, prata och tryck igen. Dina ord visas där markören är.",
     "needsModel": {
       "title": "Välj en talmodell för att börja diktera.",
-      "description": "Zynveliq behöver en modell för tal till text innan den kan skriva det du säger.",
+      "description": "Talvio behöver en modell för tal till text innan den kan skriva det du säger.",
       "action": "Välj en modell"
     },
     "stats": {
@@ -2822,8 +2915,8 @@
         "open": "Tangentbordsinställningar"
       },
       "linux": {
-        "wayland": "Under Wayland skickar skrivbordet bara de här tangenterna till Zynveliq medan något av dess fönster ligger överst. Lägg till dem som kortkommandon i systeminställningarna för att använda dem i alla appar.",
-        "noAccess": "Zynveliq Keys kan inte läsa tangentbordet på den här datorn, så de här kortkommandona gör inget än.",
+        "wayland": "Under Wayland skickar skrivbordet bara de här tangenterna till Talvio medan något av dess fönster ligger överst. Lägg till dem som kortkommandon i systeminställningarna för att använda dem i alla appar.",
+        "noAccess": "Talvio Keys kan inte läsa tangentbordet på den här datorn, så de här kortkommandona gör inget än.",
         "setUp": "Ställ in",
         "where": {
           "gnome": "Öppna Inställningar → Tangentbord → Visa och anpassa kortkommandon → Anpassade kortkommandon, lägg till ett för varje kommando nedan och tryck på de tangenter du vill ha.",
@@ -2831,7 +2924,7 @@
           "other": "Lägg till ett eget kortkommando i skrivbordets tangentbordsinställningar, eller en bind-rad i kompositorns konfiguration, för varje kommando nedan."
         },
         "tapOnly": "Ett kortkommando som läggs till så fungerar som ”Tryck för att växla”: tryck en gång för att starta och en gång till för att stoppa.",
-        "access": "Eller låt Zynveliq Keys läsa tangentbordet. Kör det här i en terminal och logga sedan ut och in igen:",
+        "access": "Eller låt Talvio Keys läsa tangentbordet. Kör det här i en terminal och logga sedan ut och in igen:",
         "copy": "Kopiera",
         "copied": "Kopierat"
       }
@@ -2861,7 +2954,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} använde en äldre motor som Zynveliq inte längre har.",
+    "title": "{{model}} använde en äldre motor som Talvio inte längre har.",
     "newVersion": "Den nya versionen är {{model}}.",
     "ready": "{{model}} är hämtad och klar.",
     "noVersion": "Välj en annan modell för att fortsätta diktera.",
@@ -2870,12 +2963,12 @@
     "retry": "Försök igen",
     "chooseAnother": "Välj en annan modell",
     "progressLabel": "Hämtar den nya versionen",
-    "dialogTitle": "Zynveliq har en ny talmotor",
+    "dialogTitle": "Talvio har en ny talmotor",
     "dialogBody": "Den är snabbare och stabilare, så du stöter på färre problem. {{model}} körde på den gamla motorn och behöver sin nya version för att fortsätta fungera.",
     "later": "Senare"
   },
   "modelsHub": {
-    "description": "Varje uppgift i Zynveliq utförs av en modell du väljer. Kör den på den här datorn för integritet, eller i molnet för hastighet.",
+    "description": "Varje uppgift i Talvio utförs av en modell du väljer. Kör den på den här datorn för integritet, eller i molnet för hastighet.",
     "addLocal": "Lägg till en modellfil",
     "privacyNote": "Modeller på den här datorn skickar aldrig din röst eller text någonstans. Molnmodeller skickar den till leverantören du valt, med din API-nyckel.",
     "inUse": "Används",
@@ -3035,12 +3128,12 @@
     "shortcutRow": "Kortkommando"
   },
   "dictionary": {
-    "description": "Lär Zynveliq de namn och termer du använder, och skapa förkortningar som expanderar till längre text.",
+    "description": "Lär Talvio de namn och termer du använder, och skapa förkortningar som expanderar till längre text.",
     "words": {
       "title": "Dina ord",
-      "description": "Namn, fackuttryck och stavningar som Zynveliq alltid ska få rätt.",
+      "description": "Namn, fackuttryck och stavningar som Talvio alltid ska få rätt.",
       "placeholder": "Lägg till ett namn, en term eller en stavning…",
-      "empty": "Inget här än. Lägg till orden som Zynveliq fortsätter att få fel."
+      "empty": "Inget här än. Lägg till orden som Talvio fortsätter att få fel."
     },
     "replacements": {
       "title": "Ersättningar",
@@ -3426,7 +3519,7 @@
     "or": "eller",
     "changeOther": "Ändra de andra tangenterna för {{name}}",
     "pressKeysOrButton": "Tryck på tangenter eller en musknapp…",
-    "mouseNeedsKeysEngine": "Musknappar kräver tangentbordsimplementeringen Zynveliq Keys (Inställningar → Avancerat → Experimentellt).",
+    "mouseNeedsKeysEngine": "Musknappar kräver tangentbordsimplementeringen Talvio Keys (Inställningar → Avancerat → Experimentellt).",
     "mouse": {
       "middle": "Mittenknapp på musen",
       "back": "Musknapp Bakåt",
@@ -3505,7 +3598,7 @@
     }
   },
   "insights": {
-    "about": "Hur du använder Zynveliq, räknat på den här datorn.",
+    "about": "Hur du använder Talvio, räknat på den här datorn.",
     "nothingYet": "Din statistik visas när du har dikterat, frågat assistenten eller spelat in ett möte.",
     "goHome": "Visa dina kortkommandon",
     "figures": {
@@ -3565,7 +3658,7 @@
     },
     "share": {
       "button": "Dela",
-      "nothingYet": "Det finns något att dela när du har använt Zynveliq.",
+      "nothingYet": "Det finns något att dela när du har använt Talvio.",
       "title": "Dela din statistik",
       "private": "Skapas på den här datorn. Inget laddas upp.",
       "size": "Storlek",
@@ -3596,13 +3689,13 @@
       "openSite": "Öppna {{site}}",
       "openFailed": "Det gick inte att öppna {{site}}",
       "more": "Fler appar",
-      "sheetTitle": "Min Zynveliq-statistik",
+      "sheetTitle": "Min Talvio-statistik",
       "shareFailed": "Det gick inte att öppna Dela",
       "drawFailed": "Korten kunde inte ritas. Stäng och försök igen.",
       "tagline": "Gratis · Öppen källkod · Fungerar offline",
       "cards": {
         "highlights": {
-          "title": "Mitt Zynveliq i siffror",
+          "title": "Mitt Talvio i siffror",
           "words_one": "talat ord",
           "words_other": "talade ord",
           "streak_one": "dag i rad",
@@ -3665,12 +3758,12 @@
         }
       },
       "post": {
-        "dictation_one": "Med Zynveliq har jag pratat in {{formatted}} ord på datorn i stället för att skriva det.",
-        "dictation_other": "Med Zynveliq har jag pratat in {{formatted}} ord på datorn i stället för att skriva dem.",
-        "asks_one": "Jag har ställt {{formatted}} fråga till Zynveliqs assistent utan att byta flik.",
-        "asks_other": "Jag har ställt {{formatted}} frågor till Zynveliqs assistent utan att byta flik.",
-        "meetings_one": "Zynveliq har spelat in {{formatted}} möte och skrivit anteckningarna åt mig.",
-        "meetings_other": "Zynveliq har spelat in {{formatted}} möten och skrivit anteckningarna åt mig."
+        "dictation_one": "Med Talvio har jag pratat in {{formatted}} ord på datorn i stället för att skriva det.",
+        "dictation_other": "Med Talvio har jag pratat in {{formatted}} ord på datorn i stället för att skriva dem.",
+        "asks_one": "Jag har ställt {{formatted}} fråga till Talvios assistent utan att byta flik.",
+        "asks_other": "Jag har ställt {{formatted}} frågor till Talvios assistent utan att byta flik.",
+        "meetings_one": "Talvio har spelat in {{formatted}} möte och skrivit anteckningarna åt mig.",
+        "meetings_other": "Talvio har spelat in {{formatted}} möten och skrivit anteckningarna åt mig."
       }
     }
   },
@@ -3678,11 +3771,72 @@
     "restored": "Dina inställningar var skadade och har återställts från en säkerhetskopia.",
     "restoredDescription": "De senaste ändringarna kan saknas.",
     "unrecoverableTitle": "Det gick inte att återställa dina inställningar",
-    "unrecoverableDescription": "Zynveliq startade med standardinställningarna. Den skadade filen sparades som {{file}}.",
+    "unrecoverableDescription": "Talvio startade med standardinställningarna. Den skadade filen sparades som {{file}}.",
     "notSavingTitle": "Ändringar i inställningarna sparas inte",
-    "notSavingDescription": "Inställningsfilen kunde inte läsas och har därför lämnats orörd. Starta om Zynveliq för att försöka igen.",
+    "notSavingDescription": "Inställningsfilen kunde inte läsas och har därför lämnats orörd. Starta om Talvio för att försöka igen.",
     "saveFailingTitle": "Inställningarna sparas inte",
-    "saveFailingDescription": "Dina senaste ändringar har inte sparats än. Zynveliq fortsätter att försöka.",
+    "saveFailingDescription": "Dina senaste ändringar har inte sparats än. Talvio fortsätter att försöka.",
     "dismiss": "Stäng"
+  },
+  "commandMode": {
+    "feedback": {
+      "agentCancelled": "Stoppat. Jag lämnade allt som det är.",
+      "agentConfirm": "”{{name}}” i {{window}} kan skicka, köpa eller radera något. Säg ja för att fortsätta, eller avbryt.",
+      "agentConfirmed": "Klart: ”{{name}}”.",
+      "agentCostLimit": "Det skulle ha kostat mer än ${{limit}}, så jag stannade och lämnade allt som det är.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Jag kunde inte styra skärmen: {{reason}}",
+      "agentGaveUp": "Jag kunde inte slutföra det: {{reason}}",
+      "agentNotConfigured": "Det kräver att jag styr skärmen, men agenten är inte konfigurerad: {{why}}",
+      "agentOff": "Inget av mina verktyg kan göra det. Slå på ”Styr skärmen vid behov” så kan jag använda appen åt dig.",
+      "agentStepLimit": "Det tog mer än {{steps}} steg, så jag stannade och lämnade allt som det är.",
+      "agentWorking": "Jobbar på det i {{app}}…",
+      "agentWorkingNoApp": "Jobbar på det…",
+      "calendarDraft": "Kalenderhändelsen ”{{title}}” är redo att sparas.",
+      "calendarDraftMissingGuests": "Kalenderhändelsen ”{{title}}” är redo att sparas. Jag utelämnade {{guests}}: jag har ingen e-postadress till dem, så lägg till dem i formuläret.",
+      "cancelled": "Avbrutet. Inget skickades.",
+      "confirmExpired": "Det väntade för länge, så jag gjorde det inte. Fråga mig igen.",
+      "confirmFailed": "Det går inte längre att göra.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} finns i dina kontakter men har ingen sparad e-postadress eller telefonnummer.",
+      "contactNotFound": "Jag har ingen kontakt som heter {{name}}.",
+      "emailDraft": "Utkastet till {{name}} är öppet. Säg skicka eller avbryt.",
+      "emailDraftTruncated": "Utkastet till {{name}} är öppet. Meddelandet var för långt för att skickas till Gmail, så det kortades av; kontrollera slutet innan du skickar. Säg skicka eller avbryt.",
+      "emailSent": "Skickat till {{name}}.",
+      "empty": "Jag uppfattade inget kommando.",
+      "failed": "{{reason}}",
+      "mediaNext": "Hoppade till nästa spår.",
+      "mediaPlayPause": "Tryckte på spela/pausa.",
+      "mediaPrevious": "Tillbaka till föregående spår.",
+      "mediaStop": "Stoppade uppspelningen.",
+      "needsComputerUse": "Inget av mina verktyg kan göra det än. Att styra skärmen för det kommer i en senare version.",
+      "notConfigured": "Kommandoläget är inte konfigurerat: {{why}}",
+      "nothingWaitingAnswer": "Inget väntar på ett svar.",
+      "nothingWaitingConfirmation": "Inget väntar på bekräftelse.",
+      "openedInstead": "{{app}} var inte öppen, så jag öppnade den.",
+      "openingApp": "Öppnar {{app}}.",
+      "openingFile": "Öppnar {{file}}.",
+      "planCapped": "Det var för många steg på en gång, så jag hoppade över de sista {{count}}.",
+      "pressKeysConfirm": "{{keys}} kan skicka något i {{window}}. Säg ja för att trycka, eller avbryt.",
+      "pressedKeys": "Tryckte på {{keys}}.",
+      "pressedKeysRepeat": "Tryckte på {{keys}} {{count}} gånger.",
+      "question": "{{question}}",
+      "routeFailed": "Jag kunde inte lista ut vad jag skulle göra: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Söker efter {{query}}.",
+      "superseded": "Ett nyare kommando ersatte det här, så det väntar inte längre.",
+      "switchedTo": "Bytte till {{title}}.",
+      "tooManyQuestions": "Jag kunde fortfarande inte lista ut vad jag skulle göra. Försök säga det på ett annat sätt.",
+      "typedText": "Skrev det.",
+      "unsupported": "Det går inte på {{os}}.",
+      "urlOpened": "Öppnade {{site}}.",
+      "volumeDown": "Sänkte volymen.",
+      "volumeMute": "Ljudet är avstängt.",
+      "volumeSet": "Volymen är inställd på {{percent}} %.",
+      "volumeUnmute": "Ljudet är på igen.",
+      "volumeUp": "Höjde volymen.",
+      "waitingForAnswer": "Det kommandot väntar på ett svar, inte en bekräftelse.",
+      "waitingForConfirmation": "Det kommandot väntar på att du bekräftar, inte på ett svar."
+    }
   }
 }

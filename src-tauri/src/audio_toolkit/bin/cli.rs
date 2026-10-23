@@ -1,7 +1,7 @@
 use hound::WavWriter;
 use std::io::{self, Write};
 
-use zynveliq_app_lib::audio_toolkit::{
+use talvio_app_lib::audio_toolkit::{
     audio::{list_input_devices, CpalDeviceInfo},
     vad::SmoothedVad,
     AudioRecorder, SileroVad,

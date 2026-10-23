@@ -10,8 +10,8 @@ import 'shell/features.dart';
 import 'shell/home_shell.dart';
 import 'theme.dart';
 
-class ZynveliqApp extends StatefulWidget {
-  const ZynveliqApp({
+class TalvioApp extends StatefulWidget {
+  const TalvioApp({
     super.key,
     required this.session,
     required this.api,
@@ -25,10 +25,10 @@ class ZynveliqApp extends StatefulWidget {
   final SharedPreferences prefs;
 
   @override
-  State<ZynveliqApp> createState() => _ZynveliqAppState();
+  State<TalvioApp> createState() => _TalvioAppState();
 }
 
-class _ZynveliqAppState extends State<ZynveliqApp> {
+class _TalvioAppState extends State<TalvioApp> {
   final _navigator = GlobalKey<NavigatorState>();
   late final AppLifecycleListener _lifecycle;
   var _foreground = true;
@@ -83,7 +83,7 @@ class _ZynveliqAppState extends State<ZynveliqApp> {
       prefs: widget.prefs,
       child: MaterialApp(
         navigatorKey: _navigator,
-        title: 'Zynveliq',
+        title: 'Talvio',
         theme: buildTheme(Brightness.light),
         darkTheme: buildTheme(Brightness.dark),
         home: ListenableBuilder(

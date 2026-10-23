@@ -1931,14 +1931,14 @@ mod tests {
     /// cargo test --lib web_search::tests::live_search_at_every_depth -- --ignored --nocapture
     /// ```
     ///
-    /// Provider from `ZYNVELIQ_SEARCH_PROVIDER` (default `tavily`); the key
-    /// from `ZYNVELIQ_SEARCH_KEY` or the app's own keychain slot.
+    /// Provider from `TALVIO_SEARCH_PROVIDER` (default `tavily`); the key
+    /// from `TALVIO_SEARCH_KEY` or the app's own keychain slot.
     #[tokio::test]
     #[ignore]
     async fn live_search_at_every_depth() {
         let provider =
-            std::env::var("ZYNVELIQ_SEARCH_PROVIDER").unwrap_or_else(|_| "tavily".to_string());
-        let key = std::env::var("ZYNVELIQ_SEARCH_KEY")
+            std::env::var("TALVIO_SEARCH_PROVIDER").unwrap_or_else(|_| "tavily".to_string());
+        let key = std::env::var("TALVIO_SEARCH_KEY")
             .ok()
             .or_else(|| {
                 crate::secret_store::get(&crate::secret_store::account_web_search(&provider))

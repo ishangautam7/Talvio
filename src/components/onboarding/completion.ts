@@ -10,7 +10,7 @@
  * should not travel in a settings export. Losing it costs one more pass through
  * onboarding.
  */
-const KEY = "zynveliq.onboarding.completed";
+const KEY = "talvio.onboarding.completed";
 /**
  * Bumped when onboarding changes enough to be worth showing everyone again.
  * "3" is the redesigned setup and tour, so existing installs see it once.

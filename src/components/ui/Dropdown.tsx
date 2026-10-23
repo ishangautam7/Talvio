@@ -222,7 +222,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full ${size === "sm" ? "h-7 min-w-[7.5rem] rounded-md px-2.5 text-[0.8125rem]" : "h-9 min-w-[12.5rem] rounded-lg px-3 text-sm"} bg-surface border border-hairline-strong text-start flex items-center justify-between shadow-[0_1px_1px_rgba(13,24,28,0.04)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+        className={`w-full ${size === "sm" ? "h-7 min-w-[7.5rem] rounded-md px-2.5 text-[0.8125rem]" : "h-9 min-w-[12.5rem] rounded-lg px-3 text-sm"} bg-surface border border-hairline-strong text-start flex items-center justify-between shadow-[0_1px_1px_rgba(43,28,20,0.04)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
           disabled
             ? "opacity-50 cursor-not-allowed"
             : "hover:border-ink/25 cursor-pointer"
