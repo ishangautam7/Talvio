@@ -33,7 +33,7 @@
 
 pub mod tree;
 #[cfg(target_os = "windows")]
-mod uia_windows;
+pub(crate) mod uia_windows;
 
 use log::{debug, info, warn};
 use serde_json::{json, Value};
