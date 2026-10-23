@@ -590,6 +590,71 @@ one left waiting for a confirmation or an answer.
 - An audio command can also fail with `no_speech_model` (the computer has no
   speech model ready), as `dictate` can.
 
+### Assistant: asking the computer's assistant (capability `assistant`)
+
+A computer whose `capabilities` include `assistant` answers an approved phone
+with its own assistant: the same provider, model, profile, memory, web search
+and tools as the quick ask on the computer. When the computer's "Voice commands"
+are on, the assistant can also **do** things there ("play Believer on YouTube",
+"open Gmail and start an email to Ron"), through the same tools commands use;
+anything that would send, buy or delete still waits for a Do it on the
+computer's card or on the phone. Gated by the approval rules and "Phone
+dictation" (off answers `remote_input_off`); a computer whose assistant is
+switched off answers `assistant_off`.
+
+```jsonc
+// phone → computer
+{ "kind": "assistant.ask", "requestId": "uuid",
+  "text": "what's on my calendar tomorrow?",  // 1–4 000 chars, or instead:
+  "audio": "<base64 WAV>",                     // as dictate's; transcribed by the computer
+  "conversation": "c1" }                       // optional: continue an earlier answer's conversation
+
+// computer → phone, as progress
+{ "kind": "progress", "requestId": "uuid", "stage": "transcribing" }           // audio only
+{ "kind": "progress", "requestId": "uuid", "stage": "thinking", "transcript": "…" }
+{ "kind": "progress", "requestId": "uuid", "stage": "tool", "label": "Opening YouTube" }
+{ "kind": "progress", "requestId": "uuid", "stage": "answer", "text": "…the answer so far…" }
+
+// computer → phone, the result
+{ "kind": "result", "requestId": "uuid", "ok": true,
+  "transcript": "play believer on youtube",
+  "answer": "Playing “Believer” by Imagine Dragons on YouTube.",   // Markdown
+  "conversation": "c1",                       // pass back to continue it
+  "actions": [ { "label": "Played “Believer” on YouTube", "status": "done" } ],
+  "pending": { "id": 7, "summary": "Send the email to Ron" } }      // optional, see below
+```
+
+- `answer` progress carries the whole answer so far (not a delta), at most a
+  few times a second, so a phone can simply replace what it shows; the result
+  carries the final text.
+- `actions` lists what the assistant did on the computer, each with the
+  command's status (`done`, `failed`, `awaiting_confirmation`, …). A `pending`
+  action is confirmed or cancelled with `command.confirm` (`id`), exactly as a
+  command's is.
+- A conversation lives on the computer, one per phone, for 30 minutes after its
+  last question; an unknown or expired `conversation` starts a new one. It is
+  the phone's own: it never mixes with the computer's quick ask or calls.
+- Errors: `assistant_off`, `not_configured` (no model), `busy` (this phone's
+  previous question is still being answered), `bad_audio`, `no_speech`,
+  `no_speech_model`, `transcription_failed`, `failed` (the model call failed;
+  the result's `message` says why in English), `cancelled`, `remote_input_off`,
+  `not_approved`, `unsupported`.
+- Timeouts: 60 s, restarted by every `progress` (3 minutes while the last
+  progress is `approval`), plus the recording's length for audio.
+- `thinking` always carries `transcript` (a typed question as given).
+- A pending action is listed in `actions` too (`awaiting_confirmation`); a
+  phone shows it once, as the pending card. `command.confirm` for it can be
+  sent while no command is running on that computer (else `busy`).
+- A conversation that expired or was unknown is answered with a new
+  `conversation` id; that change is the only signal.
+- A cancelled question ends with `ok: false`, `error: "cancelled"` and no
+  answer; whatever `answer` progress arrived is all there is. `message` comes
+  only with `failed`.
+- Doing things needs the computer's "Voice commands" on; without it the
+  assistant only answers, and `actions` is empty.
+- Keys sent while watching (live view `keys`) count as input for the view's
+  10-minute idle stop.
+
 ### TURN: `GET /v1/turn` (authenticated)
 
 ```jsonc
