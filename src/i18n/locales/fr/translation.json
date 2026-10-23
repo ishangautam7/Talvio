@@ -646,6 +646,10 @@
             "name": "Lancer une conversation",
             "description": "Parlez avec l'assistant sans les mains et écoutez ses réponses. Appuyez à nouveau pour terminer."
           },
+          "command": {
+            "name": "Commande vocale",
+            "description": "Dites ce que vous voulez faire, par exemple « ouvre YouTube », et Talvio s'en charge."
+          },
           "hands_free": {
             "name": "Mains libres",
             "description": "Appuyez dessus en maintenant les touches de dictée pour continuer d'enregistrer après les avoir relâchées. Appuyez à nouveau sur les touches de dictée pour terminer."
@@ -682,7 +686,9 @@
         "dictation": "Activé : l'enregistrement dure tant que vous maintenez les touches. Désactivé : une pression lance, la suivante arrête, donc chaque dictée est mains libres.",
         "assistant": "Activé : écoute tant que vous maintenez les touches. Désactivé : une pression lance, la suivante envoie.",
         "dictationLabel": "Maintenir pour parler",
-        "assistantLabel": "Maintenir pour demander"
+        "assistantLabel": "Maintenir pour demander",
+        "command": "Activé : écoute tant que vous maintenez les touches. Désactivé : une pression lance, la suivante exécute la commande.",
+        "commandLabel": "Maintenir pour dire une commande"
       },
       "handsFree": {
         "unavailableKeys": "Fonctionne quand la dictée n'utilise que des touches de modification, comme Ctrl + Win. Avec {{keys}}, désactivez plutôt « Maintenir pour parler » : chaque dictée continue jusqu'à ce que vous appuyiez à nouveau sur les touches.",
@@ -2477,6 +2483,7 @@
     "processing": "Nettoyage…",
     "generating": "Rédaction avec Flow…",
     "vision": "Observation de votre écran…",
+    "command": "En cours…",
     "notices": {
       "flowNotConfigured": "Flow a besoin d'un modèle d'assistant — collé comme dictée",
       "flowFailed": "Flow n'a pas pu générer — rien n'a été collé",
@@ -2485,7 +2492,8 @@
       "cleanupFallback": "Le nettoyage IA ne s'est pas exécuté — texte brut collé",
       "cleanupModelRejected": "Votre fournisseur de nettoyage a refusé ce modèle — vérifiez le modèle dans les Paramètres",
       "cloudSttFellBack": "Échec de la transcription cloud — modèle local utilisé",
-      "noSpeechModel": "Aucun modèle vocal pour l'instant. Choisissez-en un sur la page Modèles"
+      "noSpeechModel": "Aucun modèle vocal pour l'instant. Choisissez-en un sur la page Modèles",
+      "commandTranscriptionFailed": "Commande non comprise — réessayez"
     },
     "listening": "À l'écoute…",
     "locked": "Enregistrement mains libres — appuyez à nouveau sur le raccourci pour arrêter",
@@ -2552,6 +2560,14 @@
     "body": "{{phone}} peut voir {{title}}.",
     "unnamedPhone": "Votre téléphone",
     "stop": "Arrêter"
+  },
+  "commandCard": {
+    "heading": "Commande vocale",
+    "confirm": "Exécuter",
+    "cancel": "Annuler",
+    "working": "En cours…",
+    "dryRun": "Simulation : rien n'a été fait.",
+    "sayAgain": "Redites la commande en y incluant la réponse."
   },
   "assistant": {
     "conversation": {
@@ -2786,6 +2802,7 @@
     "home": "Accueil",
     "history": "Historique",
     "assistant": "Assistant",
+    "commands": "Commandes",
     "meetings": "Réunions",
     "cleanup": "Nettoyage IA",
     "dictionary": "Dictionnaire",
@@ -2826,7 +2843,9 @@
       "assistant": "Assistant",
       "mouse": "Souris",
       "cleanupOff": "Activez le nettoyage IA pour obtenir ce raccourci.",
-      "assistantOff": "L'assistant est désactivé : ses raccourcis n'ont aucun effet."
+      "assistantOff": "L'assistant est désactivé : ses raccourcis n'ont aucun effet.",
+      "commands": "Commandes vocales",
+      "commandsOff": "Les commandes vocales sont désactivées : ce raccourci n'a aucun effet."
     },
     "audio": {
       "microphone": "Microphone",
@@ -3172,6 +3191,44 @@
       "description": "Dites une expression et obtenez un autre texte, par exemple « mon e-mail » remplacé par votre adresse."
     },
     "addWord": "Ajouter un mot"
+  },
+  "commandsPage": {
+    "description": "Dites ce que vous voulez faire, et Talvio le fait sur cet ordinateur : ouvrir un site, lancer une chanson, changer d'application, écrire un e-mail.",
+    "enable": "Commandes vocales",
+    "offNotice": "Les commandes vocales sont désactivées. Activez-les pour que leur raccourci serve à quelque chose ; ce que vous dites est alors envoyé au modèle qui exécute les commandes.",
+    "shortcut": {
+      "title": "Dire une commande",
+      "whatHold": "Maintenez, dites ce que vous voulez faire, relâchez.",
+      "whatTap": "Appuyez, dites ce que vous voulez faire, appuyez à nouveau."
+    },
+    "model": {
+      "title": "Modèle utilisé",
+      "info": "Le modèle qui transforme ce que vous dites en action. Un modèle petit et rapide est idéal : chaque commande lui envoie une seule requête.",
+      "provider": "Fournisseur",
+      "model": "Modèle",
+      "using": "Les commandes utilisent {{model}} · {{provider}}.",
+      "borrowed": "Utilise le modèle de votre assistant ({{provider}} · {{model}}), car {{chosen}} n'a pas de clé.",
+      "needsKey": "{{provider}} a besoin d'une clé pour exécuter des commandes.",
+      "setUp": "Configurer un modèle"
+    },
+    "dryRun": {
+      "title": "Simulation",
+      "info": "Montre ce qu'une commande ferait au lieu de le faire."
+    },
+    "test": {
+      "group": "Essayer",
+      "title": "Taper une commande",
+      "info": "Tapez ce que vous diriez, et voyez ce qui a été choisi et ce que chaque étape a fait."
+    },
+    "examples": {
+      "title": "Exemples à dire",
+      "items": {
+        "youtube": "« Ouvre YouTube »",
+        "song": "« Joue Believer d'Imagine Dragons »",
+        "volume": "« Baisse le volume »",
+        "switch": "« Passe à Chrome »"
+      }
+    }
   },
   "assistantPage": {
     "description": "Posez n'importe quelle question à la voix, depuis n'importe quelle application. L'assistant peut voir votre écran, chercher sur le web et retenir ce qui compte pour vous.",
@@ -3869,7 +3926,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Piste suivante.",
       "mediaPlayPause": "Lecture/pause.",
+      "mediaPlaying": "Lecture de « {{title}} » sur {{service}}.",
       "mediaPrevious": "Piste précédente.",
+      "mediaResultsOpened": "Résultats de {{service}} pour « {{query}} » ouverts.",
       "mediaStop": "Lecture arrêtée.",
       "needsComputerUse": "Aucun de mes outils ne sait encore faire cela. Le contrôle de l'écran pour ce genre de tâche arrivera dans une version ultérieure.",
       "notConfigured": "Le mode commande n'est pas configuré : {{why}}",
@@ -3886,6 +3945,7 @@
       "routeFailed": "Je n'ai pas compris quoi faire : {{why}}",
       "say": "{{text}}",
       "searchOpened": "Recherche de {{query}}.",
+      "spotifyResultsOpened": "Résultats Spotify pour « {{query}} » ouverts. Spotify ne peut pas lancer une recherche tout seul : choisissez quoi écouter.",
       "superseded": "Une commande plus récente a remplacé celle-ci, elle n'est donc plus en attente.",
       "switchedTo": "Passage à {{title}}.",
       "tooManyQuestions": "Je n'arrive toujours pas à comprendre quoi faire. Essayez de le formuler autrement.",

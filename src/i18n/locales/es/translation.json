@@ -646,6 +646,10 @@
             "name": "Iniciar una conversación",
             "description": "Habla con el asistente con manos libres y escucha sus respuestas. Pulsa de nuevo para terminar."
           },
+          "command": {
+            "name": "Comando de voz",
+            "description": "Di lo que quieres hacer, como «abre YouTube», y Talvio lo hace."
+          },
           "hands_free": {
             "name": "Manos libres",
             "description": "Púlsala mientras mantienes las teclas de dictado para seguir grabando al soltarlas. Vuelve a pulsar las teclas de dictado para terminar."
@@ -682,7 +686,9 @@
         "dictation": "Activado: graba mientras mantienes pulsadas las teclas. Desactivado: una pulsación empieza y la siguiente detiene, así que cada dictado es manos libres.",
         "assistant": "Activado: escucha mientras mantienes pulsadas las teclas. Desactivado: una pulsación empieza y la siguiente envía.",
         "dictationLabel": "Mantener para hablar",
-        "assistantLabel": "Mantener para preguntar"
+        "assistantLabel": "Mantener para preguntar",
+        "command": "Activado: escucha mientras mantienes pulsadas las teclas. Desactivado: una pulsación empieza y la siguiente ejecuta el comando.",
+        "commandLabel": "Mantener para decir un comando"
       },
       "handsFree": {
         "unavailableKeys": "Funciona cuando el dictado usa solo teclas modificadoras, como Ctrl + Win. Con {{keys}}, desactiva «Mantener para hablar»: cada dictado sigue hasta que vuelvas a pulsar las teclas.",
@@ -2477,6 +2483,7 @@
     "processing": "Limpiando…",
     "generating": "Escribiendo con Flow…",
     "vision": "Mirando tu pantalla…",
+    "command": "En ello…",
     "notices": {
       "flowNotConfigured": "Flow necesita un modelo de asistente: se pegó como dictado",
       "flowFailed": "Flow no pudo generar nada: no se pegó nada",
@@ -2485,7 +2492,8 @@
       "cleanupFallback": "La limpieza con IA no se ejecutó: se pegó el texto sin procesar",
       "cleanupModelRejected": "Tu proveedor de limpieza rechazó ese modelo: revisa el modelo en Ajustes",
       "cloudSttFellBack": "Falló la transcripción en la nube: se usó el modelo del dispositivo",
-      "noSpeechModel": "Aún no hay modelo de voz. Elige uno en la página Modelos"
+      "noSpeechModel": "Aún no hay modelo de voz. Elige uno en la página Modelos",
+      "commandTranscriptionFailed": "No se entendió el comando: inténtalo de nuevo"
     },
     "listening": "Escuchando…",
     "locked": "Grabando con manos libres: pulsa el atajo de nuevo para detener",
@@ -2552,6 +2560,14 @@
     "body": "{{phone}} puede ver {{title}}.",
     "unnamedPhone": "Tu teléfono",
     "stop": "Detener"
+  },
+  "commandCard": {
+    "heading": "Comando de voz",
+    "confirm": "Hacerlo",
+    "cancel": "Cancelar",
+    "working": "En ello…",
+    "dryRun": "Simulación: no se hizo nada.",
+    "sayAgain": "Repite el comando incluyendo la respuesta."
   },
   "assistant": {
     "conversation": {
@@ -2786,6 +2802,7 @@
     "home": "Inicio",
     "history": "Historial",
     "assistant": "Asistente",
+    "commands": "Comandos",
     "meetings": "Reuniones",
     "cleanup": "Limpieza con IA",
     "dictionary": "Diccionario",
@@ -2826,7 +2843,9 @@
       "assistant": "Asistente",
       "mouse": "Ratón",
       "cleanupOff": "Activa la limpieza con IA para usar este atajo.",
-      "assistantOff": "El asistente está desactivado, así que sus atajos no hacen nada."
+      "assistantOff": "El asistente está desactivado, así que sus atajos no hacen nada.",
+      "commands": "Comandos de voz",
+      "commandsOff": "Los comandos de voz están desactivados, así que este atajo no hace nada."
     },
     "audio": {
       "microphone": "Micrófono",
@@ -3172,6 +3191,44 @@
       "description": "Di una frase y obtén otro texto, como «mi correo» convertido en tu dirección."
     },
     "addWord": "Añadir palabra"
+  },
+  "commandsPage": {
+    "description": "Di lo que quieres hacer y Talvio lo hace en este ordenador: abrir un sitio, poner una canción, cambiar de aplicación, escribir un correo.",
+    "enable": "Comandos de voz",
+    "offNotice": "Los comandos de voz están desactivados. Actívalos para que su atajo haga algo; lo que digas irá entonces al modelo que ejecuta los comandos.",
+    "shortcut": {
+      "title": "Decir un comando",
+      "whatHold": "Mantén pulsado, di lo que quieres hacer y suelta.",
+      "whatTap": "Pulsa, di lo que quieres hacer y vuelve a pulsar."
+    },
+    "model": {
+      "title": "Se ejecuta con",
+      "info": "El modelo que convierte lo que dices en una acción. Lo mejor es uno pequeño y rápido: cada comando es una sola petición.",
+      "provider": "Proveedor",
+      "model": "Modelo",
+      "using": "Los comandos se ejecutan con {{model}} · {{provider}}.",
+      "borrowed": "Usando el modelo de tu asistente ({{provider}} · {{model}}), porque {{chosen}} no tiene clave.",
+      "needsKey": "{{provider}} necesita una clave para poder ejecutar comandos.",
+      "setUp": "Configurar un modelo"
+    },
+    "dryRun": {
+      "title": "Simulación",
+      "info": "Muestra lo que haría un comando en lugar de hacerlo."
+    },
+    "test": {
+      "group": "Pruébalo",
+      "title": "Escribe un comando",
+      "info": "Escribe lo que dirías y mira qué se eligió y qué hizo cada paso."
+    },
+    "examples": {
+      "title": "Cosas que decir",
+      "items": {
+        "youtube": "«Abre YouTube»",
+        "song": "«Pon Believer de Imagine Dragons»",
+        "volume": "«Baja el volumen»",
+        "switch": "«Cambia a Chrome»"
+      }
+    }
   },
   "assistantPage": {
     "description": "Pregunta lo que quieras por voz, desde cualquier aplicación. El asistente puede ver tu pantalla, buscar en la web y recordar lo que te importa.",
@@ -3869,7 +3926,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Pasé a la siguiente pista.",
       "mediaPlayPause": "Reproducir/pausa pulsado.",
+      "mediaPlaying": "Reproduciendo «{{title}}» en {{service}}.",
       "mediaPrevious": "Volví a la pista anterior.",
+      "mediaResultsOpened": "Abrí los resultados de {{service}} para «{{query}}».",
       "mediaStop": "Reproducción detenida.",
       "needsComputerUse": "Ninguna de mis herramientas puede hacer eso todavía. Controlar la pantalla para ello llegará en una versión posterior.",
       "notConfigured": "El modo comando no está configurado: {{why}}",
@@ -3886,6 +3945,7 @@
       "routeFailed": "No supe qué hacer: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Buscando {{query}}.",
+      "spotifyResultsOpened": "Abrí los resultados de Spotify para «{{query}}». Spotify no puede iniciar una búsqueda por sí solo, así que elige qué reproducir.",
       "superseded": "Un comando más reciente sustituyó a este, así que ya no está esperando.",
       "switchedTo": "Cambié a {{title}}.",
       "tooManyQuestions": "Sigo sin saber qué hacer. Prueba a decirlo de otra forma.",

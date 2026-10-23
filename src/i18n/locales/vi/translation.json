@@ -642,6 +642,10 @@
             "name": "Bắt đầu trò chuyện",
             "description": "Trò chuyện rảnh tay với trợ lý và nghe câu trả lời. Nhấn lần nữa để kết thúc."
           },
+          "command": {
+            "name": "Lệnh giọng nói",
+            "description": "Nói điều bạn muốn làm, chẳng hạn “mở YouTube”, và Talvio sẽ làm."
+          },
           "hands_free": {
             "name": "Rảnh tay",
             "description": "Nhấn phím này khi đang giữ các phím đọc chính tả để tiếp tục ghi âm sau khi thả tay. Nhấn lại các phím đọc chính tả để kết thúc."
@@ -678,7 +682,9 @@
         "dictation": "Bật: ghi âm trong khi bạn giữ các phím. Tắt: nhấn một lần để bắt đầu, nhấn lần nữa để dừng, nên mọi lần đọc chính tả đều rảnh tay.",
         "assistant": "Bật: lắng nghe trong khi bạn giữ các phím. Tắt: nhấn một lần để bắt đầu, nhấn lần nữa để gửi.",
         "dictationLabel": "Giữ để nói",
-        "assistantLabel": "Giữ để hỏi"
+        "assistantLabel": "Giữ để hỏi",
+        "command": "Bật: lắng nghe trong khi bạn giữ các phím. Tắt: nhấn một lần để bắt đầu, nhấn lần nữa để chạy lệnh.",
+        "commandLabel": "Giữ để nói lệnh"
       },
       "handsFree": {
         "unavailableKeys": "Hoạt động khi phím đọc chính tả chỉ gồm phím bổ trợ, như Ctrl + Win. Với {{keys}}, hãy tắt “Giữ để nói”: mỗi lần đọc chính tả sẽ tiếp tục cho đến khi bạn nhấn lại các phím.",
@@ -2453,6 +2459,7 @@
     "processing": "Đang dọn dẹp…",
     "generating": "Đang viết bằng Flow…",
     "vision": "Đang xem màn hình của bạn…",
+    "command": "Đang xử lý…",
     "notices": {
       "flowNotConfigured": "Flow cần một mô hình trợ lý — đã dán như đọc chính tả",
       "flowFailed": "Flow không tạo được nội dung — không có gì được dán",
@@ -2461,7 +2468,8 @@
       "cleanupFallback": "Dọn dẹp bằng AI không chạy — đã dán văn bản gốc",
       "cleanupModelRejected": "Nhà cung cấp dọn dẹp đã từ chối mô hình đó — hãy kiểm tra mô hình trong Cài đặt",
       "cloudSttFellBack": "Chuyển giọng nói trên đám mây thất bại — đã dùng mô hình trên thiết bị",
-      "noSpeechModel": "Chưa có mô hình giọng nói. Hãy chọn một mô hình trong trang Mô hình"
+      "noSpeechModel": "Chưa có mô hình giọng nói. Hãy chọn một mô hình trong trang Mô hình",
+      "commandTranscriptionFailed": "Không nghe rõ lệnh — hãy thử lại"
     },
     "listening": "Đang lắng nghe…",
     "locked": "Đang ghi âm rảnh tay — nhấn lại phím tắt để dừng",
@@ -2524,6 +2532,14 @@
     "body": "{{phone}} có thể thấy {{title}}.",
     "unnamedPhone": "Điện thoại của bạn",
     "stop": "Dừng"
+  },
+  "commandCard": {
+    "heading": "Lệnh giọng nói",
+    "confirm": "Thực hiện",
+    "cancel": "Hủy",
+    "working": "Đang xử lý…",
+    "dryRun": "Chạy thử: chưa làm gì cả.",
+    "sayAgain": "Nói lại lệnh kèm theo câu trả lời."
   },
   "assistant": {
     "conversation": {
@@ -2750,6 +2766,7 @@
     "home": "Trang chủ",
     "history": "Lịch sử",
     "assistant": "Trợ lý",
+    "commands": "Lệnh",
     "meetings": "Cuộc họp",
     "cleanup": "Dọn dẹp bằng AI",
     "dictionary": "Từ điển",
@@ -2790,7 +2807,9 @@
       "assistant": "Trợ lý",
       "mouse": "Chuột",
       "cleanupOff": "Bật Dọn dẹp bằng AI để dùng phím tắt này.",
-      "assistantOff": "Trợ lý đang tắt, nên các phím tắt của nó không có tác dụng."
+      "assistantOff": "Trợ lý đang tắt, nên các phím tắt của nó không có tác dụng.",
+      "commands": "Lệnh giọng nói",
+      "commandsOff": "Lệnh giọng nói đang tắt, nên phím tắt này không có tác dụng."
     },
     "audio": {
       "microphone": "Micrô",
@@ -3124,6 +3143,44 @@
       "description": "Nói một cụm từ và nhận văn bản khác, chẳng hạn “email của tôi” trở thành địa chỉ email của bạn."
     },
     "addWord": "Thêm từ"
+  },
+  "commandsPage": {
+    "description": "Nói điều bạn muốn làm, và Talvio sẽ làm trên máy tính này: mở một trang web, phát một bài hát, chuyển ứng dụng, viết email.",
+    "enable": "Lệnh giọng nói",
+    "offNotice": "Lệnh giọng nói đang tắt. Hãy bật để phím tắt của chúng có tác dụng; khi đó những gì bạn nói sẽ được gửi đến mô hình chạy lệnh.",
+    "shortcut": {
+      "title": "Nói một lệnh",
+      "whatHold": "Giữ, nói điều bạn muốn làm, thả ra.",
+      "whatTap": "Nhấn, nói điều bạn muốn làm, nhấn lại."
+    },
+    "model": {
+      "title": "Chạy bằng",
+      "info": "Mô hình biến lời bạn nói thành hành động. Tốt nhất là một mô hình nhỏ, nhanh: mỗi lệnh là một yêu cầu gửi đến nó.",
+      "provider": "Nhà cung cấp",
+      "model": "Mô hình",
+      "using": "Lệnh chạy bằng {{model}} · {{provider}}.",
+      "borrowed": "Đang dùng mô hình của trợ lý ({{provider}} · {{model}}), vì {{chosen}} chưa có khóa.",
+      "needsKey": "{{provider}} cần khóa trước khi có thể chạy lệnh.",
+      "setUp": "Thiết lập mô hình"
+    },
+    "dryRun": {
+      "title": "Chạy thử",
+      "info": "Hiển thị lệnh sẽ làm gì thay vì thực hiện nó."
+    },
+    "test": {
+      "group": "Dùng thử",
+      "title": "Nhập một lệnh",
+      "info": "Nhập điều bạn sẽ nói, rồi xem điều gì đã được chọn và mỗi bước đã làm gì."
+    },
+    "examples": {
+      "title": "Những điều có thể nói",
+      "items": {
+        "youtube": "“Mở YouTube”",
+        "song": "“Phát Believer của Imagine Dragons”",
+        "volume": "“Giảm âm lượng”",
+        "switch": "“Chuyển sang Chrome”"
+      }
+    }
   },
   "assistantPage": {
     "description": "Hỏi bất cứ điều gì bằng giọng nói, từ bất kỳ ứng dụng nào. Trợ lý có thể xem màn hình, tìm kiếm trên web và ghi nhớ những điều quan trọng với bạn.",
@@ -3761,7 +3818,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Đã chuyển sang bài tiếp theo.",
       "mediaPlayPause": "Đã nhấn phát/tạm dừng.",
+      "mediaPlaying": "Đang phát “{{title}}” trên {{service}}.",
       "mediaPrevious": "Đã quay lại bài trước.",
+      "mediaResultsOpened": "Đã mở kết quả của {{service}} cho “{{query}}”.",
       "mediaStop": "Đã dừng phát.",
       "needsComputerUse": "Chưa có công cụ nào của tôi làm được việc đó. Khả năng điều khiển màn hình cho việc này sẽ có trong phiên bản sau.",
       "notConfigured": "Chế độ lệnh chưa được thiết lập: {{why}}",
@@ -3778,6 +3837,7 @@
       "routeFailed": "Tôi không xác định được cần làm gì: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Đang tìm kiếm {{query}}.",
+      "spotifyResultsOpened": "Đã mở kết quả của Spotify cho “{{query}}”. Spotify không thể tự bắt đầu tìm kiếm, nên hãy chọn nội dung để phát.",
       "superseded": "Một lệnh mới hơn đã thay thế lệnh này, nên nó không còn chờ nữa.",
       "switchedTo": "Đã chuyển sang {{title}}.",
       "tooManyQuestions": "Tôi vẫn chưa xác định được cần làm gì. Hãy thử nói theo cách khác.",

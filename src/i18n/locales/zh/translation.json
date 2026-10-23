@@ -642,6 +642,10 @@
             "name": "开始对话",
             "description": "免手动与助手对话，并听到它的回复。再按一次即可结束。"
           },
+          "command": {
+            "name": "语音命令",
+            "description": "说出您想做的事，例如“打开 YouTube”，Talvio 就会替您完成。"
+          },
           "hands_free": {
             "name": "免持",
             "description": "按住听写键时按下它，松开后录制会继续。再次按下听写键即可结束。"
@@ -678,7 +682,9 @@
         "dictation": "开：按住按键期间持续录制。关：按一下开始，再按一下停止，因此每次听写都是免持的。",
         "assistant": "开：按住按键期间持续聆听。关：按一下开始，再按一下发送。",
         "dictationLabel": "按住说话",
-        "assistantLabel": "按住提问"
+        "assistantLabel": "按住提问",
+        "command": "开：按住按键期间持续聆听。关：按一下开始，再按一下执行命令。",
+        "commandLabel": "按住说命令"
       },
       "handsFree": {
         "unavailableKeys": "仅当听写快捷键只由修饰键组成时可用，例如 Ctrl + Win。使用 {{keys}} 时，请改为关闭“按住说话”：每次听写都会持续到你再次按下按键。",
@@ -2453,6 +2459,7 @@
     "processing": "正在清理…",
     "generating": "正在用 Flow 撰写…",
     "vision": "正在查看您的屏幕…",
+    "command": "正在处理…",
     "notices": {
       "flowNotConfigured": "Flow 需要一个助手模型——已作为普通语音输入粘贴",
       "flowFailed": "Flow 无法生成——未粘贴任何内容",
@@ -2461,7 +2468,8 @@
       "cleanupFallback": "AI 清理未运行——已粘贴原始文本",
       "cleanupModelRejected": "您的清理提供商拒绝了该模型——请在设置中检查模型",
       "cloudSttFellBack": "云端转写失败——已改用本机模型",
-      "noSpeechModel": "还没有语音模型。请在“模型”页面选择一个"
+      "noSpeechModel": "还没有语音模型。请在“模型”页面选择一个",
+      "commandTranscriptionFailed": "没听清命令——请重试"
     },
     "listening": "正在聆听…",
     "locked": "免持录制中——再次按下快捷键即可停止",
@@ -2524,6 +2532,14 @@
     "body": "{{phone}} 可以看到 {{title}}。",
     "unnamedPhone": "您的手机",
     "stop": "停止"
+  },
+  "commandCard": {
+    "heading": "语音命令",
+    "confirm": "执行",
+    "cancel": "取消",
+    "working": "正在处理…",
+    "dryRun": "试运行：未执行任何操作。",
+    "sayAgain": "请重新说一遍命令，并在其中包含答案。"
   },
   "assistant": {
     "conversation": {
@@ -2750,6 +2766,7 @@
     "home": "主页",
     "history": "历史记录",
     "assistant": "助手",
+    "commands": "命令",
     "meetings": "会议",
     "cleanup": "AI 清理",
     "dictionary": "词典",
@@ -2790,7 +2807,9 @@
       "assistant": "助手",
       "mouse": "鼠标",
       "cleanupOff": "开启 AI 清理后即可使用此快捷键。",
-      "assistantOff": "助手已关闭，因此它的快捷键不起作用。"
+      "assistantOff": "助手已关闭，因此它的快捷键不起作用。",
+      "commands": "语音命令",
+      "commandsOff": "语音命令已关闭，因此此快捷键不起作用。"
     },
     "audio": {
       "microphone": "麦克风",
@@ -3124,6 +3143,44 @@
       "description": "说出一个短语，得到不同的文字，例如说“我的邮箱”就会输入您的邮箱地址。"
     },
     "addWord": "添加词汇"
+  },
+  "commandsPage": {
+    "description": "说出您想做的事，Talvio 会在这台电脑上完成：打开网站、播放歌曲、切换应用、写邮件。",
+    "enable": "语音命令",
+    "offNotice": "语音命令已关闭。开启后其快捷键才会生效；您说的内容会发送给执行命令的模型。",
+    "shortcut": {
+      "title": "说出命令",
+      "whatHold": "按住、说出您想做的事、松开。",
+      "whatTap": "按一下、说出您想做的事、再按一下。"
+    },
+    "model": {
+      "title": "运行模型",
+      "info": "将您说的话转换为操作的模型。小而快的模型最合适：每条命令只向它发送一次请求。",
+      "provider": "提供商",
+      "model": "模型",
+      "using": "命令在 {{model}} · {{provider}} 上运行。",
+      "borrowed": "由于 {{chosen}} 没有密钥，正在使用助手的模型（{{provider}} · {{model}}）。",
+      "needsKey": "{{provider}} 需要密钥才能运行命令。",
+      "setUp": "设置模型"
+    },
+    "dryRun": {
+      "title": "试运行",
+      "info": "显示命令将会执行的操作，而不实际执行。"
+    },
+    "test": {
+      "group": "试一试",
+      "title": "输入命令",
+      "info": "输入您要说的话，查看选择了什么以及每一步做了什么。"
+    },
+    "examples": {
+      "title": "可以这样说",
+      "items": {
+        "youtube": "“打开 YouTube”",
+        "song": "“播放 Imagine Dragons 的 Believer”",
+        "volume": "“把音量调低”",
+        "switch": "“切换到 Chrome”"
+      }
+    }
   },
   "assistantPage": {
     "description": "在任何应用中用语音提问。助手可以查看您的屏幕、搜索网络，并记住对您重要的事。",
@@ -3761,7 +3818,9 @@
       "failed": "{{reason}}",
       "mediaNext": "已跳到下一首。",
       "mediaPlayPause": "已按下播放/暂停。",
+      "mediaPlaying": "正在 {{service}} 上播放“{{title}}”。",
       "mediaPrevious": "已回到上一首。",
+      "mediaResultsOpened": "已在 {{service}} 上打开“{{query}}”的搜索结果。",
       "mediaStop": "已停止播放。",
       "needsComputerUse": "我的工具暂时都做不到。操控屏幕来完成这类任务将在后续版本中提供。",
       "notConfigured": "命令模式尚未设置：{{why}}",
@@ -3778,6 +3837,7 @@
       "routeFailed": "我没弄明白该做什么：{{why}}",
       "say": "{{text}}",
       "searchOpened": "正在搜索 {{query}}。",
+      "spotifyResultsOpened": "已在 Spotify 上打开“{{query}}”的搜索结果。Spotify 无法自动开始搜索，请选择要播放的内容。",
       "superseded": "一条更新的命令取代了它，所以它不再等待了。",
       "switchedTo": "已切换到 {{title}}。",
       "tooManyQuestions": "我还是没弄明白该做什么。请换个说法试试。",

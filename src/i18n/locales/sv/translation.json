@@ -644,6 +644,10 @@
             "name": "Starta en konversation",
             "description": "Prata med assistenten handsfree och hör dess svar. Tryck igen för att avsluta."
           },
+          "command": {
+            "name": "Röstkommando",
+            "description": "Säg vad du vill få gjort, till exempel ”öppna YouTube”, så gör Talvio det."
+          },
           "hands_free": {
             "name": "Handsfree",
             "description": "Tryck på den medan du håller dikteringstangenterna, så fortsätter inspelningen när du släpper. Tryck på dikteringstangenterna igen för att avsluta."
@@ -680,7 +684,9 @@
         "dictation": "På: inspelningen pågår medan du håller ned tangenterna. Av: en tryckning startar, nästa stoppar, så varje diktering blir handsfree.",
         "assistant": "På: lyssnar medan du håller ned tangenterna. Av: en tryckning startar, nästa skickar.",
         "dictationLabel": "Håll för att prata",
-        "assistantLabel": "Håll för att fråga"
+        "assistantLabel": "Håll för att fråga",
+        "command": "På: lyssnar medan du håller ned tangenterna. Av: en tryckning startar, nästa kör kommandot.",
+        "commandLabel": "Håll för att säga ett kommando"
       },
       "handsFree": {
         "unavailableKeys": "Fungerar när diktering bara består av modifierartangenter, som Ctrl + Win. Med {{keys}}, stäng av ”Håll för att prata” i stället: varje diktering fortsätter då tills du trycker på tangenterna igen.",
@@ -2465,6 +2471,7 @@
     "processing": "Rensar…",
     "generating": "Skriver med Flow…",
     "vision": "Tittar på din skärm…",
+    "command": "Jobbar på det…",
     "notices": {
       "flowNotConfigured": "Flow behöver en assistentmodell — inklistrat som diktering",
       "flowFailed": "Flow kunde inte generera — inget klistrades in",
@@ -2473,7 +2480,8 @@
       "cleanupFallback": "AI-rensningen kördes inte — klistrade in råtexten",
       "cleanupModelRejected": "Leverantören för rensning avvisade modellen — kontrollera modellen i Inställningar",
       "cloudSttFellBack": "Molntranskriberingen misslyckades — använde modellen på enheten",
-      "noSpeechModel": "Ingen talmodell än. Välj en på sidan Modeller"
+      "noSpeechModel": "Ingen talmodell än. Välj en på sidan Modeller",
+      "commandTranscriptionFailed": "Kunde inte höra kommandot — försök igen"
     },
     "listening": "Lyssnar…",
     "locked": "Spelar in handsfree — tryck på kortkommandot igen för att stoppa",
@@ -2538,6 +2546,14 @@
     "body": "{{phone}} kan se {{title}}.",
     "unnamedPhone": "Din telefon",
     "stop": "Stoppa"
+  },
+  "commandCard": {
+    "heading": "Röstkommando",
+    "confirm": "Gör det",
+    "cancel": "Avbryt",
+    "working": "Jobbar på det…",
+    "dryRun": "Testkörning: inget gjordes.",
+    "sayAgain": "Säg kommandot igen med svaret i det."
   },
   "assistant": {
     "conversation": {
@@ -2768,6 +2784,7 @@
     "home": "Hem",
     "history": "Historik",
     "assistant": "Assistent",
+    "commands": "Kommandon",
     "meetings": "Möten",
     "cleanup": "AI-rensning",
     "dictionary": "Ordlista",
@@ -2808,7 +2825,9 @@
       "assistant": "Assistent",
       "mouse": "Mus",
       "cleanupOff": "Slå på AI-rensning för att få det här kortkommandot.",
-      "assistantOff": "Assistenten är avstängd, så dess kortkommandon gör ingenting."
+      "assistantOff": "Assistenten är avstängd, så dess kortkommandon gör ingenting.",
+      "commands": "Röstkommandon",
+      "commandsOff": "Röstkommandon är avstängda, så det här kortkommandot gör ingenting."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3148,6 +3167,44 @@
       "description": "Säg en fras och få en annan text, till exempel att ”min e-post” blir din adress."
     },
     "addWord": "Lägg till ord"
+  },
+  "commandsPage": {
+    "description": "Säg vad du vill få gjort, så gör Talvio det på den här datorn: öppnar en webbplats, spelar en låt, byter app, skriver ett mejl.",
+    "enable": "Röstkommandon",
+    "offNotice": "Röstkommandon är avstängda. Slå på dem för att ge deras kortkommando något att göra; det du säger skickas då till modellen som kör kommandona.",
+    "shortcut": {
+      "title": "Säg ett kommando",
+      "whatHold": "Håll ned, säg vad du vill få gjort, släpp.",
+      "whatTap": "Tryck, säg vad du vill få gjort, tryck igen."
+    },
+    "model": {
+      "title": "Körs på",
+      "info": "Modellen som gör om det du säger till en handling. En liten, snabb modell är bäst: varje kommando är en förfrågan till den.",
+      "provider": "Leverantör",
+      "model": "Modell",
+      "using": "Kommandon körs på {{model}} · {{provider}}.",
+      "borrowed": "Använder assistentens modell ({{provider}} · {{model}}), eftersom {{chosen}} saknar nyckel.",
+      "needsKey": "{{provider}} behöver en nyckel innan kommandon kan köras.",
+      "setUp": "Konfigurera en modell"
+    },
+    "dryRun": {
+      "title": "Testkörning",
+      "info": "Visa vad ett kommando skulle göra i stället för att göra det."
+    },
+    "test": {
+      "group": "Prova",
+      "title": "Skriv ett kommando",
+      "info": "Skriv det du skulle säga och se vad som valdes och vad varje steg gjorde."
+    },
+    "examples": {
+      "title": "Saker att säga",
+      "items": {
+        "youtube": "”Öppna YouTube”",
+        "song": "”Spela Believer med Imagine Dragons”",
+        "volume": "”Sänk volymen”",
+        "switch": "”Byt till Chrome”"
+      }
+    }
   },
   "assistantPage": {
     "description": "Fråga vad som helst med rösten, från vilken app som helst. Assistenten kan se din skärm, söka på webben och minnas det som är viktigt för dig.",
@@ -3815,7 +3872,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Hoppade till nästa spår.",
       "mediaPlayPause": "Tryckte på spela/pausa.",
+      "mediaPlaying": "Spelar ”{{title}}” på {{service}}.",
       "mediaPrevious": "Tillbaka till föregående spår.",
+      "mediaResultsOpened": "Öppnade resultaten för ”{{query}}” på {{service}}.",
       "mediaStop": "Stoppade uppspelningen.",
       "needsComputerUse": "Inget av mina verktyg kan göra det än. Att styra skärmen för det kommer i en senare version.",
       "notConfigured": "Kommandoläget är inte konfigurerat: {{why}}",
@@ -3832,6 +3891,7 @@
       "routeFailed": "Jag kunde inte lista ut vad jag skulle göra: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Söker efter {{query}}.",
+      "spotifyResultsOpened": "Öppnade Spotifys resultat för ”{{query}}”. Spotify kan inte starta en sökning själv, så välj vad som ska spelas.",
       "superseded": "Ett nyare kommando ersatte det här, så det väntar inte längre.",
       "switchedTo": "Bytte till {{title}}.",
       "tooManyQuestions": "Jag kunde fortfarande inte lista ut vad jag skulle göra. Försök säga det på ett annat sätt.",

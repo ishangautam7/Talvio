@@ -644,6 +644,10 @@
             "name": "Sohbet başlat",
             "description": "Asistanla elleriniz serbest konuşun ve yanıtlarını dinleyin. Bitirmek için yine basın."
           },
+          "command": {
+            "name": "Sesli komut",
+            "description": "Ne yapılmasını istediğinizi söyleyin, örneğin “YouTube'u aç”, Talvio yapar."
+          },
           "hands_free": {
             "name": "Eller serbest",
             "description": "Dikte tuşlarını basılı tutarken basın; tuşları bıraktıktan sonra da kayıt devam eder. Bitirmek için dikte tuşlarına yeniden basın."
@@ -680,7 +684,9 @@
         "dictation": "Açık: tuşları basılı tuttuğunuz sürece kayıt devam eder. Kapalı: bir basış başlatır, sonraki durdurur; böylece her dikte eller serbest olur.",
         "assistant": "Açık: tuşları basılı tuttuğunuz sürece dinler. Kapalı: bir basış başlatır, sonraki gönderir.",
         "dictationLabel": "Konuşmak için basılı tut",
-        "assistantLabel": "Sormak için basılı tut"
+        "assistantLabel": "Sormak için basılı tut",
+        "command": "Açık: tuşları basılı tuttuğunuz sürece dinler. Kapalı: bir basış başlatır, sonraki komutu çalıştırır.",
+        "commandLabel": "Komut söylemek için basılı tut"
       },
       "handsFree": {
         "unavailableKeys": "Dikte yalnızca Ctrl + Win gibi değiştirici tuşlardan oluştuğunda çalışır. {{keys}} ile bunun yerine “Konuşmak için basılı tut” seçeneğini kapatın: her dikte, tuşlara yeniden basana kadar sürer.",
@@ -2465,6 +2471,7 @@
     "processing": "Temizleniyor…",
     "generating": "Flow ile yazılıyor…",
     "vision": "Ekranınıza bakılıyor…",
+    "command": "Üzerinde çalışılıyor…",
     "notices": {
       "flowNotConfigured": "Flow bir asistan modeline ihtiyaç duyuyor — dikte olarak yapıştırıldı",
       "flowFailed": "Flow oluşturamadı — hiçbir şey yapıştırılmadı",
@@ -2473,7 +2480,8 @@
       "cleanupFallback": "Yapay zekâ temizleme çalışmadı — ham metin yapıştırıldı",
       "cleanupModelRejected": "Temizleme sağlayıcınız bu modeli reddetti — Ayarlar'da modeli kontrol edin",
       "cloudSttFellBack": "Bulut transkripsiyonu başarısız oldu — cihazdaki model kullanıldı",
-      "noSpeechModel": "Henüz konuşma modeli yok. Modeller sayfasından bir tane seçin"
+      "noSpeechModel": "Henüz konuşma modeli yok. Modeller sayfasından bir tane seçin",
+      "commandTranscriptionFailed": "Komut duyulamadı — yeniden deneyin"
     },
     "listening": "Dinleniyor…",
     "locked": "Eller serbest kaydediliyor — durdurmak için kısayola tekrar basın",
@@ -2538,6 +2546,14 @@
     "body": "{{phone}}, {{title}} penceresini görebilir.",
     "unnamedPhone": "Telefonunuz",
     "stop": "Durdur"
+  },
+  "commandCard": {
+    "heading": "Sesli komut",
+    "confirm": "Yap",
+    "cancel": "İptal",
+    "working": "Üzerinde çalışılıyor…",
+    "dryRun": "Deneme çalıştırması: hiçbir şey yapılmadı.",
+    "sayAgain": "Komutu, yanıtı da içerecek şekilde yeniden söyleyin."
   },
   "assistant": {
     "conversation": {
@@ -2768,6 +2784,7 @@
     "home": "Ana Sayfa",
     "history": "Geçmiş",
     "assistant": "Asistan",
+    "commands": "Komutlar",
     "meetings": "Toplantılar",
     "cleanup": "Yapay zekâ temizleme",
     "dictionary": "Sözlük",
@@ -2808,7 +2825,9 @@
       "assistant": "Asistan",
       "mouse": "Fare",
       "cleanupOff": "Bu kısayolu kullanmak için yapay zekâ temizlemeyi açın.",
-      "assistantOff": "Asistan kapalı, bu yüzden kısayolları hiçbir şey yapmaz."
+      "assistantOff": "Asistan kapalı, bu yüzden kısayolları hiçbir şey yapmaz.",
+      "commands": "Sesli komutlar",
+      "commandsOff": "Sesli komutlar kapalı, bu yüzden bu kısayol hiçbir şey yapmaz."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3148,6 +3167,44 @@
       "description": "Bir ifade söyleyin, yerine başka bir metin gelsin; örneğin “e-postam” adresinize dönüşsün."
     },
     "addWord": "Kelime ekle"
+  },
+  "commandsPage": {
+    "description": "Ne yapılmasını istediğinizi söyleyin, Talvio bu bilgisayarda yapsın: bir site açmak, şarkı çalmak, uygulama değiştirmek, e-posta yazmak.",
+    "enable": "Sesli komutlar",
+    "offNotice": "Sesli komutlar kapalı. Kısayollarının bir işe yaraması için açın; söyledikleriniz o zaman komutları çalıştıran modele gider.",
+    "shortcut": {
+      "title": "Komut söyle",
+      "whatHold": "Basılı tutun, ne yapılmasını istediğinizi söyleyin, bırakın.",
+      "whatTap": "Dokunun, ne yapılmasını istediğinizi söyleyin, yeniden dokunun."
+    },
+    "model": {
+      "title": "Çalıştığı model",
+      "info": "Söylediklerinizi bir eyleme dönüştüren model. Küçük ve hızlı bir model en iyisidir: her komut ona yapılan tek bir istektir.",
+      "provider": "Sağlayıcı",
+      "model": "Model",
+      "using": "Komutlar {{model}} · {{provider}} üzerinde çalışıyor.",
+      "borrowed": "{{chosen}} için anahtar olmadığından asistanınızın modeli kullanılıyor ({{provider}} · {{model}}).",
+      "needsKey": "Komutların çalışabilmesi için {{provider}} bir anahtar gerektiriyor.",
+      "setUp": "Bir model ayarla"
+    },
+    "dryRun": {
+      "title": "Deneme çalıştırması",
+      "info": "Bir komutun ne yapacağını, yapmadan gösterir."
+    },
+    "test": {
+      "group": "Deneyin",
+      "title": "Bir komut yazın",
+      "info": "Söyleyeceğiniz şeyi yazın; neyin seçildiğini ve her adımın ne yaptığını görün."
+    },
+    "examples": {
+      "title": "Söyleyebilecekleriniz",
+      "items": {
+        "youtube": "“YouTube'u aç”",
+        "song": "“Imagine Dragons'tan Believer'ı çal”",
+        "volume": "“Sesi kıs”",
+        "switch": "“Chrome'a geç”"
+      }
+    }
   },
   "assistantPage": {
     "description": "Her uygulamadan sesle her şeyi sorun. Asistan ekranınızı görebilir, web'de arama yapabilir ve sizin için önemli olanı hatırlayabilir.",
@@ -3815,7 +3872,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Sonraki parçaya geçildi.",
       "mediaPlayPause": "Oynat/duraklat tuşuna basıldı.",
+      "mediaPlaying": "“{{title}}” {{service}} üzerinde çalınıyor.",
       "mediaPrevious": "Önceki parçaya dönüldü.",
+      "mediaResultsOpened": "{{service}} üzerinde “{{query}}” sonuçları açıldı.",
       "mediaStop": "Oynatma durduruldu.",
       "needsComputerUse": "Araçlarımın hiçbiri bunu henüz yapamıyor. Bunun için ekranı kontrol etme özelliği sonraki bir sürümde gelecek.",
       "notConfigured": "Komut modu ayarlanmamış: {{why}}",
@@ -3832,6 +3891,7 @@
       "routeFailed": "Ne yapacağımı çıkaramadım: {{why}}",
       "say": "{{text}}",
       "searchOpened": "{{query}} aranıyor.",
+      "spotifyResultsOpened": "Spotify'da “{{query}}” sonuçları açıldı. Spotify kendi başına arama başlatamaz, bu yüzden ne çalınacağını siz seçin.",
       "superseded": "Daha yeni bir komut bunun yerini aldı, bu yüzden artık beklemiyor.",
       "switchedTo": "{{title}} penceresine geçildi.",
       "tooManyQuestions": "Hâlâ ne yapacağımı çıkaramadım. Farklı bir şekilde söylemeyi deneyin.",
