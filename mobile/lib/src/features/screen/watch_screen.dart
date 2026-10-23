@@ -6,8 +6,15 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/app_services.dart';
 import '../../core/models.dart';
+import '../../core/relay_client.dart';
+import '../../shell/shell_scope.dart';
 import '../../theme.dart';
+import '../assistant/assistant_controller.dart';
+import '../assistant/assistant_scope.dart';
+import '../assistant/assistant_widgets.dart';
+import '../assistant/strings.dart';
 import '../dictate/dictate_controller.dart';
+import '../dictate/key_pad.dart';
 import '../dictate/remote_windows.dart';
 import '../dictate/strings.dart';
 import 'live_protocol.dart';
@@ -22,15 +29,21 @@ String screenLabel(RemoteScreen screen) =>
     screen.name.isEmpty ? ScreenStrings.untitledScreen : screen.name;
 
 /// The route of live view: a window or screen of [computer], to watch.
+/// With [assistant], the viewer has the assistant bar, in the same chat as
+/// the Assistant page, which [onOpenAssistant] shows.
 Route<void> watchRoute({
   required Device computer,
   required WatchTarget target,
   RtcLinkFactory? linkFactory,
+  AssistantController? assistant,
+  VoidCallback? onOpenAssistant,
 }) => MaterialPageRoute(
   builder: (_) => WatchScreen(
     computer: computer,
     target: target,
     linkFactory: linkFactory ?? WebRtcLink.create,
+    assistant: assistant,
+    onOpenAssistant: onOpenAssistant,
   ),
 );
 
@@ -46,24 +59,40 @@ Future<void> openWatch(
   final computer = dictate.computer;
   if (computer == null) return;
   dictate.chooseWindow(window);
-  await Navigator.of(
-    context,
-  ).push(watchRoute(computer: computer, target: target));
+  final select = ShellScope.maybeOf(context)?.select;
+  await Navigator.of(context).push(
+    watchRoute(
+      computer: computer,
+      target: target,
+      assistant: AssistantScope.maybeOf(context),
+      onOpenAssistant: select == null ? null : () => select('assistant'),
+    ),
+  );
 }
 
-/// Live view, to watch only: pinch and drag move around the picture, and
-/// nothing on the computer is clicked, scrolled or typed into from here.
+/// Live view: pinch and drag move around the picture, and nothing on the
+/// computer is clicked or scrolled from here. Under the picture (beside it
+/// on its side) are the keys, pressed in the watched window, and the
+/// assistant bar.
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
     super.key,
     required this.computer,
     required this.target,
     required this.linkFactory,
+    this.assistant,
+    this.onOpenAssistant,
   });
 
   final Device computer;
   final WatchTarget target;
   final RtcLinkFactory linkFactory;
+
+  /// The app's assistant chat; null leaves the assistant bar out.
+  final AssistantController? assistant;
+
+  /// Shows the Assistant page (after the viewer closes).
+  final VoidCallback? onOpenAssistant;
 
   @override
   State<WatchScreen> createState() => _WatchScreenState();
@@ -94,6 +123,20 @@ class _WatchScreenState extends State<WatchScreen>
   /// Where the view was when the pan or zoom in progress began.
   Matrix4? _gestureFrom;
 
+  /// The key pad is open.
+  var _keysOpen = false;
+
+  /// On its side: the assistant's panel is open. Upright the bar is always
+  /// there.
+  var _assistantOpen = false;
+
+  /// The latest answer's card is open, and the turn it shows. Only turns
+  /// asked after the viewer opened are shown over the picture.
+  var _answerOpen = true;
+  AssistantTurn? _answerTurn;
+  AssistantTurn? _turnAtOpen;
+  StreamSubscription<String>? _keyErrors;
+
   @override
   void initState() {
     super.initState();
@@ -111,12 +154,61 @@ class _WatchScreenState extends State<WatchScreen>
       onPause: () => _watch.setForeground(false),
     );
     _keepAwake(true);
+    _keyErrors = _watch.keyErrors.listen(_onKeyError);
+    widget.assistant?.addListener(_onAssistant);
+    _turnAtOpen = _answerTurn = widget.assistant?.turns.lastOrNull;
     _watch.start();
+  }
+
+  void _onKeyError(String code) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(ScreenStrings.error(code, _name))));
+  }
+
+  void _pressKeys(List<String> keys) {
+    unawaited(HapticFeedback.selectionClick());
+    _watch.pressKeys(keys);
+  }
+
+  /// A new question opens its card again.
+  void _onAssistant() {
+    final last = widget.assistant?.turns.lastOrNull;
+    if (!identical(last, _answerTurn)) {
+      _answerTurn = last;
+      if (!_answerOpen) setState(() => _answerOpen = true);
+    }
+  }
+
+  /// The turn to show over the picture: the latest, if asked here.
+  AssistantTurn? get _shownTurn {
+    final last = widget.assistant?.turns.lastOrNull;
+    return last == null || identical(last, _turnAtOpen) ? null : last;
+  }
+
+  /// The watched computer, as the relay knows it now.
+  Device get _computer =>
+      AppServices.of(context).relay.devices.value
+          ?.where((d) => d.id == widget.computer.id)
+          .firstOrNull ??
+      widget.computer;
+
+  /// The assistant bar is offered.
+  bool get _canAsk => widget.assistant != null && hasAssistant(_computer);
+
+  /// Closes the viewer and shows the Assistant page.
+  void _openAssistant() {
+    final open = widget.onOpenAssistant;
+    unawaited(Navigator.maybePop(context));
+    open?.call();
   }
 
   @override
   void dispose() {
     _keepAwake(false);
+    unawaited(_keyErrors?.cancel());
+    widget.assistant?.removeListener(_onAssistant);
     if (_held != null) _hold(null);
     _lifecycle.dispose();
     _watch
@@ -247,7 +339,11 @@ class _WatchScreenState extends State<WatchScreen>
       data: buildTheme(Brightness.dark),
       child: Builder(
         builder: (context) => ListenableBuilder(
-          listenable: _watch,
+          listenable: Listenable.merge([
+            _watch,
+            ?widget.assistant,
+            AppServices.of(context).relay.devices,
+          ]),
           builder: (context, _) => Scaffold(
             backgroundColor: Colors.black,
             body: MediaQuery.orientationOf(context) == Orientation.landscape
@@ -260,7 +356,16 @@ class _WatchScreenState extends State<WatchScreen>
                   )
                 : Column(
                     children: [
-                      Expanded(child: _buildStage(context)),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) => Stack(
+                            children: [
+                              Positioned.fill(child: _buildStage(context)),
+                              ?_answerOverlay(context, constraints),
+                            ],
+                          ),
+                        ),
+                      ),
                       _buildBar(context),
                     ],
                   ),
@@ -458,7 +563,70 @@ class _WatchScreenState extends State<WatchScreen>
 
   void _close() => unawaited(Navigator.maybePop(context));
 
-  /// Portrait: one slim row under the picture, sound and Stop.
+  /// Keys open or closed.
+  Widget _keysToggle() => IconButton(
+    tooltip: _keysOpen ? AssistantStrings.hideKeys : AssistantStrings.keys,
+    isSelected: _keysOpen,
+    onPressed: _watch.phase == WatchPhase.ended
+        ? null
+        : () => setState(() => _keysOpen = !_keysOpen),
+    icon: const Icon(Icons.keyboard_outlined),
+    selectedIcon: const Icon(Icons.keyboard),
+  );
+
+  Widget _keyPad() => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: KeyPad(
+      platform: _computer.platform,
+      onPress: _watch.channelOpen ? _pressKeys : null,
+    ),
+  );
+
+  /// The assistant can be asked now.
+  bool get _assistantReady =>
+      _computer.online &&
+      AppServices.of(context).relay.status.value == RelayStatus.connected;
+
+  Widget _assistantInput() => AssistantInput(
+    controller: widget.assistant!,
+    enabled: _assistantReady,
+    dense: true,
+  );
+
+  /// Upright: the latest answer over the bottom of the picture, at most
+  /// about a third of it; a small button once it is hidden.
+  Widget? _answerOverlay(BuildContext context, BoxConstraints constraints) {
+    final turn = _shownTurn;
+    if (!_canAsk || turn == null) return null;
+    if (!_answerOpen) {
+      return Positioned(
+        right: 8,
+        bottom: 8,
+        child: FilledButton.tonalIcon(
+          onPressed: () => setState(() => _answerOpen = true),
+          icon: const Icon(Icons.chat_bubble_outline, size: 18),
+          label: const Text(AssistantStrings.showAnswer),
+        ),
+      );
+    }
+    return Positioned(
+      left: 8,
+      right: 8,
+      bottom: 8,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: constraints.maxHeight * 0.35),
+        child: _AnswerCard(
+          turn: turn,
+          controller: widget.assistant!,
+          onHide: () => setState(() => _answerOpen = false),
+          onOpen: widget.onOpenAssistant == null ? null : _openAssistant,
+        ),
+      ),
+    );
+  }
+
+  /// Upright: the keys when open, the assistant bar, then sound, Keys and
+  /// Stop.
   Widget _buildBar(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.surface,
@@ -466,14 +634,22 @@ class _WatchScreenState extends State<WatchScreen>
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _sound(),
-              const Spacer(),
-              FilledButton.tonalIcon(
-                onPressed: _close,
-                icon: const Icon(Icons.stop_rounded),
-                label: const Text(ScreenStrings.stop),
+              if (_keysOpen) _keyPad(),
+              if (_canAsk) _assistantInput(),
+              Row(
+                children: [
+                  _sound(),
+                  _keysToggle(),
+                  const Spacer(),
+                  FilledButton.tonalIcon(
+                    onPressed: _close,
+                    icon: const Icon(Icons.stop_rounded),
+                    label: const Text(ScreenStrings.stop),
+                  ),
+                ],
               ),
             ],
           ),
@@ -482,28 +658,159 @@ class _WatchScreenState extends State<WatchScreen>
     );
   }
 
-  /// Landscape: the same two buttons in a slim column beside the picture.
+  /// On its side: a slim column of buttons beside the picture, and beside
+  /// it, while open, a panel with the latest answer, the keys and the
+  /// assistant bar.
   Widget _buildSide(BuildContext context) {
+    final asking = _canAsk && _assistantOpen;
+    final turn = asking ? _shownTurn : null;
+    final width = MediaQuery.sizeOf(context).width;
     return Material(
       color: Theme.of(context).colorScheme.surface,
       child: SafeArea(
         left: false,
-        child: SizedBox(
-          width: 64,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              children: [
-                _sound(),
-                const SizedBox(height: 8),
-                IconButton.filledTonal(
-                  tooltip: ScreenStrings.stop,
-                  onPressed: _close,
-                  icon: const Icon(Icons.stop_rounded),
+        child: Row(
+          children: [
+            if (asking || _keysOpen)
+              SizedBox(
+                width: (width * 0.45).clamp(KeyPad.minWidth + 16, 400),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+                  child: Column(
+                    children: [
+                      if (turn != null)
+                        Expanded(
+                          child: _AnswerCard(
+                            turn: turn,
+                            controller: widget.assistant!,
+                            onHide: null,
+                            onOpen: widget.onOpenAssistant == null
+                                ? null
+                                : _openAssistant,
+                          ),
+                        )
+                      else
+                        const Spacer(),
+                      const SizedBox(height: 8),
+                      if (_keysOpen) _keyPad(),
+                      if (asking) _assistantInput(),
+                    ],
+                  ),
                 ),
+              ),
+            SizedBox(
+              width: 64,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  children: [
+                    _sound(),
+                    const SizedBox(height: 8),
+                    _keysToggle(),
+                    if (_canAsk) ...[
+                      const SizedBox(height: 8),
+                      IconButton(
+                        tooltip: _assistantOpen
+                            ? AssistantStrings.hideAssistant
+                            : AssistantStrings.askHere,
+                        isSelected: _assistantOpen,
+                        onPressed: () =>
+                            setState(() => _assistantOpen = !_assistantOpen),
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        selectedIcon: const Icon(Icons.chat_bubble),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    IconButton.filledTonal(
+                      tooltip: ScreenStrings.stop,
+                      onPressed: _close,
+                      icon: const Icon(Icons.stop_rounded),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The latest answer in live view: the question, the answer as it streams
+/// in, what was done and anything waiting for Do it. Tapping it opens the
+/// Assistant page.
+class _AnswerCard extends StatelessWidget {
+  const _AnswerCard({
+    required this.turn,
+    required this.controller,
+    required this.onHide,
+    required this.onOpen,
+  });
+
+  final AssistantTurn turn;
+  final AssistantController controller;
+  final VoidCallback? onHide;
+  final VoidCallback? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.96),
+      child: InkWell(
+        onTap: onOpen,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.chat_bubble_outline,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AssistantStrings.assistantOn(turn.computerName),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
+                if (onOpen != null)
+                  IconButton(
+                    tooltip: AssistantStrings.openAssistant,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onOpen,
+                    icon: const Icon(Icons.open_in_full, size: 18),
+                  ),
+                if (onHide != null)
+                  IconButton(
+                    tooltip: AssistantStrings.hideAnswer,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onHide,
+                    icon: const Icon(Icons.expand_more),
+                  ),
               ],
             ),
-          ),
+            Flexible(
+              child: SingleChildScrollView(
+                reverse: true,
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: TurnView(
+                  turn: turn,
+                  controller: controller,
+                  compact: true,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

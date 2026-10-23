@@ -442,14 +442,14 @@ class DictateController extends ChangeNotifier {
     _cancelling = false;
     if (reply.error == 'target_gone') _loseWindow(window);
     return switch (reply) {
-      (result: final result?, error: null) => DictateOutcome.done(
+      (result: final result?, error: null, message: _) => DictateOutcome.done(
         computer: computer.name,
         text: result['text'] is String ? result['text']! as String : null,
         pasted: result['pasted'] == true,
         typed: typed,
         window: window,
       ),
-      (:final error, result: _) => DictateOutcome.failed(
+      (:final error, result: _, message: _) => DictateOutcome.failed(
         error ?? 'unknown',
         computer: computer.name,
         typed: typed,

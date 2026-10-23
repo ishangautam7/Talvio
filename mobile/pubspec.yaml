@@ -46,6 +46,8 @@ dependencies:
   # screen on while watching.
   flutter_webrtc: ^1.6.2
   wakelock_plus: 1.8.1
+  # The assistant's answers are Markdown (features/assistant).
+  flutter_markdown_plus: ^1.0.12
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import '../core/relay_client.dart';
 import '../features/account/account_screen.dart';
+import '../features/assistant/assistant_scope.dart';
+import '../features/assistant/assistant_screen.dart';
 import '../features/command/command_scope.dart';
 import '../features/command/command_screen.dart';
 import '../features/dictate/computer_widgets.dart';
@@ -20,6 +22,7 @@ import 'home_shell.dart';
 final featureTabs = <FeatureTab>[
   screenTab,
   doTab,
+  assistantTab,
   sendTab,
   historyTab,
   accountTab,
@@ -27,10 +30,12 @@ final featureTabs = <FeatureTab>[
 
 /// The signed-in app: the pages, around the state they share (the computer
 /// chosen, its window, a recording or request in flight, a command waiting
-/// for Do it).
+/// for Do it, the assistant chat).
 Widget signedInHome() => DictateScope(
   child: CommandScope(
-    child: HomeShell(tabs: featureTabs, header: (_) => const MenuHeader()),
+    child: AssistantScope(
+      child: HomeShell(tabs: featureTabs, header: (_) => const MenuHeader()),
+    ),
   ),
 );
 

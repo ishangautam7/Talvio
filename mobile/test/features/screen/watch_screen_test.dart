@@ -8,6 +8,8 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talvio_mobile/src/core/api_client.dart';
 import 'package:talvio_mobile/src/core/app_services.dart';
+import 'package:talvio_mobile/src/features/assistant/assistant_controller.dart';
+import 'package:talvio_mobile/src/features/dictate/dictate_controller.dart';
 import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
 import 'package:talvio_mobile/src/features/screen/watch_screen.dart';
 
@@ -15,18 +17,37 @@ import '../../helpers.dart';
 import 'fakes.dart';
 
 void main() {
+  /// How many times the viewer asked to open the Assistant page.
+  var openedAssistant = 0;
+
   /// The viewer of window w1 on a 400×800 phone, already live with its
-  /// channel open. Returns the server, the links made, and the watch's id.
+  /// channel open, with the app's assistant chat when [assistant]. Returns
+  /// the server, the links made, and the watch's id.
   Future<(FakeServer, FakeLinks, String)> pumpViewer(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    bool assistant = false,
+    List<String> capabilities = const ['dictate', 'text', 'windows', 'screen'],
+  }) async {
     tester.view
       ..physicalSize = const Size(400, 800)
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final (server, relay, session) = await connectedSession(tester);
+    final (server, relay, session) = await connectedSession(
+      tester,
+      capabilities: capabilities,
+    );
     final prefs = await SharedPreferences.getInstance();
     final links = FakeLinks();
+    AssistantController? chat;
+    openedAssistant = 0;
+    if (assistant) {
+      final dictate = DictateController(relay: relay, prefs: prefs);
+      chat = AssistantController(relay: relay, prefs: prefs, dictate: dictate);
+      cleanups.add(() {
+        chat!.dispose();
+        dictate.dispose();
+      });
+    }
     final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(
       AppServices(
@@ -49,6 +70,8 @@ void main() {
           computer: relay.devices.value!.firstWhere((d) => d.isComputer),
           target: const WatchTarget(id: 'w1', label: 'Notepad', screen: false),
           linkFactory: links.create,
+          assistant: chat,
+          onOpenAssistant: () => openedAssistant++,
         ),
       ),
     );
@@ -60,8 +83,10 @@ void main() {
     return (server, links, id);
   }
 
-  screenTest('watch only: no control, keys, typing or mic', (tester) async {
-    final (server, links, _) = await pumpViewer(tester);
+  screenTest('no clicking or scrolling; no assistant bar without it', (
+    tester,
+  ) async {
+    final (server, links, _) = await pumpViewer(tester, assistant: true);
     expect(find.text('Live'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'fits');
     expect(sentOf(server, 'screen.watch').single['control'], isFalse);
@@ -69,11 +94,13 @@ void main() {
     for (final gone in ['View', 'Control']) {
       expect(find.text(gone), findsNothing, reason: gone);
     }
-    for (final gone in ['Keys', 'Type', 'Dictate into this window', 'Enter']) {
+    for (final gone in ['Type', 'Dictate into this window', 'Enter']) {
       expect(find.byTooltip(gone), findsNothing, reason: gone);
     }
+    // The computer has no assistant: no bar, though the chat exists.
     expect(find.byType(TextField), findsNothing);
     expect(find.byIcon(Icons.mic), findsNothing);
+    expect(find.byTooltip('Keys'), findsOneWidget);
     expect(find.byTooltip('Turn sound on'), findsOneWidget);
     expect(find.text('Stop'), findsOneWidget);
 
@@ -202,6 +229,173 @@ void main() {
     await tester.tap(find.text('Watch again'));
     await tester.pump();
     expect(sentOf(server, 'screen.watch'), hasLength(2));
+  });
+
+  screenTest('Keys press in the watched window, over the channel', (
+    tester,
+  ) async {
+    final (_, links, _) = await pumpViewer(tester);
+    final link = links.last;
+    expect(find.byTooltip('Enter'), findsNothing, reason: 'Keys closed');
+    await tester.tap(find.byTooltip('Keys'));
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: 'the pad fits');
+    expect(find.byTooltip('Hide keys'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Enter'));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Up arrow'));
+    await tester.pump();
+    expect(link.sent, [
+      {
+        't': 'keys',
+        'id': 'k1',
+        'keys': ['enter'],
+      },
+      {
+        't': 'keys',
+        'id': 'k2',
+        'keys': ['up'],
+      },
+    ]);
+
+    // Three wait at most; a fourth tap is dropped.
+    await tester.tap(find.byTooltip('Tab'));
+    await tester.tap(find.byTooltip('Tab'));
+    await tester.pump();
+    expect(link.sent, hasLength(3));
+
+    // A key the computer refused says why.
+    link.receive({'t': 'ack', 'id': 'k1', 'ok': true});
+    link.receive({'t': 'ack', 'id': 'k2', 'ok': false, 'error': 'key_refused'});
+    await tester.pump();
+    expect(find.textContaining("doesn't press keys"), findsOneWidget);
+    await tester.tap(find.byTooltip('Tab'));
+    await tester.pump();
+    expect(link.sent, hasLength(4), reason: 'acks free the queue');
+  });
+
+  screenTest('the assistant bar asks in the same chat, the answer above', (
+    tester,
+  ) async {
+    final (server, links, _) = await pumpViewer(
+      tester,
+      assistant: true,
+      capabilities: const ['dictate', 'text', 'windows', 'screen', 'assistant'],
+    );
+    expect(tester.takeException(), isNull, reason: 'fits with the bar');
+    expect(find.byTooltip('Ask by voice'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'play believer');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Send'));
+    await tester.pump();
+    final ask = sentOf(server, 'assistant.ask').single;
+    expect(ask, {
+      'kind': 'assistant.ask',
+      'text': 'play believer',
+      'requestId': ask['requestId'],
+    });
+    final id = ask['requestId']! as String;
+    await progressOf(tester, server, id, 'tool', {'label': 'Opening YouTube'});
+    expect(find.text('Opening YouTube…'), findsOneWidget);
+    await progressOf(tester, server, id, 'answer', {'text': 'Playing *it*'});
+    expect(find.text('Playing it', findRichText: true), findsOneWidget);
+
+    server.relay('pc', {
+      'kind': 'result',
+      'requestId': id,
+      'ok': true,
+      'transcript': 'play believer',
+      'answer': 'Playing “Believer” on YouTube.',
+      'conversation': 'c1',
+      'actions': [
+        {'label': 'Played “Believer” on YouTube', 'status': 'done'},
+      ],
+      'pending': {'id': 7, 'summary': 'Send the email to Ron'},
+    });
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Played “Believer” on YouTube'), findsOneWidget);
+    final card = tester.getRect(find.text('Talvio on ISHAN-PC'));
+    final stage = tester.getRect(find.byType(InteractiveViewer));
+    expect(
+      card.top,
+      greaterThan(stage.bottom - stage.height * 0.36),
+      reason: 'the card covers at most about a third of the picture',
+    );
+
+    // Do it, from inside the card.
+    await tester.ensureVisible(find.text('Do it'));
+    await tester.tap(find.text('Do it'));
+    await tester.pump();
+    final confirm = sentOf(server, 'command.confirm').single;
+    expect(confirm, {
+      'kind': 'command.confirm',
+      'id': 7,
+      'accept': true,
+      'requestId': confirm['requestId'],
+    });
+    server.relay('pc', {
+      'kind': 'result',
+      'requestId': confirm['requestId'],
+      'ok': true,
+      'status': 'done',
+      'feedback': 'Sent.',
+    });
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Do it'), findsNothing);
+
+    // The next question continues the conversation.
+    await tester.enterText(find.byType(TextField), 'louder');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Send'));
+    await tester.pump();
+    expect(sentOf(server, 'assistant.ask').last['conversation'], 'c1');
+
+    // Hidden, then shown again; the card opens the Assistant page.
+    await tester.tap(find.byTooltip('Hide the answer'));
+    await tester.pump();
+    expect(find.text('Talvio on ISHAN-PC'), findsNothing);
+    await tester.tap(find.text('Show the answer'));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Open in Assistant'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(openedAssistant, 1);
+    expect(find.text('Home page'), findsOneWidget, reason: 'viewer closed');
+  });
+
+  screenTest('on its side the keys and the assistant open beside it', (
+    tester,
+  ) async {
+    await pumpViewer(
+      tester,
+      assistant: true,
+      capabilities: const ['dictate', 'text', 'windows', 'screen', 'assistant'],
+    );
+    tester.view.physicalSize = const Size(800, 400);
+    await tester.pump();
+    expect(find.byType(TextField), findsNothing, reason: 'panel closed');
+    expect(
+      tester.getRect(find.byType(InteractiveViewer)).width,
+      greaterThan(650),
+    );
+
+    await tester.tap(find.byTooltip('Ask the assistant'));
+    await tester.pump();
+    await tester.tap(find.byTooltip('Keys'));
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: 'fits sideways');
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.byTooltip('Enter'), findsOneWidget);
+    expect(
+      tester.getRect(find.byType(InteractiveViewer)).width,
+      greaterThan(300),
+      reason: 'the picture keeps most of the width',
+    );
   });
 }
 
