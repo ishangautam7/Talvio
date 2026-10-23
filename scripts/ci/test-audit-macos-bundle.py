@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import sys
 
-ROOT = os.environ.get("AUDIT_TEST_DIR", "/tmp/zynveliq-audit-test")
+ROOT = os.environ.get("AUDIT_TEST_DIR", "/tmp/talvio-audit-test")
 AUDIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit-macos-bundle.sh")
 
 OTOOL = """#!/usr/bin/env bash
@@ -58,7 +58,7 @@ def make_case(name, exe_deps, lib_deps, minos=None):
     os.makedirs(macos)
     os.makedirs(fw)
 
-    exe = os.path.join(macos, "zynveliq")
+    exe = os.path.join(macos, "talvio")
     with open(exe, "w") as fh:
         fh.write("#\n")
     os.chmod(exe, 0o755)
@@ -70,7 +70,7 @@ def make_case(name, exe_deps, lib_deps, minos=None):
     os.makedirs(deps_dir)
     os.makedirs(minos_dir)
 
-    with open(os.path.join(deps_dir, "zynveliq"), "w") as fh:
+    with open(os.path.join(deps_dir, "talvio"), "w") as fh:
         fh.write("\n".join(exe_deps) + "\n")
 
     for lib, deps in lib_deps.items():
@@ -148,7 +148,7 @@ def main():
             "libonnx.dylib": ["@rpath/libonnx.dylib", "@rpath/libabsl_base.dylib"],
             "libabsl_base.dylib": ["@rpath/libabsl_base.dylib", "/usr/lib/libSystem.B.dylib"],
         },
-        minos={"zynveliq": "13.0", "libonnxruntime.dylib": "14.0",
+        minos={"talvio": "13.0", "libonnxruntime.dylib": "14.0",
                "libonnx.dylib": "14.0", "libabsl_base.dylib": "14.0"},
     )
     rc, out = run(app, "14.0")
@@ -163,7 +163,7 @@ def main():
             "libA.dylib": ["@rpath/libA.dylib", "@rpath/libB.dylib"],
             "libB.dylib": ["@rpath/libB.dylib", "@rpath/libA.dylib"],
         },
-        minos={"zynveliq": "13.0", "libA.dylib": "13.0", "libB.dylib": "13.0"},
+        minos={"talvio": "13.0", "libA.dylib": "13.0", "libB.dylib": "13.0"},
     )
     rc, out = run(app, "14.0", timeout=30)
     results.append(check("mutually-referencing dylibs terminate", True, rc, out))
@@ -182,7 +182,7 @@ def main():
         "MinOsLie",
         ["@rpath/libonnxruntime.dylib"],
         {"libonnxruntime.dylib": ["@rpath/libonnxruntime.dylib"]},
-        minos={"zynveliq": "10.15", "libonnxruntime.dylib": "14.0"},
+        minos={"talvio": "10.15", "libonnxruntime.dylib": "14.0"},
     )
     rc, out = run(app, "10.15")
     results.append(check("understated minimumSystemVersion is rejected", False, rc, out))

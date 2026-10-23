@@ -1,11 +1,11 @@
 ---
 title: "Meeting notes"
 sidebarTitle: "Notes"
-description: "After a meeting, Zynveliq writes notes from the transcript with a template you choose. Speaker labels, asking questions, and discussing a meeting with the assistant."
+description: "After a meeting, Talvio writes notes from the transcript with a template you choose. Speaker labels, asking questions, and discussing a meeting with the assistant."
 icon: "clipboard-list"
 ---
 
-When a recording stops, Zynveliq writes the notes automatically. You can also generate or regenerate them later from the meeting's **Summary** tab.
+When a recording stops, Talvio writes the notes automatically. You can also generate or regenerate them later from the meeting's **Summary** tab.
 
 ## Templates
 
@@ -23,7 +23,7 @@ Change the template on the meeting's **Summary** tab. If notes have already been
 
 ## Which model writes the notes
 
-Notes are written by your assistant model. Zynveliq resolves this on its own: it tries the assistant's provider and model first, falls back to the cleanup model if the assistant is not set up, and refuses a cleanup-only model like SpeakoFlow Mini because a fine-tune trained on single-sentence dictation cannot summarize a meeting.
+Notes are written by your assistant model. Talvio resolves this on its own: it tries the assistant's provider and model first, falls back to the cleanup model if the assistant is not set up, and refuses a cleanup-only model like SpeakoFlow Mini because a fine-tune trained on single-sentence dictation cannot summarize a meeting.
 
 There is no separate "meeting model" setting. If the assistant works, notes work.
 
@@ -42,7 +42,7 @@ The **My thoughts** tab lets you type what matters to you while the call is happ
 
 ## Speaker labels
 
-During the call, the two capture streams are labelled **You** and **Others**. After the call, Zynveliq can split "Others" into **Speaker 1**, **Speaker 2**, and so on.
+During the call, the two capture streams are labelled **You** and **Others**. After the call, Talvio can split "Others" into **Speaker 1**, **Speaker 2**, and so on.
 
 This uses a WeSpeaker voice-embedding model (27 MB, runs on your computer) that compares voice segments from the system audio and clusters them. The model is not installed by default. The first time you open a finished meeting with multiple voices on the other side, the app offers to download it:
 

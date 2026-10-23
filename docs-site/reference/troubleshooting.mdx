@@ -1,20 +1,20 @@
 ---
 title: "Troubleshooting"
-description: "Fixes for common Zynveliq problems: macOS damaged-app message, stale permissions, the globe key, Windows SmartScreen, Linux overlay and hotkey issues, speech models that need an update, graphics driver problems, model downloads, and more."
+description: "Fixes for common Talvio problems: macOS damaged-app message, stale permissions, the globe key, Windows SmartScreen, Linux overlay and hotkey issues, speech models that need an update, graphics driver problems, model downloads, and more."
 icon: "life-ring"
 ---
 
 Find your symptom and open it.
 
 <AccordionGroup>
-  <Accordion title={`macOS says Zynveliq "is damaged and can't be opened"`} icon="apple">
+  <Accordion title={`macOS says Talvio "is damaged and can't be opened"`} icon="apple">
     The download is fine. macOS shows this message for any app that is not signed
-    with a paid Apple Developer certificate. Zynveliq is not signed yet.
+    with a paid Apple Developer certificate. Talvio is not signed yet.
 
     One Terminal command clears the block, once per `.dmg` you download:
 
     ```bash
-    xattr -dr com.apple.quarantine /Applications/Zynveliq.app
+    xattr -dr com.apple.quarantine /Applications/Talvio.app
     ```
 
     Then open the app normally. Updates installed from inside the app are not
@@ -29,18 +29,18 @@ Find your symptom and open it.
   title="macOS permissions stopped working after an update"
   icon="apple"
 >
-  After an update, macOS sometimes shows Zynveliq as allowed under
+  After an update, macOS sometimes shows Talvio as allowed under
   Accessibility, Microphone, or Screen Recording while no longer honoring it. If
   a permission check in the app keeps waiting even though the toggle is on, go
   to the relevant section in **System Settings → Privacy & Security**, click
-  **Reset permission** (or remove Zynveliq from the list), then add it back and
+  **Reset permission** (or remove Talvio from the list), then add it back and
   restart the app.
 </Accordion>
 
   <Accordion title="The macOS globe key opens the emoji picker instead of dictating" icon="apple">
-    The Fn (globe) key is shared between Zynveliq and the system emoji picker.
+    The Fn (globe) key is shared between Talvio and the system emoji picker.
     Go to **System Settings → Keyboard** and set **Press 🌐 key to** to **Do
-    Nothing**. Zynveliq then gets the key press without interference.
+    Nothing**. Talvio then gets the key press without interference.
 
     Macs that were already on the older Option + Space defaults before the Fn
     defaults shipped keep their Option-based shortcuts after updating. You can
@@ -50,14 +50,14 @@ Find your symptom and open it.
   </Accordion>
 
 <Accordion title="Windows SmartScreen warns about the installer" icon="windows">
-  Zynveliq's installer is not code-signed yet, so Windows SmartScreen may show a
+  Talvio's installer is not code-signed yet, so Windows SmartScreen may show a
   warning the first time you run it. Choose **More info → Run anyway**. This
   happens once per version.
 </Accordion>
 
   <Accordion title="Dictation crashes or the graphics card misbehaves" icon="microchip">
     Speech models run on your graphics card by default, in a process of their
-    own. If a graphics driver crashes it, Zynveliq stays open, finishes the
+    own. If a graphics driver crashes it, Talvio stays open, finishes the
     dictation on the processor, and keeps speech there until you restart the
     app or change **Speech processing**. If dictations are slow or the text is
     garbled, open _Settings → Advanced → Performance_ and set **Speech
@@ -70,7 +70,7 @@ Find your symptom and open it.
 
   <Accordion title="My speech model says it needs an update" icon="rotate">
     The ONNX versions of Parakeet V2 and V3, Canary, Moonshine, SenseVoice,
-    GigaAM, and Cohere ran on an engine Zynveliq no longer includes. If one
+    GigaAM, and Cohere ran on an engine Talvio no longer includes. If one
     of them is your speech model, open the **Models** page and choose
     **Download new version**: you get the same model for the current engine,
     and it becomes your speech model when the download finishes. See
@@ -119,14 +119,14 @@ Find your symptom and open it.
     The overlay needs to float above every other window. On Linux that requires
     `wlr-layer-shell` (Sway, Hyprland, KDE Plasma) or X11 "keep above" stacking.
 
-    GNOME on Wayland supports neither. Zynveliq detects this and runs under
+    GNOME on Wayland supports neither. Talvio detects this and runs under
     XWayland automatically, where the overlay floats normally. No setup needed.
 
     Two escape hatches if you need them:
 
-    - Force native Wayland: launch with `ZYNVELIQ_ALLOW_WAYLAND=1`. The
+    - Force native Wayland: launch with `TALVIO_ALLOW_WAYLAND=1`. The
       overlay may not stay on top.
-    - Disable layer shell: launch with `ZYNVELIQ_NO_GTK_LAYER_SHELL=1` if the
+    - Disable layer shell: launch with `TALVIO_NO_GTK_LAYER_SHELL=1` if the
       overlay misbehaves under a layer-shell compositor.
 
     Setting `GDK_BACKEND` yourself always wins.
@@ -135,7 +135,7 @@ Find your symptom and open it.
 
   <Accordion title="The app crashes on a touchpad pinch-to-zoom (Linux)" icon="hand">
     A crash with `DrawingArea_CommitTransientZoom` in the log is a WebKitGTK bug,
-    not a Zynveliq bug. It affects many apps built on WebKitGTK and is tracked
+    not a Talvio bug. It affects many apps built on WebKitGTK and is tracked
     in [tauri#13115](https://github.com/tauri-apps/tauri/issues/13115) and
     [wry#544](https://github.com/tauri-apps/wry/issues/544).
 
@@ -152,7 +152,7 @@ Find your symptom and open it.
     Install a loopback driver like
     [BlackHole](https://github.com/ExistentialAudio/BlackHole), create a
     Multi-Output Device in Audio MIDI Setup that sends sound to both your speakers
-    and BlackHole, and make it your output. Zynveliq can then record the other
+    and BlackHole, and make it your output. Talvio can then record the other
     side of the call. Your microphone is recorded either way.
 
   </Accordion>

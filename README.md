@@ -1,8 +1,8 @@
-# Zynveliq
+# Talvio
 
 Private voice dictation and AI assistant project, derived from [SpeakoFlow](https://github.com/AbhishekBarali/SpeakoFlow) by Abhishek Barali and [Handy](https://github.com/cjpais/Handy) by CJ Pais.
 
-The working company and product name is Zynveliq. See [private development notes](PRIVATE_FORK.md), [company and release tasks](TASKS.md), and [build instructions](BUILD.md).
+The working company and product name is Talvio. See [private development notes](PRIVATE_FORK.md), [company and release tasks](TASKS.md), and [build instructions](BUILD.md).
 
 ## Development
 

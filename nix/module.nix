@@ -1,4 +1,4 @@
-# NixOS module for Zynveliq voice assistant
+# NixOS module for Talvio voice assistant
 #
 # Handles system-level configuration that the package wrapper cannot:
 #   - udev rule for /dev/uinput (rdev grab() needs it for virtual input)
@@ -7,12 +7,12 @@
 #
 # Usage in your flake:
 #
-#   inputs.zynveliq.url = "github:ishangautam7/zynveliq";
+#   inputs.talvio.url = "github:ishangautam7/zynveliq";
 #
 #   nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
 #     modules = [
-#       zynveliq.nixosModules.default
-#       { programs.zynveliq.enable = true; }
+#       talvio.nixosModules.default
+#       { programs.talvio.enable = true; }
 #     ];
 #   };
 {
@@ -22,16 +22,22 @@
   ...
 }:
 let
-  cfg = config.programs.zynveliq;
+  cfg = config.programs.talvio;
 in
 {
-  options.programs.zynveliq = {
-    enable = lib.mkEnableOption "Zynveliq offline voice assistant";
+  # Renamed from Zynveliq: old configurations keep working, with a warning.
+  imports = [
+    (lib.mkRenamedOptionModule [ "programs" "zynveliq" "enable" ] [ "programs" "talvio" "enable" ])
+    (lib.mkRenamedOptionModule [ "programs" "zynveliq" "package" ] [ "programs" "talvio" "package" ])
+  ];
+
+  options.programs.talvio = {
+    enable = lib.mkEnableOption "Talvio offline voice assistant";
 
     package = lib.mkOption {
       type = lib.types.package;
-      defaultText = lib.literalExpression "zynveliq.packages.\${system}.zynveliq";
-      description = "The Zynveliq package to use.";
+      defaultText = lib.literalExpression "talvio.packages.\${system}.talvio";
+      description = "The Talvio package to use.";
     };
   };
 

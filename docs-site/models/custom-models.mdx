@@ -1,18 +1,18 @@
 ---
 title: "Models you already have"
-description: "Add a .gguf or Whisper .bin file, or link a folder, and every model inside shows up in Zynveliq without downloading anything. Covers classification, folder scanning, and using Ollama or LM Studio."
+description: "Add a .gguf or Whisper .bin file, or link a folder, and every model inside shows up in Talvio without downloading anything. Covers classification, folder scanning, and using Ollama or LM Studio."
 icon: "box"
 sidebarTitle: "Your own models"
 ---
 
-You can register models you already have on disk so they show up in Zynveliq without re-downloading them. Nothing is copied or moved.
+You can register models you already have on disk so they show up in Talvio without re-downloading them. Nothing is copied or moved.
 
 Two ways in, one result:
 
 | Method               | What happens                                                                    |
 | -------------------- | ------------------------------------------------------------------------------- |
 | **Add a model file** | Pick a single `.gguf` or `.bin` file.                                           |
-| **Link a folder**    | Point at a folder. Zynveliq scans it recursively and adds every model it finds. |
+| **Link a folder**    | Point at a folder. Talvio scans it recursively and adds every model it finds. |
 
 Both are available from the **Models** page in the sidebar, through the **Add a model file** button.
 
@@ -22,7 +22,7 @@ Click **Add a model file** and pick a `.gguf` or Whisper `.bin` from a file dial
 
 ## Linking a folder
 
-Click **Link a folder** and pick any folder. Zynveliq scans it, including subfolders, and adds every model file it finds. You can link as many folders as you like.
+Click **Link a folder** and pick any folder. Talvio scans it, including subfolders, and adds every model file it finds. You can link as many folders as you like.
 
 Folders are scanned up to 5 levels deep and up to 20,000 entries. Symlink loops are detected and skipped.
 
@@ -38,7 +38,7 @@ Individually picked files can be removed one at a time.
 
 ## How models are classified
 
-Zynveliq classifies by content, not by filename.
+Talvio classifies by content, not by filename.
 
 - **`.gguf` files.** The `general.architecture` value is read from the GGUF header. An architecture in the known speech list (whisper, parakeet, canary, moonshine, cohere, voxtral, qwen3_asr, sensevoice, gigaam, granite_speech, funasr_nano, medasr, moss, and others) is classified as speech-to-text. A `clip` or `mmproj` architecture is a vision projector. Anything else is treated as a chat model (assistant or cleanup).
 - **`.bin` files.** Validated against the ggml magic bytes. If they match, the file is treated as a Whisper model. It loads through transcribe.cpp, the same engine as every `.gguf` speech model, so it gets the same GPU support and the same settings.
@@ -48,7 +48,7 @@ An unknown architecture in a `.gguf` is far more likely to be a new chat model t
 
 ## What "delete" does
 
-Deleting a registered model only unregisters it. The file stays on disk. These files are not Zynveliq's, so the app never moves or removes them.
+Deleting a registered model only unregisters it. The file stays on disk. These files are not Talvio's, so the app never moves or removes them.
 
 ## Using Ollama or LM Studio
 

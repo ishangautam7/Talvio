@@ -14,11 +14,11 @@ name: "Release (unsigned)"
 #   * Windows SmartScreen warns ("unknown publisher") on a browser download.
 #     An in-app update downloads the installer itself, so it carries no
 #     Mark-of-the-Web and is not stopped by SmartScreen.
-#   * macOS Gatekeeper reports "Zynveliq is damaged and can't be opened" — the
+#   * macOS Gatekeeper reports "Talvio is damaged and can't be opened" — the
 #     app is fine; an unsigned bundle carrying the download quarantine flag has
 #     no Apple-recognized signature, and macOS 15/26 offers no GUI override for
 #     that case. Users clear it once per installed version with
-#     `xattr -dr com.apple.quarantine /Applications/Zynveliq.app`.
+#     `xattr -dr com.apple.quarantine /Applications/Talvio.app`.
 #     See the macOS section of README.md — keep the two in sync. An in-app
 #     update is downloaded by the app, not a browser, so it is not quarantined.
 #   * Installed apps from 2.0.0 onward update in place. 1.0-1.4 trusted
@@ -272,7 +272,7 @@ jobs:
       target: ${{ matrix.target }}
       build-args: ${{ matrix.args }}
       sign-binaries: false
-      asset-prefix: "zynveliq"
+      asset-prefix: "talvio"
       upload-artifacts: false
       release-id: ${{ needs.create-release.outputs.release-id }}
       # The dispatched commit, not the branch: build.yml otherwise checks out

@@ -2,14 +2,14 @@
 #
 # Stage transcribe-cpp's dynamic backend libraries into a destination directory.
 #
-# On Linux/Windows, Zynveliq builds transcribe-cpp in its `dynamic-backends`
+# On Linux/Windows, Talvio builds transcribe-cpp in its `dynamic-backends`
 # posture: a shared `libtranscribe` plus loadable per-ISA ggml backend modules
 # (`libggml-cpu-*.so`, `libggml-vulkan.so`, ...). These are produced by the
 # transcribe-cpp-sys CMake install during the cargo build, but nothing ships
 # them. This script copies them, as a co-located set, next to where the
-# `zynveliq` binary will find them at runtime:
+# `talvio` binary will find them at runtime:
 #   - the loader resolves `libtranscribe` via the $ORIGIN-relative rpath baked
-#     into `zynveliq` (see src-tauri/build.rs);
+#     into `talvio` (see src-tauri/build.rs);
 #   - transcribe's init_backends_default() then loads the ggml modules from
 #     libtranscribe's own directory (a strictly package-local scan), so the
 #     modules MUST sit beside it.

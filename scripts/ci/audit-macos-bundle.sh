@@ -3,7 +3,7 @@
 # Audit a macOS .app bundle for dependencies it does not actually carry.
 #
 # WHY THIS EXISTS (issue #19): the Intel macOS job used to verify only the app
-# executable's OWN load commands — `otool -L Contents/MacOS/zynveliq` — and
+# executable's OWN load commands — `otool -L Contents/MacOS/talvio` — and
 # then declared the bundle sound. That check cannot see one level down. The
 # Homebrew libonnxruntime.dylib we bundle brings ~84 absolute /usr/local/opt
 # references of its own (onnx, onnx_proto, protobuf-lite, utf8_range, re2 and
@@ -12,7 +12,7 @@
 # real Intel Mac it reached, with:
 #
 #   Library not loaded: /usr/local/opt/onnx/lib/libonnx.dylib
-#   Referenced from: Zynveliq.app/Contents/Frameworks/libonnxruntime.dylib
+#   Referenced from: Talvio.app/Contents/Frameworks/libonnxruntime.dylib
 #
 # So this walks the WHOLE graph instead: start from everything executable in
 # Contents/MacOS plus every dylib in Contents/Frameworks, follow each load
@@ -27,7 +27,7 @@
 # above, just moved from dyld to the OS version check.
 #
 # Usage: audit-macos-bundle.sh <path-to-.app> [declared-minimum-macos]
-#   <path-to-.app>           the built bundle, e.g. .../bundle/macos/Zynveliq.app
+#   <path-to-.app>           the built bundle, e.g. .../bundle/macos/Talvio.app
 #   [declared-minimum-macos] optional, e.g. 14.0 — fails if any bundled binary
 #                            needs a NEWER macOS than this
 #
