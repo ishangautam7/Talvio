@@ -648,6 +648,10 @@
             "name": "Rozpocznij rozmowę",
             "description": "Rozmawiaj z asystentem bez użycia rąk i słuchaj jego odpowiedzi. Naciśnij ponownie, aby zakończyć."
           },
+          "command": {
+            "name": "Polecenie głosowe",
+            "description": "Powiedz, co ma zostać zrobione, np. „otwórz YouTube”, a Talvio to zrobi."
+          },
           "hands_free": {
             "name": "Bez trzymania",
             "description": "Naciśnij go, trzymając klawisze dyktowania, a nagrywanie będzie trwać po ich puszczeniu. Naciśnij klawisze dyktowania ponownie, aby zakończyć."
@@ -684,7 +688,9 @@
         "dictation": "Włączone: nagrywanie trwa, dopóki trzymasz klawisze. Wyłączone: jedno naciśnięcie zaczyna, następne kończy, więc każde dyktowanie jest bez trzymania.",
         "assistant": "Włączone: słucha, dopóki trzymasz klawisze. Wyłączone: jedno naciśnięcie zaczyna, następne wysyła.",
         "dictationLabel": "Przytrzymaj, aby mówić",
-        "assistantLabel": "Przytrzymaj, aby zapytać"
+        "assistantLabel": "Przytrzymaj, aby zapytać",
+        "command": "Włączone: słucha, dopóki trzymasz klawisze. Wyłączone: jedno naciśnięcie zaczyna, następne wykonuje polecenie.",
+        "commandLabel": "Przytrzymaj, aby wydać polecenie"
       },
       "handsFree": {
         "unavailableKeys": "Działa, gdy dyktowanie składa się tylko z klawiszy modyfikujących, np. Ctrl + Win. Przy {{keys}} wyłącz zamiast tego „Przytrzymaj, aby mówić”: każde dyktowanie trwa wtedy, dopóki ponownie nie naciśniesz klawiszy.",
@@ -2489,6 +2495,7 @@
     "processing": "Porządkowanie…",
     "generating": "Piszę z Flow…",
     "vision": "Patrzę na Twój ekran…",
+    "command": "Pracuję nad tym…",
     "notices": {
       "flowNotConfigured": "Flow wymaga modelu asystenta — wklejono jako dyktowanie",
       "flowFailed": "Flow nie zdołał nic wygenerować — nic nie wklejono",
@@ -2497,7 +2504,8 @@
       "cleanupFallback": "Czyszczenie AI nie zadziałało — wklejono surowy tekst",
       "cleanupModelRejected": "Dostawca czyszczenia odrzucił ten model — sprawdź model w Ustawieniach",
       "cloudSttFellBack": "Transkrypcja w chmurze nie powiodła się — użyto modelu na urządzeniu",
-      "noSpeechModel": "Brak modelu mowy. Wybierz go na stronie Modele"
+      "noSpeechModel": "Brak modelu mowy. Wybierz go na stronie Modele",
+      "commandTranscriptionFailed": "Nie usłyszano polecenia — spróbuj ponownie"
     },
     "listening": "Słucham…",
     "locked": "Nagrywanie bez trzymania klawisza — naciśnij skrót ponownie, aby zakończyć",
@@ -2566,6 +2574,14 @@
     "body": "{{phone}} widzi {{title}}.",
     "unnamedPhone": "Twój telefon",
     "stop": "Zatrzymaj"
+  },
+  "commandCard": {
+    "heading": "Polecenie głosowe",
+    "confirm": "Wykonaj",
+    "cancel": "Anuluj",
+    "working": "Pracuję nad tym…",
+    "dryRun": "Przebieg próbny: nic nie zostało zrobione.",
+    "sayAgain": "Powtórz polecenie, dodając do niego odpowiedź."
   },
   "assistant": {
     "conversation": {
@@ -2804,6 +2820,7 @@
     "home": "Start",
     "history": "Historia",
     "assistant": "Asystent",
+    "commands": "Polecenia",
     "meetings": "Spotkania",
     "cleanup": "Czyszczenie AI",
     "dictionary": "Słownik",
@@ -2844,7 +2861,9 @@
       "assistant": "Asystent",
       "mouse": "Mysz",
       "cleanupOff": "Włącz czyszczenie AI, aby korzystać z tego skrótu.",
-      "assistantOff": "Asystent jest wyłączony, więc jego skróty nic nie robią."
+      "assistantOff": "Asystent jest wyłączony, więc jego skróty nic nie robią.",
+      "commands": "Polecenia głosowe",
+      "commandsOff": "Polecenia głosowe są wyłączone, więc ten skrót nic nie robi."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3196,6 +3215,44 @@
       "description": "Powiedz frazę i otrzymaj inny tekst, np. „mój e-mail” zamienia się w Twój adres."
     },
     "addWord": "Dodaj słowo"
+  },
+  "commandsPage": {
+    "description": "Powiedz, co ma zostać zrobione, a Talvio zrobi to na tym komputerze: otworzy stronę, włączy piosenkę, przełączy aplikację, napisze e-mail.",
+    "enable": "Polecenia głosowe",
+    "offNotice": "Polecenia głosowe są wyłączone. Włącz je, aby ich skrót coś robił; to, co powiesz, trafi wtedy do modelu wykonującego polecenia.",
+    "shortcut": {
+      "title": "Wydaj polecenie",
+      "whatHold": "Przytrzymaj, powiedz, co ma zostać zrobione, puść.",
+      "whatTap": "Stuknij, powiedz, co ma zostać zrobione, stuknij ponownie."
+    },
+    "model": {
+      "title": "Działa na",
+      "info": "Model, który zamienia to, co mówisz, w działanie. Najlepszy jest mały i szybki: każde polecenie to jedno zapytanie do niego.",
+      "provider": "Dostawca",
+      "model": "Model",
+      "using": "Polecenia działają na {{model}} · {{provider}}.",
+      "borrowed": "Używany jest model asystenta ({{provider}} · {{model}}), ponieważ {{chosen}} nie ma klucza.",
+      "needsKey": "{{provider}} potrzebuje klucza, zanim polecenia będą mogły działać.",
+      "setUp": "Skonfiguruj model"
+    },
+    "dryRun": {
+      "title": "Przebieg próbny",
+      "info": "Pokazuj, co zrobiłoby polecenie, zamiast to robić."
+    },
+    "test": {
+      "group": "Wypróbuj",
+      "title": "Wpisz polecenie",
+      "info": "Wpisz to, co byś powiedział, i zobacz, co zostało wybrane i co zrobił każdy krok."
+    },
+    "examples": {
+      "title": "Co możesz powiedzieć",
+      "items": {
+        "youtube": "„Otwórz YouTube”",
+        "song": "„Włącz Believer Imagine Dragons”",
+        "volume": "„Ścisz dźwięk”",
+        "switch": "„Przełącz na Chrome”"
+      }
+    }
   },
   "assistantPage": {
     "description": "Pytaj o wszystko głosem, z dowolnej aplikacji. Asystent może zobaczyć Twój ekran, szukać w sieci i pamiętać to, co dla Ciebie ważne.",
@@ -3923,7 +3980,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Przełączono na następny utwór.",
       "mediaPlayPause": "Naciśnięto odtwórz/wstrzymaj.",
+      "mediaPlaying": "Odtwarzam „{{title}}” w {{service}}.",
       "mediaPrevious": "Powrót do poprzedniego utworu.",
+      "mediaResultsOpened": "Otwarto wyniki {{service}} dla „{{query}}”.",
       "mediaStop": "Zatrzymano odtwarzanie.",
       "needsComputerUse": "Żadne z moich narzędzi jeszcze tego nie potrafi. Sterowanie ekranem w tym celu pojawi się w późniejszej wersji.",
       "notConfigured": "Tryb poleceń nie jest skonfigurowany: {{why}}",
@@ -3940,6 +3999,7 @@
       "routeFailed": "Nie wiem, co zrobić: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Szukam: {{query}}.",
+      "spotifyResultsOpened": "Otwarto wyniki Spotify dla „{{query}}”. Spotify nie potrafi sam rozpocząć wyszukiwania, więc wybierz, co odtworzyć.",
       "superseded": "Nowsze polecenie zastąpiło to, więc już nie czeka.",
       "switchedTo": "Przełączono na {{title}}.",
       "tooManyQuestions": "Nadal nie wiem, co zrobić. Spróbuj powiedzieć to inaczej.",

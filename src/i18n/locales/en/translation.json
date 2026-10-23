@@ -644,6 +644,10 @@
             "name": "Start a conversation",
             "description": "Talk with the assistant hands-free and hear its replies. Press again to end."
           },
+          "command": {
+            "name": "Voice command",
+            "description": "Say what you want done, such as \"open YouTube\", and Talvio does it."
+          },
           "hands_free": {
             "name": "Hands-free",
             "description": "Press while holding the dictation keys to keep recording after you let go. Press the dictation keys again to finish."
@@ -680,7 +684,9 @@
         "dictation": "On: it records while you hold the keys. Off: one press starts and the next one stops, so every dictation is hands-free.",
         "assistant": "On: it listens while you hold the keys. Off: one press starts and the next one sends.",
         "dictationLabel": "Hold to talk",
-        "assistantLabel": "Hold to ask"
+        "assistantLabel": "Hold to ask",
+        "command": "On: it listens while you hold the keys. Off: one press starts and the next one runs the command.",
+        "commandLabel": "Hold to speak a command"
       },
       "handsFree": {
         "unavailableKeys": "Works when Dictate is modifier keys alone, like Ctrl + Win. With {{keys}}, turn off Hold to talk instead: every dictation then keeps going until you press the keys again.",
@@ -2465,6 +2471,7 @@
     "processing": "Cleaning up…",
     "generating": "Writing with Flow…",
     "vision": "Looking at your screen…",
+    "command": "Working on it…",
     "notices": {
       "flowNotConfigured": "Flow needs an assistant model — pasted as dictation",
       "flowFailed": "Flow couldn't generate — nothing was pasted",
@@ -2473,7 +2480,8 @@
       "cleanupFallback": "AI cleanup didn't run — pasted the raw text",
       "cleanupModelRejected": "Your cleanup provider rejected that model — check the model in Settings",
       "cloudSttFellBack": "Cloud transcription failed — used the on-device model",
-      "noSpeechModel": "No speech model yet. Pick one on the Models page"
+      "noSpeechModel": "No speech model yet. Pick one on the Models page",
+      "commandTranscriptionFailed": "Couldn't hear the command — try again"
     },
     "listening": "Listening…",
     "locked": "Recording hands-free — press your shortcut again to finish",
@@ -2538,6 +2546,14 @@
     "body": "{{phone}} can see {{title}}.",
     "unnamedPhone": "Your phone",
     "stop": "Stop"
+  },
+  "commandCard": {
+    "heading": "Voice command",
+    "confirm": "Do it",
+    "cancel": "Cancel",
+    "working": "Working on it…",
+    "dryRun": "Dry run: nothing was done.",
+    "sayAgain": "Say the command again with the answer in it."
   },
   "assistant": {
     "conversation": {
@@ -2768,6 +2784,7 @@
     "home": "Home",
     "history": "History",
     "assistant": "Assistant",
+    "commands": "Commands",
     "meetings": "Meetings",
     "cleanup": "AI cleanup",
     "dictionary": "Dictionary",
@@ -2808,7 +2825,9 @@
       "assistant": "Assistant",
       "mouse": "Mouse",
       "cleanupOff": "Turn on AI cleanup to get this shortcut.",
-      "assistantOff": "The assistant is turned off, so its shortcuts do nothing."
+      "assistantOff": "The assistant is turned off, so its shortcuts do nothing.",
+      "commands": "Voice commands",
+      "commandsOff": "Voice commands are turned off, so this shortcut does nothing."
     },
     "audio": {
       "microphone": "Microphone",
@@ -3148,6 +3167,44 @@
       "description": "Say a phrase and get different text, like \"my email\" becoming your address."
     },
     "addWord": "Add word"
+  },
+  "commandsPage": {
+    "description": "Say what you want done, and Talvio does it on this computer: open a site, play a song, switch apps, write an email.",
+    "enable": "Voice commands",
+    "offNotice": "Voice commands are turned off. Turn them on to give their shortcut a job; what you say then goes to the model that runs commands.",
+    "shortcut": {
+      "title": "Speak a command",
+      "whatHold": "Hold, say what you want done, let go.",
+      "whatTap": "Tap, say what you want done, tap again."
+    },
+    "model": {
+      "title": "Runs on",
+      "info": "The model that turns what you say into an action. A small, fast one is best: every command is one request to it.",
+      "provider": "Provider",
+      "model": "Model",
+      "using": "Commands run on {{model}} · {{provider}}.",
+      "borrowed": "Using your assistant's model ({{provider}} · {{model}}), since {{chosen}} has no key.",
+      "needsKey": "{{provider}} needs a key before commands can run.",
+      "setUp": "Set up a model"
+    },
+    "dryRun": {
+      "title": "Dry run",
+      "info": "Show what a command would do instead of doing it."
+    },
+    "test": {
+      "group": "Try it",
+      "title": "Type a command",
+      "info": "Type what you would say, and see what was chosen and what each step did."
+    },
+    "examples": {
+      "title": "Things to say",
+      "items": {
+        "youtube": "“Open YouTube”",
+        "song": "“Play Believer by Imagine Dragons”",
+        "volume": "“Turn the volume down”",
+        "switch": "“Switch to Chrome”"
+      }
+    }
   },
   "assistantPage": {
     "description": "Ask anything by voice, from any app. The assistant can see your screen, search the web, and remember what matters to you.",
@@ -3815,7 +3872,9 @@
       "failed": "{{reason}}",
       "mediaNext": "Skipped to the next track.",
       "mediaPlayPause": "Play/pause pressed.",
+      "mediaPlaying": "Playing “{{title}}” on {{service}}.",
       "mediaPrevious": "Back to the previous track.",
+      "mediaResultsOpened": "Opened {{service}}'s results for “{{query}}”.",
       "mediaStop": "Stopped playback.",
       "needsComputerUse": "None of my tools can do that yet. Controlling the screen for it comes in a later version.",
       "notConfigured": "Command mode isn't set up: {{why}}",
@@ -3832,6 +3891,7 @@
       "routeFailed": "I couldn't work out what to do: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Searching for {{query}}.",
+      "spotifyResultsOpened": "Opened Spotify's results for “{{query}}”. Spotify can't start a search by itself, so pick what to play.",
       "superseded": "A newer command replaced this one, so it isn't waiting any more.",
       "switchedTo": "Switched to {{title}}.",
       "tooManyQuestions": "I still couldn't work out what to do. Try saying it differently.",

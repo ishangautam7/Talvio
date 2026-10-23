@@ -642,6 +642,10 @@
             "name": "会話を開始",
             "description": "ハンズフリーでアシスタントと話し、返答を音声で聞けます。もう一度押すと終了します。"
           },
+          "command": {
+            "name": "音声コマンド",
+            "description": "「YouTubeを開いて」のようにやりたいことを話すと、Talvioが実行します。"
+          },
           "hands_free": {
             "name": "ハンズフリー",
             "description": "音声入力のキーを押したままこのキーを押すと、手を離しても録音が続きます。終了するには音声入力のキーをもう一度押します。"
@@ -678,7 +682,9 @@
         "dictation": "オン：キーを押している間だけ録音します。オフ：一度押すと開始し、もう一度押すと停止するので、すべての音声入力がハンズフリーになります。",
         "assistant": "オン：キーを押している間だけ聞き取ります。オフ：一度押すと開始し、もう一度押すと送信します。",
         "dictationLabel": "押している間だけ録音",
-        "assistantLabel": "押している間だけ質問"
+        "assistantLabel": "押している間だけ質問",
+        "command": "オン：キーを押している間だけ聞き取ります。オフ：一度押すと開始し、もう一度押すとコマンドを実行します。",
+        "commandLabel": "押している間だけコマンド"
       },
       "handsFree": {
         "unavailableKeys": "音声入力が Ctrl + Win のような修飾キーだけのときに使えます。{{keys}} の場合は代わりに「押している間だけ録音」をオフにしてください。もう一度キーを押すまで音声入力が続きます。",
@@ -2453,6 +2459,7 @@
     "processing": "整形中…",
     "generating": "Flowで作成中…",
     "vision": "画面を確認中…",
+    "command": "実行中…",
     "notices": {
       "flowNotConfigured": "Flowにはアシスタントのモデルが必要です — 音声入力として貼り付けました",
       "flowFailed": "Flowが生成できませんでした — 何も貼り付けられていません",
@@ -2461,7 +2468,8 @@
       "cleanupFallback": "AI整形は実行されませんでした — 元のテキストを貼り付けました",
       "cleanupModelRejected": "AI整形のプロバイダーがこのモデルを拒否しました — 設定でモデルを確認してください",
       "cloudSttFellBack": "クラウド文字起こしに失敗しました — デバイス上のモデルを使用しました",
-      "noSpeechModel": "音声モデルがまだありません。「モデル」ページで選んでください"
+      "noSpeechModel": "音声モデルがまだありません。「モデル」ページで選んでください",
+      "commandTranscriptionFailed": "コマンドを聞き取れませんでした — もう一度お試しください"
     },
     "listening": "聞いています…",
     "locked": "ハンズフリーで録音中 — 停止するにはもう一度ホットキーを押してください",
@@ -2524,6 +2532,14 @@
     "body": "{{phone}} が {{title}} を表示できます。",
     "unnamedPhone": "あなたのスマートフォン",
     "stop": "停止"
+  },
+  "commandCard": {
+    "heading": "音声コマンド",
+    "confirm": "実行する",
+    "cancel": "キャンセル",
+    "working": "実行中…",
+    "dryRun": "ドライラン：何も実行していません。",
+    "sayAgain": "答えを含めて、もう一度コマンドを話してください。"
   },
   "assistant": {
     "conversation": {
@@ -2750,6 +2766,7 @@
     "home": "ホーム",
     "history": "履歴",
     "assistant": "アシスタント",
+    "commands": "コマンド",
     "meetings": "会議",
     "cleanup": "AI整形",
     "dictionary": "辞書",
@@ -2790,7 +2807,9 @@
       "assistant": "アシスタント",
       "mouse": "マウス",
       "cleanupOff": "このショートカットを使うには、AI整形をオンにしてください。",
-      "assistantOff": "アシスタントがオフのため、そのショートカットは動作しません。"
+      "assistantOff": "アシスタントがオフのため、そのショートカットは動作しません。",
+      "commands": "音声コマンド",
+      "commandsOff": "音声コマンドがオフのため、このショートカットは動作しません。"
     },
     "audio": {
       "microphone": "マイク",
@@ -3124,6 +3143,44 @@
       "description": "フレーズを話すと別のテキストに置き換えます。たとえば「my email」があなたのメールアドレスになります。"
     },
     "addWord": "単語を追加"
+  },
+  "commandsPage": {
+    "description": "やりたいことを話すと、Talvioがこのコンピューターで実行します：サイトを開く、曲を再生する、アプリを切り替える、メールを書く。",
+    "enable": "音声コマンド",
+    "offNotice": "音声コマンドはオフです。オンにするとショートカットが使えるようになり、話した内容はコマンドを実行するモデルに送られます。",
+    "shortcut": {
+      "title": "コマンドを話す",
+      "whatHold": "押したまま、やりたいことを話して、離すだけ。",
+      "whatTap": "タップして、やりたいことを話し、もう一度タップ。"
+    },
+    "model": {
+      "title": "使用するモデル",
+      "info": "話した内容を操作に変換するモデルです。小さく高速なものが最適です。コマンド1回につき1回のリクエストを送ります。",
+      "provider": "プロバイダー",
+      "model": "モデル",
+      "using": "コマンドは {{model}} · {{provider}} で実行されます。",
+      "borrowed": "{{chosen}} にキーがないため、アシスタントのモデル（{{provider}} · {{model}}）を使用しています。",
+      "needsKey": "コマンドを実行するには {{provider}} のキーが必要です。",
+      "setUp": "モデルを設定"
+    },
+    "dryRun": {
+      "title": "ドライラン",
+      "info": "コマンドを実行する代わりに、何をするかを表示します。"
+    },
+    "test": {
+      "group": "試してみる",
+      "title": "コマンドを入力",
+      "info": "話す内容を入力すると、何が選ばれ、各ステップが何をしたかを確認できます。"
+    },
+    "examples": {
+      "title": "話しかける例",
+      "items": {
+        "youtube": "「YouTubeを開いて」",
+        "song": "「Imagine DragonsのBelieverを再生して」",
+        "volume": "「音量を下げて」",
+        "switch": "「Chromeに切り替えて」"
+      }
+    }
   },
   "assistantPage": {
     "description": "どのアプリからでも、声で何でも質問できます。アシスタントは画面を確認し、ウェブを検索し、あなたにとって大切なことを覚えておけます。",
@@ -3761,7 +3818,9 @@
       "failed": "{{reason}}",
       "mediaNext": "次の曲にスキップしました。",
       "mediaPlayPause": "再生/一時停止を押しました。",
+      "mediaPlaying": "{{service}} で「{{title}}」を再生しています。",
       "mediaPrevious": "前の曲に戻りました。",
+      "mediaResultsOpened": "{{service}} で「{{query}}」の検索結果を開きました。",
       "mediaStop": "再生を停止しました。",
       "needsComputerUse": "それができるツールはまだありません。画面を操作して行う機能は今後のバージョンで対応します。",
       "notConfigured": "コマンドモードが設定されていません: {{why}}",
@@ -3778,6 +3837,7 @@
       "routeFailed": "何をすればいいかわかりませんでした: {{why}}",
       "say": "{{text}}",
       "searchOpened": "{{query}} を検索しています。",
+      "spotifyResultsOpened": "Spotify で「{{query}}」の検索結果を開きました。Spotify は自分で検索を開始できないため、再生する曲を選んでください。",
       "superseded": "新しいコマンドに置き換えられたため、このコマンドはもう待機していません。",
       "switchedTo": "{{title}} に切り替えました。",
       "tooManyQuestions": "やはり何をすればいいかわかりませんでした。別の言い方で試してください。",
