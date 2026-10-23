@@ -668,7 +668,7 @@ fn update_gtk_layer_shell_anchors(overlay_window: &tauri::webview::WebviewWindow
 /// "0", "false", "no", "off" and empty string are treated as falsy (case-insensitive).
 /// Returns false when the variable is not set.
 #[cfg(target_os = "linux")]
-fn env_flag_enabled(name: &str) -> bool {
+pub(crate) fn env_flag_enabled(name: &str) -> bool {
     match env::var(name) {
         Ok(v) => !matches!(
             v.trim().to_ascii_lowercase().as_str(),

@@ -7,6 +7,7 @@
     "recording_overlay",
     "assistant_panel",
     "reminder_popup",
+    "account_approval",
     "meeting_pill"
   ],
   "permissions": [

@@ -1,0 +1,76 @@
+/* The phone approval popup.
+ *
+ * Like the reminder popup, the card, its header, its body and its buttons are
+ * the assistant panel's own classes (`.ask-card`, `.ask-head`,
+ * `.ask-answer-body`, `.qa-btn`), so the question looks like the rest of the
+ * app. What is here is what a notification sized to its content needs.
+ */
+
+.approval-scope {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* The height reported to the window is this element's box. */
+  padding: 0;
+  margin: 0;
+}
+
+.approval-scope .ask-card {
+  flex: 0 0 auto;
+  animation: approval-arrive 300ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.approval-scope .ask-answer-body {
+  flex: 0 0 auto;
+  overflow: visible;
+  scrollbar-gutter: auto;
+}
+
+/* The phone icon is what says what this window is about, so one step brighter
+   than the panel's header glyph, and still monochrome. */
+.approval-scope .ask-head-icon {
+  color: var(--as-muted);
+}
+
+/* The name is what the user checks before they allow anything, so it is never
+   cut short: a long one wraps. */
+.approval-phone {
+  color: var(--as-ink);
+}
+
+.approval-phone strong {
+  font-weight: 600;
+}
+
+.approval-platform {
+  color: var(--as-muted);
+}
+
+.approval-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 2px 16px 14px;
+}
+
+.approval-scope .qa-btn:focus-visible {
+  outline: 2px solid var(--as-ink);
+  outline-offset: 2px;
+}
+
+@keyframes approval-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .approval-scope .ask-card {
+    animation: none;
+  }
+}

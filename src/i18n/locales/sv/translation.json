@@ -1980,6 +1980,94 @@
         "medium": "Medel",
         "high": "Hög"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Anslut din telefon",
+        "body": "Logga in här och i Zynveliq-appen på telefonen med samma konto. Sedan kan du diktera och skriva på den här datorn från telefonen.",
+        "modeLabel": "Logga in eller skapa ett konto",
+        "signIn": "Logga in",
+        "createAccount": "Skapa konto",
+        "name": "Namn (valfritt)",
+        "email": "E-post",
+        "password": "Lösenord",
+        "passwordHint": "Minst 8 tecken",
+        "signingIn": "Loggar in…",
+        "creating": "Skapar konto…",
+        "or": "eller",
+        "google": "Fortsätt med Google",
+        "googleWaiting": "Slutför inloggningen i webbläsaren.",
+        "privacy": "Servern sparar bara ditt konto och din enhetslista, aldrig dina inspelningar eller texter.",
+        "serverUnsaved": "Spara den nya serveradressen nedan innan du loggar in."
+      },
+      "signOut": "Logga ut",
+      "signingOut": "Loggar ut…",
+      "connection": {
+        "online": "Ansluten",
+        "connecting": "Ansluter…",
+        "offline": "Inte ansluten",
+        "offlineHint": "Zynveliq når inte servern just nu och fortsätter att försöka. Tills dess kan telefonen inte använda den här datorn."
+      },
+      "phone": {
+        "title": "Telefon",
+        "remoteInput": "Diktering från telefonen",
+        "remoteInputHint": "Låter telefonen diktera och skriva på den här datorn.",
+        "install": "Installera Zynveliq-appen på telefonen och logga in som {{email}}."
+      },
+      "devices": {
+        "title": "Enheter",
+        "empty": "Dina enheter visas här när du är ansluten.",
+        "thisComputer": "Den här datorn",
+        "online": "Aktiv",
+        "lastSeen": "Senast aktiv {{time}}",
+        "removeLabel": "Ta bort {{name}}",
+        "removeTitle": "Ta bort den här enheten?",
+        "removeBody": "Den loggas ut från ditt konto och kan inte använda den här datorn förrän du loggar in på den igen.",
+        "removeConfirm": "Ta bort enheten",
+        "allowed": "Kan använda den här datorn",
+        "notAllowed": "Kan inte använda den här datorn än",
+        "allow": "Tillåt",
+        "allowLabel": "Tillåt {{name}} att använda den här datorn",
+        "removeAccess": "Ta bort åtkomst",
+        "removeAccessLabel": "Ta bort åtkomst för {{name}}"
+      },
+      "delete": {
+        "button": "Radera konto",
+        "title": "Radera ditt konto?",
+        "body": "Ditt konto raderas och alla dina enheter loggas ut, även den här datorn och telefonen. Historik, inspelningar och inställningar finns kvar på den här datorn.",
+        "deleting": "Raderar…"
+      },
+      "server": {
+        "title": "Kontoserver",
+        "hint": "Där ditt konto sparas. Ändra bara om du kör en egen server.",
+        "locked": "Logga ut för att byta server.",
+        "automatic": "Automatisk",
+        "custom": "Egen",
+        "using": "Använder {{host}}",
+        "notFound": "Servern går inte att hitta just nu. Zynveliq fortsätter att försöka."
+      },
+      "errors": {
+        "generic": "Något gick fel. Försök igen.",
+        "invalid_credentials": "Fel e-post eller lösenord.",
+        "email_taken": "Det finns redan ett konto med den här e-postadressen. Logga in i stället.",
+        "invalid_email": "Ange en giltig e-postadress.",
+        "weak_password": "Använd minst 8 tecken i lösenordet.",
+        "rate_limited": "För många försök. Vänta några minuter och försök sedan igen.",
+        "invalid_code": "Inloggningen med Google gick ut. Försök igen.",
+        "google_unavailable": "Den här servern erbjuder inte inloggning med Google.",
+        "account_conflict": "Kontot med den här e-postadressen är kopplat till ett annat Google-konto. Logga in med det i stället.",
+        "unauthorized": "Du har loggats ut. Logga in igen.",
+        "not_found": "Den enheten är redan borttagen.",
+        "invalid_request": "Servern kunde inte ta emot det. Kontrollera det du angav och försök igen.",
+        "network": "Det går inte att nå servern. Kontrollera internetanslutningen och serveradressen.",
+        "no_server": "Kontoservern går inte att hitta just nu. Kontrollera internetanslutningen och försök igen.",
+        "server": "Servern skickade ett oväntat svar. Försök igen senare.",
+        "timeout": "Inloggningen med Google tog för lång tid. Försök igen.",
+        "signed_in": "Logga ut innan du byter server.",
+        "invalid_url": "Ange en adress som börjar med https:// så att ditt lösenord skickas krypterat. http:// fungerar bara för en server på den här datorn.",
+        "keychain": "Det gick inte att spara inloggningen säkert på den här datorn. Försök igen.",
+        "wrongServer": "Serveradressen verkar inte stämma. Kontrollera den nedan och försök igen."
+      }
     }
   },
   "footer": {
@@ -2344,6 +2432,12 @@
       "dueAt": "Förfaller {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Tillåta den här telefonen?",
+    "body": "Den vill diktera och skriva i apparna på den här datorn, så tillåt bara telefoner som du äger.",
+    "allow": "Tillåt",
+    "deny": "Tillåt inte"
+  },
   "assistant": {
     "conversation": {
       "title": "Konversation",
@@ -2595,6 +2689,7 @@
     "title": "Inställningar",
     "tabs": {
       "general": "Allmänt",
+      "account": "Konto",
       "shortcuts": "Kortkommandon",
       "audio": "Ljud",
       "dictation": "Diktering",

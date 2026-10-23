@@ -1971,6 +1971,94 @@
         "medium": "中",
         "high": "高"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "連接您的手機",
+        "body": "在這台電腦和手機上的 Zynveliq App 登入同一個帳戶。之後就能用手機在這台電腦上語音輸入和打字。",
+        "modeLabel": "登入或建立帳戶",
+        "signIn": "登入",
+        "createAccount": "建立帳戶",
+        "name": "名稱（選填）",
+        "email": "電子郵件",
+        "password": "密碼",
+        "passwordHint": "至少 8 個字元",
+        "signingIn": "正在登入…",
+        "creating": "正在建立帳戶…",
+        "or": "或",
+        "google": "使用 Google 繼續",
+        "googleWaiting": "請在瀏覽器中完成登入。",
+        "privacy": "伺服器只會保存您的帳戶和裝置清單，絕不保存錄音或文字。",
+        "serverUnsaved": "登入前，請先在下方儲存新的伺服器位址。"
+      },
+      "signOut": "登出",
+      "signingOut": "正在登出…",
+      "connection": {
+        "online": "已連線",
+        "connecting": "正在連線…",
+        "offline": "離線",
+        "offlineHint": "Zynveliq 暫時無法連上伺服器，正在持續重試。恢復之前，您的手機無法使用這台電腦。"
+      },
+      "phone": {
+        "title": "手機",
+        "remoteInput": "手機語音輸入",
+        "remoteInputHint": "讓您的手機能在這台電腦上語音輸入和打字。",
+        "install": "在手機上安裝 Zynveliq App，並以 {{email}} 登入。"
+      },
+      "devices": {
+        "title": "裝置",
+        "empty": "連線後，您的裝置會顯示在這裡。",
+        "thisComputer": "這台電腦",
+        "online": "線上",
+        "lastSeen": "上次上線：{{time}}",
+        "removeLabel": "移除 {{name}}",
+        "removeTitle": "要移除這個裝置嗎？",
+        "removeBody": "它會登出您的帳戶，在您重新於該裝置登入之前，無法使用這台電腦。",
+        "removeConfirm": "移除裝置",
+        "allowed": "可以使用這台電腦",
+        "notAllowed": "還不能使用這台電腦",
+        "allow": "允許",
+        "allowLabel": "允許 {{name}} 使用這台電腦",
+        "removeAccess": "移除存取權",
+        "removeAccessLabel": "移除 {{name}} 的存取權"
+      },
+      "delete": {
+        "button": "刪除帳戶",
+        "title": "要刪除您的帳戶嗎？",
+        "body": "您的帳戶將被刪除，所有裝置都會登出，包括這台電腦和您的手機。歷史記錄、錄音和設定仍會保留在這台電腦上。",
+        "deleting": "正在刪除…"
+      },
+      "server": {
+        "title": "帳戶伺服器",
+        "hint": "保存您帳戶的地方。只有在您自行架設伺服器時才需要變更。",
+        "locked": "登出後才能變更伺服器。",
+        "automatic": "自動",
+        "custom": "自訂",
+        "using": "正在使用 {{host}}",
+        "notFound": "暫時找不到伺服器，Zynveliq 正在持續重試。"
+      },
+      "errors": {
+        "generic": "發生問題。請再試一次。",
+        "invalid_credentials": "電子郵件或密碼不正確。",
+        "email_taken": "這個電子郵件已有帳戶。請直接登入。",
+        "invalid_email": "請輸入有效的電子郵件地址。",
+        "weak_password": "密碼至少需要 8 個字元。",
+        "rate_limited": "嘗試次數過多。請等幾分鐘後再試一次。",
+        "invalid_code": "Google 登入已逾時。請再試一次。",
+        "google_unavailable": "這個伺服器不提供 Google 登入。",
+        "account_conflict": "這個電子郵件的帳戶已連結到另一個 Google 帳戶。請改用那個帳戶登入。",
+        "unauthorized": "您已登出。請重新登入。",
+        "not_found": "該裝置已被移除。",
+        "invalid_request": "伺服器無法接受此要求。請檢查您輸入的內容後再試一次。",
+        "network": "無法連上伺服器。請檢查網路連線和伺服器位址。",
+        "no_server": "暫時找不到帳戶伺服器。請檢查網路連線後再試一次。",
+        "server": "伺服器傳回了非預期的回應。請稍後再試。",
+        "timeout": "Google 登入花費太久時間。請再試一次。",
+        "signed_in": "請先登出，再變更伺服器。",
+        "invalid_url": "請輸入以 https:// 開頭的位址，這樣密碼會加密傳送。http:// 只適用於這台電腦上的伺服器。",
+        "keychain": "無法在這台電腦上安全儲存您的登入資訊。請再試一次。",
+        "wrongServer": "該伺服器位址似乎不正確。請在下方檢查後再試一次。"
+      }
     }
   },
   "footer": {
@@ -2330,6 +2418,12 @@
       "dueAt": "{{when}} 到期"
     }
   },
+  "phoneApproval": {
+    "title": "要允許這支手機嗎？",
+    "body": "它想在這台電腦上的應用程式中語音輸入和打字，所以只允許您自己的手機。",
+    "allow": "允許",
+    "deny": "不允許"
+  },
   "assistant": {
     "conversation": {
       "title": "對話",
@@ -2577,6 +2671,7 @@
     "title": "設定",
     "tabs": {
       "general": "一般",
+      "account": "帳戶",
       "shortcuts": "快捷鍵",
       "audio": "音訊",
       "dictation": "語音輸入",

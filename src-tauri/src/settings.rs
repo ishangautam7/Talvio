@@ -2021,6 +2021,23 @@ pub struct AppSettings {
     pub main_window_width: Option<f64>,
     #[serde(default)]
     pub main_window_height: Option<f64>,
+    /// The Custom account server this computer signs in to (`account`), or
+    /// empty for Automatic: the server discovery finds. Changed only while
+    /// signed out.
+    #[serde(default)]
+    pub account_server_url: String,
+    /// The account server discovery last found, used until it finds another.
+    #[serde(default)]
+    pub account_discovered_server: String,
+    /// "Phone dictation": whether a phone signed in to the same account may
+    /// dictate or type into this computer.
+    #[serde(default = "default_true")]
+    pub remote_input_enabled: bool,
+    /// The account's phones (device ids) this computer's user allowed to
+    /// dictate and type here. Cleared when the computer signs out; ids that
+    /// leave the account are dropped.
+    #[serde(default)]
+    pub account_approved_devices: Vec<String>,
 }
 
 fn default_model() -> String {
@@ -4463,6 +4480,10 @@ pub fn get_default_settings() -> AppSettings {
         ui_text_size: UiTextSize::default(),
         main_window_width: None,
         main_window_height: None,
+        account_server_url: String::new(),
+        account_discovered_server: String::new(),
+        remote_input_enabled: true,
+        account_approved_devices: Vec::new(),
     }
 }
 

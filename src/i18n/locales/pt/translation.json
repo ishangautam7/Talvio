@@ -1989,6 +1989,94 @@
         "medium": "Médio",
         "high": "Alto"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Conecte seu celular",
+        "body": "Entre aqui e no app Zynveliq do celular com a mesma conta. Assim você pode ditar e digitar neste computador pelo celular.",
+        "modeLabel": "Entrar ou criar uma conta",
+        "signIn": "Entrar",
+        "createAccount": "Criar conta",
+        "name": "Nome (opcional)",
+        "email": "E-mail",
+        "password": "Senha",
+        "passwordHint": "Pelo menos 8 caracteres",
+        "signingIn": "Entrando…",
+        "creating": "Criando conta…",
+        "or": "ou",
+        "google": "Continuar com o Google",
+        "googleWaiting": "Termine de entrar no seu navegador.",
+        "privacy": "O servidor guarda só sua conta e sua lista de dispositivos, nunca suas gravações ou textos.",
+        "serverUnsaved": "Salve o novo endereço do servidor abaixo antes de entrar."
+      },
+      "signOut": "Sair",
+      "signingOut": "Saindo…",
+      "connection": {
+        "online": "Conectado",
+        "connecting": "Conectando…",
+        "offline": "Desconectado",
+        "offlineHint": "O Zynveliq não consegue acessar o servidor agora e continua tentando. Até lá, seu celular não pode usar este computador."
+      },
+      "phone": {
+        "title": "Celular",
+        "remoteInput": "Ditado pelo celular",
+        "remoteInputHint": "Permite que seu celular dite e digite neste computador.",
+        "install": "Instale o app Zynveliq no celular e entre como {{email}}."
+      },
+      "devices": {
+        "title": "Dispositivos",
+        "empty": "Seus dispositivos aparecem aqui quando você estiver conectado.",
+        "thisComputer": "Este computador",
+        "online": "Ativo",
+        "lastSeen": "Visto por último {{time}}",
+        "removeLabel": "Remover {{name}}",
+        "removeTitle": "Remover este dispositivo?",
+        "removeBody": "Ele sai da sua conta e não pode usar este computador até você entrar nele de novo.",
+        "removeConfirm": "Remover dispositivo",
+        "allowed": "Pode usar este computador",
+        "notAllowed": "Ainda não pode usar este computador",
+        "allow": "Permitir",
+        "allowLabel": "Permitir que {{name}} use este computador",
+        "removeAccess": "Remover acesso",
+        "removeAccessLabel": "Remover o acesso de {{name}}"
+      },
+      "delete": {
+        "button": "Excluir conta",
+        "title": "Excluir sua conta?",
+        "body": "Isso exclui sua conta e desconecta todos os seus dispositivos, incluindo este computador e seu celular. Seu histórico, gravações e configurações continuam neste computador.",
+        "deleting": "Excluindo…"
+      },
+      "server": {
+        "title": "Servidor da conta",
+        "hint": "Onde sua conta fica guardada. Mude só se você usa seu próprio servidor.",
+        "locked": "Saia para mudar o servidor.",
+        "automatic": "Automático",
+        "custom": "Personalizado",
+        "using": "Usando {{host}}",
+        "notFound": "Não foi possível encontrar o servidor agora. O Zynveliq continua tentando."
+      },
+      "errors": {
+        "generic": "Algo deu errado. Tente novamente.",
+        "invalid_credentials": "E-mail ou senha incorretos.",
+        "email_taken": "Já existe uma conta com este e-mail. Entre nela.",
+        "invalid_email": "Digite um e-mail válido.",
+        "weak_password": "Use pelo menos 8 caracteres na senha.",
+        "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+        "invalid_code": "O login com o Google expirou. Tente novamente.",
+        "google_unavailable": "Este servidor não oferece login com o Google.",
+        "account_conflict": "A conta com este e-mail está vinculada a outra conta do Google. Entre com essa conta.",
+        "unauthorized": "Você foi desconectado. Entre novamente.",
+        "not_found": "Esse dispositivo já foi removido.",
+        "invalid_request": "O servidor não aceitou o pedido. Confira o que você digitou e tente novamente.",
+        "network": "Não foi possível acessar o servidor. Verifique sua conexão com a internet e o endereço do servidor.",
+        "no_server": "Não foi possível encontrar o servidor da conta agora. Verifique sua conexão com a internet e tente de novo.",
+        "server": "O servidor enviou uma resposta inesperada. Tente novamente mais tarde.",
+        "timeout": "O login com o Google demorou demais. Tente novamente.",
+        "signed_in": "Saia antes de mudar o servidor.",
+        "invalid_url": "Digite um endereço que comece com https:// para que sua senha seja enviada criptografada. http:// só funciona com um servidor neste computador.",
+        "keychain": "Não foi possível salvar seu login com segurança neste computador. Tente novamente.",
+        "wrongServer": "Esse endereço de servidor não parece correto. Confira-o abaixo e tente novamente."
+      }
     }
   },
   "footer": {
@@ -2358,6 +2446,12 @@
       "dueAt": "Para {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Permitir este celular?",
+    "body": "Ele quer ditar e digitar nos apps deste computador, então só permita celulares que sejam seus.",
+    "allow": "Permitir",
+    "deny": "Não permitir"
+  },
   "assistant": {
     "conversation": {
       "title": "Conversa",
@@ -2613,6 +2707,7 @@
     "title": "Configurações",
     "tabs": {
       "general": "Geral",
+      "account": "Conta",
       "shortcuts": "Atalhos",
       "audio": "Áudio",
       "dictation": "Ditado",
