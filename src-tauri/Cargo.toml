@@ -126,6 +126,15 @@ cpal = "0.16.0"
 anyhow = "1.0.95"
 rubato = "0.16.2"
 hound = "3.5.1"
+# Live view (account/remote/screen/): the WebRTC connection a phone watches a
+# window over, and Opus for the computer's sound on it.
+webrtc = "=0.21.1"
+# The protocol core `webrtc` is built on, for the codec, track and RTCP types it
+# does not re-export; always the same version as `webrtc`.
+rtc = "=0.21.1"
+opus = "0.4.0"
+async-trait = "0.1.89"
+bytes = "1.12.1"
 # MP3 encoding for cloud transcription uploads (see `stt_cloud::encode_mp3_16k_mono`).
 # Builds the bundled LAME 3.100 from source: autotools on macOS/Linux, `cc` on
 # Windows, so there is no system library to install. LAME and these bindings are
@@ -210,9 +219,9 @@ transcribe-cpp = { version = "=0.4.0", default-features = false, features = [
 # The transcription worker claims its stdout through the C runtime's
 # descriptors (`dup`/`dup2`) on every platform and leaves with `_exit`; Unix
 # also uses it to reap an orphaned llama-server (`kill`, `proc_pidpath`).
-# Already in the graph through other crates; pinned to the version the
-# lockfile resolves.
-libc = "=0.2.182"
+# Already in the graph through other crates; any 0.2 from the one first
+# pinned (webrtc's tokio needs a newer patch release).
+libc = "0.2.182"
 handy-keys = "0.2.4"
 ferrous-opencc = "0.2.3"
 clap = { version = "4", features = ["derive"] }
@@ -307,6 +316,22 @@ windows = { version = "0.61.3", features = [
   "ApplicationModel_DataTransfer",
   "Storage",
   "Storage_Streams",
+  # Live view (account/remote/screen/): Windows.Graphics.Capture for one
+  # window or screen, Direct3D 11 for its frames and the colour conversion,
+  # and Media Foundation's H.264 encoder.
+  "Graphics",
+  "Graphics_Capture",
+  "Graphics_DirectX",
+  "Graphics_DirectX_Direct3D11",
+  "Win32_Graphics_Direct3D",
+  "Win32_Graphics_Direct3D11",
+  "Win32_Graphics_Dxgi",
+  "Win32_Graphics_Dxgi_Common",
+  "Win32_System_WinRT",
+  "Win32_System_WinRT_Direct3D11",
+  "Win32_System_WinRT_Graphics_Capture",
+  "Win32_Media_MediaFoundation",
+  "Win32_System_Com",
 ] }
 # The list and the async operation the Share panel's data takes, at the
 # versions `windows` above already uses (it does not re-export them).
