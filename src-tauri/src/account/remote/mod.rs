@@ -719,6 +719,8 @@ pub(crate) mod testing {
         pub windows_on: AtomicBool,
         /// Every phone counts as allowed (a live test serving a real phone).
         pub approve_all: bool,
+        /// Views capture this machine for real (a live test).
+        pub capture_for_real: bool,
         /// The open windows, and the id of the one in front.
         pub windows: Mutex<Vec<WindowEntry>>,
         pub front: Mutex<Option<i64>>,
@@ -788,6 +790,7 @@ pub(crate) mod testing {
                 while_judging: Mutex::default(),
                 windows_on: AtomicBool::new(true),
                 approve_all: false,
+                capture_for_real: false,
                 windows: Mutex::default(),
                 front: Mutex::default(),
                 focused: Mutex::default(),
@@ -890,7 +893,20 @@ pub(crate) mod testing {
         fn screens(&self) -> Vec<ScreenInfo> {
             self.screens.clone()
         }
-        fn start_video(&self, _target: CaptureTarget, _settings: VideoSettings) -> VideoStart {
+        fn start_video(&self, target: CaptureTarget, settings: VideoSettings) -> VideoStart {
+            if self.capture_for_real {
+                let target = match target {
+                    CaptureTarget::Window(_) => CaptureTarget::Screen(
+                        super::screen::video::list_screens()
+                            .into_iter()
+                            .next()
+                            .map(|screen| screen.id)
+                            .unwrap_or_default(),
+                    ),
+                    screen => screen,
+                };
+                return super::screen::video::start(target, settings);
+            }
             let Some(mut video) = self.video.lock().unwrap().take() else {
                 return Err(StartError::Unsupported("no fake capture".into()));
             };
