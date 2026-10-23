@@ -5,8 +5,13 @@ import 'relay_protocol.dart';
 
 /// A request's answer: the result when it is `ok`, else an error code (the
 /// computer's, or the phone's own: offline, not_connected, interrupted,
-/// timeout).
-typedef RelayAnswer = ({Map<String, Object?>? result, String? error});
+/// timeout). A failed result's `message`, when it carries one, is
+/// [message] (English, from the computer).
+typedef RelayAnswer = ({
+  Map<String, Object?>? result,
+  String? error,
+  String? message,
+});
 
 /// The wait while the computer asks its user to allow this phone; its own
 /// prompt gives up after 2 minutes (PROTOCOL.md, Approval).
@@ -23,6 +28,7 @@ Future<RelayAnswer> askComputer(
   required Duration timeout,
   void Function(RelayRequest request)? onRequest,
   void Function(String stage)? onStage,
+  void Function(Map<String, Object?> progress)? onProgress,
 }) async {
   final request = relay.request(to, body);
   onRequest?.call(request);
@@ -41,6 +47,7 @@ Future<RelayAnswer> askComputer(
     (reply) {
       if (reply['kind'] == RelayKind.progress) {
         if (reply['stage'] case final String stage) onStage?.call(stage);
+        onProgress?.call(reply);
         wait(reply['stage'] == 'approval' ? approvalTimeout : timeout);
       } else if (reply['kind'] == RelayKind.result && !result.isCompleted) {
         result.complete(reply);
@@ -53,15 +60,24 @@ Future<RelayAnswer> askComputer(
 
   try {
     return switch (await result.future) {
-      {'ok': true} && final reply => (result: reply, error: null),
+      {'ok': true} && final reply => (
+        result: reply,
+        error: null,
+        message: null,
+      ),
       final reply => (
         result: null,
         error: reply['error'] is String ? reply['error']! as String : 'unknown',
+        message: switch (reply['message']) {
+          final String message when message.trim().isNotEmpty => message.trim(),
+          _ => null,
+        },
       ),
     };
   } on RelayException catch (e) {
     return (
       result: null,
+      message: null,
       error: switch (e.error) {
         RelayError.offline => 'offline',
         RelayError.notConnected => 'not_connected',
@@ -69,7 +85,7 @@ Future<RelayAnswer> askComputer(
       },
     );
   } on _TimedOut {
-    return (result: null, error: 'timeout');
+    return (result: null, error: 'timeout', message: null);
   } finally {
     timer?.cancel();
     unawaited(subscription.cancel());

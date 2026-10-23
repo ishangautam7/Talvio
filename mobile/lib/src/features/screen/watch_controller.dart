@@ -9,6 +9,10 @@ import '../../core/relay_protocol.dart';
 import 'live_protocol.dart';
 import 'rtc_link.dart';
 
+/// Keys sent on the channel and not yet acknowledged, at most; a tap past
+/// that is ignored, so a stuck computer is not sent a burst of keys later.
+const maxPendingLiveKeys = 3;
+
 enum WatchPhase {
   /// The watch is sent; nothing back yet.
   starting,
@@ -36,9 +40,9 @@ abstract final class WatchTimeouts {
 }
 
 /// Runs one live view of [target] on [computer] at a time: the `screen.watch`
-/// request and its WebRTC handshake over the relay. Live view only watches:
-/// every watch is sent with `control: false`, and the `control` channel only
-/// carries sound on/off and keyframe requests. Every way a watch ends goes
+/// request and its WebRTC handshake over the relay. Live view never clicks or
+/// scrolls: every watch is sent with `control: false`, and the `control`
+/// channel carries sound on/off, keyframe requests and keys ([pressKeys]). Every way a watch ends goes
 /// through [_end], which closes the peer connection.
 class WatchController extends ChangeNotifier {
   WatchController({
@@ -84,6 +88,11 @@ class WatchController extends ChangeNotifier {
 
   Caret? _caret;
   WatchedTarget? _watched;
+
+  /// Keys sent and not yet acknowledged, by id.
+  final _keysPending = <String>{};
+  var _keySeq = 0;
+  final _keyErrors = StreamController<String>.broadcast();
 
   WatchPhase get phase => _phase;
 
@@ -142,6 +151,23 @@ class WatchController extends ChangeNotifier {
     );
     _notify();
   }
+
+  /// Presses [keys] (combos, as `windows.keys` takes them) in the watched
+  /// window, or wherever the keyboard is on a watched screen. False when the
+  /// channel is not open, or [maxPendingLiveKeys] still wait for their ack. A
+  /// key the computer could not press arrives on [keyErrors].
+  bool pressKeys(List<String> keys) {
+    if (!_channelOpen || _keysPending.length >= maxPendingLiveKeys) {
+      return false;
+    }
+    final id = 'k${++_keySeq}';
+    if (!_sendControl({'t': 'keys', 'id': id, 'keys': keys})) return false;
+    _keysPending.add(id);
+    return true;
+  }
+
+  /// Error codes of keys the computer did not press (as `windows.keys`').
+  Stream<String> get keyErrors => _keyErrors.stream;
 
   /// Ends the watch from this phone.
   void stop() {
@@ -316,6 +342,9 @@ class WatchController extends ChangeNotifier {
         case TargetMessage(:final target):
           _watched = target;
           _notify();
+        case AckMessage(:final id, :final ok, :final error):
+          if (!_keysPending.remove(id) || ok) return;
+          _keyErrors.add(error ?? 'keys_failed');
         case null:
           break;
       }
@@ -363,6 +392,7 @@ class WatchController extends ChangeNotifier {
     _reconnecting = false;
     _localCandidates.clear();
     _remoteCandidates.clear();
+    _keysPending.clear();
     if (link != null) unawaited(link.close());
     _notify();
   }
@@ -393,6 +423,7 @@ class WatchController extends ChangeNotifier {
   void dispose() {
     stop();
     _disposed = true;
+    unawaited(_keyErrors.close());
     super.dispose();
   }
 }

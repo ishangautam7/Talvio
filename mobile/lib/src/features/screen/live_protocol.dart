@@ -214,6 +214,11 @@ sealed class ControlMessage {
           state: json['state'] is String ? json['state']! as String : 'normal',
         ),
       ),
+      {'t': 'ack', 'id': String id} => AckMessage(
+        id: id,
+        ok: json['ok'] == true,
+        error: json['error'] is String ? json['error']! as String : null,
+      ),
       _ => null,
     };
   }
@@ -231,4 +236,13 @@ class CaretMessage extends ControlMessage {
 class TargetMessage extends ControlMessage {
   const TargetMessage(this.target);
   final WatchedTarget target;
+}
+
+/// The computer's answer to one input message ([id] is the phone's own).
+class AckMessage extends ControlMessage {
+  const AckMessage({required this.id, required this.ok, this.error});
+
+  final String id;
+  final bool ok;
+  final String? error;
 }

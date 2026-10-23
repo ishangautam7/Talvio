@@ -134,10 +134,16 @@ void main() {
     test('control messages', () {
       expect(ControlMessage.decode('not json'), isNull);
       expect(ControlMessage.decode('{"t":"other"}'), isNull);
+      final ack =
+          ControlMessage.decode(
+                '{"t":"ack","id":"k3","ok":false,"error":"key_refused"}',
+              )!
+              as AckMessage;
+      expect((ack.id, ack.ok, ack.error), ('k3', false, 'key_refused'));
       expect(
-        ControlMessage.decode('{"t":"ack","id":"k3","ok":true}'),
+        ControlMessage.decode('{"t":"ack","ok":true}'),
         isNull,
-        reason: 'this phone sends no input to acknowledge',
+        reason: 'an ack without its id',
       );
       expect(
         (ControlMessage.decode('{"t":"caret"}')! as CaretMessage).caret,
