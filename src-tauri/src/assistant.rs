@@ -17,6 +17,14 @@ use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager, WebviewWindowBuilder};
 use tokio::sync::Notify;
 
+pub mod act;
+#[cfg(test)]
+mod live_tests;
+pub mod phone;
+pub(crate) mod turn;
+
+use turn::{TurnModel, TurnTools};
+
 pub const PANEL_LABEL: &str = "assistant_panel";
 
 /// The shortcut bindings that belong to the assistant, and so are switched off
@@ -2590,27 +2598,90 @@ fn present_assistant_panel(app: &AppHandle, reason: PresentReason) {
 /// nothing and is readable from anywhere.
 static PANEL_VISIBLE: AtomicBool = AtomicBool::new(false);
 
-/// Whether a quick ask should start from an empty conversation.
+/// When the last quick ask was answered, for "Remember the conversation".
+/// `None` when nothing a quick ask said is kept (a fresh start, a call, a
+/// conversation opened from History).
+static QUICK_ASK_ANSWERED: Mutex<Option<Instant>> = Mutex::new(None);
+
+fn quick_ask_answered() -> Option<Instant> {
+    *QUICK_ASK_ANSWERED.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+pub(crate) fn set_quick_ask_answered(at: Option<Instant>) {
+    *QUICK_ASK_ANSWERED.lock().unwrap_or_else(|e| e.into_inner()) = at;
+}
+
+/// Whether a quick ask should start from an empty conversation, with the clock
+/// as a parameter.
 ///
-/// Always, unless a call is running. A quick ask is one job — translate this,
-/// rewrite that, what does this mean — with one question and one answer, and there
-/// is no follow-up field to continue it from; a conversation is what the call is
-/// for. Keeping the previous exchange would quietly turn the next ask into a
-/// follow-up the user never asked for, answered in the context of something they
-/// already dismissed.
+/// A quick ask continues the one before it while that one was answered within
+/// the user's "Remember the conversation" window (10 minutes by default), so
+/// "and in French?" or "make it shorter" work as follow-ups. After the window,
+/// with the setting Off, or when nothing a quick ask said is kept, it starts
+/// empty: an old exchange would otherwise colour an unrelated question.
 ///
 /// During a call the conversation belongs to the call; wiping it would erase what
 /// the user is in the middle of saying.
-pub fn should_reset_quick_ask(call_active: bool) -> bool {
-    !call_active
+pub fn should_reset_quick_ask(
+    call_active: bool,
+    memory: crate::settings::QuickAskMemory,
+    last_answered: Option<Instant>,
+    now: Instant,
+) -> bool {
+    if call_active {
+        return false;
+    }
+    let Some(last) = last_answered else {
+        return true;
+    };
+    match memory.window() {
+        None => false,
+        Some(window) => now.saturating_duration_since(last) >= window,
+    }
 }
 
-/// Start a quick ask from a clean slate. A no-op during a call.
+/// Whether the kept conversation is still one a quick ask continues now.
+fn quick_ask_resets_now(app: &AppHandle) -> bool {
+    should_reset_quick_ask(
+        crate::voice_conversation::is_active(app),
+        get_settings(app).assistant_quick_ask_memory,
+        quick_ask_answered(),
+        Instant::now(),
+    )
+}
+
+/// Start a quick ask: from a clean slate, or as a follow-up to the last one
+/// while it is remembered. A no-op during a call.
 pub fn begin_quick_ask_exchange(app: &AppHandle) {
-    if !should_reset_quick_ask(crate::voice_conversation::is_active(app)) {
+    if crate::voice_conversation::is_active(app) {
         return;
     }
-    reset_conversation_for_new_exchange(app);
+    if quick_ask_resets_now(app) {
+        reset_conversation_for_new_exchange(app);
+        return;
+    }
+    // A follow-up: a reply still being written to the previous question is
+    // stopped, as a new question would stop it.
+    let conversation = app.state::<AssistantConversation>();
+    if conversation.is_busy() {
+        conversation.request_cancel();
+    }
+    debug!("Quick ask continuing the previous conversation");
+}
+
+/// The quick ask's card went away. A conversation that will not be continued
+/// is cleared now (and handed to memory); one that is still remembered stays,
+/// but what it taught is handed to memory all the same, since closing the card
+/// is when a quick ask ends.
+fn end_quick_ask_exchange(app: &AppHandle) {
+    if crate::voice_conversation::is_active(app) {
+        return;
+    }
+    if quick_ask_resets_now(app) {
+        reset_conversation_for_new_exchange(app);
+    } else {
+        distill_conversation_if_ended(app);
+    }
 }
 
 /// Empty the conversation and detach it from its history row, so what follows is
@@ -2623,6 +2694,7 @@ pub fn begin_quick_ask_exchange(app: &AppHandle) {
 /// ask that taught the assistant something should not lose it just because the
 /// next ask starts clean.
 pub fn reset_conversation_for_new_exchange(app: &AppHandle) {
+    set_quick_ask_answered(None);
     let conversation = app.state::<AssistantConversation>();
     // A new question supersedes one still being answered: stop it, and make sure
     // its reply cannot land in the conversation that replaces it.
@@ -2678,6 +2750,8 @@ pub fn adopt_saved_conversation(
     messages: Vec<ChatMessage>,
     meeting: Option<crate::meetings::discuss::MeetingAttachment>,
 ) {
+    // A conversation from History is not a quick ask to continue.
+    set_quick_ask_answered(None);
     let conversation = app.state::<AssistantConversation>();
     let snapshot = conversation.take_distillable();
     conversation.bump_epoch();
@@ -2701,6 +2775,7 @@ pub fn adopt_branch(
     messages: Vec<ChatMessage>,
     meeting: Option<crate::meetings::discuss::MeetingAttachment>,
 ) {
+    set_quick_ask_answered(None);
     let conversation = app.state::<AssistantConversation>();
     let snapshot = conversation.take_distillable();
     conversation.bump_epoch();
@@ -2891,10 +2966,12 @@ fn hide_panel(app: &AppHandle, clear_first: bool) {
             });
         });
     }
-    // A quick ask is over once its card is gone. Clearing it here (which also hands
-    // it to memory, dirty-guarded) is what makes the next open a fresh prompt rather
-    // than the last answer reappearing. Everything said is already in History.
-    begin_quick_ask_exchange(app);
+    // A quick ask is over once its card is gone: cleared here unless "Remember
+    // the conversation" keeps it for a follow-up, and handed to memory either
+    // way (dirty-guarded). The webview shows only the newest exchange, so a kept
+    // conversation never makes the last answer reappear. Everything said is
+    // already in History.
+    end_quick_ask_exchange(app);
 }
 
 /// Take the window off screen. Main thread only.
@@ -3144,12 +3221,14 @@ fn strip_visuals_for_retry(messages: &[Value], user_content: &str) -> Vec<Value>
 /// turn — the clock and reminders always, `web_search` when web search is on,
 /// and `capture_screen` when the asking surface's screen switch is on — explains
 /// when to reach for each, and (reusing the shared, TTS-aware directive) how
-/// to present web findings. Fixed text per flag combination → cache-safe.
+/// to present web findings. `act` adds `do_on_computer` (command mode is on).
+/// Fixed text per flag combination → cache-safe.
 fn tools_system_section(
     web: bool,
     screen: bool,
     tts_enabled: bool,
     depth: crate::settings::AssistantSearchDepth,
+    act: bool,
 ) -> String {
     let mut s = String::from(
         "## Tools\n\
@@ -3167,6 +3246,9 @@ fn tools_system_section(
          • set_reminder(text, in_minutes, at, note): schedule a popup on the user's screen. Call it for any request to be reminded, nudged, told later, or timed. Use in_minutes for a duration and at (\"YYYY-MM-DD HH:MM\", local, future) for a named time (check the clock first for the latter). Write text so it stands alone: it is the entire popup, so \"Reply to Sam's email about the quote\", never \"do that thing\". If the request is about something on screen, look first and put what you saw into text or note. After it is set, confirm in one short sentence including when it will arrive.\n\
          • list_reminders() and cancel_reminder(id): what is set, and removing one. Look the id up before cancelling, and never cancel something the user did not clearly name.\n",
     );
+    if act {
+        s.push_str(act::GUIDANCE);
+    }
     if screen {
         s.push_str(&screen_tool_guidance());
     }
@@ -3187,7 +3269,7 @@ fn tools_system_section(
 /// admits it never saw any results. Telling it the truth gives the user an
 /// honest answer and a reason instead.
 const TOOLS_UNAVAILABLE_SECTION: &str = "## Tools\n\
-No tools are available for this reply: the selected model or provider refused function calling, so you cannot search the web, check the clock, look at the screen, or set reminders right now. Do not say you will look something up or set a reminder. Answer from what you know. If the question needs live or current information, say in one short sentence that live search is not working with the current model, then give your best answer and note that it may be out of date.";
+No tools are available for this reply: the selected model or provider refused function calling, so you cannot search the web, check the clock, look at the screen, set reminders, or do anything on the computer right now. Do not say you will look something up, set a reminder, or do something on the computer. Answer from what you know. If the question needs live or current information, say in one short sentence that live search is not working with the current model, then give your best answer and note that it may be out of date.";
 
 /// When to look at the screen, for the system prompt.
 ///
@@ -3388,8 +3470,11 @@ async fn agent_capture_screen(
 /// without knowing what today is. It is now always offered, next to the tools
 /// that need it.
 ///
+/// `act` (command mode is on) appends `do_on_computer`, last, so turns without
+/// it keep their request byte-identical.
+///
 /// The order is stable because it is part of the model-facing request baseline.
-fn build_assistant_tool_capabilities(web: bool, screen: bool) -> Option<Value> {
+fn build_assistant_tool_capabilities(web: bool, screen: bool, act: bool) -> Option<Value> {
     let mut tools: Vec<Value> = Vec::new();
     if web {
         tools.push(json!(
@@ -3499,6 +3584,9 @@ fn build_assistant_tool_capabilities(web: bool, screen: bool) -> Option<Value> {
                 "parameters": { "type": "object", "properties": {} }
             }
         }));
+    }
+    if act {
+        tools.push(act::tool_definition());
     }
     Some(Value::Array(tools))
 }
@@ -3683,12 +3771,16 @@ async fn load_turn_meeting(
 /// by the model, and "That time is in the past" lets it ask the user for a better
 /// one, where a swallowed error leaves it confidently confirming a reminder that
 /// does not exist.
+///
+/// `in_panel` is false for a phone's question, which must not change what the
+/// panel shows (a reminder set from the phone is not the quick ask's answer).
 async fn run_text_tool(
     app: &AppHandle,
     settings: &crate::settings::AppSettings,
     name: &str,
     arguments: &str,
     meeting: Option<MeetingToolTarget>,
+    in_panel: bool,
 ) -> String {
     use crate::meetings::discuss;
     if discuss::is_meeting_tool(name) {
@@ -3754,7 +3846,9 @@ async fn run_text_tool(
                 Ok(reminder) => {
                     // The quick ask shows this as a confirmation (the time, and
                     // Undo) rather than as an ordinary answer with Insert under it.
-                    let _ = app.emit_to(PANEL_LABEL, "assistant-reminder-set", &reminder);
+                    if in_panel {
+                        let _ = app.emit_to(PANEL_LABEL, "assistant-reminder-set", &reminder);
+                    }
                     let when = reminder
                         .due_at
                         .parse::<chrono::DateTime<chrono::Utc>>()
@@ -3842,6 +3936,8 @@ fn emit_tool_activity(app: &AppHandle, calls: &[llm_client::ToolCall]) {
         query
     } else if crate::meetings::discuss::is_meeting_tool(&first.name) {
         crate::meetings::discuss::tool_detail(&first.name, &first.arguments)
+    } else if first.name == act::TOOL_NAME {
+        act::parse_request(&first.arguments)
     } else {
         String::new()
     };
@@ -3853,6 +3949,272 @@ fn emit_tool_activity(app: &AppHandle, calls: &[llm_client::ToolCall]) {
             "count": calls.len(),
         }),
     );
+}
+
+/// Why a turn has no model to ask.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ModelProblem {
+    NoProvider,
+    /// The provider's label.
+    NoModel(String),
+}
+
+/// The provider, key, model and thinking dial a turn uses: the assistant's.
+fn resolve_turn_model(settings: &AppSettings) -> Result<TurnModel, ModelProblem> {
+    let provider = settings
+        .active_assistant_provider()
+        .cloned()
+        .ok_or(ModelProblem::NoProvider)?;
+    let model = settings
+        .assistant_models
+        .get(&provider.id)
+        .cloned()
+        .unwrap_or_default();
+    if model.trim().is_empty() {
+        return Err(ModelProblem::NoModel(provider.label.clone()));
+    }
+    let api_key = settings
+        .post_process_api_keys
+        .get(&provider.id)
+        .cloned()
+        .unwrap_or_default();
+    let thinking =
+        llm_client::reasoning_options_for(&provider.id, &model, settings.assistant_thinking);
+    Ok(TurnModel {
+        provider,
+        api_key,
+        model,
+        thinking,
+    })
+}
+
+/// Providers that need a compact request body: Azure's gateway rejects
+/// oversized JSON, and the local engine (built-in, or an Ollama/LM Studio
+/// loopback server) runs a small context window.
+fn needs_small_body(provider: &crate::settings::PostProcessProvider) -> bool {
+    let base_url = provider.base_url.to_ascii_lowercase();
+    provider.id == "builtin"
+        || base_url.contains("azure")
+        || base_url.contains("127.0.0.1")
+        || base_url.contains("localhost")
+}
+
+/// How a turn searches the web: `(through the web_search tool, through
+/// OpenRouter's server-side :online search)`.
+///
+/// Web search is fully model-decided: with it on, the model gets a
+/// `web_search` tool and chooses whether to call it. The one exception is
+/// OpenRouter's `:online` search, an opt-in for OpenRouter users (billed to
+/// their credits), which cannot pair with an inline image.
+fn web_plan(
+    settings: &AppSettings,
+    provider: &crate::settings::PostProcessProvider,
+    has_visual: bool,
+) -> (bool, bool) {
+    let is_openrouter = provider.id == "openrouter"
+        || provider
+            .base_url
+            .to_ascii_lowercase()
+            .contains("openrouter");
+    let wanted = settings.assistant_web_search_enabled;
+    let via_online =
+        wanted && is_openrouter && !has_visual && settings.assistant_prefer_provider_web_search;
+    (wanted && !via_online, via_online)
+}
+
+/// What a turn's system prompt holds besides the persona.
+struct PromptPlan<'a> {
+    /// A spoken call (the voice prompt, no Markdown guidance).
+    call: bool,
+    /// The meeting under discussion, if any.
+    meeting_section: Option<&'a str>,
+    /// `tools_system_section` for this turn.
+    tools_section: &'a str,
+    web_via_online: bool,
+}
+
+/// The system prompt, as clearly separated sections, each included only when
+/// it does work this turn. On a plain chat turn that is just the persona (plus
+/// an optional length preference), so a small model isn't buried under
+/// scaffolding it doesn't need. Order is stable and cache-friendly: persona →
+/// length → meeting → memory → tools. `settings.assistant_tts_enabled` must
+/// already say whether this reply is spoken.
+fn compose_system_prompt(settings: &AppSettings, plan: &PromptPlan<'_>, user_text: &str) -> String {
+    let mut sections: Vec<String> = Vec::new();
+
+    // 1. Persona — the core instructions (active profile, or the default).
+    let persona = settings.effective_system_prompt();
+    if !persona.trim().is_empty() {
+        sections.push(persona.trim().to_string());
+    }
+
+    // 1b. The app's answer contract: how a reply is formatted for the surface
+    //     it lands on, and the no-dash rule. Owned by the app, not the persona,
+    //     so it holds for custom profiles too. A call gets only the punctuation
+    //     rule, since the voice prompt sets layout.
+    sections.push(
+        if plan.call {
+            SPOKEN_STYLE_SECTION
+        } else {
+            RESPONSE_STYLE_SECTION
+        }
+        .to_string(),
+    );
+
+    // 2. Reply-length preference (persona override, else the global dial).
+    if let Some(directive) = settings.effective_response_length().directive() {
+        sections.push(directive.to_string());
+    }
+    if plan.call {
+        sections.push(crate::voice_conversation::voice_prompt(
+            settings.effective_response_length(),
+        ));
+    }
+
+    // ElevenLabs audio tags ([laughs], [applause]). Only when this reply is
+    // actually going to be spoken by a voice that performs them; every other
+    // engine would read "[laughs]" out loud, so it never sees the instruction.
+    // Fixed text per intensity, so the prefix stays cache-stable in a call.
+    if settings.assistant_tts_enabled && crate::audio_tags::active(settings) {
+        sections.push(crate::audio_tags::prompt_section(
+            settings.assistant_tts_elevenlabs_audio_tag_intensity,
+        ));
+    }
+
+    // 2a. The meeting under discussion. Stable for the whole conversation, so
+    //     it sits before the per-turn memory block and stays inside the
+    //     cacheable prefix, which matters: an inlined transcript is by far the
+    //     largest thing in the request.
+    if let Some(meeting) = plan.meeting_section {
+        sections.push(meeting.to_string());
+    }
+
+    // 2b. Spoken turns outside a call: the voice can only start once the first
+    //     sentence exists, so a reply that opens with one short sentence is
+    //     heard sooner.
+    if settings.assistant_tts_enabled && !plan.call {
+        if settings.effective_response_length() == crate::settings::AssistantResponseLength::Default
+        {
+            sections.push("Keep spoken replies brief by default: one short paragraph. Give more detail when the user asks for it, and avoid padding simple answers.".to_string());
+        }
+        sections.push(
+            "This reply will be read aloud. Open with one short sentence that stands on its own, then continue. Write in speakable prose, with no markdown, no bullet lists, and no headings."
+                .to_string(),
+        );
+    }
+
+    // 3. Personal memory — advisory "About You" block, only when memory is on,
+    //    not incognito, and something relevant was selected.
+    if let Some(block) = crate::memory::build_memory_block(settings, user_text) {
+        sections.push(block);
+    }
+
+    // 4. Tools — one labeled section explaining exactly the tools the model can
+    //    call this turn and when to use each. The OpenRouter `:online` note is a
+    //    separate `if`, not an `else`: it describes search running server-side,
+    //    which is orthogonal to the local tool list.
+    sections.push(plan.tools_section.to_string());
+    if plan.web_via_online {
+        sections.push(web_search::WEB_SEARCH_CAPABILITY_NOTE.to_string());
+    }
+
+    sections.join("\n\n")
+}
+
+/// The earlier messages a request carries, oldest first: the newest
+/// `max_messages` of `history`, cut short (keeping at least one) once their
+/// text passes `max_chars`.
+fn history_window(history: &[ChatMessage], max_messages: usize, max_chars: usize) -> Vec<Value> {
+    let mut kept: Vec<&ChatMessage> = Vec::new();
+    let mut chars = 0usize;
+    for message in history.iter().rev().take(max_messages) {
+        chars += message.content.len();
+        if chars > max_chars && !kept.is_empty() {
+            break;
+        }
+        kept.push(message);
+    }
+    kept.into_iter()
+        .rev()
+        .map(|message| json!({"role": message.role, "content": message.content}))
+        .collect()
+}
+
+/// The panel's tools: the turn's tool chip and state in the panel, its speech
+/// reset between rounds, screenshots recorded on the conversation, and
+/// commands that belong to the ask or the call.
+struct PanelTools {
+    app: AppHandle,
+    settings: AppSettings,
+    meeting: Option<MeetingToolTarget>,
+    is_call: bool,
+    provider: crate::settings::PostProcessProvider,
+    speech: Option<Arc<Mutex<crate::speech_stream::SpeechPipeline>>>,
+    image_dispatched: Arc<AtomicBool>,
+}
+
+impl TurnTools for PanelTools {
+    fn round_started(&self, calls: &[llm_client::ToolCall]) {
+        // This round's text is about to be replaced by the next round's, so
+        // drop whatever it buffered but has not spoken. Nothing is said in its
+        // place: while a tool runs the turn simply waits, and the panel's tool
+        // chip carries the status instead.
+        if let Some(pipeline) = &self.speech {
+            if let Ok(mut pipeline) = pipeline.lock() {
+                pipeline.reset();
+            }
+        }
+        // "searching" only when the model actually called web_search (a
+        // get_current_datetime call stays in "thinking"), plus the specific
+        // tool and its query.
+        if calls.iter().any(|tc| tc.name == "web_search") {
+            emit_state(&self.app, "searching");
+        }
+        emit_tool_activity(&self.app, calls);
+    }
+
+    fn round_finished(&self) {
+        emit_state(&self.app, "thinking");
+    }
+
+    fn run<'a>(
+        &'a self,
+        call: &'a llm_client::ToolCall,
+    ) -> futures_util::future::BoxFuture<'a, String> {
+        Box::pin(async move {
+            if call.name == act::TOOL_NAME {
+                if !act::offered(&get_settings(&self.app)) {
+                    return "Actions on the computer were just turned off. Tell the user.".into();
+                }
+                let (result, _) = act::perform(
+                    &self.app,
+                    &call.arguments,
+                    crate::command_mode::CommandOrigin::Assistant,
+                )
+                .await;
+                return result;
+            }
+            run_text_tool(
+                &self.app,
+                &self.settings,
+                &call.name,
+                &call.arguments,
+                self.meeting,
+                true,
+            )
+            .await
+        })
+    }
+
+    fn capture_screen(&self) -> futures_util::future::BoxFuture<'_, Result<String, String>> {
+        Box::pin(async move {
+            let data_url = agent_capture_screen(&self.app, &self.provider, self.is_call).await?;
+            // An image is on the wire this turn: a rejection from here on is a
+            // vision failure.
+            self.image_dispatched.store(true, Ordering::SeqCst);
+            Ok(data_url)
+        })
+    }
 }
 
 /// Run one assistant turn: record the user message, stream the LLM answer to
@@ -4002,65 +4364,40 @@ async fn run_assistant_turn_inner(
         return;
     }
 
-    let Some(provider) = settings.active_assistant_provider().cloned() else {
-        emit_error(
-            &app,
-            "no_provider",
-            "No assistant provider configured. Pick one in Settings → Assistant.".to_string(),
-        );
-        emit_state(&app, "idle");
-        return;
+    let turn_model = match resolve_turn_model(&settings) {
+        Ok(turn_model) => turn_model,
+        Err(ModelProblem::NoProvider) => {
+            emit_error(
+                &app,
+                "no_provider",
+                "No assistant provider configured. Pick one in Settings → Assistant.".to_string(),
+            );
+            emit_state(&app, "idle");
+            return;
+        }
+        Err(ModelProblem::NoModel(label)) => {
+            emit_error(
+                &app,
+                "no_model",
+                format!(
+                    "No model configured for provider '{}'. Set one in Settings → Assistant.",
+                    label
+                ),
+            );
+            emit_state(&app, "idle");
+            return;
+        }
     };
+    let provider = turn_model.provider.clone();
+    let model = turn_model.model.clone();
+    let api_key = turn_model.api_key.clone();
 
-    let model = settings
-        .assistant_models
-        .get(&provider.id)
-        .cloned()
-        .unwrap_or_default();
-    if model.trim().is_empty() {
-        emit_error(
-            &app,
-            "no_model",
-            format!(
-                "No model configured for provider '{}'. Set one in Settings → Assistant.",
-                provider.label
-            ),
-        );
-        emit_state(&app, "idle");
-        return;
-    }
-
-    let api_key = settings
-        .post_process_api_keys
-        .get(&provider.id)
-        .cloned()
-        .unwrap_or_default();
-
-    // Providers that need a compact request body: Azure's gateway rejects
-    // oversized JSON, and the local engine (built-in, or an Ollama/LM Studio
-    // loopback server) runs a small context window. Used both to trim history
-    // and — on visual turns — to shrink the web-search context so the combined
-    // image + snippets payload stays within the provider's limits.
-    let base_url_lc = provider.base_url.to_ascii_lowercase();
-    let needs_small_body = provider.id == "builtin"
-        || base_url_lc.contains("azure")
-        || base_url_lc.contains("127.0.0.1")
-        || base_url_lc.contains("localhost");
-
-    // Web search is now fully model-decided. When the user has it enabled we
-    // expose a `web_search` tool and let the model choose whether to call it —
-    // no keyword pre-gate, no planner, no forced searches. The one exception is
-    // OpenRouter's server-side `:online` search, kept as an opt-in for
-    // OpenRouter users (billed to their credits). Every other provider — cloud
-    // OR the built-in local engine — uses inline tool calling.
-    let is_openrouter = provider.id == "openrouter" || base_url_lc.contains("openrouter");
-    let web_wanted = settings.assistant_web_search_enabled;
-    // `:online` only applies to non-visual turns (its server-side search can't
-    // pair with an inline image); a visual OpenRouter turn uses the tool path
-    // like everyone else.
-    let web_via_online =
-        web_wanted && is_openrouter && !has_visual && settings.assistant_prefer_provider_web_search;
-    let web_via_tools = web_wanted && !web_via_online;
+    // Used both to trim history and, on visual turns, to keep the combined
+    // image + snippets payload within the provider's limits.
+    let needs_small_body = needs_small_body(&provider);
+    let (web_via_tools, web_via_online) = web_plan(&settings, &provider, has_visual);
+    // Doing things on the computer: offered while command mode is on.
+    let act_offered = act::offered(&settings);
     // Screen access: when the asking surface's switch is on, expose a
     // `capture_screen` tool and let the model decide whether this message needs
     // the screen (`screen_tool_guidance` says when). A call has its own switch.
@@ -4090,7 +4427,8 @@ async fn run_assistant_turn_inner(
         needs_small_body,
     )
     .await;
-    let mut tool_capabilities = build_assistant_tool_capabilities(web_via_tools, agent_screen);
+    let mut tool_capabilities =
+        build_assistant_tool_capabilities(web_via_tools, agent_screen, act_offered);
     if turn_meeting.as_ref().is_some_and(|m| m.tools) {
         if let Some(Value::Array(tools)) = tool_capabilities.as_mut() {
             tools.extend(crate::meetings::discuss::tool_definitions());
@@ -4177,104 +4515,18 @@ async fn run_assistant_turn_inner(
         agent_screen,
         settings.assistant_tts_enabled,
         settings.assistant_search_depth,
+        act_offered,
     );
-    let system_content = {
-        // Assemble the system prompt as clearly-separated sections, including a
-        // section ONLY when it does work this turn. On a plain chat turn that's
-        // just the persona (plus an optional length preference), so a small
-        // model isn't buried under scaffolding it doesn't need. Order is stable
-        // and cache-friendly: persona → length → memory → tools.
-        let mut sections: Vec<String> = Vec::new();
-
-        // 1. Persona — the core instructions (active profile, or the default).
-        let persona = settings.effective_system_prompt();
-        if !persona.trim().is_empty() {
-            sections.push(persona.trim().to_string());
-        }
-
-        // 1b. The app's answer contract: how a reply is formatted for the
-        //     surface it lands on, and the no-dash rule. Owned by the app, not
-        //     the persona, so it holds for custom profiles too. A call gets
-        //     only the punctuation rule, since the voice prompt sets layout.
-        sections.push(
-            if voice_ticket.is_some() {
-                SPOKEN_STYLE_SECTION
-            } else {
-                RESPONSE_STYLE_SECTION
-            }
-            .to_string(),
-        );
-
-        // 2. Reply-length preference (persona override, else the global dial).
-        if let Some(directive) = settings.effective_response_length().directive() {
-            sections.push(directive.to_string());
-        }
-        if voice_ticket.is_some() {
-            sections.push(crate::voice_conversation::voice_prompt(
-                settings.effective_response_length(),
-            ));
-        }
-
-        // ElevenLabs audio tags ([laughs], [applause]). Only when this reply is
-        // actually going to be spoken (`assistant_tts_enabled` was resolved for
-        // this turn above) by a voice that performs them; every other engine
-        // would read "[laughs]" out loud, so it never sees the instruction.
-        // Fixed text per intensity, so the prefix stays cache-stable in a call.
-        if settings.assistant_tts_enabled && crate::audio_tags::active(&settings) {
-            sections.push(crate::audio_tags::prompt_section(
-                settings.assistant_tts_elevenlabs_audio_tag_intensity,
-            ));
-        }
-
-        // 2a. The meeting under discussion. Stable for the whole conversation,
-        //     so it sits before the per-turn memory block and stays inside the
-        //     cacheable prefix — which matters, because an inlined transcript is
-        //     by far the largest thing in the request.
-        if let Some(meeting) = &turn_meeting {
-            sections.push(meeting.section.clone());
-        }
-
-        // 2b. Spoken turns: the voice can only start once the first sentence
-        //     exists, so a reply that opens with one short sentence is heard
-        //     sooner than the identical reply that opens with a long one. Asking
-        //     for a short opener is the cheapest way to cut time-to-first-word —
-        //     no extra request, no machinery, and it reads better aloud anyway.
-        if settings.assistant_tts_enabled && voice_ticket.is_none() {
-            if settings.effective_response_length()
-                == crate::settings::AssistantResponseLength::Default
-            {
-                sections.push("Keep spoken replies brief by default: one short paragraph. Give more detail when the user asks for it, and avoid padding simple answers.".to_string());
-            }
-            sections.push(
-                "This reply will be read aloud. Open with one short sentence that stands on its own, then continue. Write in speakable prose, with no markdown, no bullet lists, and no headings."
-                    .to_string(),
-            );
-        }
-
-        // 3. Personal memory — advisory "About You" block, only when memory is
-        //    on, not incognito, and something relevant was selected.
-        if let Some(block) = crate::memory::build_memory_block(&settings, &user_text) {
-            sections.push(block);
-        }
-
-        // 4. Tools — one labeled section explaining exactly the tools the model
-        //    can call this turn and when to use each. Always present now: the
-        //    clock and the reminder tools are unconditional, so only the
-        //    *contents* vary with the web-search and screen-access flags.
-        //
-        //    The OpenRouter `:online` note is a separate `if`, not an `else`. It
-        //    describes search running server-side, which is orthogonal to the
-        //    local tool list — and while the two were exclusive, making it an
-        //    `else` was harmless. It stopped being harmless the moment the tool
-        //    list became unconditional, at which point an `else` would have
-        //    silently dropped the note for every `:online` user.
-        sections.push(tools_section.clone());
-        if web_via_online {
-            sections.push(web_search::WEB_SEARCH_CAPABILITY_NOTE.to_string());
-        }
-
-        sections.join("\n\n")
-    };
+    let system_content = compose_system_prompt(
+        &settings,
+        &PromptPlan {
+            call: voice_ticket.is_some(),
+            meeting_section: turn_meeting.as_ref().map(|m| m.section.as_str()),
+            tools_section: &tools_section,
+            web_via_online,
+        },
+        &user_text,
+    );
     // The same prompt for a retry that goes out with no tools attached.
     let system_content_without_tools =
         system_content.replacen(&tools_section, TOOLS_UNAVAILABLE_SECTION, 1);
@@ -4304,29 +4556,16 @@ async fn run_assistant_turn_inner(
     {
         let conversation = app.state::<AssistantConversation>();
         let history = conversation.messages.lock().unwrap();
-        let mut kept: Vec<&ChatMessage> = Vec::new();
-        let mut chars = 0usize;
         // The current user message was already pushed above and is appended
-        // explicitly below, so skip it.
-        let current_message_skip = 1;
-        // Don't re-send messages already folded into the rolling summary: cap
-        // the verbatim window to the un-summarized tail (no-op when off).
-        let summarized_len = summarized_len.min(history.len());
-        let unsummarized = history
-            .len()
-            .saturating_sub(summarized_len)
-            .saturating_sub(current_message_skip);
-        let take = max_history_messages.min(unsummarized);
-        for message in history.iter().rev().skip(current_message_skip).take(take) {
-            chars += message.content.len();
-            if chars > max_history_chars && !kept.is_empty() {
-                break;
-            }
-            kept.push(message);
-        }
-        for message in kept.into_iter().rev() {
-            messages.push(json!({"role": message.role, "content": message.content}));
-        }
+        // explicitly below, so it is left out; so are messages already folded
+        // into the rolling summary (none when that is off).
+        let end = history.len().saturating_sub(1);
+        let start = summarized_len.min(end);
+        messages.extend(history_window(
+            &history[start..end],
+            max_history_messages,
+            max_history_chars,
+        ));
     }
     // Per-turn context prepended to the user's message for the request only
     // (never stored in history): the content of any attached files. Date/time
@@ -4510,8 +4749,7 @@ async fn run_assistant_turn_inner(
 
     // The user's thinking dial, resolved once for every round of this turn.
     // `Off` is the fast path the turn always used; see `ThinkingLevel`.
-    let thinking =
-        llm_client::reasoning_options_for(&provider.id, &model, settings.assistant_thinking);
+    let thinking = turn_model.thinking.clone();
     debug!(
         "Assistant thinking: {:?} (reasoning_effort {:?})",
         settings.assistant_thinking,
@@ -4522,232 +4760,24 @@ async fn run_assistant_turn_inner(
     );
 
     let outcome = if let Some(tools) = tool_capabilities {
-        let partial_cb = partial.clone();
-        let speech_cb = speech_sink.clone();
-        let app_tokens = app.clone();
-        let app_state = app.clone();
-        let provider_c = provider.clone();
-        let api_key_c = api_key.clone();
-        let model_c = model.clone();
-        let settings_c = settings.clone();
-        let timer_c = timer.clone();
-        let thinking_c = thinking.clone();
-        let image_dispatched_c = image_dispatched.clone();
-        // Which screen switch a `capture_screen` call is re-checked against.
-        let is_call = voice_ticket.is_some();
-        let loop_fut = async move {
-            let timer = timer_c;
-            let mut msgs = messages;
-            let mut answer = String::new();
-            // At most one agent-decided screenshot per user message.
-            let mut screen_captured = false;
-            // A small round cap: one search round covers almost every question;
-            // the cap just prevents a pathological tool-call loop.
-            for round_index in 0..MAX_ASSISTANT_TOOL_ROUNDS {
-                // The model alone decides whether to call a tool; we never
-                // force one.
-                let tool_choice = json!("auto");
-                let round_out = llm_client::send_chat_stream_with_tools(
-                    &provider_c,
-                    api_key_c.clone(),
-                    &model_c,
-                    msgs.clone(),
-                    tools.clone(),
-                    tool_choice,
-                    thinking_c.0.clone(),
-                    thinking_c.1.clone(),
-                    assistant_token_sink(
-                        app_tokens.clone(),
-                        partial_cb.clone(),
-                        speech_cb.clone(),
-                        timer.clone(),
-                    ),
-                )
-                .await?;
-                let round_policy = tool_round_policy(&round_out, round_index);
-                if round_policy == ToolRoundPolicy::FinalResponse {
-                    answer = round_out.text;
-                    break;
-                }
-                // This round's text is about to be replaced by the next round's,
-                // so drop whatever it buffered but has not spoken. Nothing is
-                // said in its place: while a tool runs the turn simply waits,
-                // and the panel's tool chip carries the status instead. A spoken
-                // stand-in was tried and removed — a canned line every search
-                // turn was worse than the silence it covered.
-                if let Some(pipeline) = &speech_cb {
-                    if let Ok(mut pipeline) = pipeline.lock() {
-                        pipeline.reset();
-                    }
-                }
-                // Reflect tool use in the panel: "searching" only when the
-                // model actually called web_search (a get_current_datetime call
-                // stays in "thinking"), plus the specific tool and its query.
-                if round_out
-                    .tool_calls
-                    .iter()
-                    .any(|tc| tc.name == "web_search")
-                {
-                    emit_state(&app_state, "searching");
-                }
-                emit_tool_activity(&app_state, &round_out.tool_calls);
-                let tool_calls_json: Vec<Value> = round_out
-                    .tool_calls
-                    .iter()
-                    .map(|tc| {
-                        let mut call = json!({
-                            "id": tc.id,
-                            "type": "function",
-                            "function": { "name": tc.name, "arguments": tc.arguments }
-                        });
-                        // Gemini thinking models reject the follow-up request
-                        // ("Function call is missing a thought_signature in
-                        // functionCall parts", HTTP 400) unless the opaque
-                        // signature that came back with the call is echoed
-                        // verbatim, in exactly this shape. Added only when the
-                        // provider actually sent one, so requests to every other
-                        // OpenAI-compatible provider stay byte-identical.
-                        if let Some(signature) = &tc.thought_signature {
-                            call["extra_content"] =
-                                json!({ "google": { "thought_signature": signature } });
-                        }
-                        call
-                    })
-                    .collect();
-                msgs.push(json!({
-                    "role": "assistant",
-                    "content": round_out.text,
-                    "tool_calls": tool_calls_json
-                }));
-                let tool_names: Vec<&str> = round_out
-                    .tool_calls
-                    .iter()
-                    .map(|tc| tc.name.as_str())
-                    .collect();
-
-                // Independent tools run concurrently: two searches in one round
-                // should cost one wait, not two. `capture_screen` stays in the
-                // ordered pass below because its result is an image, not text.
-                let dispatched = Instant::now();
-                let text_indexes: Vec<usize> = round_out
-                    .tool_calls
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, tc)| tc.name != "capture_screen")
-                    .map(|(index, _)| index)
-                    .collect();
-                let mut text_results: Vec<Option<String>> = vec![None; round_out.tool_calls.len()];
-                let completed = futures_util::future::join_all(text_indexes.iter().map(|&index| {
-                    let call = &round_out.tool_calls[index];
-                    run_text_tool(
-                        &app_state,
-                        &settings_c,
-                        &call.name,
-                        &call.arguments,
-                        meeting_tool_target,
-                    )
-                }))
-                .await;
-                for (&index, content) in text_indexes.iter().zip(completed) {
-                    text_results[index] = Some(content);
-                }
-
-                for (index, tc) in round_out.tool_calls.iter().enumerate() {
-                    // capture_screen returns an image, not text — handled
-                    // apart from the text-tool match: the tool message is a
-                    // short receipt and the frame rides in a follow-up user
-                    // message (image parts aren't valid in tool results on
-                    // most OpenAI-compatible providers).
-                    if tc.name == "capture_screen" {
-                        if screen_captured {
-                            msgs.push(json!({
-                                "role": "tool",
-                                "tool_call_id": tc.id,
-                                "content": "A screenshot was already captured for this message. Answer now using it."
-                            }));
-                            continue;
-                        }
-                        match agent_capture_screen(&app_state, &provider_c, is_call).await {
-                            Ok(data_url) => {
-                                screen_captured = true;
-                                image_dispatched_c.store(true, Ordering::SeqCst);
-                                msgs.push(json!({
-                                    "role": "tool",
-                                    "tool_call_id": tc.id,
-                                    "content": "Screenshot captured. It is attached in the next message."
-                                }));
-                                msgs.push(json!({
-                                    "role": "user",
-                                    "content": [
-                                        {"type": "text", "text": "[Screenshot of the user's current screen, from the capture_screen tool. Use it to answer the previous question.]"},
-                                        {"type": "image_url", "image_url": {"url": data_url}}
-                                    ]
-                                }));
-                            }
-                            Err(e) => {
-                                warn!("Agent screen capture failed: {}", e);
-                                msgs.push(json!({
-                                    "role": "tool",
-                                    "tool_call_id": tc.id,
-                                    "content": format!("Screen capture is unavailable ({}). Answer without it.", e)
-                                }));
-                            }
-                        }
-                        continue;
-                    }
-                    let content = match text_results[index].take() {
-                        Some(content) => content,
-                        // Unreachable: every non-screen call was dispatched
-                        // above. Answer rather than stall if it ever happens.
-                        None => format!("The {} tool produced no result.", tc.name),
-                    };
-                    msgs.push(json!({
-                        "role": "tool",
-                        "tool_call_id": tc.id,
-                        "content": content
-                    }));
-                }
-                debug!(
-                    "Assistant tools [{}] took {}ms ({}ms into the turn)",
-                    tool_names.join(", "),
-                    dispatched.elapsed().as_millis(),
-                    timer.elapsed_ms()
-                );
-                emit_state(&app_state, "thinking");
-                answer = round_out.text;
-                if round_policy == ToolRoundPolicy::RunToolsThenStop {
-                    // Out of tool rounds. `round_out.text` is normally EMPTY
-                    // here — a round that ends in tool calls usually writes no
-                    // prose — so stopping now ends the turn with no reply at
-                    // all, which is what a question that "got searched and then
-                    // never answered" looked like. Ask once more with no tools
-                    // attached, so the model has to answer from what it already
-                    // fetched instead of reaching for another search.
-                    if answer.trim().is_empty() {
-                        debug!(
-                            "Tool rounds exhausted with no answer text; asking once more without tools"
-                        );
-                        answer = llm_client::send_chat_stream(
-                            &provider_c,
-                            api_key_c.clone(),
-                            &model_c,
-                            msgs.clone(),
-                            thinking_c.0.clone(),
-                            thinking_c.1.clone(),
-                            assistant_token_sink(
-                                app_tokens.clone(),
-                                partial_cb.clone(),
-                                speech_cb.clone(),
-                                timer.clone(),
-                            ),
-                        )
-                        .await?;
-                    }
-                    break;
-                }
-            }
-            Ok::<String, String>(answer)
+        let hooks = PanelTools {
+            app: app.clone(),
+            settings: settings.clone(),
+            meeting: meeting_tool_target,
+            // Which screen switch a `capture_screen` call is re-checked against.
+            is_call: voice_ticket.is_some(),
+            provider: provider.clone(),
+            speech: speech_sink.clone(),
+            image_dispatched: image_dispatched.clone(),
         };
+        let loop_fut = turn::run_tool_loop(&turn_model, messages, &tools, &hooks, || {
+            assistant_token_sink(
+                app.clone(),
+                partial.clone(),
+                speech_sink.clone(),
+                timer.clone(),
+            )
+        });
         tokio::pin!(loop_fut);
         tokio::select! {
             result = &mut loop_fut => Some(result),
@@ -4967,6 +4997,11 @@ async fn run_assistant_turn_inner(
             if full_text.trim().is_empty() {
                 warn!("Assistant produced an empty reply; not recording a turn");
             } else {
+                // A quick ask's answer starts the window in which the next
+                // quick ask continues this conversation.
+                if voice_ticket.is_none() {
+                    set_quick_ask_answered(Some(Instant::now()));
+                }
                 let conversation = app.state::<AssistantConversation>();
                 let mut history = conversation.messages.lock().unwrap();
                 history.push(ChatMessage {
@@ -5490,7 +5525,7 @@ mod tests {
                     ] {
                         texts.push((
                             format!("tools web={web} screen={screen} tts={tts} depth={depth:?}"),
-                            tools_system_section(web, screen, tts, depth),
+                            tools_system_section(web, screen, tts, depth, true),
                         ));
                     }
                 }
@@ -5774,7 +5809,8 @@ mod tests {
     /// all. Reminders cannot work without that.
     #[test]
     fn the_clock_and_reminder_tools_are_offered_with_no_other_capability() {
-        let tools = build_assistant_tool_capabilities(false, false).expect("tools are never empty");
+        let tools =
+            build_assistant_tool_capabilities(false, false, false).expect("tools are never empty");
         let names: Vec<&str> = tools
             .as_array()
             .expect("an array")
@@ -5791,7 +5827,7 @@ mod tests {
             ]
         );
         // And the optional two still appear when their capability is on.
-        let tools = build_assistant_tool_capabilities(true, true).expect("tools");
+        let tools = build_assistant_tool_capabilities(true, true, false).expect("tools");
         let names: Vec<&str> = tools
             .as_array()
             .expect("an array")
@@ -5802,6 +5838,78 @@ mod tests {
         assert_eq!(names.last(), Some(&"capture_screen"));
     }
 
+    /// `do_on_computer` rides only on a turn whose command mode is on, and it
+    /// comes last, so every other turn's request is byte-identical to before.
+    #[test]
+    fn do_on_computer_is_offered_only_with_command_mode_on() {
+        let names = |web: bool, screen: bool, act: bool| -> Vec<String> {
+            build_assistant_tool_capabilities(web, screen, act)
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|t| t["function"]["name"].as_str().unwrap().to_string())
+                .collect()
+        };
+        for web in [false, true] {
+            for screen in [false, true] {
+                assert!(!names(web, screen, false).contains(&act::TOOL_NAME.to_string()));
+                let with = names(web, screen, true);
+                assert_eq!(with.last().map(String::as_str), Some(act::TOOL_NAME));
+                assert_eq!(with[..with.len() - 1], names(web, screen, false)[..]);
+            }
+        }
+        let mut settings = crate::settings::get_default_settings();
+        settings.command_mode_enabled = false;
+        assert!(!act::offered(&settings));
+        settings.command_mode_enabled = true;
+        assert!(act::offered(&settings));
+    }
+
+    /// The guidance tells the model to act rather than explain, and is there
+    /// only when the tool is.
+    #[test]
+    fn the_tools_section_explains_do_on_computer_only_when_offered() {
+        use crate::settings::AssistantSearchDepth::Medium;
+        let with = tools_system_section(true, true, false, Medium, true);
+        let without = tools_system_section(true, true, false, Medium, false);
+        assert!(with.contains(act::GUIDANCE));
+        assert!(!without.contains(act::TOOL_NAME));
+        assert!(with.contains("instead of explaining"));
+        assert!(with.contains("still answered normally"));
+        // Stable text per flag combination, so the prompt prefix caches.
+        assert_eq!(with, tools_system_section(true, true, false, Medium, true));
+        assert!(TOOLS_UNAVAILABLE_SECTION.contains("do anything on the computer"));
+    }
+
+    #[test]
+    fn the_history_window_keeps_the_newest_messages_within_its_budget() {
+        let message = |role: &str, content: &str| ChatMessage {
+            role: role.into(),
+            content: content.into(),
+            images: Vec::new(),
+        };
+        let history = vec![
+            message("user", "aaaa"),
+            message("assistant", "bbbb"),
+            message("user", "cccc"),
+            message("assistant", "dddd"),
+        ];
+        let contents = |window: Vec<Value>| -> Vec<String> {
+            window
+                .iter()
+                .map(|m| m["content"].as_str().unwrap().to_string())
+                .collect()
+        };
+        assert_eq!(
+            contents(history_window(&history, 3, usize::MAX)),
+            ["bbbb", "cccc", "dddd"]
+        );
+        assert_eq!(contents(history_window(&history, 10, 9)), ["cccc", "dddd"]);
+        // One message always goes, however long.
+        assert_eq!(contents(history_window(&history, 10, 1)), ["dddd"]);
+        assert!(history_window(&history, 0, usize::MAX).is_empty());
+    }
     /// A model asked for a number frequently sends a string. Refusing that would
     /// fail a correct request over a pair of quotes.
     #[test]
@@ -5892,6 +6000,7 @@ mod tests {
                 screen,
                 false,
                 crate::settings::AssistantSearchDepth::Medium,
+                false,
             );
             assert!(
                 section.contains("set_reminder"),
@@ -5909,15 +6018,15 @@ mod tests {
     #[test]
     fn the_tools_prompt_follows_the_search_depth() {
         use crate::settings::AssistantSearchDepth::{High, Low, Medium};
-        let quick = tools_system_section(true, false, false, Low);
-        let standard = tools_system_section(true, false, false, Medium);
-        let deep = tools_system_section(true, false, false, High);
+        let quick = tools_system_section(true, false, false, Low, false);
+        let standard = tools_system_section(true, false, false, Medium, false);
+        let deep = tools_system_section(true, false, false, High, false);
         assert!(quick.contains(web_search::depth_guidance(Low)));
         assert!(standard.contains(web_search::depth_guidance(Medium)));
         assert!(deep.contains(web_search::depth_guidance(High)));
         assert_ne!(quick, deep);
         assert!(deep.contains("two or three"));
-        assert!(!tools_system_section(false, false, false, High)
+        assert!(!tools_system_section(false, false, false, High, false)
             .contains(web_search::depth_guidance(High)));
     }
 
@@ -5983,10 +6092,10 @@ mod tests {
         settings.assistant_search_depth = depth;
         println!("{provider_id} / {model}, thinking {thinking:?}, {search_provider} at {depth:?}");
 
-        let tools = build_assistant_tool_capabilities(true, false).unwrap();
+        let tools = build_assistant_tool_capabilities(true, false, false).unwrap();
         let (effort, reasoning) = llm_client::reasoning_options_for(&provider.id, &model, thinking);
         let mut msgs = vec![
-            json!({"role": "system", "content": tools_system_section(true, false, false, depth)}),
+            json!({"role": "system", "content": tools_system_section(true, false, false, depth, false)}),
             json!({"role": "user", "content": "Who is the current Prime Minister of Nepal?"}),
             json!({"role": "assistant", "content": "Nepal's current Prime Minister is Balendra Shah."}),
             json!({"role": "user", "content": "All right, what is the latest news in Nepal?"}),
@@ -6088,6 +6197,7 @@ mod tests {
             true,
             false,
             crate::settings::AssistantSearchDepth::High,
+            false,
         );
         let prompt = format!("Persona.\n\n{section}");
         let retry = prompt.replacen(&section, TOOLS_UNAVAILABLE_SECTION, 1);
@@ -6532,20 +6642,94 @@ mod tests {
         assert_eq!(x, (1920.0 - w) / 2.0);
     }
 
-    /// Every quick ask starts from nothing: there is no follow-up field, so a
-    /// previous exchange left in the conversation could only turn the next ask into
-    /// a follow-up nobody asked for. This includes the first ask after a call,
-    /// whose whole transcript used to land in the quick-ask card.
+    /// A quick ask continues the last one only while it is remembered: within
+    /// the window after its answer, never after it, never with the setting Off.
     #[test]
-    fn every_quick_ask_starts_empty() {
-        assert!(should_reset_quick_ask(false));
+    fn a_quick_ask_continues_only_within_the_window() {
+        use crate::settings::QuickAskMemory::*;
+        use std::time::Duration;
+        let answered = Instant::now();
+        let at = |secs: u64| answered + Duration::from_secs(secs);
+        // Ten minutes, the default.
+        assert!(!should_reset_quick_ask(
+            false,
+            TenMinutes,
+            Some(answered),
+            at(0)
+        ));
+        assert!(!should_reset_quick_ask(
+            false,
+            TenMinutes,
+            Some(answered),
+            at(599)
+        ));
+        assert!(should_reset_quick_ask(
+            false,
+            TenMinutes,
+            Some(answered),
+            at(600)
+        ));
+        assert!(!should_reset_quick_ask(
+            false,
+            FiveMinutes,
+            Some(answered),
+            at(299)
+        ));
+        assert!(should_reset_quick_ask(
+            false,
+            FiveMinutes,
+            Some(answered),
+            at(300)
+        ));
+        assert!(!should_reset_quick_ask(
+            false,
+            ThirtyMinutes,
+            Some(answered),
+            at(1799)
+        ));
+        assert!(should_reset_quick_ask(
+            false,
+            ThirtyMinutes,
+            Some(answered),
+            at(1800)
+        ));
+        // Off: every ask starts empty, however recent the last answer.
+        assert!(should_reset_quick_ask(false, Off, Some(answered), at(0)));
+        // Until cleared: kept however long ago.
+        assert!(!should_reset_quick_ask(
+            false,
+            UntilCleared,
+            Some(answered),
+            at(86_400)
+        ));
+        // A clock that went backwards is not "long ago".
+        assert!(!should_reset_quick_ask(
+            false,
+            TenMinutes,
+            Some(at(60)),
+            answered
+        ));
+    }
+
+    /// Nothing a quick ask said is kept (a fresh start, a call that ended, a
+    /// conversation from History): the next ask starts empty, so a call's
+    /// transcript never lands in the quick-ask card.
+    #[test]
+    fn with_no_quick_ask_answer_kept_the_next_starts_empty() {
+        use crate::settings::QuickAskMemory::*;
+        for memory in [Off, FiveMinutes, TenMinutes, ThirtyMinutes, UntilCleared] {
+            assert!(should_reset_quick_ask(false, memory, None, Instant::now()));
+        }
     }
 
     /// The conversation belongs to the call while it is running. Wiping it here
     /// would erase what the user is in the middle of saying.
     #[test]
     fn nothing_is_reset_during_a_call() {
-        assert!(!should_reset_quick_ask(true));
+        use crate::settings::QuickAskMemory::*;
+        let now = Instant::now();
+        assert!(!should_reset_quick_ask(true, Off, None, now));
+        assert!(!should_reset_quick_ask(true, TenMinutes, Some(now), now));
     }
 
     /// A turn still unwinding from a conversation that was replaced (the panel
@@ -6931,7 +7115,7 @@ mod tests {
             "cancel_reminder",
         ];
         let names_for = |web: bool, screen: bool| -> Vec<String> {
-            build_assistant_tool_capabilities(web, screen)
+            build_assistant_tool_capabilities(web, screen, false)
                 .expect("the tool list is never empty")
                 .as_array()
                 .expect("tool definitions should be an array")
@@ -6948,7 +7132,7 @@ mod tests {
         assert_eq!(names_for(false, false), ALWAYS.to_vec());
 
         let tools =
-            build_assistant_tool_capabilities(true, false).expect("tools should be enabled");
+            build_assistant_tool_capabilities(true, false, false).expect("tools should be enabled");
         let tools = tools
             .as_array()
             .expect("tool definitions should be an array");

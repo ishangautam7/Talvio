@@ -171,6 +171,17 @@ pub fn record_question(app: &AppHandle) {
     }
 }
 
+/// Count a question a phone asked this computer's assistant. Never part of a
+/// call, even while one is running here.
+pub fn record_phone_question(app: &AppHandle) {
+    if let Some(history) = app.try_state::<Arc<HistoryManager>>() {
+        match history.record_assistant_question(false) {
+            Ok(()) => notify_updated(app),
+            Err(e) => error!("Failed to count an assistant question: {}", e),
+        }
+    }
+}
+
 /// Count a call that has ended, on the day it started.
 pub fn record_call(app: &AppHandle, started_at: i64, length: Duration) {
     if let Some(history) = app.try_state::<Arc<HistoryManager>>() {
