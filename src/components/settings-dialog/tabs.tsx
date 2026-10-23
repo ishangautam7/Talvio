@@ -230,7 +230,7 @@ export const AudioTab: React.FC = () => {
         <AlwaysOnMicrophone descriptionMode="tooltip" grouped={true} />
       </SettingsGroup>
 
-      {/* Playback that is not Zynveliq's own: what a recording does to it. */}
+      {/* Playback that is not Talvio's own: what a recording does to it. */}
       <SettingsGroup
         title={t("settingsDialog.audio.otherAudio")}
         description={t("settingsDialog.audio.otherAudioHint")}
@@ -460,7 +460,7 @@ export const AboutTab: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => void openUrl("https://zynveliq.invalid/docs")}
+            onClick={() => void openUrl("https://talvio.invalid/docs")}
           >
             {t("settingsDialog.about.openDocs")}
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />

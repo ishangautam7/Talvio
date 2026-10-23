@@ -169,7 +169,7 @@ pub trait Effects: Send + Sync {
     /// Installed applications the user can launch by name.
     fn installed_apps(&self) -> Vec<AppEntry>;
     /// Top-level, visible windows, front to back where the platform knows.
-    /// Never includes Zynveliq's own windows.
+    /// Never includes Talvio's own windows.
     fn open_windows(&self) -> Vec<WindowEntry>;
     /// Recently used files, most recent first, where the platform keeps such
     /// a list.

@@ -1,4 +1,4 @@
-//! Insights: what Zynveliq has counted about how it is used, read in one go
+//! Insights: what Talvio has counted about how it is used, read in one go
 //! for the Insights page and its share card.
 //!
 //! Each feature keeps its own lifetime counters beside its own data, so none of
@@ -246,13 +246,13 @@ pub fn save_insights_card(path: String, png_base64: String) -> Result<(), String
 }
 
 /// The name a share card is saved and shared under.
-const CARD_FILE_STEM: &str = "Zynveliq insights";
+const CARD_FILE_STEM: &str = "Talvio insights";
 
 /// How many numbered names [`write_new_card`] tries before giving up.
 const MAX_CARD_NAME_TRIES: u32 = 10_000;
 
-/// Write `bytes` into `dir` as `Zynveliq insights.png`, or the first free
-/// `Zynveliq insights (2).png`, `(3)`, ... when that is taken. A file is only
+/// Write `bytes` into `dir` as `Talvio insights.png`, or the first free
+/// `Talvio insights (2).png`, `(3)`, ... when that is taken. A file is only
 /// ever created, never overwritten, so an existing one is safe even from a
 /// save racing this one. Returns the path written.
 fn write_new_card(dir: &Path, bytes: &[u8]) -> std::io::Result<PathBuf> {
@@ -530,19 +530,19 @@ mod tests {
         let dir = tempfile::tempdir().expect("tempdir");
         let first = write_new_card(dir.path(), b"one").expect("first save");
         let second = write_new_card(dir.path(), b"two").expect("second save");
-        assert_eq!(first, dir.path().join("Zynveliq insights.png"));
-        assert_eq!(second, dir.path().join("Zynveliq insights (2).png"));
+        assert_eq!(first, dir.path().join("Talvio insights.png"));
+        assert_eq!(second, dir.path().join("Talvio insights (2).png"));
 
         // A gap left by a deleted file is reused; existing files keep their bytes.
-        std::fs::write(dir.path().join("Zynveliq insights (4).png"), b"mine").unwrap();
+        std::fs::write(dir.path().join("Talvio insights (4).png"), b"mine").unwrap();
         let third = write_new_card(dir.path(), b"three").expect("third save");
         let fifth = write_new_card(dir.path(), b"five").expect("fifth save");
-        assert_eq!(third, dir.path().join("Zynveliq insights (3).png"));
-        assert_eq!(fifth, dir.path().join("Zynveliq insights (5).png"));
+        assert_eq!(third, dir.path().join("Talvio insights (3).png"));
+        assert_eq!(fifth, dir.path().join("Talvio insights (5).png"));
         assert_eq!(std::fs::read(&first).unwrap(), b"one");
         assert_eq!(std::fs::read(&second).unwrap(), b"two");
         assert_eq!(
-            std::fs::read(dir.path().join("Zynveliq insights (4).png")).unwrap(),
+            std::fs::read(dir.path().join("Talvio insights (4).png")).unwrap(),
             b"mine"
         );
     }
@@ -557,7 +557,7 @@ mod tests {
 
         let old = new_share_dir(root.path(), now - SHARE_KEEP - Duration::from_secs(1))
             .expect("old share");
-        std::fs::write(old.join("Zynveliq insights.png"), b"old").unwrap();
+        std::fs::write(old.join("Talvio insights.png"), b"old").unwrap();
         let other = root.path().join("not-a-share");
         std::fs::create_dir(&other).unwrap();
 

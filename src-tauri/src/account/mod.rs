@@ -1,4 +1,4 @@
-//! Zynveliq accounts: sign in on this computer and on a phone, and the phone
+//! Talvio accounts: sign in on this computer and on a phone, and the phone
 //! can then use this computer as its speech engine and keyboard.
 //!
 //! The account server (`server/`, contract in `server/PROTOCOL.md`) keeps
@@ -960,8 +960,8 @@ mod tests {
             Some("http://192.168.1.20:8787")
         );
         assert_eq!(
-            normalize_server_url("https://example.com/zynveliq/").as_deref(),
-            Some("https://example.com/zynveliq")
+            normalize_server_url("https://example.com/talvio/").as_deref(),
+            Some("https://example.com/talvio")
         );
         for bad in [
             "",

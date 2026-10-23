@@ -1265,7 +1265,7 @@ impl LocalLlmManager {
             .map_err(|e| format!("Engine download client setup failed: {}", e))?;
         let resp = client
             .get(url)
-            .header("User-Agent", "zynveliq")
+            .header("User-Agent", "talvio")
             .send()
             .await
             .map_err(|e| format!("Engine download request failed: {}", e))?;
@@ -1914,7 +1914,7 @@ impl LocalLlmManager {
     pub fn stop(&self) {
         // Called from `Drop` on app quit, so recover from a poisoned mutex
         // instead of panicking — a panic inside Drop calls abort() (extends the
-        // intent of Handy #1354 to this Zynveliq-added manager). Recovering
+        // intent of Handy #1354 to this Talvio-added manager). Recovering
         // the guard still lets us kill the child process during shutdown.
         let mut st = match self.state.lock() {
             Ok(g) => g,
@@ -2324,7 +2324,7 @@ mod tests {
 
     #[test]
     fn engine_pid_record_round_trips() {
-        let exe = Path::new("/home/me/.local/share/zynveliq/models/engine/llama-server");
+        let exe = Path::new("/home/me/.local/share/talvio/models/engine/llama-server");
         let written = format_engine_pid_record(4242, exe).unwrap();
         assert_eq!(
             parse_engine_pid_record(&written),
@@ -2339,7 +2339,7 @@ mod tests {
     /// trimmed or split on.
     #[test]
     fn engine_pid_record_keeps_spaces_in_the_path() {
-        let exe = "/Users/me/Library/Application Support/com.zynveliq/models/engine/llama-server";
+        let exe = "/Users/me/Library/Application Support/com.talvio/models/engine/llama-server";
         let parsed = parse_engine_pid_record(&format!("77\n{exe}\n")).unwrap();
         assert_eq!(parsed.exe, PathBuf::from(exe));
     }
@@ -2379,11 +2379,11 @@ mod tests {
 
     #[test]
     fn only_the_recorded_executable_matches() {
-        let recorded = Path::new("/opt/zynveliq/llama-server");
+        let recorded = Path::new("/opt/talvio/llama-server");
         assert!(executable_matches(recorded, recorded));
         // The engine binary was replaced on disk while the orphan kept running.
         assert!(executable_matches(
-            Path::new("/opt/zynveliq/llama-server (deleted)"),
+            Path::new("/opt/talvio/llama-server (deleted)"),
             recorded
         ));
         assert!(!executable_matches(
@@ -2392,7 +2392,7 @@ mod tests {
         ));
         assert!(!executable_matches(Path::new("/usr/bin/bash"), recorded));
         assert!(!executable_matches(
-            Path::new("/opt/zynveliq/llama-server-old"),
+            Path::new("/opt/talvio/llama-server-old"),
             recorded
         ));
     }

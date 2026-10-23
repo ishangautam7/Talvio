@@ -254,7 +254,7 @@ mod tests {
         vec![
             window(1, "chrome.exe", "Inbox (3) - me@example.com - Gmail - Google Chrome"),
             window(2, "Slack", "general - Hogwarts - Slack"),
-            window(3, "Code", "main.rs - zynveliq - Visual Studio Code"),
+            window(3, "Code", "main.rs - talvio - Visual Studio Code"),
         ]
     }
 

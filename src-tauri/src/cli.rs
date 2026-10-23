@@ -1,7 +1,7 @@
 use clap::Parser;
 
 #[derive(Parser, Debug, Clone, Default)]
-#[command(name = "zynveliq", about = "Zynveliq - Speech to Text")]
+#[command(name = "talvio", about = "Talvio - Speech to Text")]
 pub struct CliArgs {
     /// Start with the main window hidden
     #[arg(long)]
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn parses_toggle_assistant() {
-        let args = CliArgs::try_parse_from(["zynveliq", "--toggle-assistant"])
+        let args = CliArgs::try_parse_from(["talvio", "--toggle-assistant"])
             .expect("--toggle-assistant should be a supported background command");
         assert!(args.toggle_assistant);
     }
@@ -137,7 +137,7 @@ mod tests {
     /// on Linux (Wayland), where the app's own keys cannot be heard.
     #[test]
     fn parses_toggle_call() {
-        let args = CliArgs::try_parse_from(["zynveliq", "--toggle-call"])
+        let args = CliArgs::try_parse_from(["talvio", "--toggle-call"])
             .expect("--toggle-call should be a supported background command");
         assert!(args.toggle_call);
     }
@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn parses_run_command_and_dry_run() {
         let a = CliArgs::try_parse_from([
-            "zynveliq",
+            "talvio",
             "--run-command",
             "send an email to Ron",
             "--dry-run",
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(a.run_command.as_deref(), Some("send an email to Ron"));
         assert!(a.dry_run);
 
-        let b = CliArgs::try_parse_from(["zynveliq", "--run-command=open Spotify"])
+        let b = CliArgs::try_parse_from(["talvio", "--run-command=open Spotify"])
             .expect("--run-command=TEXT should parse");
         assert_eq!(b.run_command.as_deref(), Some("open Spotify"));
         assert!(!b.dry_run);
@@ -169,7 +169,7 @@ mod tests {
     #[test]
     fn a_forwarded_run_command_is_found() {
         let found = super::run_command_from_argv(&argv(&[
-            r"C:\zynveliq.exe",
+            r"C:\talvio.exe",
             "--run-command",
             "open Spotify",
             "--dry-run",
@@ -183,7 +183,7 @@ mod tests {
     #[test]
     fn a_command_split_on_a_pipe_is_rejoined() {
         let found = super::run_command_from_argv(&argv(&[
-            "zynveliq.exe",
+            "talvio.exe",
             "--run-command",
             "type a",
             "b",
@@ -192,7 +192,7 @@ mod tests {
         assert_eq!(found, Some(("type a|b".to_string(), true)));
 
         let equals =
-            super::run_command_from_argv(&argv(&["zynveliq.exe", "--run-command=type a", "b"]));
+            super::run_command_from_argv(&argv(&["talvio.exe", "--run-command=type a", "b"]));
         assert_eq!(equals, Some(("type a|b".to_string(), false)));
     }
 
@@ -201,15 +201,15 @@ mod tests {
     #[test]
     fn no_run_command_means_none() {
         assert_eq!(
-            super::run_command_from_argv(&argv(&["zynveliq.exe", "--toggle-call"])),
+            super::run_command_from_argv(&argv(&["talvio.exe", "--toggle-call"])),
             None
         );
         assert_eq!(
-            super::run_command_from_argv(&argv(&["zynveliq.exe", "--run-command"])),
+            super::run_command_from_argv(&argv(&["talvio.exe", "--run-command"])),
             None
         );
         assert_eq!(
-            super::run_command_from_argv(&argv(&["zynveliq.exe", "--run-command", "--dry-run"])),
+            super::run_command_from_argv(&argv(&["talvio.exe", "--run-command", "--dry-run"])),
             None
         );
     }

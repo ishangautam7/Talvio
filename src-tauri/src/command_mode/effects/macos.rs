@@ -107,7 +107,7 @@ static INSTALLED_APPS: Mutex<Option<(Instant, Vec<AppEntry>)>> = Mutex::new(None
 
 /// The frontmost app, as a [`WindowEntry`] whose id is its pid, the same id
 /// [`Effects::open_windows`] gives it (see the module docs for why an app and
-/// not a window). `None` when it is Zynveliq itself, AppKit has no answer, or
+/// not a window). `None` when it is Talvio itself, AppKit has no answer, or
 /// the front app kept changing while it was read.
 ///
 /// The title is the focused window's `AXTitle` when Accessibility is granted
@@ -160,7 +160,7 @@ fn frontmost_app() -> Option<(i32, String)> {
     })
 }
 
-/// Regular running apps, the frontmost first, never Zynveliq.
+/// Regular running apps, the frontmost first, never Talvio.
 #[allow(unused_unsafe)]
 fn running_apps() -> Vec<WindowEntry> {
     let own = own_pid();
@@ -732,8 +732,7 @@ fn with_enigo<R>(
     f: impl FnOnce(&mut Enigo) -> Result<R, String>,
 ) -> Result<R, String> {
     let state = app.try_state::<crate::input::EnigoState>().ok_or_else(|| {
-        "Keyboard control isn't ready yet. Open the Zynveliq window once, then try again."
-            .to_string()
+        "Keyboard control isn't ready yet. Open the Talvio window once, then try again.".to_string()
     })?;
     let mut enigo = state
         .0
@@ -813,7 +812,7 @@ impl Effects for SystemEffects {
     fn focus_window(&self, window: &WindowEntry) -> Result<(), String> {
         let pid = i32::try_from(window.id).unwrap_or(0);
         if pid == own_pid() {
-            return Err("That's Zynveliq itself.".to_string());
+            return Err("That's Talvio itself.".to_string());
         }
         // The bundle the process runs from names exactly this app; the name
         // is the fallback, and could match another copy of the app.

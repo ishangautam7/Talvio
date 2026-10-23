@@ -2764,7 +2764,7 @@ async fn fetch_azure_speech(settings: &AppSettings, text: &str) -> Result<Vec<u8
             "X-Microsoft-OutputFormat",
             "audio-48khz-192kbitrate-mono-mp3",
         )
-        .header("User-Agent", "Zynveliq")
+        .header("User-Agent", "Talvio")
         .body(ssml);
     let response = send_tts_with_retries(request).await?;
 

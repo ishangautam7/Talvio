@@ -49,7 +49,7 @@ import {
 
 /** The size last used, so a second share starts where the first left off.
  *  A convenience: losing it costs nothing. */
-const PREFS_KEY = "zynveliq.insights.share";
+const PREFS_KEY = "talvio.insights.share";
 
 const readFormat = (): CardFormat => {
   try {
@@ -287,7 +287,7 @@ export const ShareDialog: React.FC<{
     setBusy("save");
     try {
       const path = await save({
-        defaultPath: `zynveliq-${slide.kind}-${format}.png`,
+        defaultPath: `talvio-${slide.kind}-${format}.png`,
         filters: [{ name: "PNG", extensions: ["png"] }],
       });
       if (!path) return;

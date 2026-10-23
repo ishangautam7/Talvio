@@ -35,10 +35,10 @@
     "downloading": "Pobieranie… {{progress}}%",
     "downloadingUnknown": "Pobieranie…",
     "installing": "Instalowanie…",
-    "reopening": "Zynveliq zamknie się, aby zainstalować aktualizację, i otworzy się ponownie za kilka sekund.",
+    "reopening": "Talvio zamknie się, aby zainstalować aktualizację, i otworzy się ponownie za kilka sekund.",
     "updatedTo": "Zaktualizowano do wersji {{version}}",
     "restart": "Uruchom ponownie",
-    "readyToRestart": "Aktualizacja jest zainstalowana. Uruchom ponownie Zynveliq, aby zacząć z niej korzystać.",
+    "readyToRestart": "Aktualizacja jest zainstalowana. Uruchom ponownie Talvio, aby zacząć z niej korzystać.",
     "installFailed": "Aktualizacja się nie zainstalowała. Możesz spróbować ponownie albo pobrać instalator i uruchomić go samodzielnie.",
     "downloadFailed": "Pobieranie nie zostało ukończone. Sprawdź połączenie i spróbuj ponownie.",
     "downloadInstaller": "Pobierz instalator",
@@ -49,13 +49,13 @@
     "showInFolder": "Pokaż w folderze",
     "viewRelease": "Zobacz na GitHub",
     "hint": {
-      "windows": "Zynveliq zamknie się, zainstaluje aktualizację i otworzy ponownie. Nie musisz niczego więcej klikać.",
-      "macos": "Zynveliq uruchomi się ponownie w nowej wersji. Potem macOS może ponownie poprosić o zgodę na dostęp do mikrofonu i dostępności.",
-      "linux": "Zynveliq uruchomi się ponownie w nowej wersji. Instalacja z pakietu .deb najpierw poprosi o hasło."
+      "windows": "Talvio zamknie się, zainstaluje aktualizację i otworzy ponownie. Nie musisz niczego więcej klikać.",
+      "macos": "Talvio uruchomi się ponownie w nowej wersji. Potem macOS może ponownie poprosić o zgodę na dostęp do mikrofonu i dostępności.",
+      "linux": "Talvio uruchomi się ponownie w nowej wersji. Instalacja z pakietu .deb najpierw poprosi o hasło."
     },
     "modes": {
       "portable": "To wersja przenośna, która nie może sama się zastąpić. Pobierz nową wersję i skopiuj do niej swój folder Data.",
-      "packageManager": "Zynveliq został zainstalowany przez menedżera pakietów, więc zaktualizuj go tam, na przykład poleceniem yay -Syu zynveliq-bin.",
+      "packageManager": "Talvio został zainstalowany przez menedżera pakietów, więc zaktualizuj go tam, na przykład poleceniem yay -Syu talvio-bin.",
       "download": "Ta kopia nie może zaktualizować się na miejscu. Pobierz instalator i uruchom go, aby otrzymać nową wersję."
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "Wyślij opinię",
     "title": "Wyślij opinię",
-    "description": "Każdą wiadomość czytam osobiście, więc napisz tak, jak Ci wychodzi. Dzięki, że pomagasz ulepszać Zynveliq.",
+    "description": "Każdą wiadomość czytam osobiście, więc napisz tak, jak Ci wychodzi. Dzięki, że pomagasz ulepszać Talvio.",
     "kind": {
       "label": "Rodzaj opinii",
       "bug": "Błąd",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "Co się stało i czego się spodziewałeś?",
-      "idea": "Co sprawiłoby, że Zynveliq byłby dla Ciebie lepszy?",
+      "idea": "Co sprawiłoby, że Talvio byłby dla Ciebie lepszy?",
       "question": "Czego chcesz się dowiedzieć?"
     },
     "messageLabel": "Wiadomość",
@@ -161,10 +161,10 @@
       "retry": "Spróbuj ponownie"
     },
     "tour": {
-      "features": "Co potrafi Zynveliq",
+      "features": "Co potrafi Talvio",
       "count": "{{current}} z {{total}}",
       "next": "Dalej",
-      "finish": "Otwórz Zynveliq",
+      "finish": "Otwórz Talvio",
       "tabs": {
         "dictate": "Dyktowanie",
         "ask": "Asystent",
@@ -242,7 +242,7 @@
       "ready": "Wszystko gotowe"
     },
     "speechToText": {
-      "title": "Jak Zynveliq ma Cię słyszeć?",
+      "title": "Jak Talvio ma Cię słyszeć?",
       "subtitle": "Zamienia Twój głos na tekst, bezpośrednio na Twoim komputerze. Wybierz jeden, zmienisz w każdej chwili.",
       "cards": {
         "fast": {
@@ -307,7 +307,7 @@
       "downloadingVoice": "Twój model głosu właśnie ląduje. Już {{percentage}}%.",
       "downloadingGeneric": "Pobieranie trwa. Już {{percentage}}%.",
       "signOff": "To wszystko. Powiedz coś.",
-      "openApp": "Otwórz Zynveliq"
+      "openApp": "Otwórz Talvio"
     },
     "errors": {
       "selectModel": "Nie udało się wybrać tego modelu. Spróbuj ponownie.",
@@ -439,7 +439,7 @@
     },
     "permissions": {
       "title": "Wymagane uprawnienia",
-      "description": "Zynveliq potrzebuje kilku uprawnień, aby działać poprawnie.",
+      "description": "Talvio potrzebuje kilku uprawnień, aby działać poprawnie.",
       "microphone": {
         "title": "Dostęp do mikrofonu",
         "description": "Wymagany do słyszenia Twojego głosu w celu transkrypcji."
@@ -449,7 +449,7 @@
         "description": "Wymagany do wpisywania transkrybowanego tekstu w Twoich aplikacjach.",
         "stuckHint": "Już włączone w Ustawieniach systemowych? Po aktualizacji macOS może zachować uprawnienie, które nie pasuje już do tej wersji.",
         "reset": "Zresetuj uprawnienie",
-        "resetDone": "Teraz ponownie włącz Zynveliq w Ustawieniach systemowych."
+        "resetDone": "Teraz ponownie włącz Talvio w Ustawieniach systemowych."
       },
       "grant": "Przyznaj uprawnienie",
       "granted": "Przyznano",
@@ -458,7 +458,7 @@
       "errors": {
         "checkFailed": "Nie udało się sprawdzić uprawnień. Spróbuj ponownie.",
         "requestFailed": "Nie udało się poprosić o uprawnienie. Spróbuj ponownie.",
-        "resetFailed": "Nie udało się zresetować uprawnienia. Usuń Zynveliq z listy Dostępność i dodaj go ponownie."
+        "resetFailed": "Nie udało się zresetować uprawnienia. Usuń Talvio z listy Dostępność i dodaj go ponownie."
       }
     },
     "frame": {
@@ -688,7 +688,7 @@
       },
       "handsFree": {
         "unavailableKeys": "Działa, gdy dyktowanie składa się tylko z klawiszy modyfikujących, np. Ctrl + Win. Przy {{keys}} wyłącz zamiast tego „Przytrzymaj, aby mówić”: każde dyktowanie trwa wtedy, dopóki ponownie nie naciśniesz klawiszy.",
-        "unavailableEngine": "Wymaga silnika klawiatury Zynveliq Keys ({{where}}). Albo wyłącz „Przytrzymaj, aby mówić”: każde dyktowanie trwa wtedy, dopóki ponownie nie naciśniesz klawiszy.",
+        "unavailableEngine": "Wymaga silnika klawiatury Talvio Keys ({{where}}). Albo wyłącz „Przytrzymaj, aby mówić”: każde dyktowanie trwa wtedy, dopóki ponownie nie naciśniesz klawiszy.",
         "taken": "{{name}} już używa {{keys}}, więc ten klawisz nic nie robi, dopóki jedno z nich się nie zmieni.",
         "needsKey": "Wybierz jeden klawisz, na przykład spację lub Enter. Sam klawisz modyfikujący nie może być klawiszem trybu bez trzymania.",
         "pressKey": "Naciśnij klawisz…",
@@ -745,9 +745,9 @@
       "clearSearch": "Wyczyść wyszukiwanie",
       "noSearchResults": "Brak modeli o nazwie „{{query}}”.",
       "olderHint": "Starszy format. {{model}} ({{size}}) to nowsza wersja tego modelu.",
-      "retiredHint": "Używa starszego silnika, którego Zynveliq już nie zawiera. Pobierz zamiast tego {{model}} ({{size}}).",
+      "retiredHint": "Używa starszego silnika, którego Talvio już nie zawiera. Pobierz zamiast tego {{model}} ({{size}}).",
       "retired": {
-        "notice": "Te modele używały starszego silnika, którego Zynveliq już nie zawiera.",
+        "notice": "Te modele używały starszego silnika, którego Talvio już nie zawiera.",
         "newVersion": "Nowa wersja: {{model}} · {{size}}",
         "getNewVersion": "Pobierz nową wersję",
         "useNewVersion": "Użyj nowej wersji",
@@ -814,7 +814,7 @@
         "rescanDone_few": "Znaleziono {{count}} modele lokalne.",
         "rescanDone_many": "Znaleziono {{count}} modeli lokalnych.",
         "rescanDone_other": "Znaleziono {{count}} modeli lokalnych.",
-        "footnote": "Podłączone foldery są skanowane ponownie przy starcie Zynveliq, więc modele dodane do nich później pojawią się same. Odłączenie folderu lub usunięcie modelu usuwa go tylko z tej listy — Twoje pliki zostają tam, gdzie są.",
+        "footnote": "Podłączone foldery są skanowane ponownie przy starcie Talvio, więc modele dodane do nich później pojawią się same. Odłączenie folderu lub usunięcie modelu usuwa go tylko z tej listy — Twoje pliki zostają tam, gdzie są.",
         "removeTitle": "Usunąć z listy?",
         "removeConfirm": "Usunąć „{{modelName}}” z listy modeli?\n\nSam plik zostaje tam, gdzie jest:\n{{path}}",
         "missingBadge": "Brak pliku",
@@ -904,7 +904,7 @@
         "label": "Przyciski myszy jako skróty",
         "description": "Używaj środkowego przycisku myszy albo przycisków Wstecz i Dalej jako skrótu: kliknij klawisze skrótu, a potem naciśnij przycisk. Dopóki jest skrótem, przycisk nie robi nic innego.",
         "linux": "W systemie Linux działa tylko środkowy przycisk.",
-        "needsEngine": "Wymaga implementacji klawiatury Zynveliq Keys."
+        "needsEngine": "Wymaga implementacji klawiatury Talvio Keys."
       },
       "longFormChunking": {
         "title": "Dziel długie nagrania",
@@ -922,11 +922,11 @@
       },
       "autostart": {
         "label": "Uruchamiaj przy starcie systemu",
-        "description": "Otwieraj Zynveliq automatycznie po zalogowaniu."
+        "description": "Otwieraj Talvio automatycznie po zalogowaniu."
       },
       "showTrayIcon": {
         "label": "Pokaż ikonę w zasobniku",
-        "description": "Trzymaj Zynveliq w zasobniku systemowym."
+        "description": "Trzymaj Talvio w zasobniku systemowym."
       },
       "trayIconColor": {
         "label": "Kolorowa ikona w zasobniku",
@@ -934,7 +934,7 @@
       },
       "closeBehavior": {
         "label": "Zamykaj aplikację razem z oknem",
-        "description": "Gdy wyłączone, zamknięcie okna pozostawia Zynveliq w zasobniku systemowym, więc skróty nadal działają. Gdy włączone, zamknięcie okna całkowicie kończy działanie aplikacji."
+        "description": "Gdy wyłączone, zamknięcie okna pozostawia Talvio w zasobniku systemowym, więc skróty nadal działają. Gdy włączone, zamknięcie okna całkowicie kończy działanie aplikacji."
       },
       "overlayStyle": {
         "title": "Nakładka",
@@ -1028,8 +1028,8 @@
       },
       "customWords": {
         "title": "Własne słowa",
-        "description": "Nazwy, produkty i wyrażenia, które Zynveliq ma zapisywać po Twojemu.",
-        "info": "Przykład: dodaj „Kokoro”, jeśli Zynveliq zapisuje „Coco row”.",
+        "description": "Nazwy, produkty i wyrażenia, które Talvio ma zapisywać po Twojemu.",
+        "info": "Przykład: dodaj „Kokoro”, jeśli Talvio zapisuje „Coco row”.",
         "placeholder": "Dodaj nazwę, termin lub krótkie wyrażenie",
         "add": "Dodaj",
         "empty": "Nie dodano jeszcze własnych słów.",
@@ -1038,7 +1038,7 @@
       },
       "autoLearn": {
         "label": "Ucz się słów, które poprawiam",
-        "description": "Zapamiętuje Twoją pisownię, gdy poprawiasz słowo, które Zynveliq zapisał błędnie.",
+        "description": "Zapamiętuje Twoją pisownię, gdy poprawiasz słowo, które Talvio zapisał błędnie.",
         "info": "Odczytuje tylko pole, w które właśnie wpisał tekst, i to przez około minutę. Nic nie jest wysyłane, a każde nauczone słowo jest wymienione tutaj.",
         "unsupported": "Uczenie się z poprawek jest na razie dostępne tylko w systemie Windows. Słowa nadal możesz dodawać ręcznie powyżej.",
         "learnedTitle": "Nauczone z Twoich poprawek",
@@ -1052,7 +1052,7 @@
         "title": "Zamiany tekstu",
         "description": "Zamień frazę w transkrypcji na tekst, którego często używasz. Przykład: „mój e-mail” zmienia się w „alex@example.com”.",
         "rulesTitle": "Reguły zamiany",
-        "rulesHint": "Wybierz, co Zynveliq słyszy i co ma wstawić.",
+        "rulesHint": "Wybierz, co Talvio słyszy i co ma wstawić.",
         "empty": "Utwórz regułę dla frazy, którą często wypowiadasz.",
         "addFirst": "Utwórz pierwszą regułę",
         "addRule": "Dodaj zamianę",
@@ -1432,7 +1432,7 @@
       },
       "updateChecks": {
         "label": "Automatycznie sprawdzaj aktualizacje",
-        "description": "Szuka nowej wersji przy uruchomieniu Zynveliq i co 12 godzin. Zawsze możesz sprawdzić ręcznie."
+        "description": "Szuka nowej wersji przy uruchomieniu Talvio i co 12 godzin. Zawsze możesz sprawdzić ręcznie."
       },
       "soundTheme": {
         "label": "Motyw dźwiękowy",
@@ -1494,7 +1494,7 @@
       "smartSpacing": {
         "label": "Inteligentne odstępy",
         "description": "Dopasowuje każde dyktowanie do tekstu, który już jest w polu, aby można było przerwać i kontynuować bez sklejania słów.",
-        "info": "Przed wklejeniem Zynveliq sprawdza kilka znaków wokół kursora i dodaje spację tylko tam, gdzie jest potrzebna. Gdy aplikacja ukrywa swój tekst, korzysta zamiast tego z własnego ostatniego dyktowania. Nic nie jest zapisywane ani nigdzie wysyłane. W macOS używa uprawnienia Dostępności, które Zynveliq już ma. W Linuksie aplikacje Chrome, Electron i Qt udostępniają tekst tylko wtedy, gdy ułatwienia dostępu pulpitu są włączone."
+        "info": "Przed wklejeniem Talvio sprawdza kilka znaków wokół kursora i dodaje spację tylko tam, gdzie jest potrzebna. Gdy aplikacja ukrywa swój tekst, korzysta zamiast tego z własnego ostatniego dyktowania. Nic nie jest zapisywane ani nigdzie wysyłane. W macOS używa uprawnienia Dostępności, które Talvio już ma. W Linuksie aplikacje Chrome, Electron i Qt udostępniają tekst tylko wtedy, gdy ułatwienia dostępu pulpitu są włączone."
       },
       "smartSpacingFixCase": {
         "label": "Poprawiaj wielkie litery",
@@ -1502,7 +1502,7 @@
       },
       "smartSpacingJoin": {
         "label": "Łącz przerwane zdania",
-        "description": "Usuwa kropkę dodaną przez Zynveliq, gdy przerwano w połowie zdania, np. „I went to the.”"
+        "description": "Usuwa kropkę dodaną przez Talvio, gdy przerwano w połowie zdania, np. „I went to the.”"
       },
       "keyboardImplementation": {
         "title": "Implementacja klawiatury",
@@ -1634,7 +1634,7 @@
       },
       "appDataDirectory": {
         "title": "Folder danych aplikacji",
-        "description": "Miejsce, w którym Zynveliq przechowuje Twoje modele, historię i ustawienia."
+        "description": "Miejsce, w którym Talvio przechowuje Twoje modele, historię i ustawienia."
       },
       "sourceCode": {
         "title": "Kod źródłowy",
@@ -1643,12 +1643,12 @@
       },
       "license": {
         "title": "Licencja",
-        "description": "Zynveliq to oprogramowanie open source na licencji MIT, oparte na projekcie Handy (również MIT) autorstwa CJ Pais.",
+        "description": "Talvio to oprogramowanie open source na licencji MIT, oparte na projekcie Handy (również MIT) autorstwa CJ Pais.",
         "button": "Zobacz licencję"
       },
       "supportDevelopment": {
         "title": "Wspieraj rozwój",
-        "description": "Pomóż nam dalej rozwijać Zynveliq",
+        "description": "Pomóż nam dalej rozwijać Talvio",
         "button": "Wesprzyj"
       }
     },
@@ -1656,7 +1656,7 @@
       "enable": {
         "title": "Asystent",
         "label": "Włącz asystenta",
-        "description": "Wyłącz to, aby Zynveliq służył tylko do dyktowania. Pływający panel zostaje zamknięty i nigdy się nie wczytuje, jego skróty są zwalniane, a zajmowana pamięć wraca do systemu. Generuj z Flow i czyszczenie AI działają dalej."
+        "description": "Wyłącz to, aby Talvio służył tylko do dyktowania. Pływający panel zostaje zamknięty i nigdy się nie wczytuje, jego skróty są zwalniane, a zajmowana pamięć wraca do systemu. Generuj z Flow i czyszczenie AI działają dalej."
       },
       "shortcuts": {
         "title": "Skróty"
@@ -1695,7 +1695,7 @@
         "deleteModelFailed": "Nie udało się usunąć modelu.",
         "finderSectionTitle": "Więcej modeli na urządzeniu",
         "finderTitle": "Przeglądaj Hugging Face",
-        "finderDescription": "Przeszukaj tysiące modeli GGUF i pobierz wybrany wprost do Zynveliq.",
+        "finderDescription": "Przeszukaj tysiące modeli GGUF i pobierz wybrany wprost do Talvio.",
         "finderAction": "Znajdź model",
         "huggingFaceTitle": "Twoje modele",
         "catalogEmpty": "Obecnie nie ma dostępnych polecanych modeli lokalnych."
@@ -1818,7 +1818,7 @@
           "label": "Moment przechwytywania"
         },
         "screenRecording": {
-          "description": "Podgląd ekranu wymaga uprawnienia macOS do nagrywania ekranu. Przyznaj je w Ustawieniach systemowych, a potem uruchom Zynveliq ponownie, aby zaczęło działać.",
+          "description": "Podgląd ekranu wymaga uprawnienia macOS do nagrywania ekranu. Przyznaj je w Ustawieniach systemowych, a potem uruchom Talvio ponownie, aby zaczęło działać.",
           "grant": "Otwórz Ustawienia systemowe"
         }
       },
@@ -1995,7 +1995,7 @@
         "testGpuMoved": "Karta graficzna zniekształciła próbkę, więc została wyciszona. Kokoro używa teraz procesora, więc przetestuj ponownie, aby ją usłyszeć.",
         "testGpuForced": "Karta graficzna zniekształciła próbkę, więc została wyciszona. Ustaw opcję Działa na na Automatycznie lub Procesor.",
         "testGpuSuspect": "Próbka wyszła zniekształcona, więc została wyciszona. Przetestuj ponownie, aby sprawdzić kartę graficzną.",
-        "testPhrase": "Cześć! To test wyjścia głosowego Zynveliq.",
+        "testPhrase": "Cześć! To test wyjścia głosowego Talvio.",
         "downloadStart": "Pobieranie głosu Kokoro…",
         "downloadProgress": "Pobieranie głosu Kokoro… {{progress}}%",
         "downloadReady": "Głos Kokoro gotowy ✓",
@@ -2097,7 +2097,7 @@
     "account": {
       "signedOut": {
         "title": "Połącz telefon",
-        "body": "Zaloguj się tutaj i w aplikacji Zynveliq na telefonie na to samo konto. Wtedy możesz dyktować i pisać na tym komputerze z telefonu.",
+        "body": "Zaloguj się tutaj i w aplikacji Talvio na telefonie na to samo konto. Wtedy możesz dyktować i pisać na tym komputerze z telefonu.",
         "modeLabel": "Zaloguj się lub utwórz konto",
         "signIn": "Zaloguj się",
         "createAccount": "Utwórz konto",
@@ -2119,13 +2119,13 @@
         "online": "Połączono",
         "connecting": "Łączenie…",
         "offline": "Brak połączenia",
-        "offlineHint": "Zynveliq nie może teraz połączyć się z serwerem i wciąż próbuje. Do tego czasu telefon nie może korzystać z tego komputera."
+        "offlineHint": "Talvio nie może teraz połączyć się z serwerem i wciąż próbuje. Do tego czasu telefon nie może korzystać z tego komputera."
       },
       "phone": {
         "title": "Telefon",
         "remoteInput": "Dyktowanie z telefonu",
         "remoteInputHint": "Pozwala telefonowi dyktować i pisać na tym komputerze.",
-        "install": "Zainstaluj aplikację Zynveliq na telefonie i zaloguj się jako {{email}}."
+        "install": "Zainstaluj aplikację Talvio na telefonie i zaloguj się jako {{email}}."
       },
       "devices": {
         "title": "Urządzenia",
@@ -2157,7 +2157,7 @@
         "automatic": "Automatycznie",
         "custom": "Własny",
         "using": "Używany: {{host}}",
-        "notFound": "Nie można teraz znaleźć serwera. Zynveliq wciąż próbuje."
+        "notFound": "Nie można teraz znaleźć serwera. Talvio wciąż próbuje."
       },
       "errors": {
         "generic": "Coś poszło nie tak. Spróbuj ponownie.",
@@ -2280,7 +2280,7 @@
     "list": {
       "title": "Nagrane spotkania",
       "emptyTitle": "Brak spotkań",
-      "emptyHint": "Rozpocznij nagrywanie przed rozmową, a Zynveliq zachowa transkrypcję z podziałem na to, kto mówił.",
+      "emptyHint": "Rozpocznij nagrywanie przed rozmową, a Talvio zachowa transkrypcję z podziałem na to, kto mówił.",
       "loadMore": "Wczytaj więcej",
       "speakers_one": "{{count}} mówca",
       "speakers_few": "{{count}} mówców",
@@ -2450,7 +2450,7 @@
   },
   "accessibility": {
     "permissionsRequired": "Wymagane uprawnienia ułatwień dostępu",
-    "permissionsDescription": "Zynveliq potrzebuje uprawnień dostępności, aby wpisywać transkrybowany tekst.",
+    "permissionsDescription": "Talvio potrzebuje uprawnień dostępności, aby wpisywać transkrybowany tekst.",
     "openSettings": "Otwórz ustawienia systemowe",
     "dismiss": "Zamknij"
   },
@@ -2479,7 +2479,7 @@
   },
   "appLanguage": {
     "title": "Język aplikacji",
-    "description": "Zmień język interfejsu Zynveliq"
+    "description": "Zmień język interfejsu Talvio"
   },
   "overlay": {
     "preparing": "Przygotowywanie mikrofonu…",
@@ -2859,7 +2859,7 @@
       "performance": "Wydajność"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "Wersja {{version}}",
       "project": "Projekt",
       "docs": "Dokumentacja",
@@ -2877,7 +2877,7 @@
     "subtitleTap": "Stuknij skrót w dowolnej aplikacji, mów i stuknij ponownie. Twoje słowa pojawią się tam, gdzie jest kursor.",
     "needsModel": {
       "title": "Wybierz model mowy, aby zacząć dyktować.",
-      "description": "Zynveliq potrzebuje modelu zamiany mowy na tekst, zanim będzie mógł wpisywać to, co mówisz.",
+      "description": "Talvio potrzebuje modelu zamiany mowy na tekst, zanim będzie mógł wpisywać to, co mówisz.",
       "action": "Wybierz model"
     },
     "stats": {
@@ -2959,8 +2959,8 @@
         "open": "Ustawienia klawiatury"
       },
       "linux": {
-        "wayland": "W Waylandzie pulpit przekazuje te klawisze do Zynveliq tylko wtedy, gdy jedno z jego okien jest na wierzchu. Aby używać ich w każdej aplikacji, dodaj je jako skróty w ustawieniach systemu.",
-        "noAccess": "Zynveliq Keys nie może odczytać klawiatury na tym komputerze, więc te skróty jeszcze nic nie robią.",
+        "wayland": "W Waylandzie pulpit przekazuje te klawisze do Talvio tylko wtedy, gdy jedno z jego okien jest na wierzchu. Aby używać ich w każdej aplikacji, dodaj je jako skróty w ustawieniach systemu.",
+        "noAccess": "Talvio Keys nie może odczytać klawiatury na tym komputerze, więc te skróty jeszcze nic nie robią.",
         "setUp": "Skonfiguruj",
         "where": {
           "gnome": "Otwórz Ustawienia → Klawiatura → Wyświetl i dostosuj skróty → Własne skróty, dodaj po jednym dla każdego polecenia poniżej i naciśnij wybrane klawisze.",
@@ -2968,7 +2968,7 @@
           "other": "Dla każdego polecenia poniżej dodaj własny skrót w ustawieniach klawiatury swojego pulpitu albo wiersz bind w konfiguracji kompozytora."
         },
         "tapOnly": "Skrót dodany w ten sposób działa jak „Stuknij, aby przełączyć”: naciśnij raz, aby zacząć, i jeszcze raz, aby zatrzymać.",
-        "access": "Albo pozwól Zynveliq Keys odczytywać klawiaturę. Uruchom to w terminalu, a potem wyloguj się i zaloguj ponownie:",
+        "access": "Albo pozwól Talvio Keys odczytywać klawiaturę. Uruchom to w terminalu, a potem wyloguj się i zaloguj ponownie:",
         "copy": "Kopiuj",
         "copied": "Skopiowano"
       }
@@ -3002,7 +3002,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} używał starszego silnika, którego Zynveliq już nie zawiera.",
+    "title": "{{model}} używał starszego silnika, którego Talvio już nie zawiera.",
     "newVersion": "Jego nowa wersja to {{model}}.",
     "ready": "{{model}} jest pobrany i gotowy.",
     "noVersion": "Wybierz inny model, aby dalej dyktować.",
@@ -3011,12 +3011,12 @@
     "retry": "Spróbuj ponownie",
     "chooseAnother": "Wybierz inny model",
     "progressLabel": "Pobieranie nowej wersji",
-    "dialogTitle": "Zynveliq ma nowy silnik mowy",
+    "dialogTitle": "Talvio ma nowy silnik mowy",
     "dialogBody": "Jest szybszy i stabilniejszy, więc napotkasz mniej problemów. {{model}} działał na starym silniku i potrzebuje nowej wersji, aby dalej działać.",
     "later": "Później"
   },
   "modelsHub": {
-    "description": "Każde zadanie w Zynveliq wykonuje wybrany przez Ciebie model. Uruchom go na tym komputerze dla prywatności albo w chmurze dla szybkości.",
+    "description": "Każde zadanie w Talvio wykonuje wybrany przez Ciebie model. Uruchom go na tym komputerze dla prywatności albo w chmurze dla szybkości.",
     "addLocal": "Dodaj plik modelu",
     "privacyNote": "Modele na tym komputerze nigdzie nie wysyłają Twojego głosu ani tekstu. Modele w chmurze wysyłają je do wybranego dostawcy przy użyciu Twojego klucza API.",
     "inUse": "W użyciu",
@@ -3178,12 +3178,12 @@
     "shortcutRow": "Skrót"
   },
   "dictionary": {
-    "description": "Naucz Zynveliq nazw i terminów, których używasz, i ustaw skróty rozwijane w dłuższy tekst.",
+    "description": "Naucz Talvio nazw i terminów, których używasz, i ustaw skróty rozwijane w dłuższy tekst.",
     "words": {
       "title": "Twoje słowa",
-      "description": "Nazwiska, żargon i pisownia, które Zynveliq ma zawsze zapisywać poprawnie.",
+      "description": "Nazwiska, żargon i pisownia, które Talvio ma zawsze zapisywać poprawnie.",
       "placeholder": "Dodaj nazwę, termin lub pisownię…",
-      "empty": "Na razie pusto. Dodaj słowa, które Zynveliq wciąż zapisuje błędnie."
+      "empty": "Na razie pusto. Dodaj słowa, które Talvio wciąż zapisuje błędnie."
     },
     "replacements": {
       "title": "Zamiany",
@@ -3579,7 +3579,7 @@
     "or": "lub",
     "changeOther": "Zmień dodatkowe klawisze skrótu: {{name}}",
     "pressKeysOrButton": "Naciśnij klawisze lub przycisk myszy…",
-    "mouseNeedsKeysEngine": "Przyciski myszy wymagają implementacji klawiatury Zynveliq Keys (Ustawienia → Zaawansowane → Eksperymentalne).",
+    "mouseNeedsKeysEngine": "Przyciski myszy wymagają implementacji klawiatury Talvio Keys (Ustawienia → Zaawansowane → Eksperymentalne).",
     "mouse": {
       "middle": "Środkowy przycisk myszy",
       "back": "Przycisk myszy Wstecz",
@@ -3658,7 +3658,7 @@
     }
   },
   "insights": {
-    "about": "Jak używasz Zynveliq, liczone na tym komputerze.",
+    "about": "Jak używasz Talvio, liczone na tym komputerze.",
     "nothingYet": "Statystyki pojawią się, gdy zaczniesz dyktować, pytać asystenta lub nagrywać spotkania.",
     "goHome": "Zobacz swoje skróty",
     "figures": {
@@ -3734,7 +3734,7 @@
     },
     "share": {
       "button": "Udostępnij",
-      "nothingYet": "Będzie czym się podzielić, gdy zaczniesz używać Zynveliq.",
+      "nothingYet": "Będzie czym się podzielić, gdy zaczniesz używać Talvio.",
       "title": "Udostępnij swoje statystyki",
       "private": "Powstaje na tym komputerze. Nic nie jest wysyłane.",
       "size": "Rozmiar",
@@ -3765,13 +3765,13 @@
       "openSite": "Otwórz {{site}}",
       "openFailed": "Nie udało się otworzyć {{site}}",
       "more": "Więcej aplikacji",
-      "sheetTitle": "Moje statystyki Zynveliq",
+      "sheetTitle": "Moje statystyki Talvio",
       "shareFailed": "Nie udało się otworzyć udostępniania",
       "drawFailed": "Nie udało się narysować kart. Zamknij to okno i spróbuj ponownie.",
       "tagline": "Za darmo · Open source · Działa offline",
       "cards": {
         "highlights": {
-          "title": "Mój Zynveliq w liczbach",
+          "title": "Mój Talvio w liczbach",
           "words_one": "wypowiedziane słowo",
           "words_few": "wypowiedziane słowa",
           "words_many": "wypowiedzianych słów",
@@ -3862,18 +3862,18 @@
         }
       },
       "post": {
-        "dictation_one": "Zamiast pisać, mówię do komputera. Dzięki Zynveliq to już {{formatted}} słowo.",
-        "dictation_few": "Zamiast pisać, mówię do komputera. Dzięki Zynveliq to już {{formatted}} słowa.",
-        "dictation_many": "Zamiast pisać, mówię do komputera. Dzięki Zynveliq to już {{formatted}} słów.",
-        "dictation_other": "Zamiast pisać, mówię do komputera. Dzięki Zynveliq to już {{formatted}} słowa.",
-        "asks_one": "Pytam asystenta Zynveliq bez przełączania kart: to już {{formatted}} pytanie.",
-        "asks_few": "Pytam asystenta Zynveliq bez przełączania kart: to już {{formatted}} pytania.",
-        "asks_many": "Pytam asystenta Zynveliq bez przełączania kart: to już {{formatted}} pytań.",
-        "asks_other": "Pytam asystenta Zynveliq bez przełączania kart: to już {{formatted}} pytania.",
-        "meetings_one": "Zynveliq nagrał już {{formatted}} spotkanie i napisał za mnie notatki.",
-        "meetings_few": "Zynveliq nagrał już {{formatted}} spotkania i napisał za mnie notatki.",
-        "meetings_many": "Zynveliq nagrał już {{formatted}} spotkań i napisał za mnie notatki.",
-        "meetings_other": "Zynveliq nagrał już {{formatted}} spotkania i napisał za mnie notatki."
+        "dictation_one": "Zamiast pisać, mówię do komputera. Dzięki Talvio to już {{formatted}} słowo.",
+        "dictation_few": "Zamiast pisać, mówię do komputera. Dzięki Talvio to już {{formatted}} słowa.",
+        "dictation_many": "Zamiast pisać, mówię do komputera. Dzięki Talvio to już {{formatted}} słów.",
+        "dictation_other": "Zamiast pisać, mówię do komputera. Dzięki Talvio to już {{formatted}} słowa.",
+        "asks_one": "Pytam asystenta Talvio bez przełączania kart: to już {{formatted}} pytanie.",
+        "asks_few": "Pytam asystenta Talvio bez przełączania kart: to już {{formatted}} pytania.",
+        "asks_many": "Pytam asystenta Talvio bez przełączania kart: to już {{formatted}} pytań.",
+        "asks_other": "Pytam asystenta Talvio bez przełączania kart: to już {{formatted}} pytania.",
+        "meetings_one": "Talvio nagrał już {{formatted}} spotkanie i napisał za mnie notatki.",
+        "meetings_few": "Talvio nagrał już {{formatted}} spotkania i napisał za mnie notatki.",
+        "meetings_many": "Talvio nagrał już {{formatted}} spotkań i napisał za mnie notatki.",
+        "meetings_other": "Talvio nagrał już {{formatted}} spotkania i napisał za mnie notatki."
       }
     }
   },
@@ -3881,11 +3881,11 @@
     "restored": "Twoje ustawienia były uszkodzone i zostały przywrócone z kopii zapasowej.",
     "restoredDescription": "Może brakować ostatnich zmian.",
     "unrecoverableTitle": "Nie udało się odzyskać ustawień",
-    "unrecoverableDescription": "Zynveliq uruchomił się z ustawieniami domyślnymi. Uszkodzony plik zachowano jako {{file}}.",
+    "unrecoverableDescription": "Talvio uruchomił się z ustawieniami domyślnymi. Uszkodzony plik zachowano jako {{file}}.",
     "notSavingTitle": "Zmiany ustawień nie zostaną zapisane",
-    "notSavingDescription": "Nie udało się odczytać pliku ustawień, więc pozostawiono go bez zmian. Uruchom ponownie Zynveliq, aby spróbować jeszcze raz.",
+    "notSavingDescription": "Nie udało się odczytać pliku ustawień, więc pozostawiono go bez zmian. Uruchom ponownie Talvio, aby spróbować jeszcze raz.",
     "saveFailingTitle": "Ustawienia nie są zapisywane",
-    "saveFailingDescription": "Ostatnie zmiany nie zostały jeszcze zapisane. Zynveliq będzie próbować dalej.",
+    "saveFailingDescription": "Ostatnie zmiany nie zostały jeszcze zapisane. Talvio będzie próbować dalej.",
     "dismiss": "Zamknij"
   },
   "commandMode": {

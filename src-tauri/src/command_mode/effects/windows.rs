@@ -941,7 +941,7 @@ impl Effects for SystemEffects {
     /// A shortcut or program path goes through the shell, like a double-click.
     /// A Store app goes through Explorer's `shell:AppsFolder`, the only way to
     /// start one by its AppID without COM activation. Neither is put in a
-    /// kill-on-close job: an app the user asked for must outlive Zynveliq.
+    /// kill-on-close job: an app the user asked for must outlive Talvio.
     fn launch_app(&self, app: &AppEntry) -> Result<(), String> {
         let failed = |err: String| {
             warn!("Launching {} failed: {err}", app.name);
@@ -1151,7 +1151,7 @@ impl Effects for SystemEffects {
         match typed {
             Typed::Done => Ok(()),
             Typed::OwnWindow => Err(
-                "Zynveliq's own window is in front, so there's nowhere to type that. \
+                "Talvio's own window is in front, so there's nowhere to type that. \
                  Switch to the app you want it in first."
                     .to_string(),
             ),

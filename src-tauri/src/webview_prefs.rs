@@ -51,7 +51,7 @@ pub fn disable_caret_browsing(user_data_dir: &Path) {
     };
     // Write beside the original and rename over it, so an interrupted write can
     // never leave a truncated profile behind.
-    let staged = path.with_extension("zynveliq-staged");
+    let staged = path.with_extension("talvio-staged");
     let result = std::fs::write(&staged, fixed).and_then(|()| std::fs::rename(&staged, &path));
     match result {
         Ok(()) => log::info!("Turned off WebView2 caret browsing (it had been toggled with F7)"),
@@ -113,7 +113,7 @@ mod tests {
             doc.pointer(CARET_BROWSING_POINTER),
             Some(&Value::Bool(false))
         );
-        assert!(!path.with_extension("zynveliq-staged").exists());
+        assert!(!path.with_extension("talvio-staged").exists());
     }
 
     #[test]

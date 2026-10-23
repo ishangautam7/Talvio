@@ -477,7 +477,7 @@ export const useModelStore = create<ModelsStore>()(
             }),
           );
           // Backport of Handy #1522: surface the *real* download error (e.g. a
-          // blocked/unreachable host) instead of failing silently. Zynveliq
+          // blocked/unreachable host) instead of failing silently. Talvio
           // already mounts <Toaster /> during onboarding (App.tsx renders it
           // before the onboarding body), so this shows on the wizard too. The
           // friendly title gives context; the raw error rides along as the

@@ -6,7 +6,7 @@ interface WordmarkProps {
 }
 
 /**
- * Zynveliq brand wordmark, in the brand sans (`.font-brand`) — the display
+ * Talvio brand wordmark, in the brand sans (`.font-brand`) — the display
  * serif is for page titles, never for the name. "veliq" takes the accent so the
  * name and the brand color read as one mark.
  */

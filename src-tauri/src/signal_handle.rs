@@ -80,7 +80,7 @@ pub const COMMAND_REPORT_EVENT: &str = "command-mode-report";
 ///
 /// A real run first waits for keyboard control (`input::EnigoState`), which
 /// only exists once the main window has mounted and called
-/// `initialize_enigo`. On a cold start (`zynveliq --run-command ...` with no
+/// `initialize_enigo`. On a cold start (`talvio --run-command ...` with no
 /// instance running) this function is called from setup, a second or more
 /// before that, and a command that types or presses keys would otherwise fail
 /// with "Keyboard control isn't ready yet" right after its router call. Rust
@@ -202,7 +202,7 @@ pub fn setup_signal_handler(app_handle: AppHandle) {
     debug!("Signal handler registered (SIGUSR2; SIGUSR1 is left to WebKitGTK)");
     thread::spawn(move || {
         // On macOS the transcription worker passes these signals on to the
-        // app (it is also named `zynveliq`, so `pkill` reaches it), and a
+        // app (it is also named `talvio`, so `pkill` reaches it), and a
         // `pkill` without `-n` signals both: the same toggle then arrives
         // twice within a millisecond and would start and stop at once. Nobody
         // toggles a recording twice inside this window on purpose.

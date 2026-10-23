@@ -14,7 +14,7 @@ type DictionaryTab = "words" | "replacements";
 const WORD_INPUT_ID = "dictionary-new-word";
 
 /**
- * Dictionary: the words Zynveliq should always get right, and the phrases
+ * Dictionary: the words Talvio should always get right, and the phrases
  * it should expand, as two tabs. No banner: the list of your words is the
  * page's picture, and the banner it had (a paragraph of word-bars with one
  * lit) read as a loading skeleton above it.

@@ -7,7 +7,7 @@
 //!
 //! What the read does, and the bug each step avoids:
 //!
-//! * Needs the Accessibility permission Zynveliq already asks for to paste;
+//! * Needs the Accessibility permission Talvio already asks for to paste;
 //!   without it nothing is read.
 //! * Secure input (a password prompt anywhere) and secure text fields are
 //!   never read.

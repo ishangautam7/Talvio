@@ -39,7 +39,7 @@ const MARGIN: i32 = 18;
 static ASKING: Mutex<Vec<AccountPhone>> = Mutex::new(Vec::new());
 /// The height the popup measured for its cards; 0 until it has.
 static HEIGHT: AtomicU32 = AtomicU32::new(0);
-/// Whether Zynveliq was the active app the last time it was looked at before
+/// Whether Talvio was the active app the last time it was looked at before
 /// a click on the popup (the click itself activates it).
 #[cfg(target_os = "macos")]
 static ACTIVE_WHEN_ASKED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -183,9 +183,7 @@ fn build(app: &AppHandle) {
 #[cfg(target_os = "linux")]
 fn init_layer_shell(window: &tauri::WebviewWindow) -> bool {
     use gtk_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
-    if crate::overlay::env_flag_enabled("ZYNVELIQ_NO_GTK_LAYER_SHELL")
-        || !gtk_layer_shell::is_supported()
-    {
+    if crate::overlay::env_flag_enabled("NO_GTK_LAYER_SHELL") || !gtk_layer_shell::is_supported() {
         return false;
     }
     let Ok(gtk_window) = window.gtk_window() else {
@@ -272,7 +270,7 @@ pub fn fit(app: &AppHandle, requested: f64) {
     });
 }
 
-/// After a click on the popup: on macOS it made Zynveliq the active app, so
+/// After a click on the popup: on macOS it made Talvio the active app, so
 /// the next paste (the one Allow lets through, or any later one) would land
 /// here. Nothing to do elsewhere, where the popup cannot take the foreground.
 #[cfg(not(target_os = "macos"))]
@@ -280,7 +278,7 @@ pub async fn hand_back_focus(_app: &AppHandle) {}
 
 /// `hide:` gives activation back to the app that had it (as the assistant's
 /// Insert does), then the windows it hid return without taking it again.
-/// Skipped when Zynveliq was active just before the click: the user was in
+/// Skipped when Talvio was active just before the click: the user was in
 /// one of its windows, and the paste belongs there.
 #[cfg(target_os = "macos")]
 pub async fn hand_back_focus(app: &AppHandle) {

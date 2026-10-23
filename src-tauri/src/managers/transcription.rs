@@ -162,13 +162,13 @@ pub fn is_cancellation(error: &anyhow::Error) -> bool {
 /// `AppHandle`) need to find it.
 static ENGINE: OnceLock<EngineSupervisor> = OnceLock::new();
 
-/// The message shown when the selected model belongs to an engine Zynveliq no
+/// The message shown when the selected model belongs to an engine Talvio no
 /// longer ships (the ONNX models `transcribe-rs` ran; see
 /// [`crate::managers::legacy_models`]). Such a model stays on disk but is never
 /// loaded, so this is what the Models page and the loading-failed toast say.
 pub fn retired_engine_message(model_name: &str) -> String {
     format!(
-        "{model_name} used an older engine that Zynveliq no longer includes. \
+        "{model_name} used an older engine that Talvio no longer includes. \
          Download its new version on the Models page."
     )
 }
@@ -790,7 +790,7 @@ impl TranscriptionManager {
     /// Stop the transcription worker before the app exits, waiting at most
     /// `timeout`. The worker would end with the app anyway (its stdin closes,
     /// and on Windows the kill-on-close job ends it), but a Windows in-app
-    /// update overwrites `zynveliq.exe`, which the worker is running from,
+    /// update overwrites `talvio.exe`, which the worker is running from,
     /// so it should be gone before the installer gets there. Bounded, because
     /// the unload queues behind a transcription in progress, and quitting
     /// must never wait on a hung one. Returns whether the worker has exited.
@@ -2257,12 +2257,8 @@ pub fn recognition_words(settings: &crate::settings::AppSettings) -> Vec<String>
             words.push(learned.clone());
         }
     }
-    if settings.flow_enabled
-        && !words
-            .iter()
-            .any(|word| word.eq_ignore_ascii_case("Zynveliq"))
-    {
-        words.push("Zynveliq".to_string());
+    if settings.flow_enabled && !words.iter().any(|word| word.eq_ignore_ascii_case("Talvio")) {
+        words.push("Talvio".to_string());
     }
     words
 }
@@ -3459,7 +3455,7 @@ mod tests {
         settings.flow_phrase = "Hey Flow".to_string();
 
         let correction_hints = recognition_words(&settings);
-        assert!(correction_hints.iter().any(|hint| hint == "Zynveliq"));
+        assert!(correction_hints.iter().any(|hint| hint == "Talvio"));
         assert!(!correction_hints.iter().any(|hint| hint == "Hey Flow"));
         assert!(!correction_hints.iter().any(|hint| hint == "Flow"));
         assert_eq!(
@@ -3553,7 +3549,7 @@ mod tests {
     fn a_retired_engine_says_what_to_do() {
         assert_eq!(
             retired_engine_message("Parakeet V3"),
-            "Parakeet V3 used an older engine that Zynveliq no longer includes. \
+            "Parakeet V3 used an older engine that Talvio no longer includes. \
              Download its new version on the Models page."
         );
     }
@@ -3567,7 +3563,7 @@ mod tests {
 /// `cargo test --lib transcribe_cpp_live -- --ignored --nocapture --test-threads=1`
 ///
 /// Paths default to the installed app's data folder and can be overridden with
-/// `ZYNVELIQ_MODELS_DIR`, `ZYNVELIQ_RECORDINGS_DIR` or `ZYNVELIQ_LIVE_WAV`.
+/// `TALVIO_MODELS_DIR`, `TALVIO_RECORDINGS_DIR` or `TALVIO_LIVE_WAV`.
 /// Transcript text is never printed, only its length.
 #[cfg(test)]
 mod transcribe_cpp_live_tests {
@@ -3584,11 +3580,11 @@ mod transcribe_cpp_live_tests {
 
     fn app_data() -> PathBuf {
         let roaming = std::env::var_os("APPDATA").expect("APPDATA is set on Windows");
-        PathBuf::from(roaming).join("com.zynveliq.desktop")
+        PathBuf::from(roaming).join("com.talvio.desktop")
     }
 
     fn models_dir() -> PathBuf {
-        std::env::var_os("ZYNVELIQ_MODELS_DIR")
+        std::env::var_os("TALVIO_MODELS_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|| app_data().join("models"))
     }
@@ -3616,14 +3612,14 @@ mod transcribe_cpp_live_tests {
     }
 
     /// The newest recording with at least `MIN_SECONDS` of audio (or the one
-    /// `ZYNVELIQ_LIVE_WAV` names), cut to `MAX_SECONDS`.
+    /// `TALVIO_LIVE_WAV` names), cut to `MAX_SECONDS`.
     fn recording() -> Vec<f32> {
-        if let Some(path) = std::env::var_os("ZYNVELIQ_LIVE_WAV") {
+        if let Some(path) = std::env::var_os("TALVIO_LIVE_WAV") {
             let mut pcm = read_wav(Path::new(&path));
             pcm.truncate(MAX_SECONDS * SAMPLE_RATE);
             return pcm;
         }
-        let dir = std::env::var_os("ZYNVELIQ_RECORDINGS_DIR")
+        let dir = std::env::var_os("TALVIO_RECORDINGS_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|| app_data().join("recordings"));
         let mut wavs: Vec<_> = std::fs::read_dir(&dir)
@@ -3872,17 +3868,17 @@ mod transcribe_cpp_live_tests {
     }
 
     /// The GGUF Parakeet TDT 0.6B v3 (the catalog's default Q8_0 quant), where
-    /// the app downloads it; `ZYNVELIQ_PARAKEET_TDT` points elsewhere.
+    /// the app downloads it; `TALVIO_PARAKEET_TDT` points elsewhere.
     fn parakeet_tdt_path() -> PathBuf {
-        std::env::var_os("ZYNVELIQ_PARAKEET_TDT")
+        std::env::var_os("TALVIO_PARAKEET_TDT")
             .map(PathBuf::from)
             .unwrap_or_else(|| models_dir().join("parakeet-tdt-0.6b-v3-Q8_0.gguf"))
     }
 
-    /// A long recording, whole: `ZYNVELIQ_LONG_WAV`, else the longest one in
+    /// A long recording, whole: `TALVIO_LONG_WAV`, else the longest one in
     /// the app's recordings folder.
     fn long_recording() -> Vec<f32> {
-        let path = std::env::var_os("ZYNVELIQ_LONG_WAV")
+        let path = std::env::var_os("TALVIO_LONG_WAV")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
                 std::fs::read_dir(app_data().join("recordings"))
@@ -4105,7 +4101,7 @@ mod transcribe_cpp_live_tests {
         let model = session.model();
         let caps = model.capabilities().expect("capabilities");
         let mut settings = settings_for(TranscribeAcceleratorSetting::Auto);
-        settings.custom_words = vec!["Zynveliq".into(), "Kubernetes".into()];
+        settings.custom_words = vec!["Talvio".into(), "Kubernetes".into()];
         let vocabulary = model.supports(transcribe_cpp::Feature::Vocabulary);
         let plan = transcribe_cpp_run_plan(&settings, &caps, &model.arch(), vocabulary);
         eprintln!(

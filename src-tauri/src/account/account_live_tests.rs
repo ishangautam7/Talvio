@@ -5,7 +5,7 @@
 //! the server accepts what it sends, and routes it, has one authority.
 //!
 //! ```text
-//! ZYNVELIQ_ACCOUNT_TEST_SERVER=http://localhost:8787 \
+//! TALVIO_ACCOUNT_TEST_SERVER=http://localhost:8787 \
 //!   cargo test --lib account_live -- --ignored --nocapture
 //! ```
 //!
@@ -30,8 +30,8 @@ use super::socket::{self, Event};
 const WAIT: Duration = Duration::from_secs(10);
 
 fn server() -> String {
-    std::env::var("ZYNVELIQ_ACCOUNT_TEST_SERVER")
-        .expect("set ZYNVELIQ_ACCOUNT_TEST_SERVER to the server's URL")
+    std::env::var("TALVIO_ACCOUNT_TEST_SERVER")
+        .expect("set TALVIO_ACCOUNT_TEST_SERVER to the server's URL")
         .trim_end_matches('/')
         .to_string()
 }

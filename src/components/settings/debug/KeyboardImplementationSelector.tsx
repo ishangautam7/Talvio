@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const KEYBOARD_IMPLEMENTATION_OPTIONS: DropdownOption[] = [
   { value: "tauri", label: "Tauri Global Shortcut" },
-  { value: "handy_keys", label: "Zynveliq Keys" },
+  { value: "handy_keys", label: "Talvio Keys" },
 ];
 
 interface KeyboardImplementationSelectorProps {

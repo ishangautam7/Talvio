@@ -31,6 +31,7 @@ mod overlay_follow;
 mod overlay_lifecycle;
 mod paste_tx;
 pub mod portable;
+pub mod rebrand;
 mod reminders;
 mod screenshot;
 mod secret_store;
@@ -656,6 +657,10 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     let autostart_manager = app_handle.autolaunch();
     let settings = settings::get_settings(&app_handle);
 
+    // An entry left by the app's previous name points at an executable an
+    // update replaced; drop it, then apply the setting under the new name.
+    rebrand::remove_legacy_autostart();
+
     if settings.autostart_enabled {
         // Enable autostart if user has opted in
         let _ = autostart_manager.enable();
@@ -945,6 +950,10 @@ fn filter_webview2_context_menu<R: tauri::Runtime>(webview: &tauri::Webview<R>) 
 pub fn run(cli_args: CliArgs) {
     // Detect portable mode before anything else
     portable::init();
+
+    // Carry an install over from the app's previous name before anything
+    // resolves a path, opens the log or takes the single-instance lock.
+    rebrand::carry_over_data_dirs();
 
     // Allow the assistant panel to play TTS audio without a user gesture
     // (WebView2 reads this env var at creation time).
@@ -1424,11 +1433,11 @@ pub fn run(cli_args: CliArgs) {
                     Target::new(if let Some(data_dir) = portable::data_dir() {
                         TargetKind::Folder {
                             path: data_dir.join("logs"),
-                            file_name: Some("zynveliq".into()),
+                            file_name: Some("talvio".into()),
                         }
                     } else {
                         TargetKind::LogDir {
-                            file_name: Some("zynveliq".into()),
+                            file_name: Some("talvio".into()),
                         }
                     })
                     .filter(|metadata| {
@@ -1494,6 +1503,7 @@ pub fn run(cli_args: CliArgs) {
         ))
         .manage(cli_args.clone())
         .setup(move |app| {
+            rebrand::log_report();
             // Record the GPU environment policy main() applied, so a crash
             // report can tell whether an overlay layer could have been involved.
             #[cfg(target_os = "windows")]
@@ -1536,7 +1546,7 @@ pub fn run(cli_args: CliArgs) {
                     // names the window to the OS: the taskbar hover preview,
                     // Alt+Tab, Task Manager, Linux window lists and screen
                     // readers. An empty one left all of those blank.
-                    .title("Zynveliq")
+                    .title("Talvio")
                     // Open a bit wider/taller so content (max-w-3xl) breathes
                     // next to the sidebar instead of feeling cramped. Min stays
                     // smaller so users on small laptops can shrink it to fit
@@ -1705,7 +1715,7 @@ pub fn run(cli_args: CliArgs) {
             // But if permission onboarding is required, always show the window.
             // A cold-start `--run-command` also starts hidden: the command acts
             // on the window in front, and showing ours a moment later would put
-            // Zynveliq there, so typed text and keys would land in Settings. The
+            // Talvio there, so typed text and keys would land in Settings. The
             // window still loads hidden, which is what creates keyboard control.
             let should_hide =
                 settings.start_hidden || cli_args.start_hidden || cli_args.run_command.is_some();

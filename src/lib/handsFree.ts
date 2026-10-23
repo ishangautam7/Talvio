@@ -5,7 +5,7 @@ import type { AppSettings } from "@/bindings";
  * `src-tauri/src/hands_free.rs` (`main_key`, `extend`, `keys_for`), which is
  * what registers it: one key, pressed while the dictation keys are held, that
  * keeps the dictation listening after they are let go. It goes on top of a
- * dictation shortcut of modifier keys alone, on the Zynveliq Keys engine,
+ * dictation shortcut of modifier keys alone, on the Talvio Keys engine,
  * while dictation is held to talk, and only where no other live shortcut is on
  * those keys.
  */
