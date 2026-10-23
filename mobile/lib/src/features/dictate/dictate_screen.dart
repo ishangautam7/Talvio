@@ -11,6 +11,9 @@ import '../../core/models.dart';
 import '../../core/relay_client.dart';
 import '../../core/widgets.dart';
 import '../../shell/feature_tab.dart';
+import '../screen/live_protocol.dart';
+import '../screen/strings.dart';
+import '../screen/watch_screen.dart';
 import 'dictate_controller.dart';
 import 'recent_dictations.dart';
 import 'remote_windows.dart';
@@ -94,11 +97,40 @@ class _DictateScreenState extends State<DictateScreen> {
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (context) => FractionallySizedBox(
+    builder: (sheet) => FractionallySizedBox(
       heightFactor: 0.9,
-      child: SafeArea(child: _WindowPicker(_controller)),
+      child: SafeArea(
+        child: _WindowPicker(
+          _controller,
+          onWatch: _canWatch
+              ? (target, window) {
+                  Navigator.pop(sheet);
+                  _watch(target, window: window);
+                }
+              : null,
+        ),
+      ),
     ),
   );
+
+  /// The computer streams windows and screens (capability `screen`).
+  bool get _canWatch =>
+      _controller.hasWindows &&
+      (_controller.computer?.capabilities.contains(ScreenKind.capability) ??
+          false);
+
+  /// Opens live view of [target]. What is watched is also where dictation
+  /// and typing go: [window], or for a screen wherever the keyboard is.
+  void _watch(WatchTarget target, {RemoteWindow? window}) {
+    final computer = _controller.computer;
+    if (computer == null) return;
+    _controller.chooseWindow(window);
+    unawaited(
+      Navigator.of(context).push(
+        watchRoute(dictate: _controller, computer: computer, target: target),
+      ),
+    );
+  }
 
   /// Presses [keys] in the chosen window; a failure shows as a snack bar,
   /// since the screen's card belongs to the last dictation.
@@ -288,11 +320,32 @@ class _DictateScreenState extends State<DictateScreen> {
                   child: Column(
                     children: [
                       if (hasWindows) ...[
-                        _WindowRow(
-                          window: c.window,
-                          computerName: computer.name,
-                          // A recording or request keeps its window too.
-                          onTap: canAim && idle ? _chooseWindow : null,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _WindowRow(
+                                window: c.window,
+                                computerName: computer.name,
+                                // A recording or request keeps its window too.
+                                onTap: canAim && idle ? _chooseWindow : null,
+                              ),
+                            ),
+                            if (c.window case final window? when _canWatch)
+                              IconButton(
+                                tooltip: ScreenStrings.watch,
+                                onPressed: canAim && idle
+                                    ? () => _watch(
+                                        WatchTarget(
+                                          id: window.id,
+                                          label: windowLabel(window).$1,
+                                          screen: false,
+                                        ),
+                                        window: window,
+                                      )
+                                    : null,
+                                icon: const Icon(Icons.visibility_outlined),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                       ],
@@ -354,7 +407,7 @@ class _DictateScreenState extends State<DictateScreen> {
                       // small phone; next to the field, where Enter is wanted.
                       if (hasWindows) ...[
                         const SizedBox(height: 8),
-                        _KeyRow(
+                        KeyRow(
                           platform: computer.platform,
                           onPress: canAim ? _press : null,
                         ),
@@ -1072,8 +1125,8 @@ typedef _Key = ({String combo, String label, IconData? icon, String? text});
 
 /// Keys to press in the chosen window: the common ones as buttons, the rest
 /// behind "More keys". Scrolls sideways when it does not fit.
-class _KeyRow extends StatelessWidget {
-  const _KeyRow({required this.platform, required this.onPress});
+class KeyRow extends StatelessWidget {
+  const KeyRow({super.key, required this.platform, required this.onPress});
 
   /// The computer's, for Ctrl or Cmd.
   final String platform;
@@ -1198,9 +1251,13 @@ class _KeyRow extends StatelessWidget {
 
 /// The computer's windows, to aim input at one of them.
 class _WindowPicker extends StatefulWidget {
-  const _WindowPicker(this.controller);
+  const _WindowPicker(this.controller, {required this.onWatch});
 
   final DictateController controller;
+
+  /// Opens live view of a window or screen; null when the computer has no
+  /// live view, which hides every Watch action and the screens.
+  final void Function(WatchTarget target, RemoteWindow? window)? onWatch;
 
   @override
   State<_WindowPicker> createState() => _WindowPickerState();
@@ -1208,6 +1265,7 @@ class _WindowPicker extends StatefulWidget {
 
 class _WindowPickerState extends State<_WindowPicker> {
   List<RemoteWindow>? _windows;
+  List<RemoteScreen> _screens = const [];
   String? _error;
   var _loading = false;
 
@@ -1225,7 +1283,10 @@ class _WindowPickerState extends State<_WindowPicker> {
     setState(() {
       _loading = false;
       _error = listed.error;
-      if (listed.error == null) _windows = listed.windows;
+      if (listed.error == null) {
+        _windows = listed.windows;
+        _screens = listed.screens;
+      }
     });
   }
 
@@ -1242,6 +1303,7 @@ class _WindowPickerState extends State<_WindowPicker> {
     final name = c.computer?.name ?? '';
     final windows = _windows;
     final error = _error;
+    final onWatch = widget.onWatch;
     return ListenableBuilder(
       listenable: c,
       builder: (context, _) => RefreshIndicator(
@@ -1320,11 +1382,38 @@ class _WindowPickerState extends State<_WindowPicker> {
                   style: _muted(context),
                 ),
               ),
+            if (onWatch != null && _screens.isNotEmpty && error == null) ...[
+              const SectionTitle(ScreenStrings.screens),
+              for (final screen in _screens)
+                _ScreenTile(
+                  screen,
+                  onWatch: () => onWatch(
+                    WatchTarget(
+                      id: screen.id,
+                      label: screenLabel(screen),
+                      screen: true,
+                    ),
+                    null,
+                  ),
+                ),
+              if (windows != null && windows.isNotEmpty)
+                const SectionTitle(ScreenStrings.windows),
+            ],
             for (final window in windows ?? const <RemoteWindow>[])
               _WindowTile(
                 window,
                 selected: c.window?.id == window.id,
                 onTap: () => _choose(window),
+                onWatch: onWatch == null
+                    ? null
+                    : () => onWatch(
+                        WatchTarget(
+                          id: window.id,
+                          label: windowLabel(window).$1,
+                          screen: false,
+                        ),
+                        window,
+                      ),
               ),
           ],
         ),
@@ -1334,11 +1423,19 @@ class _WindowPickerState extends State<_WindowPicker> {
 }
 
 class _WindowTile extends StatelessWidget {
-  const _WindowTile(this.window, {required this.selected, required this.onTap});
+  const _WindowTile(
+    this.window, {
+    required this.selected,
+    required this.onTap,
+    required this.onWatch,
+  });
 
   final RemoteWindow window;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Null without live view.
+  final VoidCallback? onWatch;
 
   @override
   Widget build(BuildContext context) {
@@ -1376,9 +1473,49 @@ class _WindowTile extends StatelessWidget {
               ),
             ),
           if (selected) ...[const SizedBox(width: 8), const Icon(Icons.check)],
+          if (onWatch case final onWatch?)
+            IconButton(
+              tooltip: ScreenStrings.watchItem(title),
+              onPressed: onWatch,
+              icon: const Icon(Icons.visibility_outlined),
+            ),
         ],
       ),
       onTap: onTap,
+    );
+  }
+}
+
+/// A whole screen of the computer. Input cannot be aimed at a screen, so
+/// tapping it watches it.
+class _ScreenTile extends StatelessWidget {
+  const _ScreenTile(this.screen, {required this.onWatch});
+
+  final RemoteScreen screen;
+  final VoidCallback onWatch;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = screenLabel(screen);
+    final size = ScreenStrings.screenSize(screen.width, screen.height);
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      leading: const Icon(Icons.desktop_windows_outlined),
+      title: Text(
+        name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(
+        screen.primary ? '$size · ${ScreenStrings.primary}' : size,
+      ),
+      trailing: IconButton(
+        tooltip: ScreenStrings.watchItem(name),
+        onPressed: onWatch,
+        icon: const Icon(Icons.visibility_outlined),
+      ),
+      onTap: onWatch,
     );
   }
 }

@@ -865,7 +865,7 @@ void main() {
         'error': 'remote_windows_off',
       });
       expect(
-        find.textContaining('Turn on "Let phones choose windows"'),
+        find.textContaining('Turn on "Let phones see and use windows"'),
         findsOneWidget,
       );
       await finish(tester, relay);
@@ -882,12 +882,94 @@ void main() {
         'error': 'remote_windows_off',
       });
       expect(
-        find.textContaining('Turn on "Let phones choose windows"'),
+        find.textContaining('Turn on "Let phones see and use windows"'),
         findsOneWidget,
       );
       expect(find.text('Where the cursor is'), findsNWidgets(2));
       await finish(tester, relay);
       handle.dispose();
+    });
+
+    group('live view', () {
+      final screenPc = deviceJson(
+        capabilities: ['dictate', 'text', 'windows', 'screen'],
+      );
+
+      /// Opens the picker; the computer lists Notepad and one screen.
+      Future<void> listWithScreen(
+        WidgetTester tester,
+        FakeServer server,
+      ) async {
+        await tapVisible(tester, find.bySemanticsLabel('Choose window'));
+        await answer(tester, server, lastBody(server)['requestId'], {
+          'ok': true,
+          'windows': [
+            {'id': 'w2', 'title': 'notes.txt', 'app': 'Notepad', 'front': true},
+          ],
+          'screens': [
+            {
+              'id': 's3',
+              'name': 'Display 1',
+              'width': 2560,
+              'height': 1440,
+              'primary': true,
+            },
+          ],
+        });
+      }
+
+      testWidgets('a computer without `screen` offers no Watch', (
+        tester,
+      ) async {
+        final handle = tester.ensureSemantics();
+        final (server, relay) = await pumpApp(tester, [windowsPc]);
+        await listWithScreen(tester, server);
+        expect(find.text('Notepad'), findsOneWidget);
+        expect(find.text('Screens'), findsNothing);
+        expect(find.text('Display 1'), findsNothing);
+        expect(find.byTooltip('Watch Notepad'), findsNothing);
+        await pick(tester, 'Notepad');
+        expect(find.byTooltip('Watch'), findsNothing);
+        await finish(tester, relay);
+        handle.dispose();
+      });
+
+      testWidgets('lists screens, and watches a window from the picker', (
+        tester,
+      ) async {
+        final handle = tester.ensureSemantics();
+        final (server, relay) = await pumpApp(tester, [screenPc]);
+        await listWithScreen(tester, server);
+        expect(find.text('Screens'), findsOneWidget);
+        expect(find.text('Display 1'), findsOneWidget);
+        expect(find.text('2560 × 1440 · Main'), findsOneWidget);
+        expect(find.byTooltip('Watch Display 1'), findsOneWidget);
+
+        await tapVisible(tester, find.byTooltip('Watch Notepad'));
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(lastBody(server), {
+          'kind': 'screen.watch',
+          'target': 'w2',
+          'control': false,
+          'audio': false,
+          'requestId': lastBody(server)['requestId'],
+        });
+        expect(find.byTooltip('Stop watching'), findsOneWidget);
+        expect(find.text('Starting…'), findsWidgets);
+        expect(tester.takeException(), isNull, reason: 'fits a small phone');
+
+        final id = lastBody(server)['requestId'];
+        await tester.tap(find.byTooltip('Stop watching'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(lastBody(server), {'kind': 'cancel', 'requestId': id});
+
+        // Watching aimed dictation at Notepad, and the row can watch it.
+        expect(find.text('notes.txt'), findsOneWidget);
+        expect(find.byTooltip('Watch'), findsOneWidget);
+        await finish(tester, relay);
+        handle.dispose();
+      });
     });
   });
 

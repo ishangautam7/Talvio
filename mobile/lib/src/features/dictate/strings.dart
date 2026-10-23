@@ -108,8 +108,8 @@ abstract final class DictateStrings {
     'unsupported' => 'Update Talvio on $name to use this.',
     'cancelled' => 'Cancelled.',
     'remote_windows_off' =>
-      "$name doesn't let phones choose windows. Turn on \"Let phones choose "
-          'windows" in Talvio on that computer, under Settings, Account.',
+      "$name doesn't let phones use its windows. Turn on \"Let phones see "
+          'and use windows" in Talvio on that computer, under Settings, Account.',
     'target_gone' =>
       'That window closed on $name, or it has been a while since you chose '
           'it. Choose the window again.',
