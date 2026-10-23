@@ -385,7 +385,7 @@ export const FeedbackDialog: React.FC = () => {
                           title={t("feedback.screenshots.remove", {
                             index: index + 1,
                           })}
-                          className="absolute end-1 top-1 grid h-5 w-5 cursor-pointer place-items-center rounded-full bg-[rgb(10_20_24/0.72)] text-white transition-colors hover:bg-[rgb(10_20_24/0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                          className="absolute end-1 top-1 grid h-5 w-5 cursor-pointer place-items-center rounded-full bg-[rgb(16_17_34/0.72)] text-white transition-colors hover:bg-[rgb(16_17_34/0.9)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
                         >
                           <X className="h-3 w-3" aria-hidden="true" />
                         </button>
