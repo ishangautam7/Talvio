@@ -2108,6 +2108,11 @@
         "remoteInputHint": "Telefonunuzun bu bilgisayarda dikte etmesine ve yazmasına izin verir.",
         "install": "Telefonunuza Talvio uygulamasını yükleyin ve {{email}} ile oturum açın."
       },
+      "keys": {
+        "title": "API anahtarları",
+        "sync": "API anahtarlarını eşitle",
+        "syncHint": "Bu bilgisayara eklediğiniz anahtarlar Talvio hesabınızda şifrelenmiş olarak saklanır ve diğer bilgisayarlarınızda da görünür."
+      },
       "devices": {
         "title": "Cihazlar",
         "empty": "Bağlandığınızda cihazlarınız burada görünür.",

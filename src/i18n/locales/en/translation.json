@@ -2092,7 +2092,7 @@
         "or": "or",
         "google": "Continue with Google",
         "googleWaiting": "Finish signing in in your browser.",
-        "privacy": "The server keeps only your account and device list, never your recordings or text."
+        "privacy": "The server keeps your account, your device list and, if you sync them, your API keys (encrypted). Never your recordings or text."
       },
       "signOut": "Sign out",
       "signingOut": "Signing out…",
@@ -2107,6 +2107,11 @@
         "remoteInput": "Phone dictation",
         "remoteInputHint": "Lets your phone dictate and type on this computer.",
         "install": "Get the Talvio app on your phone and sign in as {{email}}."
+      },
+      "keys": {
+        "title": "API keys",
+        "sync": "Sync API keys",
+        "syncHint": "Keys you add on this computer are saved, encrypted, in your Talvio account and appear on your other computers."
       },
       "devices": {
         "title": "Devices",

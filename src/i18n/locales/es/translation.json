@@ -2117,6 +2117,11 @@
         "remoteInputHint": "Permite que tu teléfono dicte y escriba en este equipo.",
         "install": "Instala la app Talvio en tu teléfono e inicia sesión como {{email}}."
       },
+      "keys": {
+        "title": "Claves API",
+        "sync": "Sincronizar claves API",
+        "syncHint": "Las claves que añadas en este equipo se guardan cifradas en tu cuenta de Talvio y aparecen en tus otros equipos."
+      },
       "devices": {
         "title": "Dispositivos",
         "empty": "Tus dispositivos aparecerán aquí cuando estés conectado.",

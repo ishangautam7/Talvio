@@ -2108,6 +2108,11 @@
         "remoteInputHint": "Erlaubt deinem Smartphone, auf diesem Computer zu diktieren und zu tippen.",
         "install": "Installiere die Talvio-App auf deinem Smartphone und melde dich als {{email}} an."
       },
+      "keys": {
+        "title": "API-Schlüssel",
+        "sync": "API-Schlüssel synchronisieren",
+        "syncHint": "Schlüssel, die du auf diesem Computer hinzufügst, werden verschlüsselt in deinem Talvio-Konto gespeichert und erscheinen auf deinen anderen Computern."
+      },
       "devices": {
         "title": "Geräte",
         "empty": "Deine Geräte erscheinen hier, sobald du verbunden bist.",

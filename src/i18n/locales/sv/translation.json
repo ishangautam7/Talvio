@@ -2108,6 +2108,11 @@
         "remoteInputHint": "Låter telefonen diktera och skriva på den här datorn.",
         "install": "Installera Talvio-appen på telefonen och logga in som {{email}}."
       },
+      "keys": {
+        "title": "API-nycklar",
+        "sync": "Synka API-nycklar",
+        "syncHint": "Nycklar du lägger till på den här datorn sparas krypterade i ditt Talvio-konto och dyker upp på dina andra datorer."
+      },
       "devices": {
         "title": "Enheter",
         "empty": "Dina enheter visas här när du är ansluten.",

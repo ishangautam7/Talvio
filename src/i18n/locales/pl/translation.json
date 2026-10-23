@@ -2126,6 +2126,11 @@
         "remoteInputHint": "Pozwala telefonowi dyktować i pisać na tym komputerze.",
         "install": "Zainstaluj aplikację Talvio na telefonie i zaloguj się jako {{email}}."
       },
+      "keys": {
+        "title": "Klucze API",
+        "sync": "Synchronizuj klucze API",
+        "syncHint": "Klucze dodane na tym komputerze są zapisywane w zaszyfrowanej postaci na Twoim koncie Talvio i pojawiają się na Twoich innych komputerach."
+      },
       "devices": {
         "title": "Urządzenia",
         "empty": "Twoje urządzenia pojawią się tutaj po połączeniu.",
