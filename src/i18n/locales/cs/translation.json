@@ -2751,6 +2751,7 @@
       "screen": "Dívám se na vaši obrazovku…",
       "meetingSearch": "Prohledávám schůzku",
       "meetingRead": "Čtu schůzku",
+      "computer": "Provádím to na vašem počítači…",
       "working": "Pracuji na tom",
       "elapsed": "{{seconds}} s"
     },
@@ -2812,7 +2813,8 @@
     },
     "quick": {
       "selection": "Výběr",
-      "copied": "Zkopírováno"
+      "copied": "Zkopírováno",
+      "newConversation": "Nová konverzace"
     }
   },
   "nav": {
@@ -3233,7 +3235,9 @@
       "using": "Příkazy běží na {{model}} · {{provider}}.",
       "borrowed": "Používá se model vašeho asistenta ({{provider}} · {{model}}), protože {{chosen}} nemá klíč.",
       "needsKey": "{{provider}} potřebuje klíč, aby příkazy mohly běžet.",
-      "setUp": "Nastavit model"
+      "setUp": "Nastavit model",
+      "key": "API klíč pro {{provider}}",
+      "keyShared": "Sdílený s čištěním pomocí AI a asistentem."
     },
     "dryRun": {
       "title": "Zkušební běh",
@@ -3408,6 +3412,17 @@
       "screen": {
         "ask": "Zobrazení obrazovky u otázek",
         "call": "Zobrazení obrazovky v konverzacích"
+      },
+      "quickAskMemory": {
+        "title": "Pamatovat si konverzaci",
+        "cleared": "Další otázka začne novou konverzaci",
+        "options": {
+          "off": "Vypnuto",
+          "five_minutes": "5 minut",
+          "ten_minutes": "10 minut",
+          "thirty_minutes": "30 minut",
+          "until_cleared": "Dokud ji nevymažu"
+        }
       }
     },
     "tips": {
@@ -3425,6 +3440,7 @@
       "profiles": "Persony s vlastním jménem, instrukcemi a stylem odpovědí.",
       "replyLength": "Jak dlouhé obvykle odpovědi jsou.",
       "history": "Kolik nedávných zpráv si pamatuje.",
+      "quickAskMemory": "Jak dlouho si rychlý dotaz pamatuje ten předchozí, abyste se mohli doptat. Konverzace si vedou vlastní historii.",
       "summarize": "Zhušťuje dlouhé chaty, aby nezapomněl jejich začátek.",
       "opacity": "Nižší hodnota nechá prosvítat plochu.",
       "position": "Klikněte na místo na obrazovce.",

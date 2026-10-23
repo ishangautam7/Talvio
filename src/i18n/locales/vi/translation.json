@@ -2697,6 +2697,7 @@
       "screen": "Đang xem màn hình của bạn…",
       "meetingSearch": "Đang tìm trong cuộc họp",
       "meetingRead": "Đang đọc cuộc họp",
+      "computer": "Đang thực hiện trên máy tính của bạn…",
       "working": "Đang xử lý",
       "elapsed": "{{seconds}} giây"
     },
@@ -2758,7 +2759,8 @@
     },
     "quick": {
       "selection": "Vùng chọn",
-      "copied": "Đã sao chép"
+      "copied": "Đã sao chép",
+      "newConversation": "Cuộc trò chuyện mới"
     }
   },
   "nav": {
@@ -3161,7 +3163,9 @@
       "using": "Lệnh chạy bằng {{model}} · {{provider}}.",
       "borrowed": "Đang dùng mô hình của trợ lý ({{provider}} · {{model}}), vì {{chosen}} chưa có khóa.",
       "needsKey": "{{provider}} cần khóa trước khi có thể chạy lệnh.",
-      "setUp": "Thiết lập mô hình"
+      "setUp": "Thiết lập mô hình",
+      "key": "Khóa API {{provider}}",
+      "keyShared": "Dùng chung với dọn dẹp bằng AI và trợ lý."
     },
     "dryRun": {
       "title": "Chạy thử",
@@ -3327,6 +3331,17 @@
       "screen": {
         "ask": "Xem màn hình khi hỏi",
         "call": "Xem màn hình khi trò chuyện"
+      },
+      "quickAskMemory": {
+        "title": "Ghi nhớ cuộc trò chuyện",
+        "cleared": "Câu hỏi tiếp theo sẽ bắt đầu cuộc trò chuyện mới",
+        "options": {
+          "off": "Tắt",
+          "five_minutes": "5 phút",
+          "ten_minutes": "10 phút",
+          "thirty_minutes": "30 phút",
+          "until_cleared": "Cho đến khi tôi xóa"
+        }
       }
     },
     "tips": {
@@ -3344,6 +3359,7 @@
       "profiles": "Các nhân cách có tên, hướng dẫn và kiểu trả lời riêng.",
       "replyLength": "Độ dài thông thường của câu trả lời.",
       "history": "Số tin nhắn gần đây mà trợ lý ghi nhớ.",
+      "quickAskMemory": "Thời gian một câu hỏi nhanh ghi nhớ câu hỏi trước đó, để bạn có thể hỏi tiếp. Các cuộc trò chuyện giữ lịch sử riêng.",
       "summarize": "Rút gọn các cuộc trò chuyện dài để trợ lý không quên phần đầu.",
       "opacity": "Giảm xuống để màn hình nền hiện ra phía sau.",
       "position": "Nhấp vào một vị trí trên màn hình.",

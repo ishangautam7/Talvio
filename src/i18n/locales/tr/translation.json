@@ -2715,6 +2715,7 @@
       "screen": "Ekranınıza bakılıyor…",
       "meetingSearch": "Toplantıda aranıyor",
       "meetingRead": "Toplantı okunuyor",
+      "computer": "Bilgisayarınızda yapılıyor…",
       "working": "Üzerinde çalışılıyor",
       "elapsed": "{{seconds}} sn"
     },
@@ -2776,7 +2777,8 @@
     },
     "quick": {
       "selection": "Seçim",
-      "copied": "Kopyalandı"
+      "copied": "Kopyalandı",
+      "newConversation": "Yeni sohbet"
     }
   },
   "nav": {
@@ -3185,7 +3187,9 @@
       "using": "Komutlar {{model}} · {{provider}} üzerinde çalışıyor.",
       "borrowed": "{{chosen}} için anahtar olmadığından asistanınızın modeli kullanılıyor ({{provider}} · {{model}}).",
       "needsKey": "Komutların çalışabilmesi için {{provider}} bir anahtar gerektiriyor.",
-      "setUp": "Bir model ayarla"
+      "setUp": "Bir model ayarla",
+      "key": "{{provider}} API anahtarı",
+      "keyShared": "Yapay zekâ temizleme ve asistan ile paylaşılır."
     },
     "dryRun": {
       "title": "Deneme çalıştırması",
@@ -3354,6 +3358,17 @@
       "screen": {
         "ask": "Sorular için ekran görüşü",
         "call": "Sohbetlerde ekran görüşü"
+      },
+      "quickAskMemory": {
+        "title": "Sohbeti hatırla",
+        "cleared": "Sonraki soru yeni bir sohbet başlatır",
+        "options": {
+          "off": "Kapalı",
+          "five_minutes": "5 dakika",
+          "ten_minutes": "10 dakika",
+          "thirty_minutes": "30 dakika",
+          "until_cleared": "Ben temizleyene kadar"
+        }
       }
     },
     "tips": {
@@ -3371,6 +3386,7 @@
       "profiles": "Kendi adı, talimatları ve yanıt stili olan kişilikler.",
       "replyLength": "Yanıtların genellikle ne kadar uzun olduğu.",
       "history": "Son mesajlardan kaç tanesini aklında tuttuğu.",
+      "quickAskMemory": "Hızlı bir sorunun bir öncekini ne kadar süre hatırlayacağı; böylece devam sorusu sorabilirsiniz. Sesli sohbetler kendi geçmişlerini tutar.",
       "summarize": "Uzun sohbetleri özetler, böylece başını unutmaz.",
       "opacity": "Düşük değerde masaüstünüz arkadan görünür.",
       "position": "Ekranda bir noktaya tıklayın.",

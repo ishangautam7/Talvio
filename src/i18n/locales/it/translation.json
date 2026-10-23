@@ -2733,6 +2733,7 @@
       "screen": "Sto guardando lo schermo…",
       "meetingSearch": "Ricerca nella riunione",
       "meetingRead": "Lettura della riunione",
+      "computer": "Lo sto facendo sul tuo computer…",
       "working": "Elaborazione in corso",
       "elapsed": "{{seconds}} s"
     },
@@ -2794,7 +2795,8 @@
     },
     "quick": {
       "selection": "Selezione",
-      "copied": "Copiato"
+      "copied": "Copiato",
+      "newConversation": "Nuova conversazione"
     }
   },
   "nav": {
@@ -3209,7 +3211,9 @@
       "using": "I comandi usano {{model}} · {{provider}}.",
       "borrowed": "Uso il modello del tuo assistente ({{provider}} · {{model}}), perché {{chosen}} non ha una chiave.",
       "needsKey": "{{provider}} ha bisogno di una chiave prima di poter eseguire comandi.",
-      "setUp": "Configura un modello"
+      "setUp": "Configura un modello",
+      "key": "Chiave API di {{provider}}",
+      "keyShared": "Condivisa con la pulizia IA e l'assistente."
     },
     "dryRun": {
       "title": "Simulazione",
@@ -3381,6 +3385,17 @@
       "screen": {
         "ask": "Visione dello schermo per le domande",
         "call": "Visione dello schermo nelle conversazioni"
+      },
+      "quickAskMemory": {
+        "title": "Ricorda la conversazione",
+        "cleared": "La prossima domanda inizia una nuova conversazione",
+        "options": {
+          "off": "Disattivato",
+          "five_minutes": "5 minuti",
+          "ten_minutes": "10 minuti",
+          "thirty_minutes": "30 minuti",
+          "until_cleared": "Finché non la cancello"
+        }
       }
     },
     "tips": {
@@ -3398,6 +3413,7 @@
       "profiles": "Personalità con nome, istruzioni e stile di risposta propri.",
       "replyLength": "Quanto sono lunghe di solito le risposte.",
       "history": "Quanti messaggi recenti tiene a mente.",
+      "quickAskMemory": "Per quanto tempo una domanda rapida ricorda quella precedente, così puoi fare una domanda di approfondimento. Le conversazioni mantengono la propria cronologia.",
       "summarize": "Riassume le chat lunghe per non dimenticarne l'inizio.",
       "opacity": "Con valori più bassi il desktop traspare.",
       "position": "Fai clic su un punto dello schermo.",

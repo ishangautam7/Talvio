@@ -2733,6 +2733,7 @@
       "screen": "Olhando sua tela…",
       "meetingSearch": "Pesquisando na reunião",
       "meetingRead": "Lendo a reunião",
+      "computer": "Fazendo isso no seu computador…",
       "working": "Trabalhando nisso",
       "elapsed": "{{seconds}}s"
     },
@@ -2794,7 +2795,8 @@
     },
     "quick": {
       "selection": "Seleção",
-      "copied": "Copiado"
+      "copied": "Copiado",
+      "newConversation": "Nova conversa"
     }
   },
   "nav": {
@@ -3209,7 +3211,9 @@
       "using": "Os comandos usam {{model}} · {{provider}}.",
       "borrowed": "Usando o modelo do seu assistente ({{provider}} · {{model}}), já que {{chosen}} não tem chave.",
       "needsKey": "{{provider}} precisa de uma chave para executar comandos.",
-      "setUp": "Configurar um modelo"
+      "setUp": "Configurar um modelo",
+      "key": "Chave de API do {{provider}}",
+      "keyShared": "Compartilhada com a limpeza com IA e o assistente."
     },
     "dryRun": {
       "title": "Simulação",
@@ -3381,6 +3385,17 @@
       "screen": {
         "ask": "Visão de tela nas perguntas",
         "call": "Visão de tela nas conversas"
+      },
+      "quickAskMemory": {
+        "title": "Lembrar a conversa",
+        "cleared": "A próxima pergunta começa uma nova conversa",
+        "options": {
+          "off": "Desativado",
+          "five_minutes": "5 minutos",
+          "ten_minutes": "10 minutos",
+          "thirty_minutes": "30 minutos",
+          "until_cleared": "Até eu limpar"
+        }
       }
     },
     "tips": {
@@ -3398,6 +3413,7 @@
       "profiles": "Personas com nome, instruções e estilo de resposta próprios.",
       "replyLength": "O tamanho habitual das respostas.",
       "history": "Quantas mensagens recentes ele tem em mente.",
+      "quickAskMemory": "Por quanto tempo uma pergunta rápida lembra a anterior, para você poder fazer uma pergunta de acompanhamento. As conversas mantêm o próprio histórico.",
       "summarize": "Resume conversas longas para não esquecer o começo.",
       "opacity": "Mais baixa deixa sua área de trabalho aparecer por trás.",
       "position": "Clique em um ponto da tela.",

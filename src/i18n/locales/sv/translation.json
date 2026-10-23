@@ -2715,6 +2715,7 @@
       "screen": "Tittar på din skärm…",
       "meetingSearch": "Söker i mötet",
       "meetingRead": "Läser mötet",
+      "computer": "Gör det på din dator…",
       "working": "Jobbar på det",
       "elapsed": "{{seconds}} s"
     },
@@ -2776,7 +2777,8 @@
     },
     "quick": {
       "selection": "Markering",
-      "copied": "Kopierat"
+      "copied": "Kopierat",
+      "newConversation": "Ny konversation"
     }
   },
   "nav": {
@@ -3185,7 +3187,9 @@
       "using": "Kommandon körs på {{model}} · {{provider}}.",
       "borrowed": "Använder assistentens modell ({{provider}} · {{model}}), eftersom {{chosen}} saknar nyckel.",
       "needsKey": "{{provider}} behöver en nyckel innan kommandon kan köras.",
-      "setUp": "Konfigurera en modell"
+      "setUp": "Konfigurera en modell",
+      "key": "API-nyckel för {{provider}}",
+      "keyShared": "Delas med AI-rensning och assistenten."
     },
     "dryRun": {
       "title": "Testkörning",
@@ -3354,6 +3358,17 @@
       "screen": {
         "ask": "Skärmvisning för frågor",
         "call": "Skärmvisning i konversationer"
+      },
+      "quickAskMemory": {
+        "title": "Kom ihåg konversationen",
+        "cleared": "Nästa fråga startar en ny konversation",
+        "options": {
+          "off": "Av",
+          "five_minutes": "5 minuter",
+          "ten_minutes": "10 minuter",
+          "thirty_minutes": "30 minuter",
+          "until_cleared": "Tills jag rensar den"
+        }
       }
     },
     "tips": {
@@ -3371,6 +3386,7 @@
       "profiles": "Personligheter med eget namn, egna instruktioner och egen svarsstil.",
       "replyLength": "Hur långa svaren brukar vara.",
       "history": "Hur många av de senaste meddelandena den har i minnet.",
+      "quickAskMemory": "Hur länge en snabb fråga minns den förra, så att du kan ställa en följdfråga. Konversationer har sin egen historik.",
       "summarize": "Sammanfattar långa chattar så att den inte glömmer början.",
       "opacity": "Lägre låter skrivbordet synas igenom.",
       "position": "Klicka på en plats på skärmen.",
