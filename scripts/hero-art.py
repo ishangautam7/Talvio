@@ -52,8 +52,8 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "src", "assets", "hero")
 # The banner's background in each theme, so the art has no edge. Keep these
 # in step with `--color-hero-surface` in App.css (dark in @theme, light in the
 # `:root:not([data-theme="dark"]) .hero-stage` override).
-STAGE_DARK = (11, 13, 14)
-STAGE_LIGHT = (231, 238, 236)
+STAGE_DARK = (19, 21, 58)
+STAGE_LIGHT = (247, 235, 226)
 
 # The intensity at which a light-theme ink lands exactly on its target colour.
 # The waveform bars are drawn at this intensity; fainter strokes (a track's
@@ -80,25 +80,29 @@ def ink(rgb) -> np.ndarray:
 
 
 # Named for what they are, not where they go. On the dark stage these are
-# lights; on the light stage, the inks that play the same part: warm white
-# becomes a warm graphite, the teal stays the brand's teal.
+# lights; on the light stage, the inks that play the same part. Talvio's
+# palette (docs/talvio-brand.md §5): the brand gradient's orange and coral on
+# the warm side, and a periwinkle drawn from the ink tile's indigo on the cool
+# side, so the art reads as the brand without becoming a coral flood.
 PALETTES = {
     "dark": SimpleNamespace(
-        AMBER=to_linear((255, 164, 82)),
-        TUNGSTEN=to_linear((255, 206, 150)),
-        TEAL=to_linear((46, 214, 190)),
-        MINT=to_linear((150, 240, 222)),
-        WHITE=to_linear((255, 244, 230)),
+        AMBER=to_linear((255, 143, 63)),
+        TUNGSTEN=to_linear((255, 178, 150)),
+        CORAL=to_linear((255, 106, 82)),
+        PERI=to_linear((132, 140, 255)),
+        LILAC=to_linear((190, 194, 255)),
+        WHITE=to_linear((255, 236, 226)),
         # How much colour the orb holds inside its rim.
         ORB_BODY=0.03,
     ),
     "light": SimpleNamespace(
-        AMBER=ink((178, 116, 62)),
-        TUNGSTEN=ink((146, 128, 110)),
-        TEAL=ink((0, 140, 124)),
-        MINT=ink((74, 168, 154)),
-        WHITE=ink((112, 104, 96)),
-        # Teal ink has almost no red, so even a trace of it tints strongly.
+        AMBER=ink((206, 104, 40)),
+        TUNGSTEN=ink((186, 92, 70)),
+        CORAL=ink((194, 64, 42)),
+        PERI=ink((72, 78, 176)),
+        LILAC=ink((118, 122, 200)),
+        WHITE=ink((120, 96, 88)),
+        # Indigo ink has little red, so even a trace of it tints strongly.
         ORB_BODY=0.008,
     ),
 }
@@ -200,7 +204,7 @@ def bar(buf, x, centre, half, color, intensity=INK_REF) -> None:
 
 def art_assistant(rng, p) -> np.ndarray:
     """The assistant: the call's orb, at rest. A sphere whose only mark is a
-    thin rim, warm on the upper left and teal on the lower right, like a
+    thin rim, warm on the upper left and periwinkle on the lower right, like a
     planet at the edge of an eclipse on the dark stage and a glass bead on
     the light one.
 
@@ -217,18 +221,18 @@ def art_assistant(rng, p) -> np.ndarray:
     nz = np.sqrt(np.clip(1.0 - d**2, 0.0, 1.0))
     fresnel = (1.0 - nz) ** 3.4
     # Which way each point of the rim faces: +1 toward the warm key light
-    # (upper left), -1 toward the teal fill (lower right).
+    # (upper left), -1 toward the periwinkle fill (lower right).
     facing = -(dx + dy) / np.sqrt(2.0) / np.maximum(d, 1e-3)
     warm = smoothstep(0.0, 1.0, facing)
     cool = smoothstep(0.0, 1.0, -facing)
     rim = new_buffer()
-    rim += mix(p.AMBER, p.TUNGSTEN, 0.5)[None, None, :] * (0.55 * fresnel * warm * inside)[..., None]
-    rim += mix(p.TEAL, p.MINT, 0.3)[None, None, :] * (0.6 * fresnel * cool * inside)[..., None]
+    rim += mix(p.AMBER, p.CORAL, 0.5)[None, None, :] * (0.55 * fresnel * warm * inside)[..., None]
+    rim += mix(p.PERI, p.LILAC, 0.3)[None, None, :] * (0.6 * fresnel * cool * inside)[..., None]
     # A faint rim all the way round, so the silhouette never breaks.
-    rim += mix(p.TUNGSTEN, p.TEAL, 0.5)[None, None, :] * (0.06 * fresnel * inside)[..., None]
+    rim += mix(p.TUNGSTEN, p.PERI, 0.5)[None, None, :] * (0.06 * fresnel * inside)[..., None]
     # Just enough inside that the sphere is glass, not a hole.
     body = new_buffer()
-    body += (p.TEAL * p.ORB_BODY)[None, None, :] * (
+    body += (p.PERI * p.ORB_BODY)[None, None, :] * (
         np.exp(-((dx - 0.3) ** 2 + (dy - 0.35) ** 2) / 0.35) * inside
     )[..., None]
 
@@ -237,7 +241,7 @@ def art_assistant(rng, p) -> np.ndarray:
 
 def art_meetings(rng, p) -> np.ndarray:
     """Meetings: a two-track recording of a call. You are the warm track on
-    top, the other side the teal track below, and the two take turns — the
+    top, the other side the periwinkle track below, and the two take turns — the
     thing the feature actually does, keeping the two voices apart.
 
     The tracks fade out before the right edge rather than running off it:
@@ -274,8 +278,8 @@ def art_meetings(rng, p) -> np.ndarray:
     # In from the left, out before the corner button on the right.
     fade = smoothstep(0.0, 0.2, t) * (1.0 - smoothstep(W - 300.0, W - 150.0, xs))
     tracks = (
-        (base - gap, who, speech(), p.TUNGSTEN, p.WHITE),
-        (base + gap, 1.0 - who, speech(), p.TEAL, p.MINT),
+        (base - gap, who, speech(), p.CORAL, p.TUNGSTEN),
+        (base + gap, 1.0 - who, speech(), p.PERI, p.LILAC),
     )
     bars = new_buffer()
     for centre, active, envelope, c1, c2 in tracks:
@@ -300,8 +304,8 @@ def art_meetings(rng, p) -> np.ndarray:
 # than the same rim as light on black, and the orb is meant to be the
 # quietest thing on its page.
 PIECES = {
-    "assistant": (art_assistant, 23, {"dark": 1.0, "light": 0.7}),
-    "meetings": (art_meetings, 5, {"dark": 1.0, "light": 1.0}),
+    "assistant": (art_assistant, 23, {"dark": 1.2, "light": 0.7}),
+    "meetings": (art_meetings, 5, {"dark": 1.35, "light": 1.0}),
 }
 
 
