@@ -687,11 +687,17 @@ mod tests {
             "phone2",
             json!({ "kind": "screen.watch", "requestId": "x", "target": target }),
         );
-        let mut other = next(&mut relay).await;
-        if other["stage"] == "approval" {
-            router.answer("phone2", true);
-            other = next(&mut relay).await;
-        }
+        let other = loop {
+            let body = next(&mut relay).await;
+            if body["requestId"] != "x" {
+                continue;
+            }
+            if body["stage"] == "approval" {
+                router.answer("phone2", true);
+                continue;
+            }
+            break body;
+        };
         assert_eq!(other["error"], "target_gone", "{other}");
 
         // The same phone again: w1 ends as replaced, and w2 gets the slot

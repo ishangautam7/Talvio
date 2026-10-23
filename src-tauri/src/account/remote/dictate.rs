@@ -109,7 +109,7 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
 
 /// Base64 to the WAV bytes and their samples, only for 16 kHz mono 16-bit
 /// PCM between one sample and five minutes long.
-fn decode(audio: &str) -> Result<(Vec<u8>, Vec<f32>), &'static str> {
+pub(super) fn decode(audio: &str) -> Result<(Vec<u8>, Vec<f32>), &'static str> {
     if audio.len() > MAX_AUDIO_BASE64 {
         return Err("too large");
     }

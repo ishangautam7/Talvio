@@ -30,6 +30,7 @@
 //! minutes run out, even when nothing waits on it any more, so a phone cannot
 //! flash it on and off with a request and a cancel.
 
+mod command;
 mod dictate;
 mod host;
 pub(super) mod screen;
@@ -50,15 +51,16 @@ use specta::Type;
 use tokio::sync::{mpsc, watch};
 
 use super::api;
+pub use command::{outcome_of, Ask, CommandFuture, CommandOutcome};
 pub use host::{AppHost, Host, Pasted};
 pub use screen::session::Viewing;
 
 /// The kinds this computer handles, announced in `hello`. `screen` (live view)
 /// only where a window can be captured.
 #[cfg(target_os = "windows")]
-pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "screen"];
+pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "screen", "command"];
 #[cfg(not(target_os = "windows"))]
-pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows"];
+pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "command"];
 
 /// How long the question about a new phone waits for an answer.
 pub const APPROVAL_TIMEOUT: Duration = Duration::from_secs(120);
@@ -81,6 +83,13 @@ fn handler(kind: &str) -> Option<Handler> {
         "dictate" => Some(|router, body, reply| dictate::handle(router, body, reply).boxed()),
         "text" => Some(|router, body, reply| text::handle(router, body, reply).boxed()),
         "windows.list" => Some(|router, body, reply| windows::list(router, body, reply).boxed()),
+        "command" => Some(|router, body, reply| command::run(router, body, reply).boxed()),
+        "command.confirm" => {
+            Some(|router, body, reply| command::confirm(router, body, reply).boxed())
+        }
+        "command.answer" => {
+            Some(|router, body, reply| command::answer(router, body, reply).boxed())
+        }
         "windows.keys" => Some(|router, body, reply| windows::keys(router, body, reply).boxed()),
         "screen.watch" if windows::CAN_WATCH => {
             Some(|router, body, reply| screen::session::watch(router, body, reply).boxed())
@@ -683,7 +692,9 @@ pub(crate) mod testing {
         CaptureTarget, EncodedFrame, Ended, Geometry, ScreenInfo, StartError, VideoSettings,
         VideoStream,
     };
-    use super::{AccountPhone, Host, Pasted, Router, APPROVAL_TIMEOUT};
+    use super::{
+        AccountPhone, Ask, CommandFuture, CommandOutcome, Host, Pasted, Router, APPROVAL_TIMEOUT,
+    };
     use crate::command_mode::effects::{KeyCombo, WindowEntry};
     use futures_util::future::BoxFuture;
     use std::collections::HashSet;
@@ -740,6 +751,12 @@ pub(crate) mod testing {
         pub scrolls: Mutex<Vec<(i32, i32, i32, i32)>>,
         pub control: Mutex<Option<ControlInfo>>,
         pub notices: Mutex<Vec<Option<Viewing>>>,
+        /// Commands: the switch, every request as text ("run …", "confirm 7
+        /// true", "answer 7 …"), and how the fake answers.
+        pub command_on: Mutex<bool>,
+        pub commands: Mutex<Vec<String>>,
+        pub command_waits: Mutex<bool>,
+        pub command_unconfigured: Mutex<bool>,
     }
 
     /// A capture the test drives: frames go in through `frames`.
@@ -803,6 +820,10 @@ pub(crate) mod testing {
                 scrolls: Mutex::default(),
                 control: Mutex::default(),
                 notices: Mutex::default(),
+                command_on: Mutex::new(true),
+                commands: Mutex::default(),
+                command_waits: Mutex::default(),
+                command_unconfigured: Mutex::default(),
             }
         }
     }
@@ -958,6 +979,34 @@ pub(crate) mod testing {
         }
         fn viewing(&self, notice: Option<Viewing>) {
             self.notices.lock().unwrap().push(notice);
+        }
+        fn command_enabled(&self) -> bool {
+            *self.command_on.lock().unwrap()
+        }
+        fn command(&self, ask: Ask) -> CommandFuture {
+            let (line, transcript) = match &ask {
+                Ask::Run(text) => (format!("run {text}"), text.clone()),
+                Ask::Confirm { id, accept } => (format!("confirm {id} {accept}"), String::new()),
+                Ask::Answer { id, answer } => (format!("answer {id} {answer}"), String::new()),
+            };
+            self.commands.lock().unwrap().push(line);
+            let waits = *self.command_waits.lock().unwrap();
+            let outcome = CommandOutcome {
+                feedback: format!("Did: {transcript}"),
+                transcript,
+                status: if waits {
+                    "awaiting_confirmation"
+                } else {
+                    "done"
+                }
+                .into(),
+                id: waits.then_some(7),
+                pending: waits.then(|| "Send the email".to_string()),
+                question: None,
+                choices: Vec::new(),
+                not_configured: *self.command_unconfigured.lock().unwrap(),
+            };
+            Box::pin(async move { outcome })
         }
     }
 
