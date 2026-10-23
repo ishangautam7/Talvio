@@ -13,6 +13,7 @@
 //! Reads are infallible and return empty lists when the platform cannot answer;
 //! actions return `Err` with a sentence fit to show the user.
 
+pub mod http;
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "macos")]
@@ -24,6 +25,7 @@ use serde::Serialize;
 use specta::Type;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::Duration;
 use tauri::AppHandle;
 
 use super::registry::Modifier;
@@ -192,6 +194,18 @@ pub trait Effects: Send + Sync {
     fn foreground_is_exactly(&self, id: i64) -> bool {
         self.foreground_window().is_some_and(|front| front.id == id)
     }
+    /// Fetch a web page (http or https) as text, as a desktop browser would
+    /// ask for it, cut at [`http::MAX_BODY_BYTES`]. A read, so a dry run
+    /// fetches too. Unlike the other reads it can fail, because a tool that
+    /// fetches has a fallback to choose (`play_media` opens the results page).
+    fn fetch_text(
+        &self,
+        url: &str,
+        headers: &[(&str, &str)],
+        timeout: Duration,
+    ) -> Result<String, String> {
+        http::fetch_text(url, headers, timeout)
+    }
 
     // ── Actions: recorded, not run, in dry run ─────────────────────────────
 
@@ -303,6 +317,14 @@ impl<E: Effects> Effects for DryRunEffects<E> {
     fn foreground_is_exactly(&self, id: i64) -> bool {
         self.inner.foreground_is_exactly(id)
     }
+    fn fetch_text(
+        &self,
+        url: &str,
+        headers: &[(&str, &str)],
+        timeout: Duration,
+    ) -> Result<String, String> {
+        self.inner.fetch_text(url, headers, timeout)
+    }
 
     fn open_url(&self, url: &str) -> Result<(), String> {
         self.record(format!("open URL {url}"))
@@ -362,11 +384,22 @@ pub mod fake {
         /// When set, every action fails with this message.
         pub fail_with: Option<String>,
         pub actions: Mutex<Vec<String>>,
+        /// Canned pages for `fetch_text`, by URL prefix: the first entry whose
+        /// prefix the URL starts with answers. A URL nothing matches fails as
+        /// if offline, so a test never reaches the network.
+        pub pages: Vec<(String, Result<String, String>)>,
+        /// Every URL `fetch_text` was asked for, in order. Fetches are reads,
+        /// so they are kept apart from `actions`.
+        pub fetched: Mutex<Vec<String>>,
     }
 
     impl FakeEffects {
         pub fn actions(&self) -> Vec<String> {
             self.actions.lock().unwrap().clone()
+        }
+
+        pub fn fetched(&self) -> Vec<String> {
+            self.fetched.lock().unwrap().clone()
         }
 
         fn act(&self, line: String) -> Result<(), String> {
@@ -396,6 +429,19 @@ pub mod fake {
         }
         fn foreground_is_exactly(&self, id: i64) -> bool {
             !self.popup_in_front && self.foreground_window().is_some_and(|front| front.id == id)
+        }
+        fn fetch_text(
+            &self,
+            url: &str,
+            _headers: &[(&str, &str)],
+            _timeout: Duration,
+        ) -> Result<String, String> {
+            self.fetched.lock().unwrap().push(url.to_string());
+            self.pages
+                .iter()
+                .find(|(prefix, _)| url.starts_with(prefix.as_str()))
+                .map(|(_, page)| page.clone())
+                .unwrap_or_else(|| Err("offline".to_string()))
         }
         fn open_url(&self, url: &str) -> Result<(), String> {
             self.act(format!("open_url {url}"))
@@ -441,10 +487,16 @@ mod tests {
                 launch: "spotify.lnk".into(),
             }],
             fail_with: Some("would have run".into()),
+            pages: vec![("https://example.com/".into(), Ok("page".into()))],
             ..Default::default()
         };
         let dry = DryRunEffects::new(fake);
         assert_eq!(dry.installed_apps().len(), 1);
+        // A fetch is a read: it reaches the inner effects and is not recorded.
+        assert_eq!(
+            dry.fetch_text("https://example.com/a", &[], Duration::from_secs(1)),
+            Ok("page".to_string())
+        );
         // The inner fake fails every action, so success proves nothing ran.
         assert!(dry.open_url("https://example.com").is_ok());
         assert!(dry

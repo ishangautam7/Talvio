@@ -134,7 +134,7 @@ fn search_url(template: &str, query: &str) -> Result<Url, String> {
 /// Percent-encode everything but RFC 3986's unreserved characters. A space
 /// becomes `%20`, not `+`, because a template may put the query in a path
 /// (`https://example.com/search/{query}`), where `+` is a literal plus.
-fn encode_component(text: &str) -> String {
+pub(crate) fn encode_component(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for byte in text.bytes() {
         if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {

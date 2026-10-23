@@ -7,6 +7,12 @@
 //! a question, nothing close is a failure the computer-use fallback may still
 //! solve (the app could be a portable one no list knows about).
 //!
+//! A well-known site said by name ("open YouTube", "open Gmail") is not
+//! matched fuzzily at all: the site's own desktop app is launched when it is
+//! installed under exactly that name (Spotify, WhatsApp), and otherwise the
+//! site opens in the browser ([`crate::command_mode::sites`]). Without this,
+//! "open Google" launched Google Chrome and "open YouTube" failed.
+//!
 //! The app matching lives here and is `pub(crate)` because `switch_to_app`
 //! falls back to it when no window matches: "switch to Spotify" with Spotify
 //! closed should open it rather than fail.
@@ -19,6 +25,9 @@ use std::collections::HashSet;
 use crate::command_mode::effects::AppEntry;
 use crate::command_mode::fuzzy::{self, Pick, DEFAULT_LEAD, DEFAULT_MIN_SCORE};
 use crate::command_mode::registry::{arg_str, Risk, ToolCtx, ToolOutcome, ToolSpec, ALL_PLATFORMS};
+use crate::command_mode::sites;
+
+use super::open_url::open_site;
 
 pub static SPEC: ToolSpec = ToolSpec {
     name: "open_app",
@@ -54,6 +63,13 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     };
     let apps = ctx.effects.installed_apps();
     log::debug!("open_app: matching against {} installed apps", apps.len());
+
+    if let Some(site) = sites::named(&clean_spoken_name(name)) {
+        return match apps.iter().find(|app| sites::is_own_app(site, &app.name)) {
+            Some(app) => launch(ctx, app),
+            None => open_site(ctx, site),
+        };
+    }
 
     match pick_app(name, &apps) {
         Pick::Unique(app) => launch(ctx, &app),
@@ -307,6 +323,41 @@ mod tests {
             outcome,
             ToolOutcome::failed("Windows could not start Spotify.", true)
         );
+    }
+
+    /// "open YouTube" with no YouTube app opens the site, never a fuzzy
+    /// near-miss and never a failure.
+    #[test]
+    fn a_site_without_its_app_opens_in_the_browser() {
+        let (outcome, actions) = run(
+            vec![app("YouTube Music"), app("Google Chrome"), app("Notepad")],
+            "YouTube",
+        );
+        assert_eq!(actions, vec!["open_url https://www.youtube.com/".to_string()]);
+        let ToolOutcome::Done { feedback } = outcome else {
+            panic!("expected done, got {outcome:?}");
+        };
+        assert_eq!(feedback.key, "commandMode.feedback.urlOpened");
+        assert_eq!(feedback.render_en(), "Opened YouTube.");
+
+        // "open Google" means the search page, not Google Chrome.
+        let (_, actions) = run(vec![app("Google Chrome")], "google");
+        assert_eq!(actions, vec!["open_url https://www.google.com/".to_string()]);
+
+        let (_, actions) = run(Vec::new(), "the Gmail app");
+        assert_eq!(actions, vec!["open_url https://mail.google.com/".to_string()]);
+    }
+
+    /// The site's own desktop app wins when it is installed.
+    #[test]
+    fn an_installed_app_beats_its_website() {
+        let (outcome, actions) = run(vec![app("Spotify"), app("Slack")], "spotify");
+        assert_eq!(actions, vec!["launch_app Spotify.lnk".to_string()]);
+        assert!(matches!(outcome, ToolOutcome::Done { .. }));
+        let (_, actions) = run(vec![app("WhatsApp")], "WhatsApp");
+        assert_eq!(actions, vec!["launch_app WhatsApp.lnk".to_string()]);
+        let (_, actions) = run(vec![app("WhatsApp")], "netflix");
+        assert_eq!(actions, vec!["open_url https://www.netflix.com/".to_string()]);
     }
 
     #[test]
