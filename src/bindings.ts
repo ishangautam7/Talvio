@@ -3023,6 +3023,25 @@ async setAssistantSearchDepth(depth: AssistantSearchDepth) : Promise<Result<null
 }
 },
 /**
+ * Set how long a quick ask remembers the one before it. Off forgets the kept
+ * conversation now (unless a call owns it), so the next ask starts empty.
+ */
+async setAssistantQuickAskMemory(memory: QuickAskMemory) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_assistant_quick_ask_memory", { memory }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Start the quick ask over: forget the conversation it would continue. A
+ * no-op during a call, which owns the conversation.
+ */
+async assistantNewQuickAsk() : Promise<void> {
+    await TAURI_INVOKE("assistant_new_quick_ask");
+},
+/**
  * Set how much a reasoning model may think before answering an ask or a call.
  */
 async setAssistantThinking(level: ThinkingLevel) : Promise<Result<null, string>> {
@@ -4790,6 +4809,11 @@ assistant_web_search_fetch_content?: boolean;
  */
 assistant_search_depth?: AssistantSearchDepth; 
 /**
+ * How long a quick ask remembers the one before it (see
+ * [`QuickAskMemory`]).
+ */
+assistant_quick_ask_memory?: QuickAskMemory; 
+/**
  * How much a reasoning model may think before answering an ask or a call.
  * See [`ThinkingLevel`]; `Off` keeps replies on the fast path.
  */
@@ -5103,6 +5127,19 @@ export type AssistantResponseLength =
  * No length directive — use the system prompt as-is.
  */
 "default" | "short" | "medium" | "long"
+/**
+ * How long a quick ask remembers the one before it ("Remember the
+ * conversation").
+ */
+export type QuickAskMemory = 
+/**
+ * Every quick ask starts empty.
+ */
+"off" | "five_minutes" | "ten_minutes" | "thirty_minutes" | 
+/**
+ * Until the user starts a new conversation (or the app restarts).
+ */
+"until_cleared"
 /**
  * How thorough a web search should be. This is the single dial that replaces
  * the old raw "max results" number. It reaches the provider request (Tavily
@@ -5461,7 +5498,15 @@ export type CommandOrigin =
 /**
  * The command-mode hotkey (Phase 2).
  */
-"voice"
+"voice" | 
+/**
+ * The assistant's `do_on_computer` tool, from the quick ask or a call.
+ */
+"assistant" | 
+/**
+ * A phone: its `command` request, or its assistant's `do_on_computer`.
+ */
+"phone"
 /**
  * Everything about one command, for the UI, the CLI and the log.
  */

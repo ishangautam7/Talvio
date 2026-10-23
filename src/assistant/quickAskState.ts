@@ -4,9 +4,10 @@
  * Pure, so the one decision that makes the surface feel responsive or dead —
  * "is there something to read yet?" — is a test rather than a screenshot.
  *
- * The quick ask is one question and one answer. It has no follow-up field and no
- * thread: a conversation is what the call is for. So every phase below belongs
- * to the single exchange in front of the user, and the next ask starts clean.
+ * The quick ask shows one question and one answer. The next ask may continue
+ * the same conversation while it is remembered ("Remember the conversation"),
+ * but the card never shows a thread: every phase below belongs to the single
+ * exchange in front of the user.
  */
 
 export type AssistantState =
@@ -91,8 +92,9 @@ export interface ToolActivity {
 /**
  * The translation key for what the assistant is doing while the pill waits.
  *
- * Kept to four short states — listening, thinking, searching the web, looking
- * at the screen — because the pill is glanced at, not read. Transcription used
+ * Kept to a few short states — listening, thinking, searching the web, looking
+ * at the screen, doing something on the computer — because the pill is
+ * glanced at, not read. Transcription used
  * to have its own label, and every other tool a generic "Working on it"; to the
  * person waiting both are just the assistant thinking, and a pill that flips
  * through five labels in two seconds reads as noise. A tool that changes what
@@ -107,6 +109,7 @@ export function workingLabelKey(
   if (phase === "listening") return "assistant.status.listening";
   if (tool?.name === "web_search") return "assistant.status.searching";
   if (tool?.name === "capture_screen") return "assistant.tool.screen";
+  if (tool?.name === "do_on_computer") return "assistant.tool.computer";
   if (!tool && state === "searching") return "assistant.status.searching";
   return "assistant.status.thinking";
 }

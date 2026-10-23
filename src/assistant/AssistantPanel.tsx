@@ -416,6 +416,13 @@ const AssistantPanel: React.FC = () => {
   // Conversation snapshots from the backend are the single source of truth;
   // `stream` only holds the in-flight answer between snapshots.
   const [history, setHistory] = useState<DisplayMessage[]>([]);
+  const historyRef = useRef(history);
+  historyRef.current = history;
+  // Where the quick ask's current exchange starts in `history`. A quick ask
+  // can continue a remembered conversation ("Remember the conversation"); the
+  // card still shows only the newest question and answer, so the last answer
+  // never reappears when the panel opens for the next one.
+  const [exchangeStart, setExchangeStart] = useState(0);
   const [stream, setStream] = useState("");
   const [error, setError] = useState<AssistantError | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -974,6 +981,7 @@ const AssistantPanel: React.FC = () => {
       track(
         await listen<boolean>("assistant-panel-shown", (e) => {
           setPanelVisible(true);
+          setExchangeStart(historyRef.current.length);
           setUserOpened(e.payload === true);
           setCallEnded(false);
         }),
@@ -1083,7 +1091,9 @@ const AssistantPanel: React.FC = () => {
             ? t("assistant.tool.meetingSearch")
             : tool.name === "read_meeting"
               ? t("assistant.tool.meetingRead")
-              : t("assistant.tool.working");
+              : tool.name === "do_on_computer"
+                ? t("assistant.tool.computer")
+                : t("assistant.tool.working");
     return tool.detail ? `${action} · ${tool.detail}` : action;
   }, [tool, t]);
 
@@ -1196,9 +1206,13 @@ const AssistantPanel: React.FC = () => {
   //
   // One question and its answer, paired by position so a question still being
   // transcribed never appears above the previous answer.
+  // A conversation that was cleared since is shorter than where the exchange
+  // began: it starts over from the top.
+  const quickStart = exchangeStart <= history.length ? exchangeStart : 0;
   let lastUserIndex = -1;
   let lastAssistantIndex = -1;
   history.forEach((message, index) => {
+    if (index < quickStart) return;
     if (message.role === "user") lastUserIndex = index;
     else if (message.role === "assistant") lastAssistantIndex = index;
   });
@@ -1549,6 +1563,21 @@ const AssistantPanel: React.FC = () => {
           autoFocus
           onRequestKeyboard={requestKeyboard}
           onClose={() => void hidePanel()}
+          onNewConversation={
+            quickStart > 0 && !busy
+              ? () => {
+                  void commands.assistantNewQuickAsk().then(() => {
+                    setExchangeStart(0);
+                    setError(null);
+                    setNotice(null);
+                    setAskReminders([]);
+                    // An empty prompt, ready for the new conversation's
+                    // first question.
+                    setUserOpened(true);
+                  });
+                }
+              : undefined
+          }
           onCancel={() => void dismissAsk()}
           onStop={() => void stopTurn()}
           onRetry={() => {

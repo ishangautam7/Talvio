@@ -57,7 +57,7 @@ export const LLM_REQUIRES_KEY = new Set([
 
 /** Where each provider hands out keys. Only pages we are sure of; a provider
  *  without one simply shows no link. */
-const LLM_KEY_PAGES: Record<string, string> = {
+export const LLM_KEY_PAGES: Record<string, string> = {
   openai: "https://platform.openai.com/api-keys",
   anthropic: "https://console.anthropic.com/settings/keys",
   groq: "https://console.groq.com/keys",
@@ -78,13 +78,15 @@ const LLM_KEY_PAGES: Record<string, string> = {
 const URL_EXAMPLE = "https://my-server.example.com/v1";
 
 /** Commands answer with a Result; a failure must not look like success. */
-const settle = async <T,>(result: Promise<Result<T, string>>): Promise<T> => {
+export const settle = async <T,>(
+  result: Promise<Result<T, string>>,
+): Promise<T> => {
   const settled = await result;
   if (settled.status !== "ok") throw new Error(String(settled.error));
   return settled.data;
 };
 
-const errorText = (error: unknown): string =>
+export const errorText = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
 const hostOf = (url: string): string => {
@@ -96,10 +98,10 @@ const hostOf = (url: string): string => {
 };
 
 /** A model's name as a person would say it, unless the provider named it. */
-const named = (id: string, label?: string | null): string =>
+export const named = (id: string, label?: string | null): string =>
   label && label !== id ? label : prettyModelName(id) || id;
 
-interface Choice {
+export interface Choice {
   value: string;
   label: string;
 }
@@ -115,7 +117,7 @@ const withCurrent = (options: Choice[], current: string): Choice[] => {
 
 /** What was typed, as the id the provider expects: a typed display name is
  *  swapped for its id (OpenRouter rejects "Z.ai: GLM 5.3 Flash"). */
-const resolveChoice = (input: string, options: Choice[]): string => {
+export const resolveChoice = (input: string, options: Choice[]): string => {
   const wanted = input.trim();
   const hit =
     options.find((option) => option.value === wanted) ??
@@ -146,7 +148,7 @@ const Field: React.FC<{
   </div>
 );
 
-const KeyLink: React.FC<{ url: string }> = ({ url }) => {
+export const KeyLink: React.FC<{ url: string }> = ({ url }) => {
   const { t } = useTranslation();
   return (
     <button
@@ -165,7 +167,7 @@ const KeyLink: React.FC<{ url: string }> = ({ url }) => {
  * offers, a text box before that (or when it offers no list), and a button
  * that asks again.
  */
-const ChoiceField: React.FC<{
+export const ChoiceField: React.FC<{
   id: string;
   label: string;
   value: string;
@@ -177,11 +179,15 @@ const ChoiceField: React.FC<{
   onLoad: () => void;
   error: string | null;
   autoFocus?: boolean;
+  /** Called when a typed value is done (blur or Enter), for a field that
+   *  saves as it goes rather than with a form. */
+  onCommit?: (value: string) => void;
 }> = ({
   id,
   label,
   value,
   onChange,
+  onCommit,
   choices,
   placeholder,
   loadLabel,
@@ -239,6 +245,14 @@ const ChoiceField: React.FC<{
             id={id}
             value={value}
             onChange={(event) => onChange(event.target.value)}
+            onBlur={onCommit ? () => onCommit(value) : undefined}
+            onKeyDown={
+              onCommit
+                ? (event) => {
+                    if (event.key === "Enter") onCommit(value);
+                  }
+                : undefined
+            }
             placeholder={placeholder}
             autoComplete="off"
             spellCheck={false}
