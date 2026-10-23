@@ -185,17 +185,27 @@ pub(crate) fn effective(settings: &AppSettings, model: &str) -> (String, String)
     if usable(settings, chosen) {
         return (chosen.to_string(), model.to_string());
     }
-    let assistant = settings.assistant_provider_id.trim();
-    let assistant_model = settings
-        .assistant_models
-        .get(assistant)
-        .map(|m| m.trim())
-        .unwrap_or_default();
-    if assistant != chosen && usable(settings, assistant) && !assistant_model.is_empty() {
-        log::info!(
-            "Command mode has no key for `{chosen}`; using the assistant's `{assistant}/{assistant_model}`"
-        );
-        return (assistant.to_string(), assistant_model.to_string());
+    // Another provider set up with a key: the assistant's, then AI cleanup's.
+    let elsewhere = [
+        (
+            "assistant",
+            settings.assistant_provider_id.trim(),
+            &settings.assistant_models,
+        ),
+        (
+            "cleanup",
+            settings.post_process_provider_id.trim(),
+            &settings.post_process_models,
+        ),
+    ];
+    for (feature, provider, models) in elsewhere {
+        let other_model = models.get(provider).map(|m| m.trim()).unwrap_or_default();
+        if provider != chosen && usable(settings, provider) && !other_model.is_empty() {
+            log::info!(
+                "Command mode has no key for `{chosen}`; using the {feature}'s `{provider}/{other_model}`"
+            );
+            return (provider.to_string(), other_model.to_string());
+        }
     }
     (chosen.to_string(), model.to_string())
 }
@@ -342,5 +352,48 @@ mod agent_choice_tests {
         let (provider, model) = agent_choice(&settings);
         assert_eq!(provider, "anthropic");
         assert_eq!(model, crate::settings::DEFAULT_COMMAND_AGENT_MODEL);
+    }
+}
+
+#[cfg(test)]
+mod effective_tests {
+    use super::effective;
+    use crate::settings::get_default_settings;
+
+    #[test]
+    fn a_keyless_choice_runs_on_the_assistant_then_on_cleanup() {
+        let mut settings = get_default_settings();
+        settings.command_router_provider_id = "anthropic".into();
+        settings.assistant_provider_id = "azure_openai".into();
+        settings.post_process_provider_id = "openai".into();
+        settings
+            .assistant_models
+            .insert("azure_openai".into(), "gpt-5.6-luna".into());
+        settings
+            .post_process_models
+            .insert("openai".into(), "gpt-5-mini".into());
+        settings
+            .post_process_api_keys
+            .insert("openai".into(), "key".into());
+        assert_eq!(
+            effective(&settings, "claude-haiku-5-5"),
+            ("openai".into(), "gpt-5-mini".into())
+        );
+
+        settings
+            .post_process_api_keys
+            .insert("azure_openai".into(), "key".into());
+        assert_eq!(
+            effective(&settings, "claude-haiku-5-5"),
+            ("azure_openai".into(), "gpt-5.6-luna".into())
+        );
+
+        settings
+            .post_process_api_keys
+            .insert("anthropic".into(), "key".into());
+        assert_eq!(
+            effective(&settings, "claude-haiku-5-5"),
+            ("anthropic".into(), "claude-haiku-5-5".into())
+        );
     }
 }

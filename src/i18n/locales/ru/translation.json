@@ -3233,7 +3233,7 @@
       "provider": "Провайдер",
       "model": "Модель",
       "using": "Команды выполняются на {{model}} · {{provider}}.",
-      "borrowed": "Используется модель ассистента ({{provider}} · {{model}}), так как у {{chosen}} нет ключа.",
+      "borrowed": "Используется {{provider}} · {{model}}, так как у {{chosen}} нет ключа.",
       "needsKey": "Для {{provider}} нужен ключ, чтобы выполнять команды.",
       "setUp": "Настроить модель",
       "key": "API-ключ {{provider}}",

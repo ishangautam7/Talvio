@@ -3281,7 +3281,7 @@
       "provider": "المزوّد",
       "model": "النموذج",
       "using": "تعمل الأوامر على {{model}} · {{provider}}.",
-      "borrowed": "يُستخدم نموذج مساعدك ({{provider}} · {{model}})، لأن {{chosen}} ليس له مفتاح.",
+      "borrowed": "يتم استخدام {{provider}} · {{model}}، لأن {{chosen}} ليس له مفتاح.",
       "needsKey": "يحتاج {{provider}} إلى مفتاح قبل أن تعمل الأوامر.",
       "setUp": "إعداد نموذج",
       "key": "مفتاح API لـ {{provider}}",

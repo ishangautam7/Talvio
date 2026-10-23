@@ -3233,7 +3233,7 @@
       "provider": "Dostawca",
       "model": "Model",
       "using": "Polecenia działają na {{model}} · {{provider}}.",
-      "borrowed": "Używany jest model asystenta ({{provider}} · {{model}}), ponieważ {{chosen}} nie ma klucza.",
+      "borrowed": "Używany jest {{provider}} · {{model}}, ponieważ {{chosen}} nie ma klucza.",
       "needsKey": "{{provider}} potrzebuje klucza, zanim polecenia będą mogły działać.",
       "setUp": "Skonfiguruj model",
       "key": "Klucz API {{provider}}",

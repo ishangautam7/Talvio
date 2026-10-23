@@ -3161,7 +3161,7 @@
       "provider": "供應商",
       "model": "模型",
       "using": "指令在 {{model}} · {{provider}} 上執行。",
-      "borrowed": "由於 {{chosen}} 沒有金鑰，正在使用助理的模型（{{provider}} · {{model}}）。",
+      "borrowed": "由於 {{chosen}} 沒有金鑰，正在使用 {{provider}} · {{model}}。",
       "needsKey": "{{provider}} 需要金鑰才能執行指令。",
       "setUp": "設定模型",
       "key": "{{provider}} API 金鑰",

@@ -3185,7 +3185,7 @@
       "provider": "Sağlayıcı",
       "model": "Model",
       "using": "Komutlar {{model}} · {{provider}} üzerinde çalışıyor.",
-      "borrowed": "{{chosen}} için anahtar olmadığından asistanınızın modeli kullanılıyor ({{provider}} · {{model}}).",
+      "borrowed": "{{chosen}} için anahtar olmadığından {{provider}} · {{model}} kullanılıyor.",
       "needsKey": "Komutların çalışabilmesi için {{provider}} bir anahtar gerektiriyor.",
       "setUp": "Bir model ayarla",
       "key": "{{provider}} API anahtarı",
