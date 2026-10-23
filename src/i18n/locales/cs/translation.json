@@ -1998,6 +1998,94 @@
         "medium": "Střední",
         "high": "Vysoké"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Připojte telefon",
+        "body": "Přihlaste se tady i v aplikaci Zynveliq v telefonu ke stejnému účtu. Pak můžete z telefonu diktovat a psát na tomto počítači.",
+        "modeLabel": "Přihlásit se nebo vytvořit účet",
+        "signIn": "Přihlásit se",
+        "createAccount": "Vytvořit účet",
+        "name": "Jméno (nepovinné)",
+        "email": "E-mail",
+        "password": "Heslo",
+        "passwordHint": "Alespoň 8 znaků",
+        "signingIn": "Přihlašování…",
+        "creating": "Vytváření účtu…",
+        "or": "nebo",
+        "google": "Pokračovat přes Google",
+        "googleWaiting": "Dokončete přihlášení v prohlížeči.",
+        "privacy": "Server uchovává jen váš účet a seznam zařízení, nikdy vaše nahrávky ani texty.",
+        "serverUnsaved": "Před přihlášením uložte novou adresu serveru níže."
+      },
+      "signOut": "Odhlásit se",
+      "signingOut": "Odhlašování…",
+      "connection": {
+        "online": "Připojeno",
+        "connecting": "Připojování…",
+        "offline": "Nepřipojeno",
+        "offlineHint": "Zynveliq se teď nemůže spojit se serverem a dál to zkouší. Do té doby telefon nemůže tento počítač používat."
+      },
+      "phone": {
+        "title": "Telefon",
+        "remoteInput": "Diktování z telefonu",
+        "remoteInputHint": "Umožní telefonu diktovat a psát na tomto počítači.",
+        "install": "Nainstalujte si do telefonu aplikaci Zynveliq a přihlaste se jako {{email}}."
+      },
+      "devices": {
+        "title": "Zařízení",
+        "empty": "Vaše zařízení se tu zobrazí po připojení.",
+        "thisComputer": "Tento počítač",
+        "online": "Aktivní",
+        "lastSeen": "Naposledy aktivní {{time}}",
+        "removeLabel": "Odebrat {{name}}",
+        "removeTitle": "Odebrat toto zařízení?",
+        "removeBody": "Odhlásí se z vašeho účtu a nebude moct tento počítač používat, dokud se na něm znovu nepřihlásíte.",
+        "removeConfirm": "Odebrat zařízení",
+        "allowed": "Může používat tento počítač",
+        "notAllowed": "Zatím nemůže používat tento počítač",
+        "allow": "Povolit",
+        "allowLabel": "Povolit zařízení {{name}} používat tento počítač",
+        "removeAccess": "Odebrat přístup",
+        "removeAccessLabel": "Odebrat přístup zařízení {{name}}"
+      },
+      "delete": {
+        "button": "Smazat účet",
+        "title": "Smazat váš účet?",
+        "body": "Váš účet se smaže a všechna vaše zařízení se odhlásí, včetně tohoto počítače a telefonu. Historie, nahrávky a nastavení zůstanou na tomto počítači.",
+        "deleting": "Mazání…"
+      },
+      "server": {
+        "title": "Server účtů",
+        "hint": "Kde je váš účet uložený. Měňte to jen v případě, že provozujete vlastní server.",
+        "locked": "Pro změnu serveru se odhlaste.",
+        "automatic": "Automaticky",
+        "custom": "Vlastní",
+        "using": "Používá se {{host}}",
+        "notFound": "Server teď nelze najít. Zynveliq to dál zkouší."
+      },
+      "errors": {
+        "generic": "Něco se pokazilo. Zkuste to znovu.",
+        "invalid_credentials": "Nesprávný e-mail nebo heslo.",
+        "email_taken": "Účet s tímto e-mailem už existuje. Přihlaste se.",
+        "invalid_email": "Zadejte platnou e-mailovou adresu.",
+        "weak_password": "Heslo musí mít alespoň 8 znaků.",
+        "rate_limited": "Příliš mnoho pokusů. Počkejte několik minut a zkuste to znovu.",
+        "invalid_code": "Přihlášení přes Google vypršelo. Zkuste to znovu.",
+        "google_unavailable": "Tento server nenabízí přihlášení přes Google.",
+        "account_conflict": "Účet s tímto e-mailem je propojený s jiným účtem Google. Přihlaste se raději přes něj.",
+        "unauthorized": "Byli jste odhlášeni. Přihlaste se znovu.",
+        "not_found": "Toto zařízení už bylo odebráno.",
+        "invalid_request": "Server požadavek nepřijal. Zkontrolujte zadané údaje a zkuste to znovu.",
+        "network": "Nelze se spojit se serverem. Zkontrolujte připojení k internetu a adresu serveru.",
+        "no_server": "Server účtů teď nelze najít. Zkontrolujte připojení k internetu a zkuste to znovu.",
+        "server": "Server poslal neočekávanou odpověď. Zkuste to později.",
+        "timeout": "Přihlášení přes Google trvalo příliš dlouho. Zkuste to znovu.",
+        "signed_in": "Než změníte server, odhlaste se.",
+        "invalid_url": "Zadejte adresu, která začíná https://, aby vaše heslo zůstalo šifrované. http:// funguje jen pro server na tomto počítači.",
+        "keychain": "Přihlášení se na tomto počítači nepodařilo bezpečně uložit. Zkuste to znovu.",
+        "wrongServer": "Adresa serveru nevypadá správně. Zkontrolujte ji níže a zkuste to znovu."
+      }
     }
   },
   "footer": {
@@ -2372,6 +2460,12 @@
       "dueAt": "Termín {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Povolit tento telefon?",
+    "body": "Chce diktovat a psát do aplikací na tomto počítači, proto povolte jen telefony, které vlastníte.",
+    "allow": "Povolit",
+    "deny": "Nepovolit"
+  },
   "assistant": {
     "conversation": {
       "title": "Konverzace",
@@ -2631,6 +2725,7 @@
     "title": "Nastavení",
     "tabs": {
       "general": "Obecné",
+      "account": "Účet",
       "shortcuts": "Zkratky",
       "audio": "Zvuk",
       "dictation": "Diktování",

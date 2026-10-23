@@ -411,6 +411,7 @@ pub fn assistant_insert_text(
             allow_trailing_space: false,
             allow_auto_submit: false,
             smart_spacing: None,
+            restore_target: true,
         },
     );
 

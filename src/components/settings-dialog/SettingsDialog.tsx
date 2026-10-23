@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  CircleUserRound,
   FlaskConical,
   Headphones,
   Info,
@@ -16,6 +17,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useNavigation, type SettingsTab } from "@/components/shell/navigation";
 import {
   AboutTab,
+  AccountTab,
   AdvancedTab,
   AudioTab,
   DebugTab,
@@ -41,6 +43,7 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { id: "general", icon: SlidersHorizontal, component: GeneralTab },
+  { id: "account", icon: CircleUserRound, component: AccountTab },
   {
     id: "shortcuts",
     icon: Keyboard,

@@ -111,6 +111,8 @@ export const GeneralTab: React.FC = () => {
   );
 };
 
+export { AccountSettings as AccountTab } from "@/components/settings/account/AccountSettings";
+
 export const ShortcutsTab: React.FC = () => {
   const { t } = useTranslation();
   const { settings, getSetting } = useSettings();

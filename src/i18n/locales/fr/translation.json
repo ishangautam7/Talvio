@@ -1989,6 +1989,94 @@
         "medium": "Moyen",
         "high": "Élevé"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Connectez votre téléphone",
+        "body": "Connectez-vous ici et dans l'application Zynveliq de votre téléphone avec le même compte. Vous pourrez alors dicter et saisir du texte sur cet ordinateur depuis votre téléphone.",
+        "modeLabel": "Se connecter ou créer un compte",
+        "signIn": "Se connecter",
+        "createAccount": "Créer un compte",
+        "name": "Nom (facultatif)",
+        "email": "E-mail",
+        "password": "Mot de passe",
+        "passwordHint": "Au moins 8 caractères",
+        "signingIn": "Connexion…",
+        "creating": "Création du compte…",
+        "or": "ou",
+        "google": "Continuer avec Google",
+        "googleWaiting": "Terminez la connexion dans votre navigateur.",
+        "privacy": "Le serveur ne conserve que votre compte et la liste de vos appareils, jamais vos enregistrements ni vos textes.",
+        "serverUnsaved": "Enregistrez la nouvelle adresse du serveur ci-dessous avant de vous connecter."
+      },
+      "signOut": "Se déconnecter",
+      "signingOut": "Déconnexion…",
+      "connection": {
+        "online": "Connecté",
+        "connecting": "Connexion en cours…",
+        "offline": "Hors ligne",
+        "offlineHint": "Zynveliq ne parvient pas à joindre le serveur pour le moment et continue d'essayer. En attendant, votre téléphone ne peut pas utiliser cet ordinateur."
+      },
+      "phone": {
+        "title": "Téléphone",
+        "remoteInput": "Dictée depuis le téléphone",
+        "remoteInputHint": "Permet à votre téléphone de dicter et de saisir du texte sur cet ordinateur.",
+        "install": "Installez l'application Zynveliq sur votre téléphone et connectez-vous avec {{email}}."
+      },
+      "devices": {
+        "title": "Appareils",
+        "empty": "Vos appareils apparaîtront ici une fois la connexion établie.",
+        "thisComputer": "Cet ordinateur",
+        "online": "En ligne",
+        "lastSeen": "Dernière activité {{time}}",
+        "removeLabel": "Retirer {{name}}",
+        "removeTitle": "Retirer cet appareil ?",
+        "removeBody": "Il sera déconnecté de votre compte et ne pourra plus utiliser cet ordinateur tant que vous ne vous y reconnecterez pas.",
+        "removeConfirm": "Retirer l'appareil",
+        "allowed": "Peut utiliser cet ordinateur",
+        "notAllowed": "Ne peut pas encore utiliser cet ordinateur",
+        "allow": "Autoriser",
+        "allowLabel": "Autoriser {{name}} à utiliser cet ordinateur",
+        "removeAccess": "Retirer l'accès",
+        "removeAccessLabel": "Retirer l'accès de {{name}}"
+      },
+      "delete": {
+        "button": "Supprimer le compte",
+        "title": "Supprimer votre compte ?",
+        "body": "Votre compte sera supprimé et tous vos appareils seront déconnectés, y compris cet ordinateur et votre téléphone. Votre historique, vos enregistrements et vos réglages restent sur cet ordinateur.",
+        "deleting": "Suppression…"
+      },
+      "server": {
+        "title": "Serveur de compte",
+        "hint": "L'endroit où votre compte est conservé. Ne le modifiez que si vous utilisez votre propre serveur.",
+        "locked": "Déconnectez-vous pour changer de serveur.",
+        "automatic": "Automatique",
+        "custom": "Personnalisé",
+        "using": "Utilise {{host}}",
+        "notFound": "Le serveur est introuvable pour le moment. Zynveliq continue d'essayer."
+      },
+      "errors": {
+        "generic": "Une erreur s'est produite. Réessayez.",
+        "invalid_credentials": "E-mail ou mot de passe incorrect.",
+        "email_taken": "Un compte existe déjà avec cet e-mail. Connectez-vous plutôt.",
+        "invalid_email": "Saisissez une adresse e-mail valide.",
+        "weak_password": "Utilisez au moins 8 caractères pour votre mot de passe.",
+        "rate_limited": "Trop de tentatives. Patientez quelques minutes, puis réessayez.",
+        "invalid_code": "La connexion Google a expiré. Réessayez.",
+        "google_unavailable": "Ce serveur ne propose pas la connexion avec Google.",
+        "account_conflict": "Le compte associé à cette adresse e-mail est lié à un autre compte Google. Connectez-vous plutôt avec celui-ci.",
+        "unauthorized": "Vous avez été déconnecté. Reconnectez-vous.",
+        "not_found": "Cet appareil a déjà été retiré.",
+        "invalid_request": "Le serveur n'a pas pu accepter cette demande. Vérifiez ce que vous avez saisi et réessayez.",
+        "network": "Impossible de joindre le serveur. Vérifiez votre connexion Internet et l'adresse du serveur.",
+        "no_server": "Le serveur de compte est introuvable pour le moment. Vérifiez votre connexion Internet et réessayez.",
+        "server": "Le serveur a renvoyé une réponse inattendue. Réessayez plus tard.",
+        "timeout": "La connexion Google a pris trop de temps. Réessayez.",
+        "signed_in": "Déconnectez-vous avant de changer de serveur.",
+        "invalid_url": "Saisissez une adresse qui commence par https:// pour que votre mot de passe reste chiffré. http:// ne fonctionne qu'avec un serveur sur cet ordinateur.",
+        "keychain": "Impossible d'enregistrer votre connexion de façon sécurisée sur cet ordinateur. Réessayez.",
+        "wrongServer": "Cette adresse de serveur semble incorrecte. Vérifiez-la ci-dessous, puis réessayez."
+      }
     }
   },
   "footer": {
@@ -2358,6 +2446,12 @@
       "dueAt": "Prévu {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Autoriser ce téléphone ?",
+    "body": "Il veut dicter et saisir du texte dans les applications de cet ordinateur : n'autorisez que les téléphones qui vous appartiennent.",
+    "allow": "Autoriser",
+    "deny": "Ne pas autoriser"
+  },
   "assistant": {
     "conversation": {
       "title": "Conversation",
@@ -2613,6 +2707,7 @@
     "title": "Paramètres",
     "tabs": {
       "general": "Général",
+      "account": "Compte",
       "shortcuts": "Raccourcis",
       "audio": "Audio",
       "dictation": "Dictée",

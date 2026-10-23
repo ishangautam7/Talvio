@@ -290,6 +290,9 @@ const settingUpdaters: {
     commands.changeTranscribeGpuDevice(value as string | null),
   extra_recording_buffer_ms: (value) =>
     commands.changeExtraRecordingBufferSetting(value as number),
+  account_server_url: (value) => commands.setAccountServerUrl(value as string),
+  remote_input_enabled: (value) =>
+    commands.setRemoteInputEnabled(value as boolean),
 };
 
 export const useSettingsStore = create<SettingsStore>()(

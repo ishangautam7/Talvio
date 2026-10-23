@@ -1971,6 +1971,94 @@
         "medium": "Trung bình",
         "high": "Cao"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Kết nối điện thoại",
+        "body": "Đăng nhập ở đây và trong ứng dụng Zynveliq trên điện thoại bằng cùng một tài khoản. Sau đó bạn có thể đọc chính tả và gõ chữ trên máy tính này từ điện thoại.",
+        "modeLabel": "Đăng nhập hoặc tạo tài khoản",
+        "signIn": "Đăng nhập",
+        "createAccount": "Tạo tài khoản",
+        "name": "Tên (không bắt buộc)",
+        "email": "Email",
+        "password": "Mật khẩu",
+        "passwordHint": "Ít nhất 8 ký tự",
+        "signingIn": "Đang đăng nhập…",
+        "creating": "Đang tạo tài khoản…",
+        "or": "hoặc",
+        "google": "Tiếp tục với Google",
+        "googleWaiting": "Hoàn tất đăng nhập trong trình duyệt.",
+        "privacy": "Máy chủ chỉ lưu tài khoản và danh sách thiết bị của bạn, không bao giờ lưu bản ghi âm hay văn bản.",
+        "serverUnsaved": "Hãy lưu địa chỉ máy chủ mới bên dưới trước khi đăng nhập."
+      },
+      "signOut": "Đăng xuất",
+      "signingOut": "Đang đăng xuất…",
+      "connection": {
+        "online": "Đã kết nối",
+        "connecting": "Đang kết nối…",
+        "offline": "Ngoại tuyến",
+        "offlineHint": "Zynveliq hiện không kết nối được với máy chủ và vẫn đang thử lại. Trong lúc đó, điện thoại của bạn không thể dùng máy tính này."
+      },
+      "phone": {
+        "title": "Điện thoại",
+        "remoteInput": "Đọc chính tả từ điện thoại",
+        "remoteInputHint": "Cho phép điện thoại đọc chính tả và gõ chữ trên máy tính này.",
+        "install": "Cài ứng dụng Zynveliq trên điện thoại và đăng nhập bằng {{email}}."
+      },
+      "devices": {
+        "title": "Thiết bị",
+        "empty": "Các thiết bị của bạn sẽ hiện ở đây khi đã kết nối.",
+        "thisComputer": "Máy tính này",
+        "online": "Trực tuyến",
+        "lastSeen": "Hoạt động lần cuối {{time}}",
+        "removeLabel": "Gỡ {{name}}",
+        "removeTitle": "Gỡ thiết bị này?",
+        "removeBody": "Thiết bị sẽ bị đăng xuất khỏi tài khoản và không thể dùng máy tính này cho đến khi bạn đăng nhập lại trên đó.",
+        "removeConfirm": "Gỡ thiết bị",
+        "allowed": "Có thể dùng máy tính này",
+        "notAllowed": "Chưa thể dùng máy tính này",
+        "allow": "Cho phép",
+        "allowLabel": "Cho phép {{name}} dùng máy tính này",
+        "removeAccess": "Thu hồi quyền truy cập",
+        "removeAccessLabel": "Thu hồi quyền truy cập của {{name}}"
+      },
+      "delete": {
+        "button": "Xóa tài khoản",
+        "title": "Xóa tài khoản của bạn?",
+        "body": "Tài khoản của bạn sẽ bị xóa và mọi thiết bị sẽ bị đăng xuất, kể cả máy tính này và điện thoại. Lịch sử, bản ghi âm và cài đặt vẫn ở trên máy tính này.",
+        "deleting": "Đang xóa…"
+      },
+      "server": {
+        "title": "Máy chủ tài khoản",
+        "hint": "Nơi lưu tài khoản của bạn. Chỉ đổi nếu bạn tự chạy máy chủ riêng.",
+        "locked": "Đăng xuất để đổi máy chủ.",
+        "automatic": "Tự động",
+        "custom": "Tùy chỉnh",
+        "using": "Đang dùng {{host}}",
+        "notFound": "Hiện không tìm thấy máy chủ. Zynveliq vẫn đang thử lại."
+      },
+      "errors": {
+        "generic": "Đã xảy ra lỗi. Hãy thử lại.",
+        "invalid_credentials": "Sai email hoặc mật khẩu.",
+        "email_taken": "Email này đã có tài khoản. Hãy đăng nhập.",
+        "invalid_email": "Nhập địa chỉ email hợp lệ.",
+        "weak_password": "Mật khẩu cần có ít nhất 8 ký tự.",
+        "rate_limited": "Thử quá nhiều lần. Đợi vài phút rồi thử lại.",
+        "invalid_code": "Phiên đăng nhập Google đã hết hạn. Hãy thử lại.",
+        "google_unavailable": "Máy chủ này không hỗ trợ đăng nhập bằng Google.",
+        "account_conflict": "Tài khoản của email này đã liên kết với một tài khoản Google khác. Hãy đăng nhập bằng tài khoản đó.",
+        "unauthorized": "Bạn đã bị đăng xuất. Hãy đăng nhập lại.",
+        "not_found": "Thiết bị đó đã được gỡ.",
+        "invalid_request": "Máy chủ không chấp nhận yêu cầu. Kiểm tra thông tin đã nhập rồi thử lại.",
+        "network": "Không kết nối được với máy chủ. Kiểm tra kết nối internet và địa chỉ máy chủ.",
+        "no_server": "Hiện không tìm thấy máy chủ tài khoản. Kiểm tra kết nối internet rồi thử lại.",
+        "server": "Máy chủ trả về phản hồi không mong muốn. Hãy thử lại sau.",
+        "timeout": "Đăng nhập bằng Google mất quá nhiều thời gian. Hãy thử lại.",
+        "signed_in": "Đăng xuất trước khi đổi máy chủ.",
+        "invalid_url": "Nhập địa chỉ bắt đầu bằng https:// để mật khẩu của bạn được mã hóa. http:// chỉ dùng được với máy chủ trên máy tính này.",
+        "keychain": "Không thể lưu thông tin đăng nhập an toàn trên máy tính này. Hãy thử lại.",
+        "wrongServer": "Địa chỉ máy chủ có vẻ không đúng. Hãy kiểm tra bên dưới rồi thử lại."
+      }
     }
   },
   "footer": {
@@ -2330,6 +2418,12 @@
       "dueAt": "Đến hạn {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Cho phép điện thoại này?",
+    "body": "Điện thoại này muốn đọc chính tả và gõ chữ vào các ứng dụng trên máy tính này, nên chỉ cho phép điện thoại của bạn.",
+    "allow": "Cho phép",
+    "deny": "Không cho phép"
+  },
   "assistant": {
     "conversation": {
       "title": "Trò chuyện",
@@ -2577,6 +2671,7 @@
     "title": "Cài đặt",
     "tabs": {
       "general": "Chung",
+      "account": "Tài khoản",
       "shortcuts": "Phím tắt",
       "audio": "Âm thanh",
       "dictation": "Đọc chính tả",

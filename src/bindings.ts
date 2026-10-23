@@ -3837,6 +3837,111 @@ async getSettingsNotices() : Promise<SettingsNotice[]> {
  */
 async dismissSettingsNotice(kind: SettingsNoticeKind) : Promise<void> {
     await TAURI_INVOKE("dismiss_settings_notice", { kind });
+},
+async accountGetStatus() : Promise<AccountStatus> {
+    return await TAURI_INVOKE("account_get_status");
+},
+async accountSignUp(email: string, password: string, name: string | null) : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_sign_up", { email, password, name }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async accountSignIn(email: string, password: string) : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_sign_in", { email, password }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async accountSignInGoogle() : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_sign_in_google") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async accountCancelGoogle() : Promise<void> {
+    await TAURI_INVOKE("account_cancel_google");
+},
+async accountSignOut() : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_sign_out") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async accountDelete() : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_delete") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async accountRemoveDevice(deviceId: string) : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_remove_device", { deviceId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Settings → Account: let one of the account's phones dictate and type on
+ * this computer, or take that away. A question about it that is waiting
+ * ends the same way.
+ */
+async accountSetDeviceApproved(deviceId: string, approved: boolean) : Promise<Result<AccountStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("account_set_device_approved", { deviceId, approved }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The phones the approval popup asks about, for a popup that just loaded.
+ */
+async accountPendingApprovals() : Promise<AccountPhone[]> {
+    return await TAURI_INVOKE("account_pending_approvals");
+},
+/**
+ * The approval popup's Allow or Don't allow.
+ */
+async accountAnswerApproval(deviceId: string, allow: boolean) : Promise<void> {
+    await TAURI_INVOKE("account_answer_approval", { deviceId, allow });
+},
+/**
+ * The approval popup measured its content; the window takes that height.
+ */
+async fitAccountApproval(height: number) : Promise<void> {
+    await TAURI_INVOKE("fit_account_approval", { height });
+},
+/**
+ * A Custom server, or an empty `url` for Automatic. Only while signed out:
+ * a session belongs to the server it signed in on.
+ */
+async setAccountServerUrl(url: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_account_server_url", { url }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_remote_input_enabled", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -3855,6 +3960,35 @@ historyUpdatePayload: "history-update-payload"
 
 /** user-defined types **/
 
+export type AccountConnection = "offline" | "connecting" | "online"
+export type AccountDevice = { id: string; name: string; platform: string; kind: string; online: boolean; last_seen_at: number; current: boolean; capabilities: string[]; 
+/**
+ * A phone this computer's user allowed to dictate and type here.
+ */
+approved: boolean }
+/**
+ * One of this account's phones, as the latest `devices` snapshot lists it:
+ * the one the approval question names.
+ */
+export type AccountPhone = { id: string; name: string; platform: string }
+export type AccountStatus = { signed_in: boolean; 
+/**
+ * The server in use; empty while Automatic has found none.
+ */
+server_url: string; 
+/**
+ * Automatic (discovery) rather than a Custom server the user typed.
+ */
+server_automatic: boolean; user: AccountUser | null; device_id: string | null; connection: AccountConnection; 
+/**
+ * `None` until the server has answered `/v1/config`.
+ */
+google_available: boolean | null; 
+/**
+ * A Google sign-in is waiting on the browser.
+ */
+google_pending: boolean; devices: AccountDevice[]; remote_input_enabled: boolean }
+export type AccountUser = { id: string; email: string; name: string | null; has_password: boolean; google_linked: boolean }
 /**
  * The container-level `#[serde(default)]` (backed by the `Default` impl below,
  * which returns `get_default_settings()`) guarantees every field — including
@@ -4472,7 +4606,28 @@ web_search_api_keys?: SecretMap; theme?: Theme; ui_text_size?: UiTextSize;
  * a sensible content-fitting default. Only the size is remembered, not the
  * position, so the window can't reopen off-screen after a monitor change.
  */
-main_window_width?: number | null; main_window_height?: number | null }
+main_window_width?: number | null; main_window_height?: number | null; 
+/**
+ * The Custom account server this computer signs in to (`account`), or
+ * empty for Automatic: the server discovery finds. Changed only while
+ * signed out.
+ */
+account_server_url?: string; 
+/**
+ * The account server discovery last found, used until it finds another.
+ */
+account_discovered_server?: string; 
+/**
+ * "Phone dictation": whether a phone signed in to the same account may
+ * dictate or type into this computer.
+ */
+remote_input_enabled?: boolean; 
+/**
+ * The account's phones (device ids) this computer's user allowed to
+ * dictate and type here. Cleared when the computer signs out; ids that
+ * leave the account are dropped.
+ */
+account_approved_devices?: string[] }
 /**
  * Where the assistant's Ask card opens on screen.
  * 

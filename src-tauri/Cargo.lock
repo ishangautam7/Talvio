@@ -10053,6 +10053,7 @@ dependencies = [
  "ferrous-opencc",
  "flate2",
  "futures-util",
+ "getrandom 0.3.4",
  "gtk",
  "gtk-layer-shell",
  "handy-keys",
