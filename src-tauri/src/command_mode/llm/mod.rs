@@ -170,7 +170,50 @@ pub fn router_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError
             "no router model is selected".into(),
         ));
     }
-    llm_for(settings, model)
+    let (provider_id, model) = effective(settings, model);
+    llm_for(settings, &provider_id, &model)
+}
+
+/// The provider and model a command actually runs on: the ones chosen for
+/// command mode while that provider can be used (it has a key, or needs
+/// none), otherwise the assistant's own provider and model. Someone who set
+/// the assistant up with one provider should not have to find a second key
+/// before "open YouTube" works; the default router is Anthropic, which many
+/// people have no key for.
+pub(crate) fn effective(settings: &AppSettings, model: &str) -> (String, String) {
+    let chosen = settings.command_router_provider_id.trim();
+    if usable(settings, chosen) {
+        return (chosen.to_string(), model.to_string());
+    }
+    let assistant = settings.assistant_provider_id.trim();
+    let assistant_model = settings
+        .assistant_models
+        .get(assistant)
+        .map(|m| m.trim())
+        .unwrap_or_default();
+    if assistant != chosen && usable(settings, assistant) && !assistant_model.is_empty() {
+        log::info!(
+            "Command mode has no key for `{chosen}`; using the assistant's `{assistant}/{assistant_model}`"
+        );
+        return (assistant.to_string(), assistant_model.to_string());
+    }
+    (chosen.to_string(), model.to_string())
+}
+
+/// Whether `provider_id` can take a tool call: an HTTP provider with a key,
+/// or one that needs none.
+pub(crate) fn usable(settings: &AppSettings, provider_id: &str) -> bool {
+    let Some(provider) = settings.post_process_provider(provider_id) else {
+        return false;
+    };
+    if provider.id == "apple_intelligence" || !provider.base_url.starts_with("http") {
+        return false;
+    }
+    let has_key = settings
+        .post_process_api_keys
+        .get(provider_id)
+        .is_some_and(|key| !key.trim().is_empty());
+    has_key || !crate::settings::post_process_provider_requires_api_key(&provider.id)
 }
 
 /// Build the model the tier-2 agent runs on: the router's provider and key,
@@ -183,12 +226,16 @@ pub fn agent_llm_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmEr
     } else {
         model
     };
-    llm_for(settings, model)
+    let (provider_id, model) = effective(settings, model);
+    llm_for(settings, &provider_id, &model)
 }
 
 /// [`router_for`] and [`agent_llm_for`] with the model already chosen.
-fn llm_for(settings: &AppSettings, model: &str) -> Result<Box<dyn RouterLlm>, LlmError> {
-    let provider_id = settings.command_router_provider_id.trim();
+fn llm_for(
+    settings: &AppSettings,
+    provider_id: &str,
+    model: &str,
+) -> Result<Box<dyn RouterLlm>, LlmError> {
     if provider_id.is_empty() {
         return Err(LlmError::NotConfigured(
             "no router provider is selected".into(),
