@@ -538,6 +538,58 @@ stopped it, otherwise an error: `stopped` (the computer's user pressed Stop),
 `target_gone`, `idle`, `connect_failed`, `capture_failed`, `replaced`, `cancelled`,
 `remote_input_off`, `remote_windows_off`, `not_approved`.
 
+### Commands: telling the computer what to do (capability `command`)
+
+A computer whose `capabilities` include `command` runs command mode for an
+approved phone: "open YouTube", "play Believer by Imagine Dragons", "turn the
+volume down", "email Ron about the meeting at 9". The computer's own router model
+picks the tools and they run on the computer, visibly, in its own apps; the phone
+only says what it wants and shows what happened. It is gated by the approval
+rules above, "Phone dictation", and the computer's command mode switch
+("Voice commands", off by default; off answers `command_mode_off`). One command
+runs at a time per computer (`busy`); a new command replaces whatever an earlier
+one left waiting for a confirmation or an answer.
+
+```jsonc
+// phone → computer
+{ "kind": "command", "requestId": "uuid",
+  "text": "open youtube" }            // 1–2 000 chars, or instead:
+{ "kind": "command", "requestId": "uuid",
+  "audio": "<base64 WAV>" }           // as `dictate`'s audio; transcribed by the computer
+{ "kind": "command.confirm", "requestId": "uuid", "id": 7, "accept": true }
+{ "kind": "command.answer", "requestId": "uuid", "id": 7, "answer": "the work one" }
+
+// computer → phone
+{ "kind": "progress", "requestId": "uuid", "stage": "transcribing" }   // audio only
+{ "kind": "progress", "requestId": "uuid", "stage": "working" }
+{ "kind": "result", "requestId": "uuid", "ok": true,
+  "transcript": "open youtube",
+  "status": "done",                    // done | awaiting_confirmation | needs_answer | cancelled | failed | needs_computer_use
+  "feedback": "Opened YouTube.",       // one or two short sentences, in English
+  "id": 7,                             // with awaiting_confirmation / needs_answer: what to confirm or answer
+  "pending": "Send the email to Ron",  // with awaiting_confirmation: what accepting does
+  "question": "Which Ron?", "choices": ["Ron Weasley", "Ron Swanson"] }  // with needs_answer
+```
+
+- `status: "failed"` is still `ok: true`: the command ran and could not be
+  carried out, and `feedback` says why ("I couldn't find an app called Spotfy.").
+  `ok: false` is for the request itself: `command_mode_off`, `busy`,
+  `not_approved`, `remote_input_off`, `bad_audio`, `no_speech`, `no_speech_model`,
+  `transcription_failed`, `unsupported`, `cancelled`, and `not_configured`
+  (command mode is on but has no model it can use).
+- `command.confirm` with `accept: false` cancels what is waiting. An `id` that
+  is no longer waiting answers `ok: true` with `status: "cancelled"`.
+- Nothing the computer does in answer to a command is held for the phone beyond
+  this: confirmation is the phone's Send button, never a second voice prompt.
+- Timeouts: 45 s for every command request (`command`, `command.confirm`,
+  `command.answer`), restarted by every `progress` and 3 minutes while the last
+  progress is `approval`, plus the recording's length for audio. The model plans
+  and the tools run after `working`, so that stage gets the long wait.
+- A `command.confirm` or `command.answer` result repeats the original command's
+  `transcript`.
+- An audio command can also fail with `no_speech_model` (the computer has no
+  speech model ready), as `dictate` can.
+
 ### TURN: `GET /v1/turn` (authenticated)
 
 ```jsonc
