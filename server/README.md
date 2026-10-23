@@ -56,16 +56,38 @@ address decides where people's sign-ins go, so keep it locked down.
 
 ## Configuration
 
-| Variable               | Default                  | Meaning                                                                                                                                |
-| ---------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                 | `8787`                   | Port to listen on.                                                                                                                     |
-| `HOST`                 | `0.0.0.0`                | Address to listen on.                                                                                                                  |
-| `DATABASE_PATH`        | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.  |
-| `PUBLIC_URL`           | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                    |
-| `GOOGLE_CLIENT_ID`     | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                     |
-| `GOOGLE_CLIENT_SECRET` | unset                    | Stays on the server; the apps never see it.                                                                                            |
-| `TALVIO_SECRETS_KEY`   | unset                    | Base64 of 32 random bytes: the key that encrypts stored API keys. Unset uses (and on first start creates) `secrets.key` beside the database. |
-| `TRUST_PROXY`          | unset                    | `1` takes the client's address from the last `X-Forwarded-For` entry, for rate limiting. Set it only behind exactly one reverse proxy. |
+| Variable                    | Default                  | Meaning                                                                                                                                           |
+| --------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                      | `8787`                   | Port to listen on.                                                                                                                                |
+| `HOST`                      | `0.0.0.0`                | Address to listen on.                                                                                                                             |
+| `DATABASE_PATH`             | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.             |
+| `PUBLIC_URL`                | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                               |
+| `GOOGLE_CLIENT_ID`          | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                                |
+| `GOOGLE_CLIENT_SECRET`      | unset                    | Stays on the server; the apps never see it.                                                                                                       |
+| `TALVIO_SECRETS_KEY`        | unset                    | Base64 of 32 random bytes: the key that encrypts stored API keys. Unset uses (and on first start creates) `secrets.key` beside the database.      |
+| `TRUST_PROXY`               | unset                    | `1` takes the client's address from the last `X-Forwarded-For` entry, for rate limiting. Set it only behind exactly one reverse proxy.            |
+| `CLOUDFLARE_TURN_KEY_ID`    | unset                    | With `CLOUDFLARE_TURN_API_TOKEN`: a Cloudflare Realtime TURN key. The server asks Cloudflare for short-lived TURN credentials for each live view. |
+| `CLOUDFLARE_TURN_API_TOKEN` | unset                    | The API token of that TURN key. Stays on the server.                                                                                              |
+| `TURN_URLS`                 | unset                    | Instead of Cloudflare: your own TURN server (coturn with `use-auth-secret`), comma-separated `turn:` / `turns:` URLs.                             |
+| `TURN_SECRET`               | unset                    | That server's `static-auth-secret`. Credentials follow the TURN REST scheme and last a day.                                                       |
+
+## Live view across the internet (TURN)
+
+A phone watching a window on its computer connects to it directly: always on
+the same Wi-Fi, and across the internet through most home routers. Strict NATs,
+which most mobile networks use, need a TURN server to relay the (still
+end-to-end encrypted) video. `GET /v1/turn` hands both apps the servers to use:
+a public STUN server always, and a TURN server when one of these is set:
+
+- **Cloudflare** (no server to run): in the Cloudflare dashboard open
+  **Realtime → TURN Server**, create a key, and set `CLOUDFLARE_TURN_KEY_ID` and
+  `CLOUDFLARE_TURN_API_TOKEN`.
+- **Your own coturn**: run it with `use-auth-secret` and
+  `static-auth-secret=<secret>`, open UDP 3478 (and the relay port range), and
+  set `TURN_URLS` and `TURN_SECRET`.
+
+For a phone on mobile data the account server itself also has to be reachable
+from the internet, since the handshake goes through it.
 
 ## Google sign-in
 
