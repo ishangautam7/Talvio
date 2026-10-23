@@ -12,6 +12,7 @@ import '../../core/models.dart';
 import '../../core/relay_client.dart';
 import '../../core/relay_protocol.dart';
 import '../../core/session_store.dart';
+import '../screen/live_protocol.dart';
 import 'recent_dictations.dart';
 import 'remote_windows.dart';
 
@@ -214,21 +215,36 @@ class DictateController extends ChangeNotifier {
     _notify();
   }
 
-  /// Lists the computer's windows, or answers an error code. A new list ends
-  /// the ids of the last one, so the chosen window moves to its new id, or
-  /// is forgotten when the list does not have it exactly once.
-  Future<({List<RemoteWindow> windows, String? error})> listWindows() async {
+  /// Lists the computer's windows (and its screens, from a computer with
+  /// live view), or answers an error code. A new list ends the ids of the
+  /// last one, so the chosen window moves to its new id, or is forgotten
+  /// when the list does not have it exactly once.
+  Future<
+    ({List<RemoteWindow> windows, List<RemoteScreen> screens, String? error})
+  >
+  listWindows() async {
     final computer = this.computer;
     if (computer == null) {
-      return (windows: const <RemoteWindow>[], error: 'offline');
+      return (
+        windows: const <RemoteWindow>[],
+        screens: const <RemoteScreen>[],
+        error: 'offline',
+      );
     }
     final reply = await _ask(computer, {
       'kind': WindowsKind.list,
     }, timeout: _windowsTimeout);
     if (reply.error case final error?) {
-      return (windows: const <RemoteWindow>[], error: error);
+      return (
+        windows: const <RemoteWindow>[],
+        screens: const <RemoteScreen>[],
+        error: error,
+      );
     }
     final windows = windowsOf(reply.result!);
+    final screens = computer.capabilities.contains(ScreenKind.capability)
+        ? screensOf(reply.result!)
+        : const <RemoteScreen>[];
     if (_window case (
       computer: final id,
       :final window,
@@ -239,7 +255,7 @@ class DictateController extends ChangeNotifier {
           : null;
       _notify();
     }
-    return (windows: windows, error: null);
+    return (windows: windows, screens: screens, error: null);
   }
 
   /// Presses [keys] (combos) in the chosen window. Null when they were
@@ -331,7 +347,9 @@ class DictateController extends ChangeNotifier {
     }
   }
 
-  Future<void> stopAndSend() async {
+  /// Stops and sends the recording, delivered as [deliverAs] when given
+  /// (live view always pastes), else as [deliver].
+  Future<void> stopAndSend({Deliver? deliverAs}) async {
     if (_phase != DictatePhase.recording) return;
     final length = _endRecording();
     String? path;
@@ -347,7 +365,7 @@ class DictateController extends ChangeNotifier {
       return;
     }
     _kept = (path: path, length: length);
-    await retry();
+    await retry(deliverAs: deliverAs);
   }
 
   Future<void> discardRecording() async {
@@ -360,8 +378,8 @@ class DictateController extends ChangeNotifier {
     await _recorder.cancel(); // also deletes the file
   }
 
-  /// Sends the kept recording (again).
-  Future<void> retry() async {
+  /// Sends the kept recording (again), delivered as [deliverAs] when given.
+  Future<void> retry({Deliver? deliverAs}) async {
     final kept = _kept;
     final computer = this.computer;
     if (kept == null || _phase != DictatePhase.idle) return;
@@ -390,7 +408,7 @@ class DictateController extends ChangeNotifier {
       computer,
       {
         'kind': DictateKind.dictate,
-        'deliver': deliver == Deliver.keep ? 'return' : 'paste',
+        'deliver': (deliverAs ?? deliver) == Deliver.keep ? 'return' : 'paste',
         'audio': audio,
         ..._aim(window),
       },
