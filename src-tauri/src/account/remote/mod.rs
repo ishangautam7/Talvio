@@ -32,7 +32,7 @@
 
 mod dictate;
 mod host;
-mod screen;
+pub(super) mod screen;
 mod text;
 mod windows;
 
@@ -161,6 +161,11 @@ pub struct Router {
     watching: AtomicBool,
     /// Stop was pressed on this computer's "Phone is viewing" notice.
     stop_watch: AtomicBool,
+    /// The phone watching asked to watch again: its running view ends.
+    replace_watch: AtomicBool,
+    /// This account's phones that are connected now, from the latest
+    /// `devices` snapshot.
+    online: Mutex<Option<std::collections::HashSet<String>>>,
     /// Where a running live view hears its phone's `rtc.*` messages, by the
     /// watch's `requestId`: the phone that asked, and the session's inbox.
     watches: Mutex<HashMap<String, (String, mpsc::Sender<Value>)>>,
@@ -182,6 +187,8 @@ impl Router {
             offered: Mutex::default(),
             watching: AtomicBool::new(false),
             stop_watch: AtomicBool::new(false),
+            replace_watch: AtomicBool::new(false),
+            online: Mutex::default(),
             watches: Mutex::default(),
         });
         (router, frames)
@@ -296,6 +303,14 @@ impl Router {
         }
     }
 
+    /// Whether `phone` is connected to the account server, as far as the
+    /// latest devices snapshot says. Before any snapshot it is taken as
+    /// connected, so a first moment never ends a view.
+    fn phone_online(&self, phone: &str) -> bool {
+        let online = self.online.lock().unwrap_or_else(|e| e.into_inner());
+        online.as_ref().is_none_or(|online| online.contains(phone))
+    }
+
     /// What the approval card calls a phone, for the viewing notice.
     fn phone_name(&self, id: &str) -> String {
         self.phone(id).map(|phone| phone.name).unwrap_or_default()
@@ -314,6 +329,13 @@ impl Router {
     /// A phone that left the account is answered `not_approved`, waiting or
     /// running.
     pub fn devices_changed(&self, devices: &[api::Device]) {
+        *self.online.lock().unwrap_or_else(|e| e.into_inner()) = Some(
+            devices
+                .iter()
+                .filter(|device| device.kind == "mobile" && device.online)
+                .map(|device| device.id.clone())
+                .collect(),
+        );
         self.set_phones(
             devices
                 .iter()
@@ -695,6 +717,8 @@ pub(crate) mod testing {
         pub while_judging: Mutex<Option<Box<dyn FnOnce() + Send>>>,
         /// "Let phones see and use windows".
         pub windows_on: AtomicBool,
+        /// Every phone counts as allowed (a live test serving a real phone).
+        pub approve_all: bool,
         /// The open windows, and the id of the one in front.
         pub windows: Mutex<Vec<WindowEntry>>,
         pub front: Mutex<Option<i64>>,
@@ -763,6 +787,7 @@ pub(crate) mod testing {
                 approval_timeout: APPROVAL_TIMEOUT,
                 while_judging: Mutex::default(),
                 windows_on: AtomicBool::new(true),
+                approve_all: false,
                 windows: Mutex::default(),
                 front: Mutex::default(),
                 focused: Mutex::default(),
@@ -807,7 +832,7 @@ pub(crate) mod testing {
             self.saved.lock().unwrap().push(text);
         }
         fn approved(&self, phone: &str) -> bool {
-            self.approved.lock().unwrap().contains(phone)
+            self.approve_all || self.approved.lock().unwrap().contains(phone)
         }
         fn refused(&self, phone: &str) -> bool {
             let refused = self.refused.lock().unwrap().contains(phone);
