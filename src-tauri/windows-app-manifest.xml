@@ -1,0 +1,21 @@
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <!--
+    Common Controls v6, the same manifest tauri-build embeds by default. It is
+    linked in by build.rs (/MANIFESTINPUT) instead of being added as a resource,
+    so the `cargo test` binary gets it too: without it Windows loads
+    comctl32 v5, which has no TaskDialogIndirect, and the test binary dies
+    before main with STATUS_ENTRYPOINT_NOT_FOUND.
+  -->
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="*"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+</assembly>
