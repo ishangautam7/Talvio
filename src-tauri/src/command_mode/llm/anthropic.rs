@@ -610,9 +610,7 @@ mod tests {
 
     fn contains_key(value: &Value, key: &str) -> bool {
         match value {
-            Value::Object(map) => map
-                .iter()
-                .any(|(k, v)| k == key || contains_key(v, key)),
+            Value::Object(map) => map.iter().any(|(k, v)| k == key || contains_key(v, key)),
             Value::Array(items) => items.iter().any(|v| contains_key(v, key)),
             _ => false,
         }
@@ -656,7 +654,10 @@ mod tests {
             .collect();
         assert_eq!(names, ["open_app", "web_search"]);
         assert_eq!(body["tools"][0]["description"], "The open_app tool.");
-        assert_eq!(body["tools"][0]["input_schema"]["required"], json!(["query"]));
+        assert_eq!(
+            body["tools"][0]["input_schema"]["required"],
+            json!(["query"])
+        );
         assert_eq!(body["tool_choice"], json!({"type": "any"}));
         assert_eq!(body["output_config"], json!({"effort": "low"}));
         assert_eq!(
@@ -916,10 +917,7 @@ mod tests {
     /// A 200 that is not JSON is a decode error, not an empty answer.
     #[test]
     fn a_body_that_is_not_json_is_a_decode_error() {
-        assert!(matches!(
-            parse_response("<html>"),
-            Err(LlmError::Decode(_))
-        ));
+        assert!(matches!(parse_response("<html>"), Err(LlmError::Decode(_))));
     }
 
     /// A server that never answers ends in Timeout, not a hang.

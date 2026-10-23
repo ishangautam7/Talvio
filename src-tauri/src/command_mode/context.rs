@@ -124,7 +124,10 @@ mod tests {
             Some("Inbox - Gmail".into()),
         );
         assert_eq!(context.local_time, "2026-10-22T09:15:00+05:45");
-        assert_eq!(context.local_time_human, "Thursday, October 22, 2026, 9:15 AM");
+        assert_eq!(
+            context.local_time_human,
+            "Thursday, October 22, 2026, 9:15 AM"
+        );
         let rendered = context.render();
         assert!(rendered.contains("Asia/Kathmandu"), "{rendered}");
         assert!(rendered.contains("UTC+05:45"), "{rendered}");

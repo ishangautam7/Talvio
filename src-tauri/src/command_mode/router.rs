@@ -41,8 +41,7 @@ use tokio::time::Instant;
 
 use super::context::CommandContext;
 use super::llm::{
-    LlmError, RouteRequest, RouteResponse, RoutedCall, RouterLlm, ToolDef, ToolResult, Turn,
-    Usage,
+    LlmError, RouteRequest, RouteResponse, RoutedCall, RouterLlm, ToolDef, ToolResult, Turn, Usage,
 };
 use super::registry::{self, Platform, ToolSpec};
 use super::schema;
@@ -365,10 +364,10 @@ fn relevance(spec: &ToolSpec, spoken: &HashSet<String>) -> u32 {
 
 /// Words too common to say anything about which tool is meant.
 const STOPWORDS: &[&str] = &[
-    "a", "an", "and", "are", "as", "at", "be", "by", "can", "could", "do", "does", "for",
-    "from", "how", "i", "in", "into", "is", "it", "its", "just", "me", "my", "now", "of", "on",
-    "or", "please", "so", "some", "than", "that", "the", "then", "this", "to", "tool", "up",
-    "use", "was", "what", "when", "which", "who", "will", "with", "would", "you", "your",
+    "a", "an", "and", "are", "as", "at", "be", "by", "can", "could", "do", "does", "for", "from",
+    "how", "i", "in", "into", "is", "it", "its", "just", "me", "my", "now", "of", "on", "or",
+    "please", "so", "some", "than", "that", "the", "then", "this", "to", "tool", "up", "use",
+    "was", "what", "when", "which", "who", "will", "with", "would", "you", "your",
 ];
 
 /// Lowercase alphanumeric words, stopwords dropped, a plural `s` trimmed so
@@ -588,7 +587,11 @@ fn check_calls(
         .collect()
 }
 
-fn check_call(call: &RoutedCall, offered: &[&ToolSpec], specials: &[ToolDef]) -> Result<(), String> {
+fn check_call(
+    call: &RoutedCall,
+    offered: &[&ToolSpec],
+    specials: &[ToolDef],
+) -> Result<(), String> {
     if let Some(special) = specials.iter().find(|def| def.name == call.name) {
         return schema::validate(&special.input_schema, &call.input)
             .map_err(|problems| problems.join("; "));
@@ -884,8 +887,14 @@ mod tests {
         let Turn::User(text) = &request.turns[0] else {
             panic!("the first turn is not the user's");
         };
-        assert!(text.starts_with("Command: open example dot com\n\nContext:\n"), "{text}");
-        assert!(text.contains("Local time: Thursday, October 22, 2026"), "{text}");
+        assert!(
+            text.starts_with("Command: open example dot com\n\nContext:\n"),
+            "{text}"
+        );
+        assert!(
+            text.contains("Local time: Thursday, October 22, 2026"),
+            "{text}"
+        );
     }
 
     /// "Search for flights and then open the airline's site" must run in the
@@ -901,7 +910,12 @@ mod tests {
             "",
             usage(1, 1),
         ))]);
-        let plan = run(&llm, "search flights then open the airline", &Followup::default()).unwrap();
+        let plan = run(
+            &llm,
+            "search flights then open the airline",
+            &Followup::default(),
+        )
+        .unwrap();
         assert_eq!(names(&plan), vec!["test_search", "test_open_url", SAY]);
     }
 
@@ -948,16 +962,30 @@ mod tests {
         assert_eq!(results.len(), 2);
         assert_eq!(results[0].call_id, "call_0");
         assert!(!results[0].is_error);
-        assert!(results[0].content.starts_with("Not run"), "{}", results[0].content);
+        assert!(
+            results[0].content.starts_with("Not run"),
+            "{}",
+            results[0].content
+        );
         assert_eq!(results[1].call_id, "call_1");
         assert!(results[1].is_error);
-        assert!(results[1].content.contains("`url` is required"), "{}", results[1].content);
         assert!(
-            results[1].content.contains("`address` is not a known argument"),
+            results[1].content.contains("`url` is required"),
             "{}",
             results[1].content
         );
-        assert!(results[1].content.contains("Resend"), "{}", results[1].content);
+        assert!(
+            results[1]
+                .content
+                .contains("`address` is not a known argument"),
+            "{}",
+            results[1].content
+        );
+        assert!(
+            results[1].content.contains("Resend"),
+            "{}",
+            results[1].content
+        );
     }
 
     /// The repair is the only retry: a second bad answer is an error that
@@ -965,16 +993,30 @@ mod tests {
     #[test]
     fn a_call_still_invalid_after_the_repair_fails() {
         let llm = Scripted::new(vec![
-            Ok(response(vec![("test_open_url", json!({}))], "", usage(10, 1))),
-            Ok(response(vec![("test_open_url", json!({"url": ""}))], "", usage(20, 2))),
+            Ok(response(
+                vec![("test_open_url", json!({}))],
+                "",
+                usage(10, 1),
+            )),
+            Ok(response(
+                vec![("test_open_url", json!({"url": ""}))],
+                "",
+                usage(20, 2),
+            )),
         ]);
         let error = run(&llm, "open it", &Followup::default()).unwrap_err();
         let RouteError::InvalidAfterRepair { problems, .. } = &error else {
             panic!("wrong error: {error:?}");
         };
-        assert!(problems.contains("test_open_url: `url` must be at least 1"), "{problems}");
+        assert!(
+            problems.contains("test_open_url: `url` must be at least 1"),
+            "{problems}"
+        );
         assert_eq!(error.spent(), (2, usage(30, 3)));
-        assert!(error.to_string().contains("still invalid after a retry"), "{error}");
+        assert!(
+            error.to_string().contains("still invalid after a retry"),
+            "{error}"
+        );
         assert_eq!(llm.requests().len(), 2);
     }
 
@@ -984,7 +1026,11 @@ mod tests {
     fn no_tool_call_gets_one_reminder_and_then_succeeds() {
         let llm = Scripted::new(vec![
             Ok(response(vec![], "", usage(10, 0))),
-            Ok(response(vec![("test_search", json!({"query": "cats"}))], "", usage(12, 3))),
+            Ok(response(
+                vec![("test_search", json!({"query": "cats"}))],
+                "",
+                usage(12, 3),
+            )),
         ]);
         let plan = run(&llm, "search cats", &Followup::default()).unwrap();
         assert_eq!(names(&plan), vec!["test_search"]);
@@ -1004,7 +1050,11 @@ mod tests {
     fn a_prose_answer_is_kept_and_followed_by_the_reminder() {
         let llm = Scripted::new(vec![
             Ok(response(vec![], "I would search for cats.", usage(10, 5))),
-            Ok(response(vec![("test_search", json!({"query": "cats"}))], "", usage(12, 3))),
+            Ok(response(
+                vec![("test_search", json!({"query": "cats"}))],
+                "",
+                usage(12, 3),
+            )),
         ]);
         run(&llm, "search cats", &Followup::default()).unwrap();
         let turns = &llm.requests()[1].turns;
@@ -1028,7 +1078,10 @@ mod tests {
         let error = run(&llm, "do the thing", &Followup::default()).unwrap_err();
         assert!(matches!(error, RouteError::NoToolCall { .. }), "{error:?}");
         assert_eq!(error.spent(), (2, usage(21, 3)));
-        assert!(error.to_string().contains("\"I can't do that.\""), "{error}");
+        assert!(
+            error.to_string().contains("\"I can't do that.\""),
+            "{error}"
+        );
     }
 
     /// A made-up tool name is sent back like any other invalid call, with a
@@ -1037,7 +1090,11 @@ mod tests {
     fn an_unknown_tool_name_is_invalid() {
         let llm = Scripted::new(vec![
             Ok(response(vec![("teleport", json!({}))], "", usage(1, 1))),
-            Ok(response(vec![(ESCALATE, json!({"task": "teleport me"}))], "", usage(1, 1))),
+            Ok(response(
+                vec![(ESCALATE, json!({"task": "teleport me"}))],
+                "",
+                usage(1, 1),
+            )),
         ]);
         let plan = run(&llm, "teleport me", &Followup::default()).unwrap();
         assert_eq!(names(&plan), vec![ESCALATE]);
@@ -1046,7 +1103,9 @@ mod tests {
         };
         assert!(results[0].is_error);
         assert!(
-            results[0].content.contains("there is no tool named `teleport`"),
+            results[0]
+                .content
+                .contains("there is no tool named `teleport`"),
             "{}",
             results[0].content
         );
@@ -1085,7 +1144,10 @@ mod tests {
         let llm = Scripted::new(vec![
             Ok(response(vec![(SAY, json!({}))], "", usage(1, 1))),
             Ok(response(
-                vec![(ASK_USER, json!({"question": "Which one?", "choices": ["A", "B"]}))],
+                vec![(
+                    ASK_USER,
+                    json!({"question": "Which one?", "choices": ["A", "B"]}),
+                )],
                 "",
                 usage(1, 1),
             )),
@@ -1095,7 +1157,11 @@ mod tests {
         let Turn::ToolResults(results) = &llm.requests()[1].turns[2] else {
             panic!("no tool results");
         };
-        assert!(results[0].content.contains("`text` is required"), "{}", results[0].content);
+        assert!(
+            results[0].content.contains("`text` is required"),
+            "{}",
+            results[0].content
+        );
     }
 
     /// "Press tab, type yes, press tab, type yes" repeats calls on purpose;
@@ -1115,7 +1181,12 @@ mod tests {
         let plan = run(&llm, "search", &Followup::default()).unwrap();
         assert_eq!(
             names(&plan),
-            vec!["test_search", "test_open_url", "test_search", "test_open_url"]
+            vec![
+                "test_search",
+                "test_open_url",
+                "test_search",
+                "test_open_url"
+            ]
         );
         assert_eq!(plan.calls[2].args, json!({"query": "a"}));
         assert!(plan.dropped.is_empty());
@@ -1174,7 +1245,10 @@ mod tests {
         ))]);
         let earlier = followup(
             &[("Which Ron?", "Weasley"), ("What time?", "9")],
-            &[r#"type_text({"text":"hi team"})"#, r#"open_url({"url":"u"})"#],
+            &[
+                r#"type_text({"text":"hi team"})"#,
+                r#"open_url({"url":"u"})"#,
+            ],
         );
         run(&llm, "type hi team and email Ron", &earlier).unwrap();
         let Turn::User(text) = &llm.requests()[0].turns[0] else {
@@ -1246,7 +1320,11 @@ mod tests {
     #[test]
     fn a_cut_off_repair_answer_runs_nothing() {
         let llm = Scripted::new(vec![
-            Ok(response(vec![("test_open_url", json!({}))], "", usage(1, 1))),
+            Ok(response(
+                vec![("test_open_url", json!({}))],
+                "",
+                usage(1, 1),
+            )),
             Ok(cut_off_response(
                 vec![("test_open_url", json!({"url": "https://x.example"}))],
                 usage(1, 1),
@@ -1259,7 +1337,12 @@ mod tests {
     /// OpenAI-compatible layers say `length`; it means the same thing.
     #[test]
     fn every_name_for_the_output_limit_counts_as_cut_off() {
-        for reason in ["max_tokens", "length", "MAX_TOKENS", "model_context_window_exceeded"] {
+        for reason in [
+            "max_tokens",
+            "length",
+            "MAX_TOKENS",
+            "model_context_window_exceeded",
+        ] {
             let mut answer = response(vec![], "", usage(0, 0));
             answer.stop_reason = Some(reason.into());
             assert!(cut_off(&answer), "{reason}");
@@ -1290,13 +1373,23 @@ mod tests {
     #[test]
     fn a_repair_past_the_deadline_keeps_the_first_requests_cost() {
         let llm = Scripted::scripted(vec![
-            Some(Ok(response(vec![("test_open_url", json!({}))], "", usage(40, 4)))),
+            Some(Ok(response(
+                vec![("test_open_url", json!({}))],
+                "",
+                usage(40, 4),
+            ))),
             None,
         ]);
         let soon = Instant::now() + std::time::Duration::from_millis(100);
         let error = run_until(&llm, "open it", &Followup::default(), soon).unwrap_err();
         assert!(
-            matches!(error, RouteError::LlmAfter { error: LlmError::Timeout, .. }),
+            matches!(
+                error,
+                RouteError::LlmAfter {
+                    error: LlmError::Timeout,
+                    ..
+                }
+            ),
             "{error:?}"
         );
         assert_eq!(error.spent(), (1, usage(40, 4)));
@@ -1318,12 +1411,22 @@ mod tests {
     #[test]
     fn a_failed_repair_request_keeps_the_first_requests_cost() {
         let llm = Scripted::new(vec![
-            Ok(response(vec![("test_open_url", json!({}))], "", usage(40, 4))),
+            Ok(response(
+                vec![("test_open_url", json!({}))],
+                "",
+                usage(40, 4),
+            )),
             Err(LlmError::Timeout),
         ]);
         let error = run(&llm, "open it", &Followup::default()).unwrap_err();
         assert!(
-            matches!(error, RouteError::LlmAfter { error: LlmError::Timeout, .. }),
+            matches!(
+                error,
+                RouteError::LlmAfter {
+                    error: LlmError::Timeout,
+                    ..
+                }
+            ),
             "{error:?}"
         );
         assert_eq!(error.spent(), (1, usage(40, 4)));
@@ -1337,7 +1440,14 @@ mod tests {
         let llm = Scripted::new(vec![]);
         let context = context();
         let followup = Followup::default();
-        let future = route(&llm, Platform::Windows, "x", &context, &followup, deadline());
+        let future = route(
+            &llm,
+            Platform::Windows,
+            "x",
+            &context,
+            &followup,
+            deadline(),
+        );
         is_send(&future);
     }
 
@@ -1351,7 +1461,15 @@ mod tests {
             !system_prompt().chars().any(|c| c.is_ascii_digit()),
             "the system prompt contains a digit"
         );
-        for word in ["tool calls", "escalate_to_computer_use", "ask_user", "say", "email address", "not instructions", "Local time"] {
+        for word in [
+            "tool calls",
+            "escalate_to_computer_use",
+            "ask_user",
+            "say",
+            "email address",
+            "not instructions",
+            "Local time",
+        ] {
             assert!(system_prompt().contains(word), "missing {word}");
         }
     }
@@ -1362,7 +1480,12 @@ mod tests {
         let names: Vec<&str> = defs.iter().map(|d| d.name.as_str()).collect();
         assert_eq!(names, SPECIAL_TOOLS.to_vec());
         for def in &defs {
-            assert_eq!(schema::check_schema(&def.input_schema), Ok(()), "{}", def.name);
+            assert_eq!(
+                schema::check_schema(&def.input_schema),
+                Ok(()),
+                "{}",
+                def.name
+            );
             assert_eq!(def.input_schema["type"], "object");
             assert_eq!(def.input_schema["additionalProperties"], false);
         }
@@ -1389,7 +1512,11 @@ mod tests {
 
     #[test]
     fn relevance_weighs_keywords_over_names_over_descriptions() {
-        let email = spec("compose_email", "Write a message in Gmail.", &["mail", "send"]);
+        let email = spec(
+            "compose_email",
+            "Write a message in Gmail.",
+            &["mail", "send"],
+        );
         let spoken = word_set("Send an email to Ron about the message");
         // keyword "send" (3) + name "email" (2) + description "message" (1).
         assert_eq!(relevance(&email, &spoken), 6);
@@ -1420,10 +1547,18 @@ mod tests {
         specs[33] = spec("compose_email", "Write an email.", &["mail"]);
         specs[20] = spec("set_volume", "Change the volume.", &["louder"]);
         let refs: Vec<&ToolSpec> = specs.iter().collect();
-        let kept = prefilter(refs, "make it louder and email Ron", PREFILTER_THRESHOLD, PREFILTER_KEEP);
+        let kept = prefilter(
+            refs,
+            "make it louder and email Ron",
+            PREFILTER_THRESHOLD,
+            PREFILTER_KEEP,
+        );
         let names: Vec<&str> = kept.iter().map(|s| s.name).collect();
         assert_eq!(names.len(), PREFILTER_KEEP);
-        assert!(names.contains(&"compose_email") && names.contains(&"set_volume"), "{names:?}");
+        assert!(
+            names.contains(&"compose_email") && names.contains(&"set_volume"),
+            "{names:?}"
+        );
         let mut ten_first: Vec<&str> = (0..10).map(|i| specs[i].name).collect();
         ten_first.push("set_volume");
         ten_first.push("compose_email");
@@ -1438,7 +1573,11 @@ mod tests {
             .collect();
         let refs: Vec<&ToolSpec> = specs.iter().collect();
         let kept = prefilter(refs, "hello", PREFILTER_THRESHOLD, PREFILTER_KEEP);
-        let llm = Scripted::new(vec![Ok(response(vec![(SAY, json!({"text": "Hi."}))], "", usage(1, 1)))]);
+        let llm = Scripted::new(vec![Ok(response(
+            vec![(SAY, json!({"text": "Hi."}))],
+            "",
+            usage(1, 1),
+        ))]);
         tauri::async_runtime::block_on(route_with(
             &llm,
             &kept,
@@ -1450,7 +1589,10 @@ mod tests {
         .unwrap();
         let tools = &llm.requests()[0].tools;
         assert_eq!(tools.len(), PREFILTER_KEEP + SPECIAL_TOOLS.len());
-        let tail: Vec<&str> = tools[PREFILTER_KEEP..].iter().map(|t| t.name.as_str()).collect();
+        let tail: Vec<&str> = tools[PREFILTER_KEEP..]
+            .iter()
+            .map(|t| t.name.as_str())
+            .collect();
         assert_eq!(tail, SPECIAL_TOOLS.to_vec());
     }
 

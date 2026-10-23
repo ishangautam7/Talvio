@@ -113,10 +113,15 @@ pub struct RouteResponse {
 #[derive(Debug, Clone, PartialEq)]
 pub enum LlmError {
     /// No key saved for a provider that needs one.
-    MissingApiKey { provider: String },
+    MissingApiKey {
+        provider: String,
+    },
     /// The provider or model is not set, or cannot route (no HTTP endpoint).
     NotConfigured(String),
-    Http { status: u16, detail: String },
+    Http {
+        status: u16,
+        detail: String,
+    },
     Transport(String),
     Decode(String),
     /// The model declined (Anthropic `stop_reason: "refusal"`).
@@ -144,8 +149,10 @@ impl fmt::Display for LlmError {
 
 /// A model that can route a command to tools.
 pub trait RouterLlm: Send + Sync {
-    fn route<'a>(&'a self, request: &'a RouteRequest)
-        -> BoxFuture<'a, Result<RouteResponse, LlmError>>;
+    fn route<'a>(
+        &'a self,
+        request: &'a RouteRequest,
+    ) -> BoxFuture<'a, Result<RouteResponse, LlmError>>;
 
     /// "provider/model", for logs and the cost table.
     fn label(&self) -> String;
@@ -157,13 +164,35 @@ pub trait RouterLlm: Send + Sync {
 /// Build the router the settings ask for: native Anthropic when the provider
 /// is `anthropic`, the OpenAI-compatible client for any other HTTP provider.
 pub fn router_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError> {
-    let provider_id = settings.command_router_provider_id.trim();
     let model = settings.command_router_model.trim();
-    if provider_id.is_empty() {
-        return Err(LlmError::NotConfigured("no router provider is selected".into()));
-    }
     if model.is_empty() {
-        return Err(LlmError::NotConfigured("no router model is selected".into()));
+        return Err(LlmError::NotConfigured(
+            "no router model is selected".into(),
+        ));
+    }
+    llm_for(settings, model)
+}
+
+/// Build the model the tier-2 agent runs on: the router's provider and key,
+/// with `command_agent_model` (a stronger model than the router's, since it
+/// plans over many steps). An empty agent model means the default.
+pub fn agent_llm_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError> {
+    let model = settings.command_agent_model.trim();
+    let model = if model.is_empty() {
+        crate::settings::DEFAULT_COMMAND_AGENT_MODEL
+    } else {
+        model
+    };
+    llm_for(settings, model)
+}
+
+/// [`router_for`] and [`agent_llm_for`] with the model already chosen.
+fn llm_for(settings: &AppSettings, model: &str) -> Result<Box<dyn RouterLlm>, LlmError> {
+    let provider_id = settings.command_router_provider_id.trim();
+    if provider_id.is_empty() {
+        return Err(LlmError::NotConfigured(
+            "no router provider is selected".into(),
+        ));
     }
     let provider = settings
         .post_process_provider(provider_id)

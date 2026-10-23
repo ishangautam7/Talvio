@@ -173,9 +173,13 @@ mod tests {
 
     #[test]
     fn two_equally_good_candidates_are_a_question() {
-        let Pick::Ambiguous(options) =
-            pick_name("teams", &["Microsoft Teams (work or school)", "Microsoft Teams classic"])
-        else {
+        let Pick::Ambiguous(options) = pick_name(
+            "teams",
+            &[
+                "Microsoft Teams (work or school)",
+                "Microsoft Teams classic",
+            ],
+        ) else {
             panic!("expected ambiguity");
         };
         assert_eq!(options.len(), 2);
@@ -183,7 +187,10 @@ mod tests {
 
     #[test]
     fn nothing_close_is_none() {
-        assert_eq!(pick_name("photoshop", &["Notepad", "Calculator"]), Pick::None);
+        assert_eq!(
+            pick_name("photoshop", &["Notepad", "Calculator"]),
+            Pick::None
+        );
         assert_eq!(pick_name("", &["Notepad"]), Pick::None);
     }
 

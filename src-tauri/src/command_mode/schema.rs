@@ -101,7 +101,9 @@ fn matches_type(expected: &str, value: &Value) -> bool {
         "integer" => {
             value.is_i64()
                 || value.is_u64()
-                || value.as_f64().is_some_and(|f| f.fract() == 0.0 && f.is_finite())
+                || value
+                    .as_f64()
+                    .is_some_and(|f| f.fract() == 0.0 && f.is_finite())
         }
         "number" => value.is_number(),
         _ => false,
@@ -134,7 +136,10 @@ fn check(schema: &Value, value: &Value, path: &str, problems: &mut Vec<String>) 
         if !allowed.contains(value) {
             let options: Vec<String> = allowed
                 .iter()
-                .map(|v| v.as_str().map_or_else(|| v.to_string(), |s| format!("\"{s}\"")))
+                .map(|v| {
+                    v.as_str()
+                        .map_or_else(|| v.to_string(), |s| format!("\"{s}\""))
+                })
                 .collect();
             problems.push(format!(
                 "{} must be one of {}",
@@ -261,7 +266,10 @@ mod tests {
     #[test]
     fn a_valid_call_passes() {
         assert_eq!(
-            validate(&email_schema(), &json!({"to": "Ron", "count": 2, "cc": ["a"]})),
+            validate(
+                &email_schema(),
+                &json!({"to": "Ron", "count": 2, "cc": ["a"]})
+            ),
             Ok(())
         );
     }
@@ -323,7 +331,9 @@ mod tests {
     fn check_schema_refuses_keywords_it_would_ignore() {
         assert!(check_schema(&email_schema()).is_ok());
         assert!(check_schema(&json!({"type": "string", "pattern": "^a"})).is_err());
-        assert!(check_schema(&json!({"type": "object", "properties": {"a": {"oneOf": []}}})).is_err());
+        assert!(
+            check_schema(&json!({"type": "object", "properties": {"a": {"oneOf": []}}})).is_err()
+        );
         assert!(check_schema(&json!({"type": "object", "additionalProperties": true})).is_err());
     }
 }
