@@ -27,6 +27,8 @@ import {
 } from "./http";
 import { Hub, type SocketData } from "./hub";
 import { addressKey, RateLimit } from "./rateLimit";
+import { deleteSecret, listSecrets, putSecret, SecretBox } from "./secrets";
+import { resolveSecretsKey } from "./secretsKey";
 
 export interface Options {
   port: number;
@@ -39,6 +41,8 @@ export interface Options {
   google: { clientId: string; clientSecret: string; tokenUrl?: string } | null;
   /** Take the client address from X-Forwarded-For (behind exactly one reverse proxy). */
   trustProxy: boolean;
+  /** Base64 of the 32-byte key for stored API keys (`TALVIO_SECRETS_KEY`); unset uses `secrets.key` beside the database. */
+  secretsKey?: string;
   /** Seconds without a byte from a client before its socket is dropped (75; tests shorten it). */
   idleSeconds?: number;
   now?: () => number;
@@ -53,6 +57,7 @@ export interface Ctx {
   publicUrl: string;
   google: GoogleConfig | null;
   loginFailures: RateLimit;
+  secrets: SecretBox;
 }
 
 type Route = (
@@ -77,6 +82,7 @@ const routes = new Map<string, Route>([
   ["GET /v1/me", (req, ctx) => me(req, ctx)],
   ["DELETE /v1/me", (req, ctx) => deleteMe(req, ctx)],
   ["GET /v1/devices", (req, ctx) => listDevices(req, ctx)],
+  ["GET /v1/secrets", (req, ctx) => listSecrets(req, ctx)],
   [
     "GET /v1/ws",
     (req, ctx, _url, server) => {
@@ -107,10 +113,17 @@ const PER_IP_LIMITED = new Set([
 ]);
 
 const DEVICE_PATH = /^\/v1\/devices\/([^/]+)$/;
+const SECRET_PATH = /^\/v1\/secrets\/([^/]+)$/;
 
 export function startServer(options: Options) {
   const now = options.now ?? Date.now;
   const log = options.log ?? console.log;
+  // Resolved before the database opens, so a bad key stops the start with nothing touched.
+  const secretsKey = resolveSecretsKey(
+    options.databasePath,
+    options.secretsKey,
+  );
+  log(`Secrets key: ${secretsKey.source}`);
   const store = new Store(options.databasePath);
   // shortcut: presence (in Hub) and both rate limits live in this process's
   // memory, so run a single instance; move them to a shared store such as
@@ -126,6 +139,7 @@ export function startServer(options: Options) {
     publicUrl: options.publicUrl,
     google: options.google && { tokenUrl: GOOGLE_TOKEN_URL, ...options.google },
     loginFailures,
+    secrets: new SecretBox(secretsKey.key),
   };
 
   function clientIp(req: Request, server: Server<SocketData>): string {
@@ -167,6 +181,11 @@ export function startServer(options: Options) {
     const deviceId =
       req.method === "DELETE" ? DEVICE_PATH.exec(url.pathname)?.[1] : undefined;
     if (deviceId) return deleteDevice(req, ctx, deviceId);
+    const secretName = SECRET_PATH.exec(url.pathname)?.[1];
+    if (secretName && req.method === "PUT")
+      return putSecret(req, ctx, secretName);
+    if (secretName && req.method === "DELETE")
+      return deleteSecret(req, ctx, url, secretName);
     throw notFound();
   }
 

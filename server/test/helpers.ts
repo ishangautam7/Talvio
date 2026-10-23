@@ -33,6 +33,8 @@ export async function harness(
     google?: boolean;
     trustProxy?: boolean;
     idleSeconds?: number;
+    databasePath?: string;
+    secretsKey?: string;
   } = {},
 ) {
   let time = Date.UTC(2026, 0, 1);
@@ -40,7 +42,8 @@ export async function harness(
   const app = startServer({
     port: 0,
     hostname: "127.0.0.1",
-    databasePath: ":memory:",
+    databasePath: options.databasePath ?? ":memory:",
+    secretsKey: options.secretsKey,
     publicUrl: PUBLIC_URL,
     google: google && {
       clientId: CLIENT_ID,

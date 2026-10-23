@@ -5,6 +5,8 @@ export class ApiError extends Error {
     readonly code: string,
     message: string,
     readonly headers: Record<string, string> = {},
+    /** Extra top-level fields beside `error`, such as the current record of a `stale` write. */
+    readonly extra: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -54,7 +56,7 @@ export function json(
 
 export function errorResponse(error: ApiError): Response {
   return json(
-    { error: { code: error.code, message: error.message } },
+    { ...error.extra, error: { code: error.code, message: error.message } },
     error.status,
     error.headers,
   );

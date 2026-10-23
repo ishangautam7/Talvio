@@ -36,6 +36,7 @@ const app = startServer({
   publicUrl,
   google,
   trustProxy: env.TRUST_PROXY === "1",
+  secretsKey: env.TALVIO_SECRETS_KEY,
 });
 console.log(
   `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"})`,
