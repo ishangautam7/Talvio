@@ -1,8 +1,8 @@
 use crate::TranscriptionCoordinator;
 #[cfg(unix)]
 use log::debug;
-use log::warn;
-use tauri::{AppHandle, Manager};
+use log::{info, warn};
+use tauri::{AppHandle, Emitter, Manager};
 
 #[cfg(target_os = "macos")]
 use signal_hook::consts::SIGUSR1;
@@ -64,6 +64,114 @@ pub fn toggle_call(app: &AppHandle, source: &str) {
     }
 }
 
+/// The event a command run from outside the main window reports on, so the
+/// Settings → Debug command box can show it. Carries a `CommandReport`.
+pub const COMMAND_REPORT_EVENT: &str = "command-mode-report";
+
+/// Run a typed command-mode request from outside the app (`--run-command`).
+///
+/// Never blocks the caller: on Windows the single-instance callback runs in
+/// the plugin's window procedure on the main thread, with the second instance
+/// waiting in `SendMessageW`, and a command is an LLM call plus whatever the
+/// tools do. Gated on the command-mode switch the way `--toggle-call` is on
+/// the assistant's, because a script must not act in the user's apps with
+/// the feature off. `--dry-run` forces a dry run; without it the saved
+/// setting decides, since CLI flags never write settings.
+///
+/// A real run first waits for keyboard control (`input::EnigoState`), which
+/// only exists once the main window has mounted and called
+/// `initialize_enigo`. On a cold start (`zynveliq --run-command ...` with no
+/// instance running) this function is called from setup, a second or more
+/// before that, and a command that types or presses keys would otherwise fail
+/// with "Keyboard control isn't ready yet" right after its router call. Rust
+/// does not create it itself: `initialize_core_logic` leaves that to the
+/// frontend so macOS asks for Accessibility only once onboarding is done. The
+/// wait is bounded by `KEYBOARD_WAIT`; past it the command runs anyway and a
+/// keyboard tool reports its own error, which is better than silently
+/// dropping a command nothing will ever unblock (onboarding not finished).
+pub fn run_command(app: &AppHandle, text: String, dry_run: bool, source: &str) {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        warn!("Ignoring an empty command from {source}");
+        return;
+    }
+    let settings = crate::settings::get_settings(app);
+    if !settings.command_mode_enabled {
+        warn!("Ignoring a command from {source}: command mode is switched off");
+        return;
+    }
+    let app = app.clone();
+    let dry_run_override = dry_run.then_some(true);
+    // A dry run sends no keystrokes, so it has nothing to wait for.
+    let needs_keyboard = !(dry_run || settings.command_dry_run);
+    let source = source.to_string();
+    tauri::async_runtime::spawn(async move {
+        if needs_keyboard && app.try_state::<crate::input::EnigoState>().is_none() {
+            let started = std::time::Instant::now();
+            let ready = wait_until(KEYBOARD_WAIT, KEYBOARD_POLL, || {
+                app.try_state::<crate::input::EnigoState>().is_some()
+            })
+            .await;
+            if ready {
+                info!(
+                    "Command from {source} waited {} ms for keyboard control",
+                    started.elapsed().as_millis()
+                );
+            } else {
+                warn!(
+                    "Keyboard control still not ready after {} s; running the command from {source} anyway",
+                    KEYBOARD_WAIT.as_secs()
+                );
+            }
+        }
+        let report = crate::command_mode::run_command(
+            &app,
+            &text,
+            crate::command_mode::CommandOrigin::Cli,
+            dry_run_override,
+            None,
+        )
+        .await;
+        // `run_command` has already logged its one-line summary (status,
+        // tools, tokens); the feedback text is not logged again, since it can
+        // quote the user's own words.
+        if let Err(e) = app.emit(COMMAND_REPORT_EVENT, &report) {
+            warn!("Could not send the command report to the windows: {e}");
+        }
+    });
+}
+
+/// The longest a command waits for keyboard control before it runs anyway. A
+/// cold start reaches it in a few seconds (webview load, then the frontend's
+/// `initialize_enigo`); fifteen leaves room for a slow first launch without
+/// leaving a script hanging when keyboard control will never come.
+const KEYBOARD_WAIT: std::time::Duration = std::time::Duration::from_secs(15);
+
+/// How often that wait checks. Short enough to add no noticeable delay once
+/// keyboard control appears; the check is a map lookup.
+const KEYBOARD_POLL: std::time::Duration = std::time::Duration::from_millis(100);
+
+/// Wait until `ready` answers true, checking every `poll`, for at most
+/// `limit`. Answers whether it became ready. Checked once more at the limit,
+/// so something that arrived during the last sleep still counts.
+async fn wait_until(
+    limit: std::time::Duration,
+    poll: std::time::Duration,
+    mut ready: impl FnMut() -> bool,
+) -> bool {
+    let deadline = std::time::Instant::now() + limit;
+    loop {
+        if ready() {
+            return true;
+        }
+        let now = std::time::Instant::now();
+        if now >= deadline {
+            return false;
+        }
+        tokio::time::sleep(poll.min(deadline - now)).await;
+    }
+}
+
 /// Listen for Unix signals that remotely toggle transcription.
 ///
 /// SIGUSR2 toggles plain transcription on every Unix platform. SIGUSR1
@@ -119,4 +227,46 @@ pub fn setup_signal_handler(app_handle: AppHandle) {
             send_transcription_input(&app_handle, binding_id, signal_name);
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::wait_until;
+    use std::time::Duration;
+
+    /// Something already ready costs no wait at all: the single-instance path
+    /// on a running app must not be slowed by the cold-start wait.
+    #[tokio::test]
+    async fn something_already_ready_is_not_waited_for() {
+        let started = std::time::Instant::now();
+        assert!(wait_until(Duration::from_secs(5), Duration::from_millis(50), || true).await);
+        assert!(started.elapsed() < Duration::from_millis(50));
+    }
+
+    /// Keyboard control that appears during the wait ends it: the command
+    /// runs as soon as it can type, not after the whole limit.
+    #[tokio::test]
+    async fn readiness_that_arrives_mid_wait_ends_the_wait() {
+        let mut checks = 0;
+        let started = std::time::Instant::now();
+        let ready = wait_until(Duration::from_secs(5), Duration::from_millis(5), || {
+            checks += 1;
+            checks >= 3
+        })
+        .await;
+        assert!(ready);
+        assert_eq!(checks, 3);
+        assert!(started.elapsed() < Duration::from_secs(1));
+    }
+
+    /// The wait is bounded: when keyboard control never comes (onboarding not
+    /// finished), it gives up so the command still runs and reports why.
+    #[tokio::test]
+    async fn the_wait_gives_up_at_the_limit() {
+        let started = std::time::Instant::now();
+        assert!(!wait_until(Duration::from_millis(40), Duration::from_millis(10), || false).await);
+        let waited = started.elapsed();
+        assert!(waited >= Duration::from_millis(40));
+        assert!(waited < Duration::from_secs(1));
+    }
 }

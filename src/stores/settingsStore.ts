@@ -293,6 +293,18 @@ const settingUpdaters: {
   account_server_url: (value) => commands.setAccountServerUrl(value as string),
   remote_input_enabled: (value) =>
     commands.setRemoteInputEnabled(value as boolean),
+  command_mode_enabled: (value) =>
+    commands.changeCommandModeEnabledSetting(value as boolean),
+  command_router_provider_id: (value) =>
+    commands.changeCommandRouterProviderIdSetting(value as string),
+  command_router_model: (value) =>
+    commands.changeCommandRouterModelSetting(value as string),
+  command_dry_run: (value) =>
+    commands.changeCommandDryRunSetting(value as boolean),
+  command_google_account: (value) =>
+    commands.changeCommandGoogleAccountSetting(value as string),
+  command_search_url: (value) =>
+    commands.changeCommandSearchUrlSetting(value as string),
 };
 
 export const useSettingsStore = create<SettingsStore>()(

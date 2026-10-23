@@ -2038,6 +2038,52 @@ pub struct AppSettings {
     /// leave the account are dropped.
     #[serde(default)]
     pub account_approved_devices: Vec<String>,
+    /// Command mode: say what you want done and the app does it on screen
+    /// (`command_mode/`). Off by default, because a command acts in the
+    /// user's apps and sends the transcript to the router's provider.
+    #[serde(default)]
+    pub command_mode_enabled: bool,
+    /// The provider (an id from `post_process_providers`) that routes a
+    /// command to a tool. Its key is the one already saved for that provider.
+    #[serde(default = "default_command_router_provider_id")]
+    pub command_router_provider_id: String,
+    /// The model that routes a command: small and fast, since every command
+    /// costs one call to it.
+    #[serde(default = "default_command_router_model")]
+    pub command_router_model: String,
+    /// Show what a command would do instead of doing it. The Debug box and
+    /// `--dry-run` can still override it for one command.
+    #[serde(default)]
+    pub command_dry_run: bool,
+    /// The Google account Gmail and Calendar links open in, sent as
+    /// `authuser=`. Empty means the browser's default Google account.
+    #[serde(default)]
+    pub command_google_account: String,
+    /// The search page a web search opens; `{query}` is replaced with the
+    /// URL-encoded query.
+    #[serde(default = "default_command_search_url")]
+    pub command_search_url: String,
+}
+
+/// The provider command mode routes with on a new install.
+pub const DEFAULT_COMMAND_ROUTER_PROVIDER_ID: &str = "anthropic";
+/// The router model on a new install (docs/command-mode-plan.md §5).
+pub const DEFAULT_COMMAND_ROUTER_MODEL: &str = "claude-haiku-5-5";
+/// The search page `web_search` opens when none is set.
+pub const DEFAULT_COMMAND_SEARCH_URL: &str = "https://www.google.com/search?q={query}";
+/// The placeholder a search URL must contain.
+pub const COMMAND_SEARCH_QUERY_PLACEHOLDER: &str = "{query}";
+
+fn default_command_router_provider_id() -> String {
+    DEFAULT_COMMAND_ROUTER_PROVIDER_ID.to_string()
+}
+
+fn default_command_router_model() -> String {
+    DEFAULT_COMMAND_ROUTER_MODEL.to_string()
+}
+
+fn default_command_search_url() -> String {
+    DEFAULT_COMMAND_SEARCH_URL.to_string()
 }
 
 fn default_model() -> String {
@@ -4484,6 +4530,12 @@ pub fn get_default_settings() -> AppSettings {
         account_discovered_server: String::new(),
         remote_input_enabled: true,
         account_approved_devices: Vec::new(),
+        command_mode_enabled: false,
+        command_router_provider_id: default_command_router_provider_id(),
+        command_router_model: default_command_router_model(),
+        command_dry_run: false,
+        command_google_account: String::new(),
+        command_search_url: default_command_search_url(),
     }
 }
 
@@ -8137,5 +8189,40 @@ mod tests {
         let first = serde_json::to_value(launch_with(used_2_0_1_store())).unwrap();
         let second = serde_json::to_value(launch_with(first.clone())).unwrap();
         assert_eq!(first, second);
+    }
+
+    /// Command mode is opt-in and routes with Anthropic's small model; the
+    /// other command settings start empty or on Google, so a new install
+    /// acts in nobody's name until the user turns it on.
+    #[test]
+    fn command_mode_settings_start_off_with_the_documented_defaults() {
+        let settings = get_default_settings();
+        assert!(!settings.command_mode_enabled);
+        assert_eq!(settings.command_router_provider_id, "anthropic");
+        assert_eq!(settings.command_router_model, "claude-haiku-5-5");
+        assert!(!settings.command_dry_run);
+        assert_eq!(settings.command_google_account, "");
+        assert_eq!(
+            settings.command_search_url,
+            "https://www.google.com/search?q={query}"
+        );
+        assert!(settings
+            .command_search_url
+            .contains(COMMAND_SEARCH_QUERY_PLACEHOLDER));
+    }
+
+    /// A store saved before command mode existed loads with the same
+    /// defaults a new install gets, rather than empty provider and model ids.
+    #[test]
+    fn a_store_from_before_command_mode_gets_its_defaults() {
+        let after = launch_with(used_2_0_1_store());
+        assert!(!after.command_mode_enabled);
+        assert_eq!(
+            after.command_router_provider_id,
+            DEFAULT_COMMAND_ROUTER_PROVIDER_ID
+        );
+        assert_eq!(after.command_router_model, DEFAULT_COMMAND_ROUTER_MODEL);
+        assert_eq!(after.command_search_url, DEFAULT_COMMAND_SEARCH_URL);
+        assert_eq!(after.command_google_account, "");
     }
 }

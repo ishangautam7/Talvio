@@ -143,6 +143,82 @@ fn prepare_worker_thread() {
     windows::prepare_thread();
 }
 
+/// Set the default output's volume, 0.0 to 1.0 (clamped), as the taskbar or
+/// menu-bar slider would.
+///
+/// For command mode ("set the volume to 40"), which needs an absolute level the
+/// volume keys cannot give. It has nothing to do with ducking: it opens the
+/// device afresh, changes it once and lets it go, and knows nothing of a
+/// recording that has the audio lowered. Callers run after the recording's
+/// [`Restored`] has settled; a level set while audio is still ducked would be
+/// read by the restore as the user's own change and kept (see [`MOVED`]).
+///
+/// Blocking, and safe from any thread except the one that must not block: the
+/// work runs on a short-lived thread of its own, because on Windows the
+/// endpoint is a COM object that needs a thread in the multithreaded apartment,
+/// and on Linux and macOS it shells out to a tool that can take a moment.
+pub fn set_output_volume(level: f32) -> Result<(), String> {
+    let level = checked_level(level)?;
+    on_fresh_output(move |output| {
+        if output.set_level(level) {
+            Ok(())
+        } else {
+            Err("The speakers would not take that volume.".to_string())
+        }
+    })
+}
+
+/// Mute or unmute the default output. Same rules as [`set_output_volume`]:
+/// for command mode, independent of ducking, blocking, any non-main thread.
+pub fn set_output_muted(muted: bool) -> Result<(), String> {
+    on_fresh_output(move |output| {
+        if output.set_muted(muted) {
+            Ok(())
+        } else if muted {
+            Err("The speakers would not mute.".to_string())
+        } else {
+            Err("The speakers would not unmute.".to_string())
+        }
+    })
+}
+
+/// A level fit for [`OutputVolume::set_level`]: clamped to 0.0..=1.0, and a
+/// NaN or infinity refused rather than passed on, since `clamp` keeps a NaN.
+fn checked_level(level: f32) -> Result<f32, String> {
+    if level.is_finite() {
+        Ok(level.clamp(0.0, 1.0))
+    } else {
+        Err("That is not a volume level I can set.".to_string())
+    }
+}
+
+/// Run `change` against the default output on a thread of its own, opened
+/// fresh for this one call (macOS refuses a change on a device that is no
+/// longer the default, so a held one could go stale), and wait for it.
+fn on_fresh_output<F>(change: F) -> Result<(), String>
+where
+    F: FnOnce(&dyn OutputVolume) -> Result<(), String> + Send + 'static,
+{
+    let worker = thread::Builder::new()
+        .name("output-volume".into())
+        .spawn(move || {
+            // The thread ends right after, so it never leaves the apartment
+            // it joins here; COM tidies a thread's apartment when it exits.
+            prepare_worker_thread();
+            let Some(output) = default_output() else {
+                return Err("I couldn't find a volume control for the speakers.".to_string());
+            };
+            change(&*output)
+        })
+        .map_err(|err| {
+            warn!("Could not start a thread to change the output volume: {err}");
+            "I couldn't change the volume right now.".to_string()
+        })?;
+    worker
+        .join()
+        .unwrap_or_else(|_| Err("Changing the volume stopped unexpectedly.".to_string()))
+}
+
 /// Below this the output is already silent, and there is nothing to lower.
 const SILENT: f32 = 0.005;
 /// How far a level may be from the one the worker left before it counts as
@@ -715,6 +791,23 @@ mod tests {
 
     fn close(a: f32, b: f32) -> bool {
         (a - b).abs() < 0.011
+    }
+
+    /// Command mode passes whatever the model asked for; anything past either
+    /// end lands on that end instead of being refused.
+    #[test]
+    fn an_absolute_volume_is_clamped_to_the_slider() {
+        assert_eq!(checked_level(0.4), Ok(0.4));
+        assert_eq!(checked_level(1.7), Ok(1.0));
+        assert_eq!(checked_level(-0.2), Ok(0.0));
+    }
+
+    /// `clamp` keeps a NaN, and a NaN handed to a device is anyone's guess.
+    #[test]
+    fn a_volume_that_is_not_a_number_is_refused_before_any_device_is_touched() {
+        assert!(checked_level(f32::NAN).is_err());
+        assert!(checked_level(f32::INFINITY).is_err());
+        assert!(set_output_volume(f32::NAN).is_err());
     }
 
     #[test]
