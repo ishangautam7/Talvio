@@ -89,8 +89,8 @@ describe("normalizeServerUrl", () => {
     expect(normalizeServerUrl("http://localhost:8787//")).toBe(
       "http://localhost:8787",
     );
-    expect(normalizeServerUrl("https://example.com/zynveliq")).toBe(
-      "https://example.com/zynveliq",
+    expect(normalizeServerUrl("https://example.com/talvio")).toBe(
+      "https://example.com/talvio",
     );
     expect(normalizeServerUrl("HTTPS://Sync.Example.com")).toBe(
       "https://sync.example.com",

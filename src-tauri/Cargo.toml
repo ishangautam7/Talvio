@@ -1,11 +1,11 @@
 [package]
-name = "zynveliq"
+name = "talvio"
 version = "2.2.0"
-description = "Zynveliq"
+description = "Talvio"
 authors = ["Ishan Gautam"]
 edition = "2021"
 license = "MIT"
-default-run = "zynveliq"
+default-run = "talvio"
 
 [features]
 # Tauri serves `build.devUrl` unless its production custom protocol is enabled.
@@ -39,7 +39,7 @@ incremental = true # Compile your binary in smaller steps.
 # (rust-lang/rust#45929). The session is saved before linking, so every retry fails
 # identically until the cache goes:
 #
-#   cargo clean -p zynveliq      # then rebuild; only this crate recompiles (~2 min)
+#   cargo clean -p talvio      # then rebuild; only this crate recompiles (~2 min)
 #
 # Changing opt-level does not prevent it (it recurred at level 2 on 2026-09-30);
 # a profile change only appears to fix it because it discards the cache.
@@ -57,7 +57,7 @@ opt-level = 2
 #
 # Drop to `debug = 0` only if you also stop wanting line numbers in backtraces;
 # it measured no faster than this once the incremental cache was warm.
-[profile.dev.package.zynveliq]
+[profile.dev.package.talvio]
 debug = "line-tables-only"
 
 # Build every DEPENDENCY optimised, even in a dev build. Our own crate stays at
@@ -88,7 +88,7 @@ opt-level = 3
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "zynveliq_app_lib"
+name = "talvio_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 # [[bin]]
@@ -102,6 +102,9 @@ serde = { version = "1", features = ["derive"] }
 
 [dependencies]
 once_cell = "1"
+# Base directories for carrying data over from the app's previous name before
+# Tauri starts (`rebrand.rs`); the same crate Tauri's path resolver uses.
+dirs = "6"
 tauri = { version = "2.10.2", features = [
   "protocol-asset",
   "macos-private-api",
@@ -230,6 +233,9 @@ signal-hook = "0.3"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2.5.1"
+# Removes the autostart entry left under the app's previous name
+# (`rebrand::remove_legacy_autostart`); the crate the autostart plugin wraps.
+auto-launch = "0.5"
 tauri-plugin-global-shortcut = "2.3.1"
 tauri-plugin-single-instance = "2.3.2"
 tauri-plugin-updater = "2.10.0"
@@ -326,7 +332,7 @@ transcribe-cpp = { version = "=0.4.0", default-features = false, features = [
 
 # transcribe.cpp Windows aarch64 (Windows-on-ARM): STATIC, CPU-only (no
 # features → the single portable ggml CPU backend is compiled into
-# zynveliq.exe, zero DLLs shipped). Rationale (mirrors Handy):
+# talvio.exe, zero DLLs shipped). Rationale (mirrors Handy):
 #   * Adreno Vulkan drivers on WoA are immature, and ggml-vulkan's shader
 #     generator (vulkan-shaders-gen) does not build under the clang-cl/lld
 #     toolchain that ggml's ARM CPU backend requires — so `vulkan` is out.
@@ -354,7 +360,7 @@ tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.
 keyring = { version = "3", features = ["apple-native"] }
 # Smart spacing (see smart_spacing/macos.rs): reads the few characters around
 # the caret of the field a dictation is pasted into, through the Accessibility
-# API Zynveliq already has permission for. Same objc2 family and version as
+# API Talvio already has permission for. Same objc2 family and version as
 # the rest of the graph.
 objc2-application-services = { version = "=0.3.2", default-features = false, features = [
   "std",

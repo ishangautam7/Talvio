@@ -35,10 +35,10 @@
     "downloading": "Stahování… {{progress}} %",
     "downloadingUnknown": "Stahování…",
     "installing": "Instalace…",
-    "reopening": "Zynveliq se zavře, nainstaluje aktualizaci a za několik sekund se znovu otevře.",
+    "reopening": "Talvio se zavře, nainstaluje aktualizaci a za několik sekund se znovu otevře.",
     "updatedTo": "Aktualizováno na verzi {{version}}",
     "restart": "Restartovat",
-    "readyToRestart": "Aktualizace je nainstalovaná. Restartujte Zynveliq, abyste ji mohli začít používat.",
+    "readyToRestart": "Aktualizace je nainstalovaná. Restartujte Talvio, abyste ji mohli začít používat.",
     "installFailed": "Aktualizace se nenainstalovala. Můžete to zkusit znovu, nebo si stáhnout instalační program a spustit ho sami.",
     "downloadFailed": "Stahování se nedokončilo. Zkontrolujte připojení a zkuste to znovu.",
     "downloadInstaller": "Stáhnout instalační program",
@@ -49,13 +49,13 @@
     "showInFolder": "Zobrazit ve složce",
     "viewRelease": "Zobrazit na GitHubu",
     "hint": {
-      "windows": "Zynveliq se zavře, nainstaluje aktualizaci a znovu se otevře. Nic dalšího nemusíte klikat.",
-      "macos": "Zynveliq se restartuje v nové verzi. macOS vás pak možná znovu požádá o povolení mikrofonu a zpřístupnění.",
-      "linux": "Zynveliq se restartuje v nové verzi. Instalace z balíčku .deb si nejdřív vyžádá vaše heslo."
+      "windows": "Talvio se zavře, nainstaluje aktualizaci a znovu se otevře. Nic dalšího nemusíte klikat.",
+      "macos": "Talvio se restartuje v nové verzi. macOS vás pak možná znovu požádá o povolení mikrofonu a zpřístupnění.",
+      "linux": "Talvio se restartuje v nové verzi. Instalace z balíčku .deb si nejdřív vyžádá vaše heslo."
     },
     "modes": {
       "portable": "Toto je přenosná verze, která se nedokáže sama nahradit. Stáhněte novou verzi a zkopírujte do ní svou složku Data.",
-      "packageManager": "Zynveliq nainstaloval váš správce balíčků, takže ho aktualizujte tam, například příkazem yay -Syu zynveliq-bin.",
+      "packageManager": "Talvio nainstaloval váš správce balíčků, takže ho aktualizujte tam, například příkazem yay -Syu talvio-bin.",
       "download": "Tato kopie se nedokáže aktualizovat na místě. Stáhněte instalační program a spusťte ho, abyste získali novou verzi."
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "Poslat zpětnou vazbu",
     "title": "Poslat zpětnou vazbu",
-    "description": "Každou zprávu čtu osobně, takže pište, jak vám to přijde pod ruku. Děkuji, že pomáháte Zynveliq vylepšovat.",
+    "description": "Každou zprávu čtu osobně, takže pište, jak vám to přijde pod ruku. Děkuji, že pomáháte Talvio vylepšovat.",
     "kind": {
       "label": "Druh zpětné vazby",
       "bug": "Chyba",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "Co se stalo a co jste místo toho očekávali?",
-      "idea": "Co by vám Zynveliq vylepšilo?",
+      "idea": "Co by vám Talvio vylepšilo?",
       "question": "Co byste chtěli vědět?"
     },
     "messageLabel": "Zpráva",
@@ -161,10 +161,10 @@
       "retry": "Zkusit znovu"
     },
     "tour": {
-      "features": "Co Zynveliq umí",
+      "features": "Co Talvio umí",
       "count": "{{current}} z {{total}}",
       "next": "Další",
-      "finish": "Otevřít Zynveliq",
+      "finish": "Otevřít Talvio",
       "tabs": {
         "dictate": "Diktování",
         "ask": "Asistent",
@@ -242,7 +242,7 @@
       "ready": "Připraveno"
     },
     "speechToText": {
-      "title": "Jak vás má Zynveliq slyšet?",
+      "title": "Jak vás má Talvio slyšet?",
       "subtitle": "Tohle převádí váš hlas na text, přímo na vašem počítači. Vyberte si jeden, kdykoli jej můžete změnit.",
       "cards": {
         "fast": {
@@ -307,7 +307,7 @@
       "downloadingVoice": "Váš hlasový model přistává. Hotovo {{percentage}}%.",
       "downloadingGeneric": "Stále se stahuje. Hotovo {{percentage}}%.",
       "signOff": "A to je vše. Jděte něco říct.",
-      "openApp": "Otevřít Zynveliq"
+      "openApp": "Otevřít Talvio"
     },
     "errors": {
       "selectModel": "Tento model se nepodařilo vybrat. Zkuste to prosím znovu.",
@@ -439,7 +439,7 @@
     },
     "permissions": {
       "title": "Vyžadována oprávnění",
-      "description": "Zynveliq potřebuje několik oprávnění pro správné fungování.",
+      "description": "Talvio potřebuje několik oprávnění pro správné fungování.",
       "microphone": {
         "title": "Přístup k mikrofonu",
         "description": "Potřebný pro zachycení vašeho hlasu k přepisu."
@@ -449,7 +449,7 @@
         "description": "Potřebný pro psaní přepsaného textu do vašich aplikací.",
         "stuckHint": "Už je zapnuto v Nastavení systému? Po aktualizaci si macOS může ponechat oprávnění, které už této verzi neodpovídá.",
         "reset": "Obnovit oprávnění",
-        "resetDone": "Teď v Nastavení systému znovu zapněte Zynveliq."
+        "resetDone": "Teď v Nastavení systému znovu zapněte Talvio."
       },
       "grant": "Udělit oprávnění",
       "granted": "Uděleno",
@@ -458,7 +458,7 @@
       "errors": {
         "checkFailed": "Nepodařilo se zkontrolovat oprávnění. Zkuste to prosím znovu.",
         "requestFailed": "Nepodařilo se požádat o oprávnění. Zkuste to prosím znovu.",
-        "resetFailed": "Oprávnění se nepodařilo obnovit. Odeberte Zynveliq ze seznamu Zpřístupnění a přidejte ho znovu."
+        "resetFailed": "Oprávnění se nepodařilo obnovit. Odeberte Talvio ze seznamu Zpřístupnění a přidejte ho znovu."
       }
     },
     "frame": {
@@ -688,7 +688,7 @@
       },
       "handsFree": {
         "unavailableKeys": "Funguje, když je diktování jen z modifikačních kláves, třeba Ctrl + Win. S {{keys}} raději vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
-        "unavailableEngine": "Vyžaduje klávesnicový modul Zynveliq Keys ({{where}}). Nebo vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
+        "unavailableEngine": "Vyžaduje klávesnicový modul Talvio Keys ({{where}}). Nebo vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
         "taken": "{{name}} už používá {{keys}}, takže tato klávesa nic nedělá, dokud se jedno z nich nezmění.",
         "needsKey": "Vyberte jednu klávesu, například mezerník nebo Enter. Samotná modifikační klávesa nemůže být klávesou pro režim bez držení.",
         "pressKey": "Stiskněte klávesu…",
@@ -745,9 +745,9 @@
       "clearSearch": "Vymazat hledání",
       "noSearchResults": "Žádné modely s názvem „{{query}}“.",
       "olderHint": "Starší formát. {{model}} ({{size}}) je novější verze tohoto modelu.",
-      "retiredHint": "Používá starší jádro, které Zynveliq už neobsahuje. Stáhněte místo něj {{model}} ({{size}}).",
+      "retiredHint": "Používá starší jádro, které Talvio už neobsahuje. Stáhněte místo něj {{model}} ({{size}}).",
       "retired": {
-        "notice": "Tyto modely používaly starší jádro, které Zynveliq už neobsahuje.",
+        "notice": "Tyto modely používaly starší jádro, které Talvio už neobsahuje.",
         "newVersion": "Nová verze: {{model}} · {{size}}",
         "getNewVersion": "Stáhnout novou verzi",
         "useNewVersion": "Použít novou verzi",
@@ -814,7 +814,7 @@
         "rescanDone_few": "Nalezeny {{count}} místní modely.",
         "rescanDone_many": "Nalezeno {{count}} místního modelu.",
         "rescanDone_other": "Nalezeno {{count}} místních modelů.",
-        "footnote": "Připojené složky se znovu prohledají při spuštění Zynveliq, takže modely, které do nich přidáte později, se objeví samy. Odpojení složky nebo odebrání modelu ho odstraní jen z tohoto seznamu — vaše soubory zůstanou tam, kde jsou.",
+        "footnote": "Připojené složky se znovu prohledají při spuštění Talvio, takže modely, které do nich přidáte později, se objeví samy. Odpojení složky nebo odebrání modelu ho odstraní jen z tohoto seznamu — vaše soubory zůstanou tam, kde jsou.",
         "removeTitle": "Odebrat ze seznamu?",
         "removeConfirm": "Odebrat „{{modelName}}“ ze seznamu modelů?\n\nSamotný soubor zůstane tam, kde je:\n{{path}}",
         "missingBadge": "Soubor chybí",
@@ -904,7 +904,7 @@
         "label": "Tlačítka myši jako zkratky",
         "description": "Použijte prostřední tlačítko myši nebo tlačítka Zpět a Vpřed jako zkratku: klikněte na klávesy zkratky a pak stiskněte tlačítko. Dokud je zkratkou, tlačítko nedělá nic jiného.",
         "linux": "V Linuxu funguje jen prostřední tlačítko.",
-        "needsEngine": "Vyžaduje implementaci klávesnice Zynveliq Keys."
+        "needsEngine": "Vyžaduje implementaci klávesnice Talvio Keys."
       },
       "longFormChunking": {
         "title": "Rozdělovat dlouhé nahrávky",
@@ -922,11 +922,11 @@
       },
       "autostart": {
         "label": "Spouštět při startu",
-        "description": "Automaticky otevřít Zynveliq po přihlášení."
+        "description": "Automaticky otevřít Talvio po přihlášení."
       },
       "showTrayIcon": {
         "label": "Zobrazit ikonu v systémové liště",
-        "description": "Ponechat Zynveliq v systémové liště."
+        "description": "Ponechat Talvio v systémové liště."
       },
       "trayIconColor": {
         "label": "Barevná ikona v systémové liště",
@@ -934,7 +934,7 @@
       },
       "closeBehavior": {
         "label": "Ukončit aplikaci při zavření okna",
-        "description": "Když je vypnuto, zavřením okna zůstane Zynveliq běžet v systémové liště a vaše zkratky dál fungují. Když je zapnuto, zavřením okna se aplikace úplně ukončí."
+        "description": "Když je vypnuto, zavřením okna zůstane Talvio běžet v systémové liště a vaše zkratky dál fungují. Když je zapnuto, zavřením okna se aplikace úplně ukončí."
       },
       "overlayStyle": {
         "title": "Překryv",
@@ -1028,8 +1028,8 @@
       },
       "customWords": {
         "title": "Vlastní slova",
-        "description": "Jména, produkty a fráze, které má Zynveliq psát po vašem.",
-        "info": "Příklad: přidejte „Kokoro“, pokud Zynveliq napíše „Coco row“.",
+        "description": "Jména, produkty a fráze, které má Talvio psát po vašem.",
+        "info": "Příklad: přidejte „Kokoro“, pokud Talvio napíše „Coco row“.",
         "placeholder": "Přidejte jméno, termín nebo krátkou frázi",
         "add": "Přidat",
         "empty": "Zatím žádná vlastní slova.",
@@ -1038,7 +1038,7 @@
       },
       "autoLearn": {
         "label": "Učit se slova, která opravím",
-        "description": "Zapamatuje si váš pravopis, když opravíte slovo, které Zynveliq napsal špatně.",
+        "description": "Zapamatuje si váš pravopis, když opravíte slovo, které Talvio napsal špatně.",
         "info": "Čte jen pole, do kterého právě psal, a to asi minutu. Nic se nenahrává a každé slovo, které se naučí, je uvedené tady.",
         "unsupported": "Učení z oprav je zatím dostupné jen ve Windows. Slova můžete dál přidávat ručně výše.",
         "learnedTitle": "Naučeno z vašich oprav",
@@ -1052,7 +1052,7 @@
         "title": "Náhrady textu",
         "description": "Nahraďte v přepisu určitou frázi textem, který používáte často. Příklad: z „můj e-mail“ se stane „alex@example.com“.",
         "rulesTitle": "Pravidla náhrad",
-        "rulesHint": "Určete, co Zynveliq slyší a co má vložit.",
+        "rulesHint": "Určete, co Talvio slyší a co má vložit.",
         "empty": "Vytvořte pravidlo pro frázi, kterou často říkáte.",
         "addFirst": "Vytvořit první pravidlo",
         "addRule": "Přidat náhradu",
@@ -1432,7 +1432,7 @@
       },
       "updateChecks": {
         "label": "Automaticky kontrolovat aktualizace",
-        "description": "Hledá novou verzi při spuštění Zynveliq a každých 12 hodin. Ručně můžete zkontrolovat kdykoli."
+        "description": "Hledá novou verzi při spuštění Talvio a každých 12 hodin. Ručně můžete zkontrolovat kdykoli."
       },
       "soundTheme": {
         "label": "Zvukový motiv",
@@ -1494,7 +1494,7 @@
       "smartSpacing": {
         "label": "Chytré mezery",
         "description": "Přizpůsobí každý diktát textu, který už v poli je, takže můžete přestat a pokračovat, aniž by se slova slila.",
-        "info": "Před vložením se Zynveliq podívá na několik znaků kolem kurzoru a mezeru přidá jen tam, kde je potřeba. Když aplikace svůj text skrývá, použije místo toho svůj poslední diktát. Nic se neukládá ani nikam neodesílá. V macOS se používá oprávnění Zpřístupnění, které Zynveliq už má. V Linuxu sdílejí aplikace Chrome, Electron a Qt svůj text jen tehdy, když je v prostředí zapnuté zpřístupnění."
+        "info": "Před vložením se Talvio podívá na několik znaků kolem kurzoru a mezeru přidá jen tam, kde je potřeba. Když aplikace svůj text skrývá, použije místo toho svůj poslední diktát. Nic se neukládá ani nikam neodesílá. V macOS se používá oprávnění Zpřístupnění, které Talvio už má. V Linuxu sdílejí aplikace Chrome, Electron a Qt svůj text jen tehdy, když je v prostředí zapnuté zpřístupnění."
       },
       "smartSpacingFixCase": {
         "label": "Opravovat velká písmena",
@@ -1502,7 +1502,7 @@
       },
       "smartSpacingJoin": {
         "label": "Spojovat přerušené věty",
-        "description": "Odstraní tečku, kterou Zynveliq přidal, když jste se zastavili uprostřed věty, například „I went to the.“"
+        "description": "Odstraní tečku, kterou Talvio přidal, když jste se zastavili uprostřed věty, například „I went to the.“"
       },
       "keyboardImplementation": {
         "title": "Implementace klávesnice",
@@ -1634,7 +1634,7 @@
       },
       "appDataDirectory": {
         "title": "Složka dat aplikace",
-        "description": "Kam Zynveliq ukládá vaše modely, historii a nastavení."
+        "description": "Kam Talvio ukládá vaše modely, historii a nastavení."
       },
       "sourceCode": {
         "title": "Zdrojový kód",
@@ -1643,12 +1643,12 @@
       },
       "license": {
         "title": "Licence",
-        "description": "Zynveliq je open source pod licencí MIT a staví na projektu Handy (také MIT) od CJ Paise.",
+        "description": "Talvio je open source pod licencí MIT a staví na projektu Handy (také MIT) od CJ Paise.",
         "button": "Zobrazit licenci"
       },
       "supportDevelopment": {
         "title": "Podpořte vývoj",
-        "description": "Pomozte nám dál vyvíjet Zynveliq",
+        "description": "Pomozte nám dál vyvíjet Talvio",
         "button": "Přispět"
       }
     },
@@ -1656,7 +1656,7 @@
       "enable": {
         "title": "Asistent",
         "label": "Zapnout asistenta",
-        "description": "Vypnutím necháte ze Zynveliq jen diktování. Plovoucí panel se zavře a už se nenačte, jeho zkratky se uvolní a paměť, kterou zabírá, se vrátí. Generovat s Flow a čištění pomocí AI fungují dál."
+        "description": "Vypnutím necháte ze Talvio jen diktování. Plovoucí panel se zavře a už se nenačte, jeho zkratky se uvolní a paměť, kterou zabírá, se vrátí. Generovat s Flow a čištění pomocí AI fungují dál."
       },
       "shortcuts": {
         "title": "Zkratky"
@@ -1695,7 +1695,7 @@
         "deleteModelFailed": "Model se nepodařilo smazat.",
         "finderSectionTitle": "Další modely na zařízení",
         "finderTitle": "Procházet Hugging Face",
-        "finderDescription": "Prohledejte tisíce modelů GGUF a stáhněte si jeden přímo do Zynveliq.",
+        "finderDescription": "Prohledejte tisíce modelů GGUF a stáhněte si jeden přímo do Talvio.",
         "finderAction": "Najít model",
         "huggingFaceTitle": "Vaše modely",
         "catalogEmpty": "Právě teď nejsou dostupné žádné doporučené místní modely."
@@ -1818,7 +1818,7 @@
           "label": "Kdy snímat"
         },
         "screenRecording": {
-          "description": "Zobrazení obrazovky vyžaduje na macOS oprávnění k nahrávání obrazovky. Udělte ho v Nastavení systému a pak Zynveliq restartujte, aby se změna projevila.",
+          "description": "Zobrazení obrazovky vyžaduje na macOS oprávnění k nahrávání obrazovky. Udělte ho v Nastavení systému a pak Talvio restartujte, aby se změna projevila.",
           "grant": "Otevřít Nastavení systému"
         }
       },
@@ -1995,7 +1995,7 @@
         "testGpuMoved": "Grafická karta ukázku zkreslila, takže byla ztlumena. Kokoro teď používá procesor, otestujte to znovu a uslyšíte ho.",
         "testGpuForced": "Grafická karta ukázku zkreslila, takže byla ztlumena. Nastavte Běží na na Automaticky nebo Procesoru.",
         "testGpuSuspect": "Ukázka vyšla zkreslená, takže byla ztlumena. Otestujte to znovu a ověřte grafickou kartu.",
-        "testPhrase": "Ahoj! Toto je test hlasového výstupu Zynveliq.",
+        "testPhrase": "Ahoj! Toto je test hlasového výstupu Talvio.",
         "downloadStart": "Stahuji hlas Kokoro…",
         "downloadProgress": "Stahuji hlas Kokoro… {{progress}}%",
         "downloadReady": "Hlas Kokoro je připravený ✓",
@@ -2097,7 +2097,7 @@
     "account": {
       "signedOut": {
         "title": "Připojte telefon",
-        "body": "Přihlaste se tady i v aplikaci Zynveliq v telefonu ke stejnému účtu. Pak můžete z telefonu diktovat a psát na tomto počítači.",
+        "body": "Přihlaste se tady i v aplikaci Talvio v telefonu ke stejnému účtu. Pak můžete z telefonu diktovat a psát na tomto počítači.",
         "modeLabel": "Přihlásit se nebo vytvořit účet",
         "signIn": "Přihlásit se",
         "createAccount": "Vytvořit účet",
@@ -2119,13 +2119,13 @@
         "online": "Připojeno",
         "connecting": "Připojování…",
         "offline": "Nepřipojeno",
-        "offlineHint": "Zynveliq se teď nemůže spojit se serverem a dál to zkouší. Do té doby telefon nemůže tento počítač používat."
+        "offlineHint": "Talvio se teď nemůže spojit se serverem a dál to zkouší. Do té doby telefon nemůže tento počítač používat."
       },
       "phone": {
         "title": "Telefon",
         "remoteInput": "Diktování z telefonu",
         "remoteInputHint": "Umožní telefonu diktovat a psát na tomto počítači.",
-        "install": "Nainstalujte si do telefonu aplikaci Zynveliq a přihlaste se jako {{email}}."
+        "install": "Nainstalujte si do telefonu aplikaci Talvio a přihlaste se jako {{email}}."
       },
       "devices": {
         "title": "Zařízení",
@@ -2157,7 +2157,7 @@
         "automatic": "Automaticky",
         "custom": "Vlastní",
         "using": "Používá se {{host}}",
-        "notFound": "Server teď nelze najít. Zynveliq to dál zkouší."
+        "notFound": "Server teď nelze najít. Talvio to dál zkouší."
       },
       "errors": {
         "generic": "Něco se pokazilo. Zkuste to znovu.",
@@ -2280,7 +2280,7 @@
     "list": {
       "title": "Nahrané schůzky",
       "emptyTitle": "Zatím žádné schůzky",
-      "emptyHint": "Před hovorem spusťte nahrávání a Zynveliq uchová přepis rozdělený podle toho, kdo mluvil.",
+      "emptyHint": "Před hovorem spusťte nahrávání a Talvio uchová přepis rozdělený podle toho, kdo mluvil.",
       "loadMore": "Načíst další",
       "speakers_one": "{{count}} mluvčí",
       "speakers_few": "{{count}} mluvčí",
@@ -2450,7 +2450,7 @@
   },
   "accessibility": {
     "permissionsRequired": "Vyžadována oprávnění usnadnění přístupu",
-    "permissionsDescription": "Zynveliq potřebuje oprávnění usnadnění přístupu, aby mohlo psát přepsaný text.",
+    "permissionsDescription": "Talvio potřebuje oprávnění usnadnění přístupu, aby mohlo psát přepsaný text.",
     "openSettings": "Otevřít Nastavení systému",
     "dismiss": "Zavřít"
   },
@@ -2479,7 +2479,7 @@
   },
   "appLanguage": {
     "title": "Jazyk aplikace",
-    "description": "Změňte jazyk rozhraní Zynveliq"
+    "description": "Změňte jazyk rozhraní Talvio"
   },
   "overlay": {
     "preparing": "Připravuji mikrofon…",
@@ -2859,7 +2859,7 @@
       "performance": "Výkon"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "Verze {{version}}",
       "project": "Projekt",
       "docs": "Dokumentace",
@@ -2877,7 +2877,7 @@
     "subtitleTap": "V jakékoli aplikaci stiskněte zkratku, mluvte a stiskněte ji znovu. Vaše slova se objeví tam, kde je kurzor.",
     "needsModel": {
       "title": "Pro diktování vyberte model pro přepis.",
-      "description": "Zynveliq potřebuje model převodu řeči na text, než bude moct psát, co říkáte.",
+      "description": "Talvio potřebuje model převodu řeči na text, než bude moct psát, co říkáte.",
       "action": "Vybrat model"
     },
     "stats": {
@@ -2959,8 +2959,8 @@
         "open": "Nastavení klávesnice"
       },
       "linux": {
-        "wayland": "Ve Waylandu předává pracovní prostředí tyto klávesy aplikaci Zynveliq jen tehdy, když je některé z jejích oken vpředu. Chcete-li je používat v každé aplikaci, přidejte je jako zkratky v nastavení systému.",
-        "noAccess": "Zynveliq Keys na tomto počítači nemůže číst klávesnici, takže tyto zkratky zatím nic nedělají.",
+        "wayland": "Ve Waylandu předává pracovní prostředí tyto klávesy aplikaci Talvio jen tehdy, když je některé z jejích oken vpředu. Chcete-li je používat v každé aplikaci, přidejte je jako zkratky v nastavení systému.",
+        "noAccess": "Talvio Keys na tomto počítači nemůže číst klávesnici, takže tyto zkratky zatím nic nedělají.",
         "setUp": "Nastavit",
         "where": {
           "gnome": "Otevřete Nastavení → Klávesnice → Zobrazit a přizpůsobit klávesové zkratky → Vlastní zkratky, přidejte jednu pro každý příkaz níže a stiskněte požadované klávesy.",
@@ -2968,7 +2968,7 @@
           "other": "Pro každý příkaz níže přidejte vlastní zkratku v nastavení klávesnice svého prostředí, nebo řádek bind v konfiguraci kompozitoru."
         },
         "tapOnly": "Takto přidaná zkratka funguje jako „Stiskem zapnout/vypnout“: jedním stiskem začnete, dalším skončíte.",
-        "access": "Nebo povolte Zynveliq Keys číst klávesnici. Spusťte toto v terminálu a pak se odhlaste a znovu přihlaste:",
+        "access": "Nebo povolte Talvio Keys číst klávesnici. Spusťte toto v terminálu a pak se odhlaste a znovu přihlaste:",
         "copy": "Kopírovat",
         "copied": "Zkopírováno"
       }
@@ -3002,7 +3002,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} používal starší jádro, které Zynveliq už neobsahuje.",
+    "title": "{{model}} používal starší jádro, které Talvio už neobsahuje.",
     "newVersion": "Jeho nová verze je {{model}}.",
     "ready": "{{model}} je stažený a připravený.",
     "noVersion": "Vyberte jiný model, abyste mohli dál diktovat.",
@@ -3011,12 +3011,12 @@
     "retry": "Zkusit znovu",
     "chooseAnother": "Vybrat jiný model",
     "progressLabel": "Stahování nové verze",
-    "dialogTitle": "Zynveliq má nový řečový engine",
+    "dialogTitle": "Talvio má nový řečový engine",
     "dialogBody": "Je rychlejší a stabilnější, takže narazíte na méně problémů. {{model}} běžel na starém enginu a potřebuje svou novou verzi, aby dál fungoval.",
     "later": "Později"
   },
   "modelsHub": {
-    "description": "Každou úlohu v Zynveliq obstarává model, který si vyberete. Spusťte ho na tomto počítači kvůli soukromí, nebo v cloudu kvůli rychlosti.",
+    "description": "Každou úlohu v Talvio obstarává model, který si vyberete. Spusťte ho na tomto počítači kvůli soukromí, nebo v cloudu kvůli rychlosti.",
     "addLocal": "Přidat soubor modelu",
     "privacyNote": "Modely na tomto počítači nikam neposílají váš hlas ani text. Cloudové modely je posílají vybranému poskytovateli pomocí vašeho API klíče.",
     "inUse": "Používá se",
@@ -3178,12 +3178,12 @@
     "shortcutRow": "Zkratka"
   },
   "dictionary": {
-    "description": "Naučte Zynveliq jména a výrazy, které používáte, a nastavte zkratky, které se rozvinou do delšího textu.",
+    "description": "Naučte Talvio jména a výrazy, které používáte, a nastavte zkratky, které se rozvinou do delšího textu.",
     "words": {
       "title": "Vaše slova",
-      "description": "Jména, odborné výrazy a pravopis, které má Zynveliq vždy napsat správně.",
+      "description": "Jména, odborné výrazy a pravopis, které má Talvio vždy napsat správně.",
       "placeholder": "Přidejte jméno, výraz nebo pravopis…",
-      "empty": "Zatím tu nic není. Přidejte slova, která Zynveliq stále píše špatně."
+      "empty": "Zatím tu nic není. Přidejte slova, která Talvio stále píše špatně."
     },
     "replacements": {
       "title": "Náhrady",
@@ -3579,7 +3579,7 @@
     "or": "nebo",
     "changeOther": "Změnit další klávesy zkratky {{name}}",
     "pressKeysOrButton": "Stiskněte klávesy nebo tlačítko myši…",
-    "mouseNeedsKeysEngine": "Tlačítka myši vyžadují implementaci klávesnice Zynveliq Keys (Nastavení → Pokročilé → Experimentální).",
+    "mouseNeedsKeysEngine": "Tlačítka myši vyžadují implementaci klávesnice Talvio Keys (Nastavení → Pokročilé → Experimentální).",
     "mouse": {
       "middle": "Prostřední tlačítko myši",
       "back": "Tlačítko myši Zpět",
@@ -3658,7 +3658,7 @@
     }
   },
   "insights": {
-    "about": "Jak používáte Zynveliq, spočítáno na tomto počítači.",
+    "about": "Jak používáte Talvio, spočítáno na tomto počítači.",
     "nothingYet": "Přehledy se zobrazí, jakmile začnete diktovat, ptát se asistenta nebo nahrávat schůzky.",
     "goHome": "Zobrazit zkratky",
     "figures": {
@@ -3734,7 +3734,7 @@
     },
     "share": {
       "button": "Sdílet",
-      "nothingYet": "Až začnete Zynveliq používat, bude co sdílet.",
+      "nothingYet": "Až začnete Talvio používat, bude co sdílet.",
       "title": "Sdílet přehledy",
       "private": "Vytvořeno na tomto počítači. Nic se nikam neodesílá.",
       "size": "Velikost",
@@ -3765,13 +3765,13 @@
       "openSite": "Otevřít {{site}}",
       "openFailed": "{{site}} se nepodařilo otevřít",
       "more": "Další aplikace",
-      "sheetTitle": "Moje přehledy Zynveliq",
+      "sheetTitle": "Moje přehledy Talvio",
       "shareFailed": "Sdílení se nepodařilo otevřít",
       "drawFailed": "Karty se nepodařilo vykreslit. Zavřete toto okno a zkuste to znovu.",
       "tagline": "Zdarma · Open source · Funguje offline",
       "cards": {
         "highlights": {
-          "title": "Můj Zynveliq v číslech",
+          "title": "Můj Talvio v číslech",
           "words_one": "namluvené slovo",
           "words_few": "namluvená slova",
           "words_many": "namluveného slova",
@@ -3862,18 +3862,18 @@
         }
       },
       "post": {
-        "dictation_one": "Místo psaní mluvím do počítače. Díky Zynveliq už je to {{formatted}} slovo.",
-        "dictation_few": "Místo psaní mluvím do počítače. Díky Zynveliq už jsou to {{formatted}} slova.",
-        "dictation_many": "Místo psaní mluvím do počítače. Díky Zynveliq už je to {{formatted}} slova.",
-        "dictation_other": "Místo psaní mluvím do počítače. Díky Zynveliq už je to {{formatted}} slov.",
-        "asks_one": "Ptám se asistenta Zynveliq bez přepínání panelů: už je to {{formatted}} otázka.",
-        "asks_few": "Ptám se asistenta Zynveliq bez přepínání panelů: už jsou to {{formatted}} otázky.",
-        "asks_many": "Ptám se asistenta Zynveliq bez přepínání panelů: už je to {{formatted}} otázky.",
-        "asks_other": "Ptám se asistenta Zynveliq bez přepínání panelů: už je to {{formatted}} otázek.",
-        "meetings_one": "Zynveliq mi nahrál už {{formatted}} schůzku a sepsal z ní poznámky.",
-        "meetings_few": "Zynveliq mi nahrál už {{formatted}} schůzky a sepsal z nich poznámky.",
-        "meetings_many": "Zynveliq mi nahrál už {{formatted}} schůzky a sepsal z nich poznámky.",
-        "meetings_other": "Zynveliq mi nahrál už {{formatted}} schůzek a sepsal z nich poznámky."
+        "dictation_one": "Místo psaní mluvím do počítače. Díky Talvio už je to {{formatted}} slovo.",
+        "dictation_few": "Místo psaní mluvím do počítače. Díky Talvio už jsou to {{formatted}} slova.",
+        "dictation_many": "Místo psaní mluvím do počítače. Díky Talvio už je to {{formatted}} slova.",
+        "dictation_other": "Místo psaní mluvím do počítače. Díky Talvio už je to {{formatted}} slov.",
+        "asks_one": "Ptám se asistenta Talvio bez přepínání panelů: už je to {{formatted}} otázka.",
+        "asks_few": "Ptám se asistenta Talvio bez přepínání panelů: už jsou to {{formatted}} otázky.",
+        "asks_many": "Ptám se asistenta Talvio bez přepínání panelů: už je to {{formatted}} otázky.",
+        "asks_other": "Ptám se asistenta Talvio bez přepínání panelů: už je to {{formatted}} otázek.",
+        "meetings_one": "Talvio mi nahrál už {{formatted}} schůzku a sepsal z ní poznámky.",
+        "meetings_few": "Talvio mi nahrál už {{formatted}} schůzky a sepsal z nich poznámky.",
+        "meetings_many": "Talvio mi nahrál už {{formatted}} schůzky a sepsal z nich poznámky.",
+        "meetings_other": "Talvio mi nahrál už {{formatted}} schůzek a sepsal z nich poznámky."
       }
     }
   },
@@ -3881,11 +3881,11 @@
     "restored": "Vaše nastavení byla poškozená, a proto byla obnovena ze zálohy.",
     "restoredDescription": "Nejnovější změny mohou chybět.",
     "unrecoverableTitle": "Nastavení se nepodařilo obnovit",
-    "unrecoverableDescription": "Zynveliq se spustil s výchozím nastavením. Poškozený soubor byl uložen jako {{file}}.",
+    "unrecoverableDescription": "Talvio se spustil s výchozím nastavením. Poškozený soubor byl uložen jako {{file}}.",
     "notSavingTitle": "Změny nastavení se neuloží",
-    "notSavingDescription": "Soubor s nastavením nešlo přečíst, a tak zůstal beze změny. Restartujte Zynveliq a zkuste to znovu.",
+    "notSavingDescription": "Soubor s nastavením nešlo přečíst, a tak zůstal beze změny. Restartujte Talvio a zkuste to znovu.",
     "saveFailingTitle": "Nastavení se neukládá",
-    "saveFailingDescription": "Vaše poslední změny zatím nejsou uložené. Zynveliq to bude zkoušet dál.",
+    "saveFailingDescription": "Vaše poslední změny zatím nejsou uložené. Talvio to bude zkoušet dál.",
     "dismiss": "Zavřít"
   },
   "commandMode": {

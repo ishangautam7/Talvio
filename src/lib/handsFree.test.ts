@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { AppSettings } from "@/bindings";
 import { extendKeys, handsFree, keysToSave, mainKey } from "./handsFree";
 
-/** Enough settings for the rule: the Windows defaults on Zynveliq Keys. */
+/** Enough settings for the rule: the Windows defaults on Talvio Keys. */
 const settings = (
   bindings: Record<string, string>,
   extra: Partial<AppSettings> = {},

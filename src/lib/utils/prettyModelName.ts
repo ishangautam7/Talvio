@@ -51,7 +51,8 @@ const CASED: Record<string, string> = {
   chirp: "Chirp",
   aura: "Aura",
   kokoro: "Kokoro",
-  zynveliq: "Zynveliq",
+  talvio: "Talvio",
+  speakoflow: "SpeakoFlow",
 };
 
 /** Namespaces a hosted catalog puts before the model (`google.`, `us.`). */

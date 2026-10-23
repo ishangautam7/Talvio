@@ -17,7 +17,7 @@
 export type ThemePreference = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
 
-const STORAGE_KEY = "zynveliq-theme";
+const STORAGE_KEY = "talvio-theme";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 const isValidPreference = (value: unknown): value is ThemePreference =>

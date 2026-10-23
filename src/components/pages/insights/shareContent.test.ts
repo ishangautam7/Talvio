@@ -201,7 +201,7 @@ describe("posting a card", () => {
     const url = composeUrl("x", "I spoke 10 words.");
     expect(url.startsWith("https://x.com/intent/post?text=")).toBe(true);
     expect(decodeURIComponent(url.split("text=")[1])).toBe(
-      "I spoke 10 words. https://zynveliq.invalid",
+      "I spoke 10 words. https://talvio.invalid",
     );
   });
 
@@ -211,7 +211,7 @@ describe("posting a card", () => {
       url.startsWith("https://www.linkedin.com/feed/?shareActive=true&text="),
     ).toBe(true);
     expect(decodeURIComponent(url.split("text=")[1])).toBe(
-      "I spoke 10 words. https://zynveliq.invalid",
+      "I spoke 10 words. https://talvio.invalid",
     );
   });
 });

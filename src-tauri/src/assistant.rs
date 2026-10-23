@@ -5960,7 +5960,7 @@ mod tests {
         let thinking: crate::settings::ThinkingLevel =
             serde_json::from_value(saved["assistant_thinking"].clone()).unwrap_or_default();
         let depth: crate::settings::AssistantSearchDepth =
-            match std::env::var("ZYNVELIQ_SEARCH_DEPTH") {
+            match std::env::var("TALVIO_SEARCH_DEPTH") {
                 Ok(d) => serde_json::from_value(json!(d)).expect("low, medium or high"),
                 Err(_) => serde_json::from_value(saved["assistant_search_depth"].clone())
                     .unwrap_or_default(),

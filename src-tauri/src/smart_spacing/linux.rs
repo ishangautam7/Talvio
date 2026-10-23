@@ -22,7 +22,7 @@
 //!   read until the D-Bus timeout.
 //!
 //! Chromium, Electron and Qt apps only expose their text when the desktop's
-//! accessibility setting is on. Zynveliq does not switch it on by itself: it
+//! accessibility setting is on. Talvio does not switch it on by itself: it
 //! is a system-wide setting that changes how other apps behave, and may be the
 //! user's own assistive-technology choice. Where text is not exposed, the
 //! last-paste memory still handles stopping and continuing.

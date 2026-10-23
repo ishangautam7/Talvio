@@ -176,7 +176,7 @@ fn contiguous_parallel_prefix(parts_record: &[u8], file_len: u64) -> u64 {
 pub(crate) fn download_client() -> reqwest::Result<reqwest::Client> {
     reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(30))
-        .user_agent(concat!("Zynveliq/", env!("CARGO_PKG_VERSION")))
+        .user_agent(concat!("Talvio/", env!("CARGO_PKG_VERSION")))
         .http1_only()
         .tcp_nodelay(true)
         .pool_max_idle_per_host(DOWNLOAD_CONCURRENCY)
@@ -477,7 +477,7 @@ fn is_retired_model(info: &ModelInfo) -> bool {
 pub fn ensure_selectable(info: &ModelInfo) -> Result<(), String> {
     if is_retired_model(info) {
         return Err(format!(
-            "{} uses an engine Zynveliq no longer includes and can't be used.{}",
+            "{} uses an engine Talvio no longer includes and can't be used.{}",
             info.name,
             replacement_hint(&info.id)
         ));
@@ -3219,7 +3219,7 @@ id: "gemma-3-4b".to_string(),
         let found = scan_folder(&root, &skip_dirs).len();
         if found == 0 {
             return Err(anyhow::anyhow!(
-                "No models found in that folder. Zynveliq looks for .gguf and Whisper .bin files."
+                "No models found in that folder. Talvio looks for .gguf and Whisper .bin files."
             ));
         }
 
@@ -3409,7 +3409,7 @@ id: "gemma-3-4b".to_string(),
         Ok(())
     }
 
-    /// Ordered list of URLs to try when downloading a model: Zynveliq's own
+    /// Ordered list of URLs to try when downloading a model: Talvio's own
     /// mirror first (if one is published), then the canonical source, then
     /// the catalog's mirrors. The downloader tries each in turn (retrying
     /// transient failures), so a flaky primary self-heals or falls back.
@@ -3447,7 +3447,7 @@ id: "gemma-3-4b".to_string(),
     /// downloader retries and resumes automatically.
     ///
     /// To activate a mirror: upload the exact model file as a GitHub release
-    /// asset on the Zynveliq repo, then return its `browser_download_url`
+    /// asset on the Talvio repo, then return its `browser_download_url`
     /// here. Until then this returns `None` and the canonical URL is used.
     // Intentional template: the match is a placeholder for per-model mirror
     // arms that maintainers uncomment once assets are uploaded, so keep it even

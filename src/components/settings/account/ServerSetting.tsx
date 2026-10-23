@@ -24,7 +24,7 @@ interface ServerSettingProps {
 }
 
 /**
- * Which account server this app signs in to: Automatic (the one Zynveliq's
+ * Which account server this app signs in to: Automatic (the one Talvio's
  * discovery address names, since its host name changes), or a Custom one for
  * people who run their own.
  */

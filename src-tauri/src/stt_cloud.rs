@@ -1175,7 +1175,7 @@ impl CloudRequest {
         );
         headers.insert(
             "X-Title",
-            reqwest::header::HeaderValue::from_static("Zynveliq"),
+            reqwest::header::HeaderValue::from_static("Talvio"),
         );
         // No overall timeout here: it differs per request (it grows with the
         // recording, see `request_timeout`) and is set in `post`. Baking it in
@@ -1958,7 +1958,7 @@ mod tests {
 
     #[test]
     fn azure_definition_selects_mai_and_maps_every_setting() {
-        let words = vec!["Zynveliq".to_string(), "Kiro".to_string()];
+        let words = vec!["Talvio".to_string(), "Kiro".to_string()];
         let definition = azure_definition("MAI-Transcribe-2", Some("ne"), &words, true);
         assert_eq!(definition["enhancedMode"]["enabled"], true);
         assert_eq!(definition["enhancedMode"]["model"], "MAI-Transcribe-2");
@@ -1969,7 +1969,7 @@ mod tests {
         assert_eq!(definition["locales"], serde_json::json!(["ne"]));
         assert_eq!(
             definition["phraseList"]["phrases"],
-            serde_json::json!(["Zynveliq", "Kiro"])
+            serde_json::json!(["Talvio", "Kiro"])
         );
 
         // Azure's default style is verbatim, so "off" is sent explicitly too,
@@ -2252,7 +2252,7 @@ mod tests {
     fn a_provider_that_ignores_hints_keeps_the_local_word_pass() {
         let mut settings = get_default_settings();
         settings.stt_engine_mode = SttEngineMode::Cloud;
-        settings.custom_words = vec!["Zynveliq".to_string(), "Kiro".to_string()];
+        settings.custom_words = vec!["Talvio".to_string(), "Kiro".to_string()];
         settings
             .cloud_stt_api_keys
             .insert("openrouter".to_string(), "key".to_string());

@@ -162,9 +162,9 @@ const MAX_ESTIMATE_S = 60;
 /** Setups remembered; the least recently used is forgotten first. */
 const MAX_SETUPS = 32;
 
-const STORAGE_KEY = "zynveliq.overlay.workTimes.v2";
+const STORAGE_KEY = "talvio.overlay.workTimes.v2";
 /** Per-stage timings without setups, which also learned the paste. */
-const LEGACY_STORAGE_KEY = "zynveliq.overlay.workTimes.v1";
+const LEGACY_STORAGE_KEY = "talvio.overlay.workTimes.v1";
 
 const finite = (value: number, fallback: number) =>
   Number.isFinite(value) ? value : fallback;

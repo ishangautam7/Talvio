@@ -6,7 +6,7 @@
 //! its own injected modifier release is indistinguishable from the user letting
 //! go of the hotkey.
 //!
-//! It is not hypothetical. Zynveliq harvests the focused app's selection with a
+//! It is not hypothetical. Talvio harvests the focused app's selection with a
 //! synthetic Ctrl+C at the moment an assistant recording starts. With a
 //! modifier-only hotkey such as `Ctrl+Alt`, the injected Ctrl key-up came back
 //! through the hook, matched the held hotkey, and ended the recording about 30 ms

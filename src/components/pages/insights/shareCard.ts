@@ -1,4 +1,4 @@
-import iconUrl from "../../../../Logo/final-v2/png/icon-256.png";
+import iconUrl from "../../../../Logo/talvio/png/icon-256.png";
 import jakartaUrl from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url";
 import jakartaExtUrl from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-wght-normal.woff2?url";
 import jakartaVietUrl from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-wght-normal.woff2?url";
@@ -11,11 +11,10 @@ import {
   type CardSlide,
 } from "./shareContent";
 import {
-  FLOW_PATH,
   LOCKUP_ICON,
   LOCKUP_WIDTH,
-  SPEAKO_PATH,
   WORDMARK_ORIGIN,
+  WORDMARK_PATH,
 } from "./wordmark";
 
 /**
@@ -34,7 +33,7 @@ import {
  * posts.
  */
 
-const FAMILY = "Zynveliq Card";
+const FAMILY = "Talvio Card";
 const FONT = `"${FAMILY}", "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif`;
 
 interface Palette {
@@ -526,9 +525,7 @@ const logo = (
   );
   ctx.scale(scale, scale);
   ctx.fillStyle = palette.ink;
-  ctx.fill(new Path2D(SPEAKO_PATH));
-  ctx.fillStyle = palette.flow;
-  ctx.fill(new Path2D(FLOW_PATH));
+  ctx.fill(new Path2D(WORDMARK_PATH));
   ctx.restore();
   return width;
 };

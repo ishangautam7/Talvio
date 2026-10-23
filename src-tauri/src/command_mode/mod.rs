@@ -1,4 +1,4 @@
-//! Command mode: say what you want done, and Zynveliq does it on screen.
+//! Command mode: say what you want done, and Talvio does it on screen.
 //!
 //! "Send an email to Ron about a meeting at 9:00" becomes one request to a
 //! small, fast model that picks a predefined tool and fills in its arguments

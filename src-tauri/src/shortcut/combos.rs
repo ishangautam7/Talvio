@@ -98,7 +98,7 @@ pub fn refusal(
     }
     if engine != KeyboardImplementation::HandyKeys {
         return Some(
-            "Mouse buttons need the Zynveliq Keys engine (Settings → Advanced → \
+            "Mouse buttons need the Talvio Keys engine (Settings → Advanced → \
              Keyboard implementation).",
         );
     }
@@ -435,7 +435,7 @@ mod tests {
         );
         let tauri = refusal(&settings, "mousex1", KeyboardImplementation::Tauri);
         assert!(
-            tauri.is_some_and(|r| r.contains("Zynveliq Keys")),
+            tauri.is_some_and(|r| r.contains("Talvio Keys")),
             "{tauri:?}"
         );
         let click = refusal(

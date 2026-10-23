@@ -764,7 +764,7 @@ const settings: Json = {
   push_to_talk: true,
   assistant_push_to_talk: true,
   dictation_silence_stop_secs: 0,
-  // Each platform's default engine; modifier-only keys need Zynveliq Keys.
+  // Each platform's default engine; modifier-only keys need Talvio Keys.
   keyboard_implementation: previewOs === "linux" ? "tauri" : "handy_keys",
   audio_feedback: false,
   audio_ducking: params.get("ducking") ?? "off",
@@ -792,7 +792,7 @@ const settings: Json = {
     : "parakeet-unified-en-0.6b",
   custom_words: fresh
     ? []
-    : ["Ishan Gautam", "Zynveliq", "firecrawl", "Gintama", "Tauri"],
+    : ["Ishan Gautam", "Talvio", "firecrawl", "Gintama", "Tauri"],
   post_process_enabled: true,
   post_process_on_dictation: params.get("cleanupShortcut") === "dictation",
   post_process_skip_short: true,
@@ -1735,7 +1735,7 @@ const handlers: Record<string, (args: Json) => unknown> = {
   save_insights_card: () => null,
   // Where the share dialog saves a card for LinkedIn.
   save_insights_card_to_downloads: () =>
-    "C:\\Users\\you\\Downloads\\Zynveliq insights.png",
+    "C:\\Users\\you\\Downloads\\Talvio insights.png",
   copy_insights_card: () => null,
   share_insights_card: () => null,
   list_meetings: () => ({ meetings, has_more: false }),
@@ -1880,8 +1880,10 @@ const handlers: Record<string, (args: Json) => unknown> = {
   is_recording: () => false,
   is_portable: () => false,
   is_laptop: () => false,
-  get_app_dir_path: () => "C:\\Users\\preview\\AppData\\Roaming\\Zynveliq",
-  get_log_dir_path: () => "C:\\Users\\preview\\AppData\\Local\\Zynveliq\\logs",
+  get_app_dir_path: () =>
+    "C:\\Users\\preview\\AppData\\Roaming\\com.talvio.desktop",
+  get_log_dir_path: () =>
+    "C:\\Users\\preview\\AppData\\Local\\com.talvio.desktop\\logs",
   check_custom_sounds: () => ({ start: false, stop: false }),
   assistant_list_tts_voices: () =>
     settings.assistant_tts_engine === "elevenlabs"

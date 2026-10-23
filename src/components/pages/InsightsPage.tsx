@@ -506,7 +506,7 @@ const ActivityCard: React.FC<{
 };
 
 /**
- * Insights: how much you have said to Zynveliq, how fast, and when, across
+ * Insights: how much you have said to Talvio, how fast, and when, across
  * dictation, the assistant and meetings, and cards to share it. Everything
  * is counted on this computer.
  *

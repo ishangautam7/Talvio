@@ -9,7 +9,7 @@
  * furniture. Kept in `localStorage`, which every window of the app shares.
  */
 
-const KEY = "zynveliq.overlay.handsFreeHint";
+const KEY = "talvio.overlay.handsFreeHint";
 
 /** How many held dictations show it, at most. */
 export const HINT_TIMES = 3;

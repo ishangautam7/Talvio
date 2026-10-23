@@ -11,9 +11,9 @@ describe("splitTip", () => {
 
   test("leads with the first sentence of a long explanation", () => {
     const text =
-      "When you fix a word Zynveliq got wrong, it remembers your spelling for next time. To do that it reads the text field you just dictated into, for about a minute afterwards.";
+      "When you fix a word Talvio got wrong, it remembers your spelling for next time. To do that it reads the text field you just dictated into, for about a minute afterwards.";
     expect(splitTip(text)).toEqual({
-      lead: "When you fix a word Zynveliq got wrong, it remembers your spelling for next time.",
+      lead: "When you fix a word Talvio got wrong, it remembers your spelling for next time.",
       rest: "To do that it reads the text field you just dictated into, for about a minute afterwards.",
     });
   });

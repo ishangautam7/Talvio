@@ -112,7 +112,7 @@ pub fn foreground_window() -> Option<WindowEntry> {
     if window.is_none() {
         // Ours: the overlay or the assistant panel can be in front while a
         // command's context is gathered, and it is not what the user means.
-        debug!("command mode: the focused window is Zynveliq's own");
+        debug!("command mode: the focused window is Talvio's own");
     }
     window
 }
@@ -742,7 +742,7 @@ enum Launched {
 /// A command for a program that is started, not parsed: the user's locale and
 /// environment are kept (an app should start in the user's language), only the
 /// AppImage's libraries are taken out. It gets its own process group, so a
-/// Ctrl+C in the terminal Zynveliq was started from does not reach it.
+/// Ctrl+C in the terminal Talvio was started from does not reach it.
 fn launch_command(program: &str, args: &[&str]) -> Command {
     let mut cmd = Command::new(program);
     cmd.args(args)
@@ -759,7 +759,7 @@ fn launch_command(program: &str, args: &[&str]) -> Command {
 
 /// Reap `child` on a thread of its own, so a launched app that exits later
 /// does not stay behind as a zombie. Nothing ever waits for it otherwise: an
-/// app is not part of the command, and it must outlive Zynveliq.
+/// app is not part of the command, and it must outlive Talvio.
 fn reap_in_background(mut child: std::process::Child) {
     let _ = thread::Builder::new()
         .name("command-launch-reaper".into())

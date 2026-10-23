@@ -35,10 +35,10 @@
     "downloading": "ダウンロード中… {{progress}}%",
     "downloadingUnknown": "ダウンロード中…",
     "installing": "インストール中…",
-    "reopening": "Zynveliq はアップデートをインストールするために終了し、数秒後に再び開きます。",
+    "reopening": "Talvio はアップデートをインストールするために終了し、数秒後に再び開きます。",
     "updatedTo": "バージョン {{version}} にアップデートしました",
     "restart": "今すぐ再起動",
-    "readyToRestart": "アップデートをインストールしました。Zynveliqを再起動すると使えるようになります。",
+    "readyToRestart": "アップデートをインストールしました。Talvioを再起動すると使えるようになります。",
     "installFailed": "アップデートをインストールできませんでした。もう一度試すか、インストーラーをダウンロードしてご自身で実行してください。",
     "downloadFailed": "ダウンロードが完了しませんでした。接続を確認して、もう一度お試しください。",
     "downloadInstaller": "インストーラーをダウンロード",
@@ -49,13 +49,13 @@
     "showInFolder": "フォルダーで表示",
     "viewRelease": "GitHubで見る",
     "hint": {
-      "windows": "Zynveliqが終了し、アップデートをインストールして再び起動します。ほかに操作は必要ありません。",
-      "macos": "Zynveliqが新しいバージョンで再起動します。その後、macOSからマイクとアクセシビリティの許可を再度求められることがあります。",
-      "linux": "Zynveliqが新しいバージョンで再起動します。.debでのインストールでは、最初にパスワードを求められます。"
+      "windows": "Talvioが終了し、アップデートをインストールして再び起動します。ほかに操作は必要ありません。",
+      "macos": "Talvioが新しいバージョンで再起動します。その後、macOSからマイクとアクセシビリティの許可を再度求められることがあります。",
+      "linux": "Talvioが新しいバージョンで再起動します。.debでのインストールでは、最初にパスワードを求められます。"
     },
     "modes": {
       "portable": "これはポータブル版のため、自身を置き換えることができません。新しいバージョンをダウンロードし、Dataフォルダーをそこにコピーしてください。",
-      "packageManager": "Zynveliqはパッケージマネージャーでインストールされているため、そちらでアップデートしてください（例：yay -Syu zynveliq-bin）。",
+      "packageManager": "Talvioはパッケージマネージャーでインストールされているため、そちらでアップデートしてください（例：yay -Syu talvio-bin）。",
       "download": "このコピーはその場でアップデートできません。インストーラーをダウンロードして実行し、新しいバージョンを入手してください。"
     },
     "pill": {
@@ -70,7 +70,7 @@
   "feedback": {
     "button": "フィードバックを送信",
     "title": "フィードバックを送信",
-    "description": "メッセージはすべて私自身が読んでいます。思ったままに書いてください。Zynveliqをより良くするためのご協力に感謝します。",
+    "description": "メッセージはすべて私自身が読んでいます。思ったままに書いてください。Talvioをより良くするためのご協力に感謝します。",
     "kind": {
       "label": "フィードバックの種類",
       "bug": "不具合",
@@ -79,7 +79,7 @@
     },
     "placeholder": {
       "bug": "何が起きましたか？本来はどうなるはずでしたか？",
-      "idea": "Zynveliqがどうなれば、もっと使いやすくなりますか？",
+      "idea": "Talvioがどうなれば、もっと使いやすくなりますか？",
       "question": "知りたいことは何ですか？"
     },
     "messageLabel": "メッセージ",
@@ -158,10 +158,10 @@
       "retry": "再試行"
     },
     "tour": {
-      "features": "Zynveliqでできること",
+      "features": "Talvioでできること",
       "count": "{{current}}/{{total}}",
       "next": "次へ",
-      "finish": "Zynveliqを開く",
+      "finish": "Talvioを開く",
       "tabs": {
         "dictate": "音声入力",
         "ask": "アシスタント",
@@ -239,7 +239,7 @@
       "ready": "準備完了"
     },
     "speechToText": {
-      "title": "Zynveliqにどう聞き取ってほしいですか？",
+      "title": "Talvioにどう聞き取ってほしいですか？",
       "subtitle": "あなたの声を、この端末上でそのままテキストに変えます。ひとつ選んでください。いつでも変更できます。",
       "cards": {
         "fast": {
@@ -304,7 +304,7 @@
       "downloadingVoice": "音声モデルを準備しています。{{percentage}}% 完了。",
       "downloadingGeneric": "ダウンロード中です。{{percentage}}% 完了。",
       "signOff": "以上で完了です。何か話しかけてみてください。",
-      "openApp": "Zynveliqを開く"
+      "openApp": "Talvioを開く"
     },
     "errors": {
       "selectModel": "そのモデルを選択できませんでした。もう一度お試しください。",
@@ -436,7 +436,7 @@
     },
     "permissions": {
       "title": "権限が必要です",
-      "description": "Zynveliqが正常に動作するにはいくつかの権限が必要です。",
+      "description": "Talvioが正常に動作するにはいくつかの権限が必要です。",
       "microphone": {
         "title": "マイクへのアクセス",
         "description": "文字起こしのためにあなたの声を聞くために必要です。"
@@ -446,7 +446,7 @@
         "description": "アプリケーションに文字起こしテキストを入力するために必要です。",
         "stuckHint": "システム設定ですでにオンになっていますか？アップデート後、macOS がこのバージョンと一致しなくなった許可を保持していることがあります。",
         "reset": "権限をリセット",
-        "resetDone": "システム設定で Zynveliq をもう一度オンにしてください。"
+        "resetDone": "システム設定で Talvio をもう一度オンにしてください。"
       },
       "grant": "権限を許可",
       "granted": "許可済み",
@@ -455,7 +455,7 @@
       "errors": {
         "checkFailed": "権限を確認できませんでした。もう一度お試しください。",
         "requestFailed": "権限をリクエストできませんでした。もう一度お試しください。",
-        "resetFailed": "権限をリセットできませんでした。アクセシビリティの一覧から Zynveliq を削除して、もう一度追加してください。"
+        "resetFailed": "権限をリセットできませんでした。アクセシビリティの一覧から Talvio を削除して、もう一度追加してください。"
       }
     },
     "frame": {
@@ -682,7 +682,7 @@
       },
       "handsFree": {
         "unavailableKeys": "音声入力が Ctrl + Win のような修飾キーだけのときに使えます。{{keys}} の場合は代わりに「押している間だけ録音」をオフにしてください。もう一度キーを押すまで音声入力が続きます。",
-        "unavailableEngine": "キーボードエンジン Zynveliq Keys が必要です（{{where}}）。または「押している間だけ録音」をオフにしてください。もう一度キーを押すまで音声入力が続きます。",
+        "unavailableEngine": "キーボードエンジン Talvio Keys が必要です（{{where}}）。または「押している間だけ録音」をオフにしてください。もう一度キーを押すまで音声入力が続きます。",
         "taken": "{{name}} がすでに {{keys}} を使っているため、どちらかを変更するまでこのキーは機能しません。",
         "needsKey": "スペースや Enter など、キーを 1 つ選んでください。修飾キーだけではハンズフリーのキーにできません。",
         "pressKey": "キーを押してください…",
@@ -739,9 +739,9 @@
       "clearSearch": "検索をクリア",
       "noSearchResults": "「{{query}}」という名前のモデルはありません。",
       "olderHint": "以前の形式です。{{model}}（{{size}}）がこのモデルの新しいバージョンです。",
-      "retiredHint": "Zynveliq に含まれなくなった以前のエンジンを使います。代わりに {{model}}（{{size}}）をダウンロードしてください。",
+      "retiredHint": "Talvio に含まれなくなった以前のエンジンを使います。代わりに {{model}}（{{size}}）をダウンロードしてください。",
       "retired": {
-        "notice": "これらのモデルは、Zynveliq に含まれなくなった以前のエンジンを使っていました。",
+        "notice": "これらのモデルは、Talvio に含まれなくなった以前のエンジンを使っていました。",
         "newVersion": "新しいバージョン：{{model}} · {{size}}",
         "getNewVersion": "新しいバージョンを入手",
         "useNewVersion": "新しいバージョンを使う",
@@ -796,7 +796,7 @@
         "rescan": "再スキャン",
         "rescanning": "再スキャン中…",
         "rescanDone_other": "{{count}}件のローカルモデルが見つかりました。",
-        "footnote": "リンクしたフォルダーはZynveliqの起動時に再スキャンされるため、後から追加したモデルも自動的に表示されます。フォルダーのリンク解除やモデルの削除は、このリストから取り除くだけです。ファイルは元の場所に残ります。",
+        "footnote": "リンクしたフォルダーはTalvioの起動時に再スキャンされるため、後から追加したモデルも自動的に表示されます。フォルダーのリンク解除やモデルの削除は、このリストから取り除くだけです。ファイルは元の場所に残ります。",
         "removeTitle": "リストから削除しますか？",
         "removeConfirm": "「{{modelName}}」をモデルリストから削除しますか？\n\nファイル自体は元の場所に残ります:\n{{path}}",
         "missingBadge": "ファイルなし",
@@ -886,7 +886,7 @@
         "label": "マウスボタンをショートカットに使う",
         "description": "マウスの中ボタン、戻るボタン、進むボタンをショートカットとして使えます。ショートカットのキーをクリックしてから、ボタンを押してください。ショートカットに割り当てたボタンは、ほかの動作をしません。",
         "linux": "Linux では中ボタンだけが使えます。",
-        "needsEngine": "キーボード実装が Zynveliq Keys の場合のみ使えます。"
+        "needsEngine": "キーボード実装が Talvio Keys の場合のみ使えます。"
       },
       "longFormChunking": {
         "title": "長い録音を分割する",
@@ -904,11 +904,11 @@
       },
       "autostart": {
         "label": "ログイン時に起動",
-        "description": "サインインしたときにZynveliqを自動的に開きます。"
+        "description": "サインインしたときにTalvioを自動的に開きます。"
       },
       "showTrayIcon": {
         "label": "トレイアイコンを表示",
-        "description": "Zynveliqをシステムトレイに常駐させます。"
+        "description": "Talvioをシステムトレイに常駐させます。"
       },
       "trayIconColor": {
         "label": "カラーのトレイアイコン",
@@ -916,7 +916,7 @@
       },
       "closeBehavior": {
         "label": "ウィンドウを閉じたら終了する",
-        "description": "オフの場合、ウィンドウを閉じてもZynveliqはトレイで動作し続け、ホットキーも使えます。オンの場合、ウィンドウを閉じるとアプリが完全に終了します。"
+        "description": "オフの場合、ウィンドウを閉じてもTalvioはトレイで動作し続け、ホットキーも使えます。オンの場合、ウィンドウを閉じるとアプリが完全に終了します。"
       },
       "overlayStyle": {
         "title": "オーバーレイ",
@@ -1010,8 +1010,8 @@
       },
       "customWords": {
         "title": "カスタム単語",
-        "description": "Zynveliqにあなたの表記どおりに書いてほしい名前、製品名、フレーズ。",
-        "info": "例：Zynveliqが「Coco row」と書いてしまう場合は「Kokoro」を追加します。",
+        "description": "Talvioにあなたの表記どおりに書いてほしい名前、製品名、フレーズ。",
+        "info": "例：Talvioが「Coco row」と書いてしまう場合は「Kokoro」を追加します。",
         "placeholder": "名前、用語、短いフレーズを追加",
         "add": "追加",
         "empty": "カスタム単語はまだありません。",
@@ -1020,7 +1020,7 @@
       },
       "autoLearn": {
         "label": "修正した単語を学習する",
-        "description": "Zynveliqが聞き間違えた単語をあなたが直すと、その表記を覚えます。",
+        "description": "Talvioが聞き間違えた単語をあなたが直すと、その表記を覚えます。",
         "info": "読み取るのは直前に入力したフィールドだけで、時間は約1分です。何もアップロードされず、学習した単語はすべてここに表示されます。",
         "unsupported": "修正からの学習は、現在Windowsでのみ利用できます。上から手動で単語を追加することはできます。",
         "learnedTitle": "修正から学習した単語",
@@ -1034,7 +1034,7 @@
         "title": "テキスト置換",
         "description": "文字起こしの中の言い回しを、よく使うテキストに置き換えます。例：「my email」が「alex@example.com」になります。",
         "rulesTitle": "置換ルール",
-        "rulesHint": "Zynveliqが聞き取る言葉と、挿入するテキストを指定します。",
+        "rulesHint": "Talvioが聞き取る言葉と、挿入するテキストを指定します。",
         "empty": "よく話す言い回しのルールを作成しましょう。",
         "addFirst": "最初のルールを作成",
         "addRule": "置換を追加",
@@ -1411,7 +1411,7 @@
       },
       "updateChecks": {
         "label": "アップデートを自動的に確認",
-        "description": "Zynveliqの起動時と12時間ごとに新しいバージョンを確認します。いつでも手動で確認することもできます。"
+        "description": "Talvioの起動時と12時間ごとに新しいバージョンを確認します。いつでも手動で確認することもできます。"
       },
       "soundTheme": {
         "label": "サウンドテーマ",
@@ -1467,7 +1467,7 @@
       "smartSpacing": {
         "label": "スマートスペース",
         "description": "入力欄にすでにある文章に合わせて各ディクテーションを整え、途中で止めて続けても単語がくっつかないようにします。",
-        "info": "貼り付ける前に、Zynveliq はカーソル周辺の数文字を確認し、必要な場所にだけスペースを入れます。アプリがテキストを公開していない場合は、直前の自分のディクテーションを手がかりにします。何も保存・送信されません。macOS では Zynveliq にすでに許可されているアクセシビリティ権限を使います。Linux では、Chrome、Electron、Qt のアプリはデスクトップのアクセシビリティ設定がオンのときだけテキストを公開します。日本語や中国語の文章にはスペースを入れません。"
+        "info": "貼り付ける前に、Talvio はカーソル周辺の数文字を確認し、必要な場所にだけスペースを入れます。アプリがテキストを公開していない場合は、直前の自分のディクテーションを手がかりにします。何も保存・送信されません。macOS では Talvio にすでに許可されているアクセシビリティ権限を使います。Linux では、Chrome、Electron、Qt のアプリはデスクトップのアクセシビリティ設定がオンのときだけテキストを公開します。日本語や中国語の文章にはスペースを入れません。"
       },
       "smartSpacingFixCase": {
         "label": "大文字・小文字を整える",
@@ -1475,7 +1475,7 @@
       },
       "smartSpacingJoin": {
         "label": "途中で止めた文をつなげる",
-        "description": "文の途中で止めたときに Zynveliq が付けたピリオドを取り除きます(例:「I went to the.」)。"
+        "description": "文の途中で止めたときに Talvio が付けたピリオドを取り除きます(例:「I went to the.」)。"
       },
       "keyboardImplementation": {
         "title": "キーボード実装",
@@ -1607,7 +1607,7 @@
       },
       "appDataDirectory": {
         "title": "アプリデータフォルダ",
-        "description": "Zynveliqがモデル、履歴、設定を保存する場所です。"
+        "description": "Talvioがモデル、履歴、設定を保存する場所です。"
       },
       "sourceCode": {
         "title": "ソースコード",
@@ -1616,12 +1616,12 @@
       },
       "license": {
         "title": "ライセンス",
-        "description": "ZynveliqはMITライセンスのオープンソースで、CJ Pais氏によるHandy（同じくMIT）を基にしています。",
+        "description": "TalvioはMITライセンスのオープンソースで、CJ Pais氏によるHandy（同じくMIT）を基にしています。",
         "button": "ライセンスを見る"
       },
       "supportDevelopment": {
         "title": "開発を支援",
-        "description": "Zynveliqの開発継続にご協力ください",
+        "description": "Talvioの開発継続にご協力ください",
         "button": "寄付する"
       }
     },
@@ -1629,7 +1629,7 @@
       "enable": {
         "title": "アシスタント",
         "label": "アシスタントを有効にする",
-        "description": "オフにすると、Zynveliq は音声入力専用になります。フローティングパネルは閉じられて読み込まれなくなり、そのホットキーは解放され、使っていたメモリも返されます。Flowで生成 と AI整形はそのまま使えます。"
+        "description": "オフにすると、Talvio は音声入力専用になります。フローティングパネルは閉じられて読み込まれなくなり、そのホットキーは解放され、使っていたメモリも返されます。Flowで生成 と AI整形はそのまま使えます。"
       },
       "shortcuts": {
         "title": "ショートカット"
@@ -1668,7 +1668,7 @@
         "deleteModelFailed": "モデルを削除できませんでした。",
         "finderSectionTitle": "デバイス上で動く他のモデル",
         "finderTitle": "Hugging Faceを見る",
-        "finderDescription": "数千のGGUFモデルを検索し、Zynveliqに直接ダウンロードできます。",
+        "finderDescription": "数千のGGUFモデルを検索し、Talvioに直接ダウンロードできます。",
         "finderAction": "モデルを探す",
         "huggingFaceTitle": "あなたのモデル",
         "catalogEmpty": "現在、おすすめのローカルモデルはありません。"
@@ -1791,7 +1791,7 @@
           "label": "キャプチャのタイミング"
         },
         "screenRecording": {
-          "description": "画面認識にはmacOSの画面収録の権限が必要です。システム設定で許可したあと、Zynveliqを再起動すると有効になります。",
+          "description": "画面認識にはmacOSの画面収録の権限が必要です。システム設定で許可したあと、Talvioを再起動すると有効になります。",
           "grant": "システム設定を開く"
         }
       },
@@ -1968,7 +1968,7 @@
         "testGpuMoved": "グラフィックスカードでサンプルの音声が乱れたため、ミュートしました。Kokoroはプロセッサーを使うようになったので、もう一度テストして聞いてみてください。",
         "testGpuForced": "グラフィックスカードでサンプルの音声が乱れたため、ミュートしました。「実行デバイス」を「自動」または「プロセッサー」に設定してください。",
         "testGpuSuspect": "サンプルの音声が乱れたため、ミュートしました。もう一度テストして、グラフィックスカードを確認してください。",
-        "testPhrase": "こんにちは！これはZynveliqの音声出力のテストです。",
+        "testPhrase": "こんにちは！これはTalvioの音声出力のテストです。",
         "downloadStart": "Kokoroの音声をダウンロード中…",
         "downloadProgress": "Kokoroの音声をダウンロード中… {{progress}}%",
         "downloadReady": "Kokoroの音声の準備が完了しました ✓",
@@ -2070,7 +2070,7 @@
     "account": {
       "signedOut": {
         "title": "スマートフォンを接続",
-        "body": "このコンピューターとスマートフォンの Zynveliq アプリで、同じアカウントにサインインしてください。スマートフォンからこのコンピューターに音声入力やテキスト入力ができるようになります。",
+        "body": "このコンピューターとスマートフォンの Talvio アプリで、同じアカウントにサインインしてください。スマートフォンからこのコンピューターに音声入力やテキスト入力ができるようになります。",
         "modeLabel": "サインインまたはアカウント作成",
         "signIn": "サインイン",
         "createAccount": "アカウントを作成",
@@ -2092,13 +2092,13 @@
         "online": "接続済み",
         "connecting": "接続しています…",
         "offline": "オフライン",
-        "offlineHint": "現在 Zynveliq はサーバーに接続できず、再試行を続けています。接続が戻るまで、スマートフォンからこのコンピューターは使えません。"
+        "offlineHint": "現在 Talvio はサーバーに接続できず、再試行を続けています。接続が戻るまで、スマートフォンからこのコンピューターは使えません。"
       },
       "phone": {
         "title": "スマートフォン",
         "remoteInput": "スマートフォンから音声入力",
         "remoteInputHint": "スマートフォンからこのコンピューターに音声入力やテキスト入力ができるようにします。",
-        "install": "スマートフォンに Zynveliq アプリを入れて、{{email}} でサインインしてください。"
+        "install": "スマートフォンに Talvio アプリを入れて、{{email}} でサインインしてください。"
       },
       "devices": {
         "title": "デバイス",
@@ -2130,7 +2130,7 @@
         "automatic": "自動",
         "custom": "カスタム",
         "using": "使用中: {{host}}",
-        "notFound": "現在サーバーが見つかりません。Zynveliq は再試行を続けています。"
+        "notFound": "現在サーバーが見つかりません。Talvio は再試行を続けています。"
       },
       "errors": {
         "generic": "問題が発生しました。もう一度お試しください。",
@@ -2253,7 +2253,7 @@
     "list": {
       "title": "録音したミーティング",
       "emptyTitle": "ミーティングはまだありません",
-      "emptyHint": "通話の前に録音を開始すると、Zynveliqが話者ごとに分けた文字起こしを保存します。",
+      "emptyHint": "通話の前に録音を開始すると、Talvioが話者ごとに分けた文字起こしを保存します。",
       "loadMore": "さらに読み込む",
       "speakers_other": "{{count}}人の話者",
       "hasNotes": "メモを生成済み"
@@ -2414,7 +2414,7 @@
   },
   "accessibility": {
     "permissionsRequired": "アクセシビリティ権限が必要です",
-    "permissionsDescription": "Zynveliqが文字起こしテキストを入力するには、アクセシビリティ権限が必要です。",
+    "permissionsDescription": "Talvioが文字起こしテキストを入力するには、アクセシビリティ権限が必要です。",
     "openSettings": "システム設定を開く",
     "dismiss": "閉じる"
   },
@@ -2443,7 +2443,7 @@
   },
   "appLanguage": {
     "title": "アプリの言語",
-    "description": "Zynveliqインターフェースの言語を変更"
+    "description": "Talvioインターフェースの言語を変更"
   },
   "overlay": {
     "preparing": "マイクを準備中…",
@@ -2805,7 +2805,7 @@
       "performance": "パフォーマンス"
     },
     "about": {
-      "appName": "Zynveliq",
+      "appName": "Talvio",
       "version": "バージョン {{version}}",
       "project": "プロジェクト",
       "docs": "ドキュメント",
@@ -2823,7 +2823,7 @@
     "subtitleTap": "どのアプリでもショートカットをタップして話し、もう一度タップするだけ。カーソルの位置に言葉が入力されます。",
     "needsModel": {
       "title": "音声入力を始めるには、音声認識モデルを選んでください。",
-      "description": "話した内容を入力するには、Zynveliqに音声認識モデルが必要です。",
+      "description": "話した内容を入力するには、Talvioに音声認識モデルが必要です。",
       "action": "モデルを選ぶ"
     },
     "stats": {
@@ -2896,8 +2896,8 @@
         "open": "キーボード設定"
       },
       "linux": {
-        "wayland": "Wayland では、Zynveliq のウィンドウが前面にあるときしか、デスクトップはこれらのキーを Zynveliq に渡しません。どのアプリでも使うには、システム設定でショートカットとして追加してください。",
-        "noAccess": "このコンピューターでは Zynveliq Keys がキーボードを読み取れないため、これらのショートカットはまだ機能しません。",
+        "wayland": "Wayland では、Talvio のウィンドウが前面にあるときしか、デスクトップはこれらのキーを Talvio に渡しません。どのアプリでも使うには、システム設定でショートカットとして追加してください。",
+        "noAccess": "このコンピューターでは Talvio Keys がキーボードを読み取れないため、これらのショートカットはまだ機能しません。",
         "setUp": "設定する",
         "where": {
           "gnome": "設定 → キーボード → ショートカットの表示とカスタマイズ → カスタムショートカット を開き、下のコマンドごとに1つずつ追加して、使いたいキーを押してください。",
@@ -2905,7 +2905,7 @@
           "other": "下のコマンドごとに、デスクトップのキーボード設定でカスタムショートカットを追加するか、コンポジターの設定に bind 行を追加してください。"
         },
         "tapOnly": "この方法で追加したショートカットは「タップで切り替え」と同じ動作です。1回押すと開始し、もう1回押すと停止します。",
-        "access": "または、Zynveliq Keys にキーボードの読み取りを許可します。ターミナルでこれを実行し、ログアウトしてから再度ログインしてください:",
+        "access": "または、Talvio Keys にキーボードの読み取りを許可します。ターミナルでこれを実行し、ログアウトしてから再度ログインしてください:",
         "copy": "コピー",
         "copied": "コピーしました"
       }
@@ -2933,7 +2933,7 @@
     }
   },
   "speechUpdate": {
-    "title": "{{model}} は、Zynveliq に含まれなくなった以前のエンジンを使っていました。",
+    "title": "{{model}} は、Talvio に含まれなくなった以前のエンジンを使っていました。",
     "newVersion": "新しいバージョンは {{model}} です。",
     "ready": "{{model}} はダウンロード済みで、すぐに使えます。",
     "noVersion": "音声入力を続けるには、別のモデルを選んでください。",
@@ -2942,12 +2942,12 @@
     "retry": "再試行",
     "chooseAnother": "別のモデルを選ぶ",
     "progressLabel": "新しいバージョンをダウンロード中",
-    "dialogTitle": "Zynveliq に新しい音声エンジンが入りました",
+    "dialogTitle": "Talvio に新しい音声エンジンが入りました",
     "dialogBody": "より速く安定しているため、問題が起きにくくなります。{{model}} は旧エンジンで動いていたため、引き続き使うには新しいバージョンが必要です。",
     "later": "あとで"
   },
   "modelsHub": {
-    "description": "Zynveliqの各機能は、あなたが選んだモデルが担当します。プライバシーを重視するならこのデバイス上で、速さを重視するならクラウドで実行できます。",
+    "description": "Talvioの各機能は、あなたが選んだモデルが担当します。プライバシーを重視するならこのデバイス上で、速さを重視するならクラウドで実行できます。",
     "addLocal": "モデルファイルを追加",
     "privacyNote": "このデバイス上のモデルは、あなたの声やテキストをどこにも送信しません。クラウドのモデルは、あなたのAPIキーを使って、選んだプロバイダーに送信します。",
     "inUse": "使用中",
@@ -3106,12 +3106,12 @@
     "shortcutRow": "ショートカット"
   },
   "dictionary": {
-    "description": "よく使う名前や用語をZynveliqに覚えさせたり、長いテキストに展開される短縮語を設定したりできます。",
+    "description": "よく使う名前や用語をTalvioに覚えさせたり、長いテキストに展開される短縮語を設定したりできます。",
     "words": {
       "title": "登録した単語",
-      "description": "Zynveliqに常に正しく書いてほしい名前、専門用語、表記。",
+      "description": "Talvioに常に正しく書いてほしい名前、専門用語、表記。",
       "placeholder": "名前、用語、表記を追加…",
-      "empty": "まだ何もありません。Zynveliqがよく間違える単語を追加しましょう。"
+      "empty": "まだ何もありません。Talvioがよく間違える単語を追加しましょう。"
     },
     "replacements": {
       "title": "置換",
@@ -3492,7 +3492,7 @@
     "or": "または",
     "changeOther": "{{name}}のもう一方のキーを変更",
     "pressKeysOrButton": "キーかマウスボタンを押してください…",
-    "mouseNeedsKeysEngine": "マウスボタンを使うには、キーボード実装を Zynveliq Keys にする必要があります（設定 → 詳細設定 → 実験的）。",
+    "mouseNeedsKeysEngine": "マウスボタンを使うには、キーボード実装を Talvio Keys にする必要があります（設定 → 詳細設定 → 実験的）。",
     "mouse": {
       "middle": "マウス中ボタン",
       "back": "マウス戻るボタン",
@@ -3571,7 +3571,7 @@
     }
   },
   "insights": {
-    "about": "Zynveliqの利用状況です。集計はこのPC上で行われます。",
+    "about": "Talvioの利用状況です。集計はこのPC上で行われます。",
     "nothingYet": "音声入力、アシスタントへの質問、会議の録音のいずれかを行うと、インサイトが表示されます。",
     "goHome": "ショートカットを見る",
     "figures": {
@@ -3623,7 +3623,7 @@
     },
     "share": {
       "button": "共有",
-      "nothingYet": "Zynveliqを使うと、共有できる内容ができます。",
+      "nothingYet": "Talvioを使うと、共有できる内容ができます。",
       "title": "インサイトを共有",
       "private": "このPC上で作成します。何もアップロードされません。",
       "size": "サイズ",
@@ -3654,13 +3654,13 @@
       "openSite": "{{site}}を開く",
       "openFailed": "{{site}}を開けませんでした",
       "more": "その他のアプリ",
-      "sheetTitle": "私のZynveliqインサイト",
+      "sheetTitle": "私のTalvioインサイト",
       "shareFailed": "共有を開けませんでした",
       "drawFailed": "カードを描画できませんでした。閉じてもう一度お試しください。",
       "tagline": "無料 · オープンソース · オフラインで動作",
       "cards": {
         "highlights": {
-          "title": "私のZynveliqハイライト",
+          "title": "私のTalvioハイライト",
           "words_other": "話した語数",
           "streak_other": "日連続",
           "wpm": "語/分",
@@ -3709,9 +3709,9 @@
         }
       },
       "post": {
-        "dictation_other": "Zynveliqで、これまで{{formatted}}語をタイピングせずに声でパソコンに入力しました。",
-        "asks_other": "Zynveliqのアシスタントに、タブを切り替えずに{{formatted}}件の質問をしました。",
-        "meetings_other": "Zynveliqがこれまで{{formatted}}件の会議を録音して、メモまで書いてくれました。"
+        "dictation_other": "Talvioで、これまで{{formatted}}語をタイピングせずに声でパソコンに入力しました。",
+        "asks_other": "Talvioのアシスタントに、タブを切り替えずに{{formatted}}件の質問をしました。",
+        "meetings_other": "Talvioがこれまで{{formatted}}件の会議を録音して、メモまで書いてくれました。"
       }
     }
   },
@@ -3719,11 +3719,11 @@
     "restored": "設定ファイルが破損していたため、バックアップから復元しました。",
     "restoredDescription": "最近の変更が反映されていない可能性があります。",
     "unrecoverableTitle": "設定を復元できませんでした",
-    "unrecoverableDescription": "Zynveliq は既定の設定で起動しました。破損したファイルは {{file}} として残してあります。",
+    "unrecoverableDescription": "Talvio は既定の設定で起動しました。破損したファイルは {{file}} として残してあります。",
     "notSavingTitle": "設定の変更は保存されません",
-    "notSavingDescription": "設定ファイルを読み込めなかったため、そのままにしてあります。Zynveliq を再起動してもう一度お試しください。",
+    "notSavingDescription": "設定ファイルを読み込めなかったため、そのままにしてあります。Talvio を再起動してもう一度お試しください。",
     "saveFailingTitle": "設定を保存できていません",
-    "saveFailingDescription": "最近の変更はまだ保存されていません。Zynveliq は保存を試み続けます。",
+    "saveFailingDescription": "最近の変更はまだ保存されていません。Talvio は保存を試み続けます。",
     "dismiss": "閉じる"
   },
   "commandMode": {
