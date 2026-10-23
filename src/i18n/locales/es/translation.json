@@ -2101,7 +2101,7 @@
         "or": "o",
         "google": "Continuar con Google",
         "googleWaiting": "Termina de iniciar sesión en tu navegador.",
-        "privacy": "El servidor solo guarda tu cuenta y tu lista de dispositivos, nunca tus grabaciones ni tus textos."
+        "privacy": "El servidor guarda tu cuenta, tu lista de dispositivos y, si las sincronizas, tus claves API (cifradas). Nunca tus grabaciones ni tus textos."
       },
       "signOut": "Cerrar sesión",
       "signingOut": "Cerrando sesión…",

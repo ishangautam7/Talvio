@@ -2092,7 +2092,7 @@
         "or": "oder",
         "google": "Weiter mit Google",
         "googleWaiting": "Schließe die Anmeldung in deinem Browser ab.",
-        "privacy": "Der Server speichert nur dein Konto und deine Geräteliste, niemals deine Aufnahmen oder Texte."
+        "privacy": "Der Server speichert dein Konto, deine Geräteliste und, wenn du sie synchronisierst, deine API-Schlüssel (verschlüsselt). Niemals deine Aufnahmen oder Texte."
       },
       "signOut": "Abmelden",
       "signingOut": "Abmeldung läuft…",

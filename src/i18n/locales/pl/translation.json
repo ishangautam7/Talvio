@@ -2110,7 +2110,7 @@
         "or": "lub",
         "google": "Kontynuuj przez Google",
         "googleWaiting": "Dokończ logowanie w przeglądarce.",
-        "privacy": "Serwer przechowuje tylko Twoje konto i listę urządzeń, nigdy nagrania ani teksty."
+        "privacy": "Serwer przechowuje Twoje konto, listę urządzeń i, jeśli je synchronizujesz, Twoje klucze API (zaszyfrowane). Nigdy nagrania ani teksty."
       },
       "signOut": "Wyloguj się",
       "signingOut": "Wylogowywanie…",

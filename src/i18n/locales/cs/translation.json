@@ -2110,7 +2110,7 @@
         "or": "nebo",
         "google": "Pokračovat přes Google",
         "googleWaiting": "Dokončete přihlášení v prohlížeči.",
-        "privacy": "Server uchovává jen váš účet a seznam zařízení, nikdy vaše nahrávky ani texty."
+        "privacy": "Server uchovává váš účet, seznam zařízení a, pokud je synchronizujete, vaše API klíče (šifrovaně). Nikdy vaše nahrávky ani texty."
       },
       "signOut": "Odhlásit se",
       "signingOut": "Odhlašování…",

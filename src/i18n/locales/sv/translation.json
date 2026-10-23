@@ -2092,7 +2092,7 @@
         "or": "eller",
         "google": "Fortsätt med Google",
         "googleWaiting": "Slutför inloggningen i webbläsaren.",
-        "privacy": "Servern sparar bara ditt konto och din enhetslista, aldrig dina inspelningar eller texter."
+        "privacy": "Servern sparar ditt konto, din enhetslista och, om du synkar dem, dina API-nycklar (krypterade). Aldrig dina inspelningar eller texter."
       },
       "signOut": "Logga ut",
       "signingOut": "Loggar ut…",

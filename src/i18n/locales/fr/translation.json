@@ -2101,7 +2101,7 @@
         "or": "ou",
         "google": "Continuer avec Google",
         "googleWaiting": "Terminez la connexion dans votre navigateur.",
-        "privacy": "Le serveur ne conserve que votre compte et la liste de vos appareils, jamais vos enregistrements ni vos textes."
+        "privacy": "Le serveur conserve votre compte, la liste de vos appareils et, si vous les synchronisez, vos clés API (chiffrées). Jamais vos enregistrements ni vos textes."
       },
       "signOut": "Se déconnecter",
       "signingOut": "Déconnexion…",
