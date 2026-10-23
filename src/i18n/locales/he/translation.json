@@ -1512,6 +1512,83 @@
       "recordingBuffer": {
         "title": "חוצץ הקלטה נוסף",
         "description": "מספר המילישניות להמשך הקלטה אחרי שחרור המקש."
+      },
+      "commandMode": {
+        "title": "מצב פקודות",
+        "description": "הקלד פקודה כדי לראות איזה כלי הנתב בוחר ומה הוא עושה. קיצור המקשים יגיע בגרסה מאוחרת יותר.",
+        "enabled": {
+          "title": "מצב פקודות",
+          "description": "מאפשר לפקודות לפעול באפליקציות שלך. נדרש עבור --run-command; התיבה הזו עובדת בכל מקרה."
+        },
+        "input": {
+          "title": "נסה פקודה",
+          "description": "שולח את הטקסט למודל הנתב כאילו אמרת אותו. כשהרצת ניסיון מופעלת, שום דבר לא קורה על המסך: תראה מה היה קורה.",
+          "placeholder": "שלח מייל לרון על פגישה ב-9:00"
+        },
+        "dryRun": {
+          "label": "הרצת ניסיון"
+        },
+        "dryRunSetting": {
+          "title": "הרצת ניסיון כברירת מחדל",
+          "description": "פקודות מציגות מה הן היו עושות במקום לעשות זאת. התיבה למעלה ו-‎--dry-run עדיין יכולות לקבוע עבור פקודה אחת."
+        },
+        "delay": {
+          "label": "הרץ אחרי {{seconds}} שניות",
+          "hint": "הקלדה ולחיצות מקשים נשלחות לחלון שבחזית, שהוא החלון הזה כשאתה לוחץ על הרץ. הפעל את ההשהיה ולחץ בתוך האפליקציה הרצויה, או השתמש בהרצת ניסיון.",
+          "countdown": "מריץ בעוד {{seconds}} שניות. לחץ בתוך האפליקציה שהפקודה מיועדת לה.",
+          "cancel": "ביטול ({{seconds}})"
+        },
+        "run": "הרץ",
+        "running": "מריץ…",
+        "invokeFailed": "לא ניתן היה לשלוח את הפקודה: {{error}}",
+        "status": {
+          "done": "בוצע",
+          "awaiting_confirmation": "ממתין לאישור",
+          "needs_answer": "נדרשת תשובה",
+          "needs_computer_use": "נדרשת שליטה במחשב",
+          "cancelled": "בוטל",
+          "failed": "נכשל"
+        },
+        "dryRunBadge": "הרצת ניסיון",
+        "fromCli": "משורת הפקודה",
+        "meta": "{{model}} · {{calls}} קריאות LLM · טוקנים: {{input}} נכנסים, {{output}} יוצאים, {{cached}} במטמון · {{ms}} ms",
+        "transcript": "פקודה: {{text}}",
+        "send": "שלח",
+        "cancel": "ביטול",
+        "answer": {
+          "placeholder": "התשובה שלך",
+          "submit": "ענה"
+        },
+        "escalation": "משימה לשליטה במחשב: {{task}}",
+        "error": "שגיאה: {{error}}",
+        "steps": "שלבים",
+        "dryRunActions": "היה מבצע",
+        "provider": {
+          "title": "ספק הנתב",
+          "description": "מזהה הספק שבוחר את הכלי לכל פקודה (לדוגמה anthropic או openrouter). הוא משתמש במפתח ה-API שכבר נשמר עבור הספק הזה. ריק חוזר ל-anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "מודל הנתב",
+          "description": "המודל שבוחר את הכלי. קטן ומהיר הוא הטוב ביותר: כל פקודה עולה קריאה אחת. ריק חוזר לברירת המחדל.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "חשבון Google",
+          "description": "החשבון שבו Gmail ויומן נפתחים (כתובת מייל או מספר חשבון). ריק משתמש בחשבון Google ברירת המחדל של הדפדפן.",
+          "placeholder": "חשבון ברירת מחדל"
+        },
+        "searchUrl": {
+          "title": "דף חיפוש",
+          "description": "הדף שחיפוש ברשת פותח. הוא חייב להכיל {query}, שמוחלף במה שביקשת; כל דבר אחר חוזר ל-Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "אנשי קשר",
+          "description": "השמות שפקודות יכולות לשלוח אליהם מייל, בקובץ JSON שאתה עורך. הוא נוצר עם דוגמה אחת בפעם הראשונה.",
+          "open": "פתח את קובץ אנשי הקשר",
+          "openFailed": "לא ניתן היה לפתוח את קובץ אנשי הקשר: {{error}}"
+        }
       }
     },
     "about": {
@@ -3738,5 +3815,54 @@
     "saveFailingTitle": "ההגדרות לא נשמרות",
     "saveFailingDescription": "השינויים האחרונים שלך עדיין לא נשמרו. Zynveliq ימשיך לנסות.",
     "dismiss": "סגור"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "האירוע ״{{title}}״ ביומן מוכן לשמירה.",
+      "calendarDraftMissingGuests": "האירוע ״{{title}}״ ביומן מוכן לשמירה. השמטתי את {{guests}}: אין לי כתובת מייל עבורם, אז הוסף אותם בטופס.",
+      "cancelled": "בוטל. שום דבר לא נשלח.",
+      "confirmExpired": "זה המתין יותר מדי זמן, אז לא ביצעתי את זה. בקש ממני שוב.",
+      "confirmFailed": "כבר אי אפשר לבצע את זה.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} נמצא באנשי הקשר שלך, אבל לא שמורים עבורו כתובת מייל או מספר טלפון.",
+      "contactNotFound": "אין לי איש קשר בשם {{name}}.",
+      "emailDraft": "הטיוטה אל {{name}} פתוחה. אמור שלח או ביטול.",
+      "emailDraftTruncated": "הטיוטה אל {{name}} פתוחה. ההודעה הייתה ארוכה מדי להעברה ל-Gmail, ולכן קוצרה; בדוק את הסוף לפני השליחה. אמור שלח או ביטול.",
+      "emailSent": "נשלח אל {{name}}.",
+      "empty": "לא קלטתי פקודה.",
+      "failed": "{{reason}}",
+      "mediaNext": "דילגתי לרצועה הבאה.",
+      "mediaPlayPause": "נלחץ הפעל/השהה.",
+      "mediaPrevious": "חזרתי לרצועה הקודמת.",
+      "mediaStop": "עצרתי את ההשמעה.",
+      "needsComputerUse": "אף אחד מהכלים שלי לא יכול לעשות את זה עדיין. שליטה במסך לשם כך תגיע בגרסה מאוחרת יותר.",
+      "notConfigured": "מצב פקודות לא מוגדר: {{why}}",
+      "nothingWaitingAnswer": "שום דבר לא ממתין לתשובה.",
+      "nothingWaitingConfirmation": "שום דבר לא ממתין לאישור.",
+      "openedInstead": "{{app}} לא הייתה פתוחה, אז פתחתי אותה.",
+      "openingApp": "פותח את {{app}}.",
+      "openingFile": "פותח את {{file}}.",
+      "planCapped": "אלה היו יותר מדי שלבים בבת אחת, אז השמטתי את {{count}} האחרונים.",
+      "pressKeysConfirm": "{{keys}} עלול לשלוח או להגיש משהו ב-{{window}}. אמור כן כדי ללחוץ, או ביטול.",
+      "pressedKeys": "לחצתי על {{keys}}.",
+      "pressedKeysRepeat": "לחצתי על {{keys}} {{count}} פעמים.",
+      "question": "{{question}}",
+      "routeFailed": "לא הצלחתי להבין מה לעשות: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "מחפש את {{query}}.",
+      "superseded": "פקודה חדשה יותר החליפה את זו, אז היא כבר לא ממתינה.",
+      "switchedTo": "עברתי אל {{title}}.",
+      "tooManyQuestions": "עדיין לא הצלחתי להבין מה לעשות. נסה לנסח את זה אחרת.",
+      "typedText": "הקלדתי את זה.",
+      "unsupported": "זה לא אפשרי ב-{{os}}.",
+      "urlOpened": "פתחתי את {{site}}.",
+      "volumeDown": "הנמכתי את עוצמת הקול.",
+      "volumeMute": "הקול הושתק.",
+      "volumeSet": "עוצמת הקול הוגדרה ל-{{percent}}%.",
+      "volumeUnmute": "הקול חזר.",
+      "volumeUp": "הגברתי את עוצמת הקול.",
+      "waitingForAnswer": "הפקודה הזו ממתינה לתשובה, לא לאישור.",
+      "waitingForConfirmation": "הפקודה הזו ממתינה לאישור שלך, לא לתשובה."
+    }
   }
 }

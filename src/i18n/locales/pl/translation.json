@@ -1521,6 +1521,83 @@
       "recordingBuffer": {
         "title": "Dodatkowy bufor nagrywania",
         "description": "Ile milisekund nagrywać po zwolnieniu klawisza."
+      },
+      "commandMode": {
+        "title": "Tryb poleceń",
+        "description": "Wpisz polecenie, aby zobaczyć, które narzędzie wybierze router i co ono zrobi. Skrót klawiszowy pojawi się w późniejszej wersji.",
+        "enabled": {
+          "title": "Tryb poleceń",
+          "description": "Pozwala poleceniom działać w Twoich aplikacjach. Wymagane dla --run-command; to pole działa w obu przypadkach."
+        },
+        "input": {
+          "title": "Wypróbuj polecenie",
+          "description": "Wysyła tekst do modelu routera tak, jakbyś go wypowiedział. Przy włączonym przebiegu próbnym nic nie dzieje się na ekranie: widzisz, co by się stało.",
+          "placeholder": "Wyślij e-mail do Rona o spotkaniu o 9:00"
+        },
+        "dryRun": {
+          "label": "Przebieg próbny"
+        },
+        "dryRunSetting": {
+          "title": "Domyślnie przebieg próbny",
+          "description": "Polecenia pokazują, co by zrobiły, zamiast to robić. Pole powyżej i --dry-run nadal mogą to zmienić dla pojedynczego polecenia."
+        },
+        "delay": {
+          "label": "Uruchom po {{seconds}} s",
+          "hint": "Wpisywany tekst i naciśnięcia klawiszy trafiają do okna na wierzchu, czyli do tego, gdy klikniesz Uruchom. Włącz opóźnienie i kliknij w docelową aplikację albo użyj przebiegu próbnego.",
+          "countdown": "Uruchomienie za {{seconds}} s. Kliknij w aplikację, dla której jest polecenie.",
+          "cancel": "Anuluj ({{seconds}})"
+        },
+        "run": "Uruchom",
+        "running": "Uruchamianie…",
+        "invokeFailed": "Nie udało się wysłać polecenia: {{error}}",
+        "status": {
+          "done": "Gotowe",
+          "awaiting_confirmation": "Czeka na potwierdzenie",
+          "needs_answer": "Wymaga odpowiedzi",
+          "needs_computer_use": "Wymaga sterowania komputerem",
+          "cancelled": "Anulowano",
+          "failed": "Niepowodzenie"
+        },
+        "dryRunBadge": "Przebieg próbny",
+        "fromCli": "Z wiersza poleceń",
+        "meta": "{{model}} · wywołania LLM: {{calls}} · tokeny: {{input}} wej., {{output}} wyj., {{cached}} z pamięci podręcznej · {{ms}} ms",
+        "transcript": "Polecenie: {{text}}",
+        "send": "Wyślij",
+        "cancel": "Anuluj",
+        "answer": {
+          "placeholder": "Twoja odpowiedź",
+          "submit": "Odpowiedz"
+        },
+        "escalation": "Zadanie dla sterowania komputerem: {{task}}",
+        "error": "Błąd: {{error}}",
+        "steps": "Kroki",
+        "dryRunActions": "Zostałoby wykonane",
+        "provider": {
+          "title": "Dostawca routera",
+          "description": "Identyfikator dostawcy, który wybiera narzędzie dla każdego polecenia (na przykład anthropic lub openrouter). Używa klucza API zapisanego już dla tego dostawcy. Puste pole przywraca anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Model routera",
+          "description": "Model, który wybiera narzędzie. Najlepszy jest mały i szybki: każde polecenie to jedno wywołanie. Puste pole przywraca domyślny.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Konto Google",
+          "description": "Konto, na którym otwierają się Gmail i Kalendarz (adres e-mail lub numer konta). Puste pole oznacza domyślne konto Google w przeglądarce.",
+          "placeholder": "Konto domyślne"
+        },
+        "searchUrl": {
+          "title": "Strona wyszukiwania",
+          "description": "Strona, którą otwiera wyszukiwanie w sieci. Musi zawierać {query}, zastępowane tym, o co prosisz; w innym przypadku używane jest Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kontakty",
+          "description": "Osoby, do których polecenia mogą wysyłać e-maile, w edytowanym przez Ciebie pliku JSON. Przy pierwszym użyciu jest tworzony z jednym przykładem.",
+          "open": "Otwórz plik kontaktów",
+          "openFailed": "Nie udało się otworzyć pliku kontaktów: {{error}}"
+        }
       }
     },
     "about": {
@@ -3792,5 +3869,54 @@
     "saveFailingTitle": "Ustawienia nie są zapisywane",
     "saveFailingDescription": "Ostatnie zmiany nie zostały jeszcze zapisane. Zynveliq będzie próbować dalej.",
     "dismiss": "Zamknij"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "Wydarzenie „{{title}}” jest gotowe do zapisania.",
+      "calendarDraftMissingGuests": "Wydarzenie „{{title}}” jest gotowe do zapisania. Pominąłem: {{guests}}, bo nie mam ich adresów e-mail, więc dodaj ich w formularzu.",
+      "cancelled": "Anulowano. Nic nie zostało wysłane.",
+      "confirmExpired": "Czekało to zbyt długo, więc tego nie zrobiłem. Poproś mnie ponownie.",
+      "confirmFailed": "Tego nie da się już zrobić.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} jest w Twoich kontaktach, ale nie ma zapisanego adresu e-mail ani numeru telefonu.",
+      "contactNotFound": "Nie mam kontaktu o nazwie {{name}}.",
+      "emailDraft": "Wersja robocza do: {{name}} jest otwarta. Powiedz „wyślij” lub „anuluj”.",
+      "emailDraftTruncated": "Wersja robocza do: {{name}} jest otwarta. Wiadomość była za długa, by przekazać ją do Gmail, więc została skrócona; sprawdź koniec przed wysłaniem. Powiedz „wyślij” lub „anuluj”.",
+      "emailSent": "Wysłano do: {{name}}.",
+      "empty": "Nie usłyszałem polecenia.",
+      "failed": "{{reason}}",
+      "mediaNext": "Przełączono na następny utwór.",
+      "mediaPlayPause": "Naciśnięto odtwórz/wstrzymaj.",
+      "mediaPrevious": "Powrót do poprzedniego utworu.",
+      "mediaStop": "Zatrzymano odtwarzanie.",
+      "needsComputerUse": "Żadne z moich narzędzi jeszcze tego nie potrafi. Sterowanie ekranem w tym celu pojawi się w późniejszej wersji.",
+      "notConfigured": "Tryb poleceń nie jest skonfigurowany: {{why}}",
+      "nothingWaitingAnswer": "Nic nie czeka na odpowiedź.",
+      "nothingWaitingConfirmation": "Nic nie czeka na potwierdzenie.",
+      "openedInstead": "{{app}} nie była otwarta, więc ją otworzyłem.",
+      "openingApp": "Otwieram {{app}}.",
+      "openingFile": "Otwieram {{file}}.",
+      "planCapped": "To było zbyt wiele kroków naraz, więc pominąłem ostatnie ({{count}}).",
+      "pressKeysConfirm": "{{keys}} może coś wysłać lub zatwierdzić w {{window}}. Powiedz „tak”, aby nacisnąć, albo „anuluj”.",
+      "pressedKeys": "Naciśnięto {{keys}}.",
+      "pressedKeysRepeat": "Naciśnięto {{keys}} (razy: {{count}}).",
+      "question": "{{question}}",
+      "routeFailed": "Nie wiem, co zrobić: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Szukam: {{query}}.",
+      "superseded": "Nowsze polecenie zastąpiło to, więc już nie czeka.",
+      "switchedTo": "Przełączono na {{title}}.",
+      "tooManyQuestions": "Nadal nie wiem, co zrobić. Spróbuj powiedzieć to inaczej.",
+      "typedText": "Wpisano.",
+      "unsupported": "To nie jest możliwe w systemie {{os}}.",
+      "urlOpened": "Otwarto {{site}}.",
+      "volumeDown": "Ściszono.",
+      "volumeMute": "Dźwięk wyciszony.",
+      "volumeSet": "Ustawiono głośność na {{percent}}%.",
+      "volumeUnmute": "Dźwięk przywrócony.",
+      "volumeUp": "Pogłośniono.",
+      "waitingForAnswer": "To polecenie czeka na odpowiedź, a nie na potwierdzenie.",
+      "waitingForConfirmation": "To polecenie czeka na Twoje potwierdzenie, a nie na odpowiedź."
+    }
   }
 }

@@ -1503,6 +1503,83 @@
       "recordingBuffer": {
         "title": "Extra inspelningsbuffert",
         "description": "Millisekunder att fortsätta spela in efter att du släppt tangenten."
+      },
+      "commandMode": {
+        "title": "Kommandoläge",
+        "description": "Skriv ett kommando för att se vilket verktyg routern väljer och vad det gör. Kortkommandot kommer i en senare version.",
+        "enabled": {
+          "title": "Kommandoläge",
+          "description": "Låter kommandon agera i dina appar. Krävs för --run-command; den här rutan fungerar ändå."
+        },
+        "input": {
+          "title": "Testa ett kommando",
+          "description": "Skickar texten till routermodellen som om du hade sagt den. Med Testkörning på händer inget på skärmen: du ser vad som skulle ha hänt.",
+          "placeholder": "Skicka ett mejl till Ron om ett möte kl. 9:00"
+        },
+        "dryRun": {
+          "label": "Testkörning"
+        },
+        "dryRunSetting": {
+          "title": "Testkörning som standard",
+          "description": "Kommandon visar vad de skulle göra i stället för att göra det. Rutan ovan och --dry-run kan fortfarande välja för ett enskilt kommando."
+        },
+        "delay": {
+          "label": "Kör efter {{seconds}} sekunder",
+          "hint": "Text och tangenttryckningar går till fönstret som ligger överst, vilket är det här när du trycker på Kör. Slå på fördröjningen och klicka i appen du vill använda, eller använd Testkörning.",
+          "countdown": "Körs om {{seconds}} s. Klicka i appen som kommandot gäller.",
+          "cancel": "Avbryt ({{seconds}})"
+        },
+        "run": "Kör",
+        "running": "Kör…",
+        "invokeFailed": "Kommandot kunde inte skickas: {{error}}",
+        "status": {
+          "done": "Klar",
+          "awaiting_confirmation": "Väntar på bekräftelse",
+          "needs_answer": "Behöver ett svar",
+          "needs_computer_use": "Behöver datorstyrning",
+          "cancelled": "Avbrutet",
+          "failed": "Misslyckades"
+        },
+        "dryRunBadge": "Testkörning",
+        "fromCli": "Från kommandoraden",
+        "meta": "{{model}} · {{calls}} LLM-anrop · tokens {{input}} in, {{output}} ut, {{cached}} cachade · {{ms}} ms",
+        "transcript": "Kommando: {{text}}",
+        "send": "Skicka",
+        "cancel": "Avbryt",
+        "answer": {
+          "placeholder": "Ditt svar",
+          "submit": "Svara"
+        },
+        "escalation": "Uppgift för datorstyrning: {{task}}",
+        "error": "Fel: {{error}}",
+        "steps": "Steg",
+        "dryRunActions": "Skulle ha gjort",
+        "provider": {
+          "title": "Routerleverantör",
+          "description": "Leverantörs-id:t som väljer verktyget för varje kommando (till exempel anthropic eller openrouter). Den använder API-nyckeln som redan är sparad för leverantören. Tomt återgår till anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Routermodell",
+          "description": "Modellen som väljer verktyget. Liten och snabb är bäst: varje kommando kostar ett anrop. Tomt återgår till standard.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Google-konto",
+          "description": "Kontot som Gmail och Kalender öppnas i (en e-postadress eller ett kontonummer). Tomt använder webbläsarens standardkonto för Google.",
+          "placeholder": "Standardkonto"
+        },
+        "searchUrl": {
+          "title": "Söksida",
+          "description": "Sidan som en webbsökning öppnar. Den måste innehålla {query}, som ersätts med det du frågade efter; allt annat återgår till Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kontakter",
+          "description": "Namnen som kommandon kan mejla, i en JSON-fil som du redigerar. Den skapas med ett exempel första gången.",
+          "open": "Öppna kontaktfilen",
+          "openFailed": "Kunde inte öppna kontaktfilen: {{error}}"
+        }
       }
     },
     "about": {
@@ -3684,5 +3761,54 @@
     "saveFailingTitle": "Inställningarna sparas inte",
     "saveFailingDescription": "Dina senaste ändringar har inte sparats än. Zynveliq fortsätter att försöka.",
     "dismiss": "Stäng"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "Kalenderhändelsen ”{{title}}” är redo att sparas.",
+      "calendarDraftMissingGuests": "Kalenderhändelsen ”{{title}}” är redo att sparas. Jag utelämnade {{guests}}: jag har ingen e-postadress till dem, så lägg till dem i formuläret.",
+      "cancelled": "Avbrutet. Inget skickades.",
+      "confirmExpired": "Det väntade för länge, så jag gjorde det inte. Fråga mig igen.",
+      "confirmFailed": "Det går inte längre att göra.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} finns i dina kontakter men har ingen sparad e-postadress eller telefonnummer.",
+      "contactNotFound": "Jag har ingen kontakt som heter {{name}}.",
+      "emailDraft": "Utkastet till {{name}} är öppet. Säg skicka eller avbryt.",
+      "emailDraftTruncated": "Utkastet till {{name}} är öppet. Meddelandet var för långt för att skickas till Gmail, så det kortades av; kontrollera slutet innan du skickar. Säg skicka eller avbryt.",
+      "emailSent": "Skickat till {{name}}.",
+      "empty": "Jag uppfattade inget kommando.",
+      "failed": "{{reason}}",
+      "mediaNext": "Hoppade till nästa spår.",
+      "mediaPlayPause": "Tryckte på spela/pausa.",
+      "mediaPrevious": "Tillbaka till föregående spår.",
+      "mediaStop": "Stoppade uppspelningen.",
+      "needsComputerUse": "Inget av mina verktyg kan göra det än. Att styra skärmen för det kommer i en senare version.",
+      "notConfigured": "Kommandoläget är inte konfigurerat: {{why}}",
+      "nothingWaitingAnswer": "Inget väntar på ett svar.",
+      "nothingWaitingConfirmation": "Inget väntar på bekräftelse.",
+      "openedInstead": "{{app}} var inte öppen, så jag öppnade den.",
+      "openingApp": "Öppnar {{app}}.",
+      "openingFile": "Öppnar {{file}}.",
+      "planCapped": "Det var för många steg på en gång, så jag hoppade över de sista {{count}}.",
+      "pressKeysConfirm": "{{keys}} kan skicka något i {{window}}. Säg ja för att trycka, eller avbryt.",
+      "pressedKeys": "Tryckte på {{keys}}.",
+      "pressedKeysRepeat": "Tryckte på {{keys}} {{count}} gånger.",
+      "question": "{{question}}",
+      "routeFailed": "Jag kunde inte lista ut vad jag skulle göra: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Söker efter {{query}}.",
+      "superseded": "Ett nyare kommando ersatte det här, så det väntar inte längre.",
+      "switchedTo": "Bytte till {{title}}.",
+      "tooManyQuestions": "Jag kunde fortfarande inte lista ut vad jag skulle göra. Försök säga det på ett annat sätt.",
+      "typedText": "Skrev det.",
+      "unsupported": "Det går inte på {{os}}.",
+      "urlOpened": "Öppnade {{site}}.",
+      "volumeDown": "Sänkte volymen.",
+      "volumeMute": "Ljudet är avstängt.",
+      "volumeSet": "Volymen är inställd på {{percent}} %.",
+      "volumeUnmute": "Ljudet är på igen.",
+      "volumeUp": "Höjde volymen.",
+      "waitingForAnswer": "Det kommandot väntar på ett svar, inte en bekräftelse.",
+      "waitingForConfirmation": "Det kommandot väntar på att du bekräftar, inte på ett svar."
+    }
   }
 }

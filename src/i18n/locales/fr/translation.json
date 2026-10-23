@@ -1512,6 +1512,83 @@
       "recordingBuffer": {
         "title": "Tampon d'enregistrement supplémentaire",
         "description": "Millisecondes d'enregistrement supplémentaires après le relâchement de la touche."
+      },
+      "commandMode": {
+        "title": "Mode commande",
+        "description": "Saisissez une commande pour voir quel outil le routeur choisit et ce qu'il fait. Le raccourci arrivera dans une version ultérieure.",
+        "enabled": {
+          "title": "Mode commande",
+          "description": "Permet aux commandes d'agir dans vos applications. Nécessaire pour --run-command ; ce champ fonctionne dans tous les cas."
+        },
+        "input": {
+          "title": "Essayer une commande",
+          "description": "Envoie le texte au modèle routeur comme si vous l'aviez dit. Avec la simulation activée, rien ne se passe à l'écran : vous voyez ce qui se serait passé.",
+          "placeholder": "Envoie un e-mail à Ron à propos d'une réunion à 9 h 00"
+        },
+        "dryRun": {
+          "label": "Simulation"
+        },
+        "dryRunSetting": {
+          "title": "Simulation par défaut",
+          "description": "Les commandes montrent ce qu'elles feraient au lieu de le faire. Le champ ci-dessus et --dry-run peuvent toujours en décider pour une commande."
+        },
+        "delay": {
+          "label": "Exécuter après {{seconds}} secondes",
+          "hint": "La saisie et les touches vont à la fenêtre au premier plan, c'est-à-dire celle-ci quand vous appuyez sur Exécuter. Activez le délai et cliquez dans l'application voulue, ou utilisez la simulation.",
+          "countdown": "Exécution dans {{seconds}} s. Cliquez dans l'application visée par la commande.",
+          "cancel": "Annuler ({{seconds}})"
+        },
+        "run": "Exécuter",
+        "running": "Exécution…",
+        "invokeFailed": "La commande n'a pas pu être envoyée : {{error}}",
+        "status": {
+          "done": "Terminé",
+          "awaiting_confirmation": "En attente de confirmation",
+          "needs_answer": "Réponse requise",
+          "needs_computer_use": "Contrôle de l'ordinateur requis",
+          "cancelled": "Annulée",
+          "failed": "Échec"
+        },
+        "dryRunBadge": "Simulation",
+        "fromCli": "Depuis la ligne de commande",
+        "meta": "{{model}} · {{calls}} appel(s) LLM · jetons : {{input}} en entrée, {{output}} en sortie, {{cached}} en cache · {{ms}} ms",
+        "transcript": "Commande : {{text}}",
+        "send": "Envoyer",
+        "cancel": "Annuler",
+        "answer": {
+          "placeholder": "Votre réponse",
+          "submit": "Répondre"
+        },
+        "escalation": "Tâche pour le contrôle de l'ordinateur : {{task}}",
+        "error": "Erreur : {{error}}",
+        "steps": "Étapes",
+        "dryRunActions": "Aurait fait",
+        "provider": {
+          "title": "Fournisseur du routeur",
+          "description": "L'identifiant du fournisseur qui choisit l'outil pour chaque commande (par exemple anthropic ou openrouter). Il utilise la clé API déjà enregistrée pour ce fournisseur. Vide, il revient à anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Modèle du routeur",
+          "description": "Le modèle qui choisit l'outil. Petit et rapide, c'est l'idéal : chaque commande coûte un appel. Vide, il revient au modèle par défaut.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Compte Google",
+          "description": "Le compte dans lequel s'ouvrent Gmail et Calendar (une adresse e-mail ou un numéro de compte). Vide, le compte Google par défaut du navigateur est utilisé.",
+          "placeholder": "Compte par défaut"
+        },
+        "searchUrl": {
+          "title": "Page de recherche",
+          "description": "La page qu'ouvre une recherche web. Elle doit contenir {query}, remplacé par ce que vous avez demandé ; sinon, Google est utilisé.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Contacts",
+          "description": "Les noms auxquels les commandes peuvent écrire, dans un fichier JSON que vous modifiez. Il est créé avec un exemple la première fois.",
+          "open": "Ouvrir le fichier de contacts",
+          "openFailed": "Impossible d'ouvrir le fichier de contacts : {{error}}"
+        }
       }
     },
     "about": {
@@ -3738,5 +3815,54 @@
     "saveFailingTitle": "Les paramètres ne sont pas enregistrés",
     "saveFailingDescription": "Vos dernières modifications ne sont pas encore enregistrées. Zynveliq continue d'essayer.",
     "dismiss": "Ignorer"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "L'événement « {{title}} » est prêt à être enregistré.",
+      "calendarDraftMissingGuests": "L'événement « {{title}} » est prêt à être enregistré. J'ai laissé de côté {{guests}} : je n'ai pas leur adresse e-mail, ajoutez-les dans le formulaire.",
+      "cancelled": "Annulé. Rien n'a été envoyé.",
+      "confirmExpired": "Cela a attendu trop longtemps, je ne l'ai donc pas fait. Redemandez-moi.",
+      "confirmFailed": "Ce n'est plus possible.",
+      "contactFound": "{{name}} : {{details}}.",
+      "contactNoDetails": "{{name}} figure dans vos contacts, mais sans adresse e-mail ni numéro de téléphone enregistré.",
+      "contactNotFound": "Je n'ai aucun contact nommé {{name}}.",
+      "emailDraft": "Le brouillon pour {{name}} est ouvert. Dites envoyer ou annuler.",
+      "emailDraftTruncated": "Le brouillon pour {{name}} est ouvert. Le message était trop long pour Gmail, il a donc été tronqué ; vérifiez la fin avant d'envoyer. Dites envoyer ou annuler.",
+      "emailSent": "Envoyé à {{name}}.",
+      "empty": "Je n'ai pas compris de commande.",
+      "failed": "{{reason}}",
+      "mediaNext": "Piste suivante.",
+      "mediaPlayPause": "Lecture/pause.",
+      "mediaPrevious": "Piste précédente.",
+      "mediaStop": "Lecture arrêtée.",
+      "needsComputerUse": "Aucun de mes outils ne sait encore faire cela. Le contrôle de l'écran pour ce genre de tâche arrivera dans une version ultérieure.",
+      "notConfigured": "Le mode commande n'est pas configuré : {{why}}",
+      "nothingWaitingAnswer": "Rien n'attend de réponse.",
+      "nothingWaitingConfirmation": "Rien n'attend de confirmation.",
+      "openedInstead": "{{app}} n'était pas ouvert, je l'ai donc ouvert.",
+      "openingApp": "Ouverture de {{app}}.",
+      "openingFile": "Ouverture de {{file}}.",
+      "planCapped": "Cela faisait trop d'étapes d'un coup, j'ai donc laissé de côté les {{count}} dernières.",
+      "pressKeysConfirm": "{{keys}} pourrait envoyer ou valider quelque chose dans {{window}}. Dites oui pour appuyer, ou annuler.",
+      "pressedKeys": "{{keys}} appuyé.",
+      "pressedKeysRepeat": "{{keys}} appuyé {{count}} fois.",
+      "question": "{{question}}",
+      "routeFailed": "Je n'ai pas compris quoi faire : {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Recherche de {{query}}.",
+      "superseded": "Une commande plus récente a remplacé celle-ci, elle n'est donc plus en attente.",
+      "switchedTo": "Passage à {{title}}.",
+      "tooManyQuestions": "Je n'arrive toujours pas à comprendre quoi faire. Essayez de le formuler autrement.",
+      "typedText": "C'est saisi.",
+      "unsupported": "Ce n'est pas possible sur {{os}}.",
+      "urlOpened": "{{site}} ouvert.",
+      "volumeDown": "Volume baissé.",
+      "volumeMute": "Son coupé.",
+      "volumeSet": "Volume réglé à {{percent}} %.",
+      "volumeUnmute": "Son rétabli.",
+      "volumeUp": "Volume monté.",
+      "waitingForAnswer": "Cette commande attend une réponse, pas une confirmation.",
+      "waitingForConfirmation": "Cette commande attend votre confirmation, pas une réponse."
+    }
   }
 }

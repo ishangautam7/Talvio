@@ -1521,6 +1521,83 @@
       "recordingBuffer": {
         "title": "Extra vyrovnávací paměť nahrávání",
         "description": "Počet milisekund, po které se pokračuje v nahrávání po uvolnění klávesy."
+      },
+      "commandMode": {
+        "title": "Režim příkazů",
+        "description": "Napište příkaz a uvidíte, který nástroj router vybere a co udělá. Klávesová zkratka přijde v pozdější verzi.",
+        "enabled": {
+          "title": "Režim příkazů",
+          "description": "Umožní příkazům jednat ve vašich aplikacích. Potřebné pro --run-command; toto pole funguje v obou případech."
+        },
+        "input": {
+          "title": "Vyzkoušet příkaz",
+          "description": "Pošle text modelu routeru, jako byste ho vyslovili. Se zapnutým zkušebním během se na obrazovce nic nestane: uvidíte, co by se stalo.",
+          "placeholder": "Pošli Ronovi e-mail o schůzce v 9:00"
+        },
+        "dryRun": {
+          "label": "Zkušební běh"
+        },
+        "dryRunSetting": {
+          "title": "Ve výchozím stavu zkušební běh",
+          "description": "Příkazy ukážou, co by udělaly, místo aby to udělaly. Pole výše a --dry-run to stále mohou určit pro jeden příkaz."
+        },
+        "delay": {
+          "label": "Spustit za {{seconds}} s",
+          "hint": "Psaní a stisky kláves jdou do okna v popředí, což je po stisknutí Spustit toto okno. Zapněte zpoždění a klikněte do aplikace, kterou chcete, nebo použijte zkušební běh.",
+          "countdown": "Spuštění za {{seconds}} s. Klikněte do aplikace, pro kterou je příkaz určen.",
+          "cancel": "Zrušit ({{seconds}})"
+        },
+        "run": "Spustit",
+        "running": "Spouštění…",
+        "invokeFailed": "Příkaz se nepodařilo odeslat: {{error}}",
+        "status": {
+          "done": "Hotovo",
+          "awaiting_confirmation": "Čeká na potvrzení",
+          "needs_answer": "Potřebuje odpověď",
+          "needs_computer_use": "Potřebuje ovládání počítače",
+          "cancelled": "Zrušeno",
+          "failed": "Selhalo"
+        },
+        "dryRunBadge": "Zkušební běh",
+        "fromCli": "Z příkazové řádky",
+        "meta": "{{model}} · volání LLM: {{calls}} · tokeny: {{input}} vstup, {{output}} výstup, {{cached}} z mezipaměti · {{ms}} ms",
+        "transcript": "Příkaz: {{text}}",
+        "send": "Odeslat",
+        "cancel": "Zrušit",
+        "answer": {
+          "placeholder": "Vaše odpověď",
+          "submit": "Odpovědět"
+        },
+        "escalation": "Úkol pro ovládání počítače: {{task}}",
+        "error": "Chyba: {{error}}",
+        "steps": "Kroky",
+        "dryRunActions": "Co by se udělalo",
+        "provider": {
+          "title": "Poskytovatel routeru",
+          "description": "ID poskytovatele, který vybírá nástroj pro každý příkaz (například anthropic nebo openrouter). Použije API klíč, který je pro tohoto poskytovatele už uložen. Prázdné pole znamená anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Model routeru",
+          "description": "Model, který vybírá nástroj. Nejlepší je malý a rychlý: každý příkaz stojí jedno volání. Prázdné pole znamená výchozí model.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Účet Google",
+          "description": "Účet, ve kterém se otevře Gmail a Kalendář (e-mailová adresa nebo číslo účtu). Prázdné pole použije výchozí účet Google v prohlížeči.",
+          "placeholder": "Výchozí účet"
+        },
+        "searchUrl": {
+          "title": "Stránka vyhledávání",
+          "description": "Stránka, kterou otevře vyhledávání na webu. Musí obsahovat {query}, které se nahradí tím, na co jste se ptali; cokoli jiného se vrátí ke Googlu.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Kontakty",
+          "description": "Jména, kterým mohou příkazy posílat e-maily, v souboru JSON, který upravujete. Při prvním použití se vytvoří s jedním příkladem.",
+          "open": "Otevřít soubor s kontakty",
+          "openFailed": "Soubor s kontakty se nepodařilo otevřít: {{error}}"
+        }
       }
     },
     "about": {
@@ -3792,5 +3869,54 @@
     "saveFailingTitle": "Nastavení se neukládá",
     "saveFailingDescription": "Vaše poslední změny zatím nejsou uložené. Zynveliq to bude zkoušet dál.",
     "dismiss": "Zavřít"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "Událost v kalendáři „{{title}}“ je připravena k uložení.",
+      "calendarDraftMissingGuests": "Událost v kalendáři „{{title}}“ je připravena k uložení. Vynechal jsem {{guests}}: nemám pro ně e-mailovou adresu, tak je přidejte ve formuláři.",
+      "cancelled": "Zrušeno. Nic nebylo odesláno.",
+      "confirmExpired": "Čekalo se příliš dlouho, tak jsem to neudělal. Požádejte mě znovu.",
+      "confirmFailed": "To už nejde udělat.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} je ve vašich kontaktech, ale nemá uloženou e-mailovou adresu ani telefonní číslo.",
+      "contactNotFound": "Nemám kontakt jménem {{name}}.",
+      "emailDraft": "Koncept pro {{name}} je otevřený. Řekněte odeslat, nebo zrušit.",
+      "emailDraftTruncated": "Koncept pro {{name}} je otevřený. Zpráva byla pro Gmail příliš dlouhá, takže byla zkrácena; před odesláním zkontrolujte konec. Řekněte odeslat, nebo zrušit.",
+      "emailSent": "Odesláno: {{name}}.",
+      "empty": "Nezachytil jsem žádný příkaz.",
+      "failed": "{{reason}}",
+      "mediaNext": "Přeskočeno na další skladbu.",
+      "mediaPlayPause": "Stisknuto přehrát/pozastavit.",
+      "mediaPrevious": "Zpět na předchozí skladbu.",
+      "mediaStop": "Přehrávání zastaveno.",
+      "needsComputerUse": "To zatím žádný z mých nástrojů neumí. Ovládání obrazovky přijde v pozdější verzi.",
+      "notConfigured": "Režim příkazů není nastaven: {{why}}",
+      "nothingWaitingAnswer": "Nic nečeká na odpověď.",
+      "nothingWaitingConfirmation": "Nic nečeká na potvrzení.",
+      "openedInstead": "{{app}} nebyla otevřená, tak jsem ji otevřel.",
+      "openingApp": "Otevírám {{app}}.",
+      "openingFile": "Otevírám {{file}}.",
+      "planCapped": "Bylo to příliš mnoho kroků najednou, tak jsem vynechal posledních {{count}}.",
+      "pressKeysConfirm": "{{keys}} může v okně {{window}} něco odeslat. Řekněte ano a stisknu to, nebo zrušit.",
+      "pressedKeys": "Stisknuto {{keys}}.",
+      "pressedKeysRepeat": "Stisknuto {{keys}} ({{count}}×).",
+      "question": "{{question}}",
+      "routeFailed": "Nepřišel jsem na to, co udělat: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Hledám {{query}}.",
+      "superseded": "Tento příkaz nahradil novější, takže už nečeká.",
+      "switchedTo": "Přepnuto na {{title}}.",
+      "tooManyQuestions": "Pořád jsem nepřišel na to, co udělat. Zkuste to říct jinak.",
+      "typedText": "Napsáno.",
+      "unsupported": "Na {{os}} to není možné.",
+      "urlOpened": "Otevřeno: {{site}}.",
+      "volumeDown": "Hlasitost snížena.",
+      "volumeMute": "Zvuk ztlumen.",
+      "volumeSet": "Hlasitost nastavena na {{percent}} %.",
+      "volumeUnmute": "Zvuk je zase zapnutý.",
+      "volumeUp": "Hlasitost zvýšena.",
+      "waitingForAnswer": "Ten příkaz čeká na odpověď, ne na potvrzení.",
+      "waitingForConfirmation": "Ten příkaz čeká na vaše potvrzení, ne na odpověď."
+    }
   }
 }

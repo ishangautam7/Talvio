@@ -1494,6 +1494,83 @@
       "recordingBuffer": {
         "title": "Bộ đệm ghi âm bổ sung",
         "description": "Số mili giây tiếp tục ghi âm sau khi bạn nhả phím."
+      },
+      "commandMode": {
+        "title": "Chế độ lệnh",
+        "description": "Gõ một lệnh để xem bộ định tuyến chọn công cụ nào và công cụ đó làm gì. Phím tắt sẽ có trong phiên bản sau.",
+        "enabled": {
+          "title": "Chế độ lệnh",
+          "description": "Cho phép lệnh thao tác trong các ứng dụng của bạn. Cần cho --run-command; ô này vẫn hoạt động dù bật hay tắt."
+        },
+        "input": {
+          "title": "Thử một lệnh",
+          "description": "Gửi văn bản tới mô hình định tuyến như thể bạn đã nói ra. Khi bật Chạy thử, không có gì xảy ra trên màn hình: bạn thấy những gì lẽ ra sẽ xảy ra.",
+          "placeholder": "Gửi email cho Ron về cuộc họp lúc 9:00"
+        },
+        "dryRun": {
+          "label": "Chạy thử"
+        },
+        "dryRunSetting": {
+          "title": "Mặc định chạy thử",
+          "description": "Lệnh chỉ hiển thị những gì chúng sẽ làm thay vì thực hiện. Ô phía trên và --dry-run vẫn có thể chọn riêng cho từng lệnh."
+        },
+        "delay": {
+          "label": "Chạy sau {{seconds}} giây",
+          "hint": "Thao tác gõ và nhấn phím sẽ đi tới cửa sổ ở phía trước, tức là cửa sổ này khi bạn nhấn Chạy. Hãy bật độ trễ rồi nhấp vào ứng dụng bạn muốn, hoặc dùng Chạy thử.",
+          "countdown": "Sẽ chạy sau {{seconds}} giây. Hãy nhấp vào ứng dụng mà lệnh hướng tới.",
+          "cancel": "Hủy ({{seconds}})"
+        },
+        "run": "Chạy",
+        "running": "Đang chạy…",
+        "invokeFailed": "Không thể gửi lệnh: {{error}}",
+        "status": {
+          "done": "Xong",
+          "awaiting_confirmation": "Đang chờ xác nhận",
+          "needs_answer": "Cần câu trả lời",
+          "needs_computer_use": "Cần điều khiển máy tính",
+          "cancelled": "Đã hủy",
+          "failed": "Thất bại"
+        },
+        "dryRunBadge": "Chạy thử",
+        "fromCli": "Từ dòng lệnh",
+        "meta": "{{model}} · {{calls}} lệnh gọi LLM · token: {{input}} vào, {{output}} ra, {{cached}} đã lưu đệm · {{ms}} ms",
+        "transcript": "Lệnh: {{text}}",
+        "send": "Gửi",
+        "cancel": "Hủy",
+        "answer": {
+          "placeholder": "Câu trả lời của bạn",
+          "submit": "Trả lời"
+        },
+        "escalation": "Tác vụ cho điều khiển máy tính: {{task}}",
+        "error": "Lỗi: {{error}}",
+        "steps": "Các bước",
+        "dryRunActions": "Lẽ ra sẽ làm",
+        "provider": {
+          "title": "Nhà cung cấp định tuyến",
+          "description": "Mã nhà cung cấp chọn công cụ cho mỗi lệnh (ví dụ anthropic hoặc openrouter). Dùng khóa API đã lưu cho nhà cung cấp đó. Để trống sẽ quay về anthropic.",
+          "placeholder": "anthropic"
+        },
+        "model": {
+          "title": "Mô hình định tuyến",
+          "description": "Mô hình chọn công cụ. Nhỏ và nhanh là tốt nhất: mỗi lệnh tốn một lần gọi. Để trống sẽ quay về mặc định.",
+          "placeholder": "claude-haiku-5-5"
+        },
+        "googleAccount": {
+          "title": "Tài khoản Google",
+          "description": "Tài khoản dùng để mở Gmail và Calendar (địa chỉ email hoặc số thứ tự tài khoản). Để trống sẽ dùng tài khoản Google mặc định của trình duyệt.",
+          "placeholder": "Tài khoản mặc định"
+        },
+        "searchUrl": {
+          "title": "Trang tìm kiếm",
+          "description": "Trang được mở khi tìm kiếm trên web. Trang phải chứa {query}, sẽ được thay bằng nội dung bạn hỏi; nếu không sẽ quay về Google.",
+          "placeholder": "https://www.google.com/search?q={query}"
+        },
+        "contacts": {
+          "title": "Danh bạ",
+          "description": "Những người mà lệnh có thể gửi email, trong một tệp JSON bạn tự chỉnh sửa. Lần đầu, tệp được tạo với một ví dụ.",
+          "open": "Mở tệp danh bạ",
+          "openFailed": "Không thể mở tệp danh bạ: {{error}}"
+        }
       }
     },
     "about": {
@@ -3630,5 +3707,54 @@
     "saveFailingTitle": "Cài đặt không được lưu",
     "saveFailingDescription": "Các thay đổi gần đây của bạn chưa được lưu. Zynveliq sẽ tiếp tục thử.",
     "dismiss": "Đóng"
+  },
+  "commandMode": {
+    "feedback": {
+      "calendarDraft": "Sự kiện lịch “{{title}}” đã sẵn sàng để lưu.",
+      "calendarDraftMissingGuests": "Sự kiện lịch “{{title}}” đã sẵn sàng để lưu. Tôi chưa thêm {{guests}} vì không có địa chỉ email của họ, bạn hãy thêm trong biểu mẫu.",
+      "cancelled": "Đã hủy. Chưa có gì được gửi.",
+      "confirmExpired": "Chờ quá lâu nên tôi đã không thực hiện. Hãy yêu cầu lại nhé.",
+      "confirmFailed": "Việc đó không còn thực hiện được nữa.",
+      "contactFound": "{{name}}: {{details}}.",
+      "contactNoDetails": "{{name}} có trong danh bạ của bạn, nhưng chưa lưu địa chỉ email hay số điện thoại.",
+      "contactNotFound": "Tôi không có liên hệ nào tên {{name}}.",
+      "emailDraft": "Bản nháp gửi {{name}} đã mở. Hãy nói gửi hoặc hủy.",
+      "emailDraftTruncated": "Bản nháp gửi {{name}} đã mở. Tin nhắn quá dài để chuyển sang Gmail nên đã bị cắt bớt; hãy kiểm tra phần cuối trước khi gửi. Hãy nói gửi hoặc hủy.",
+      "emailSent": "Đã gửi cho {{name}}.",
+      "empty": "Tôi chưa nghe rõ lệnh.",
+      "failed": "{{reason}}",
+      "mediaNext": "Đã chuyển sang bài tiếp theo.",
+      "mediaPlayPause": "Đã nhấn phát/tạm dừng.",
+      "mediaPrevious": "Đã quay lại bài trước.",
+      "mediaStop": "Đã dừng phát.",
+      "needsComputerUse": "Chưa có công cụ nào của tôi làm được việc đó. Khả năng điều khiển màn hình cho việc này sẽ có trong phiên bản sau.",
+      "notConfigured": "Chế độ lệnh chưa được thiết lập: {{why}}",
+      "nothingWaitingAnswer": "Không có gì đang chờ câu trả lời.",
+      "nothingWaitingConfirmation": "Không có gì đang chờ xác nhận.",
+      "openedInstead": "{{app}} chưa mở nên tôi đã mở nó.",
+      "openingApp": "Đang mở {{app}}.",
+      "openingFile": "Đang mở {{file}}.",
+      "planCapped": "Quá nhiều bước cùng lúc nên tôi đã bỏ {{count}} bước cuối.",
+      "pressKeysConfirm": "{{keys}} có thể gửi hoặc nộp nội dung trong {{window}}. Nói có để nhấn, hoặc hủy.",
+      "pressedKeys": "Đã nhấn {{keys}}.",
+      "pressedKeysRepeat": "Đã nhấn {{keys}} {{count}} lần.",
+      "question": "{{question}}",
+      "routeFailed": "Tôi không xác định được cần làm gì: {{why}}",
+      "say": "{{text}}",
+      "searchOpened": "Đang tìm kiếm {{query}}.",
+      "superseded": "Một lệnh mới hơn đã thay thế lệnh này, nên nó không còn chờ nữa.",
+      "switchedTo": "Đã chuyển sang {{title}}.",
+      "tooManyQuestions": "Tôi vẫn chưa xác định được cần làm gì. Hãy thử nói theo cách khác.",
+      "typedText": "Đã gõ xong.",
+      "unsupported": "Việc đó không thể thực hiện trên {{os}}.",
+      "urlOpened": "Đã mở {{site}}.",
+      "volumeDown": "Đã giảm âm lượng.",
+      "volumeMute": "Đã tắt tiếng.",
+      "volumeSet": "Đã đặt âm lượng thành {{percent}}%.",
+      "volumeUnmute": "Đã bật lại âm thanh.",
+      "volumeUp": "Đã tăng âm lượng.",
+      "waitingForAnswer": "Lệnh đó đang chờ câu trả lời, không phải xác nhận.",
+      "waitingForConfirmation": "Lệnh đó đang chờ bạn xác nhận, không phải câu trả lời."
+    }
   }
 }
