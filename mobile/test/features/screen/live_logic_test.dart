@@ -9,7 +9,7 @@ void main() {
   const viewport = Size(400, 800);
   const picture = Size(1920, 1080);
 
-  group('tap mapping', () {
+  group('letterbox', () {
     test('the picture is letterboxed to fit', () {
       expect(
         containRect(picture, viewport),
@@ -19,36 +19,6 @@ void main() {
         containRect(const Size(1080, 1920), const Size(800, 400)),
         const Rect.fromLTWH(287.5, 0, 225, 400),
       );
-    });
-
-    test('unzoomed: across the picture, null on the bars', () {
-      Offset? at(Offset p) => pictureCoords(
-        point: p,
-        transform: Matrix4.identity(),
-        viewport: viewport,
-        picture: picture,
-      );
-      expect(at(const Offset(200, 400)), const Offset(0.5, 0.5));
-      expect(at(const Offset(0, 287.5)), Offset.zero);
-      expect(at(const Offset(400, 512.5)), const Offset(1, 1));
-      expect(at(const Offset(100, 343.75)), const Offset(0.25, 0.25));
-      expect(at(const Offset(200, 100)), isNull, reason: 'top bar');
-      expect(at(const Offset(200, 700)), isNull, reason: 'bottom bar');
-    });
-
-    test('zoomed and panned: through the inverse of the view', () {
-      // 2x, moved so child point (100, 287.5) (the picture's top-left
-      // quarter point) sits at the viewport's origin.
-      final view = scaleThenTranslate(2, const Offset(-200, -575));
-      Offset? at(Offset p) => pictureCoords(
-        point: p,
-        transform: view,
-        viewport: viewport,
-        picture: picture,
-      );
-      expect(at(Offset.zero), const Offset(0.25, 0));
-      expect(at(const Offset(200, 225)), const Offset(0.5, 0.5));
-      expect(at(const Offset(0, -10)), isNull, reason: 'above the picture');
     });
   });
 
@@ -136,12 +106,6 @@ void main() {
       );
       expect(far, isNot(view));
     });
-
-    test('two fingers dragging up scroll down, one notch per 40 px', () {
-      expect(scrollNotches(-85), 2);
-      expect(scrollNotches(30), 0);
-      expect(scrollNotches(45), -1);
-    });
   });
 
   group('protocol', () {
@@ -170,11 +134,11 @@ void main() {
     test('control messages', () {
       expect(ControlMessage.decode('not json'), isNull);
       expect(ControlMessage.decode('{"t":"other"}'), isNull);
-      final ack = ControlMessage.decode(
-        '{"t":"ack","id":"k3","ok":false,"error":"confirm","label":"Send"}',
+      expect(
+        ControlMessage.decode('{"t":"ack","id":"k3","ok":true}'),
+        isNull,
+        reason: 'this phone sends no input to acknowledge',
       );
-      expect(ack, isA<AckMessage>());
-      expect((ack! as AckMessage).label, 'Send');
       expect(
         (ControlMessage.decode('{"t":"caret"}')! as CaretMessage).caret,
         isNull,
@@ -194,11 +158,6 @@ void main() {
       'remote_windows_off',
       'remote_input_off',
       'not_approved',
-      'not_allowed',
-      'password_field',
-      'key_refused',
-      'keys_failed',
-      'paste_failed',
     ]) {
       expect(text(code), isNot(contains('Something went wrong')), reason: code);
     }
@@ -219,15 +178,7 @@ void main() {
       expect(shown.top, moreOrLessEquals(0));
       expect(shown.bottom, moreOrLessEquals(700));
       expect(shown.center.dx, moreOrLessEquals(200), reason: 'centred');
-      // What is shown still maps back to the picture.
-      final at = pictureCoords(
-        point: const Offset(200, 350),
-        transform: fill,
-        viewport: viewport,
-        picture: picture,
-      )!;
-      expect(at.dx, moreOrLessEquals(0.5));
-      expect(at.dy, moreOrLessEquals(0.5));
+      expect(shown.center.dy, moreOrLessEquals(350), reason: 'centred');
     });
 
     test('a picture that already fills the view stays as it is', () {

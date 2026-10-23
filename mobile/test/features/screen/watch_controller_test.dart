@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
@@ -12,7 +10,6 @@ import 'fakes.dart';
 void main() {
   Future<(FakeServer, WatchController, FakeLinks, String)> started(
     WidgetTester tester, {
-    bool control = false,
     bool screen = false,
   }) async {
     final (server, relay) = await connectedRelay(tester);
@@ -26,7 +23,6 @@ void main() {
         screen: screen,
       ),
       linkFactory: links.create,
-      control: control,
     )..start();
     cleanups.add(watch.dispose);
     await tester.pump();
@@ -36,10 +32,9 @@ void main() {
 
   /// Offer, answer, live and an open channel.
   Future<(FakeServer, WatchController, FakeLink, String)> live(
-    WidgetTester tester, {
-    bool control = false,
-  }) async {
-    final (server, watch, links, id) = await started(tester, control: control);
+    WidgetTester tester,
+  ) async {
+    final (server, watch, links, id) = await started(tester);
     await progressOf(tester, server, id, 'rtc.offer', offerFields);
     await progressOf(tester, server, id, 'live');
     links.last.openChannel();
@@ -136,92 +131,13 @@ void main() {
     expect(watch.phase, WatchPhase.live);
   });
 
-  screenTest('input carries ids and is matched to its ack', (tester) async {
-    final (_, watch, link, _) = await live(tester, control: true);
-    final pressed = watch.keys(['enter']);
-    final typed = watch.text('hello');
-    expect(link.sent, [
-      {
-        't': 'keys',
-        'keys': ['enter'],
-        'id': 'k1',
-      },
-      {'t': 'text', 'text': 'hello', 'id': 'k2'},
-    ]);
-    // Out of order: each ack finds its own message.
-    link
-      ..receive({'t': 'ack', 'id': 'k2', 'ok': false, 'error': 'paste_failed'})
-      ..receive({'t': 'ack', 'id': 'k1', 'ok': true});
-    expect((await pressed).ok, isTrue);
-    expect((await typed).error, 'paste_failed');
-
-    final tap = watch.tap(const Offset(0.42, 0.81));
-    expect(link.sent.last, {
-      't': 'tap',
-      'x': 0.42,
-      'y': 0.81,
-      'button': 'left',
-      'count': 1,
-      'confirmed': false,
-      'id': 'k3',
-    });
-    link.receive({
-      't': 'ack',
-      'id': 'k3',
-      'ok': false,
-      'error': 'confirm',
-      'label': 'Send',
-    });
-    final first = await tap;
-    expect(first.needsConfirm, isTrue);
-    expect(first.label, 'Send');
-    final again = watch.tap(const Offset(0.42, 0.81), confirmed: true);
-    expect(link.sent.last['confirmed'], isTrue);
-    link.receive({'t': 'ack', 'id': 'k4', 'ok': true});
-    expect((await again).ok, isTrue);
-
-    final scroll = watch.scroll(const Offset(0.5, 0.5), dy: -3);
-    expect(link.sent.last, {
-      't': 'scroll',
-      'x': 0.5,
-      'y': 0.5,
-      'dy': -3,
-      'dx': 0,
-      'id': 'k5',
-    });
-    await tester.pump(WatchTimeouts.ack);
-    expect((await scroll).error, 'timeout');
-  });
-
-  screenTest('keys and text fall back to relay requests without a channel', (
+  screenTest('a screen is watched like a window, and never with control', (
     tester,
   ) async {
-    final (server, watch, _, _) = await started(tester);
-    expect(watch.channelOpen, isFalse);
-    final pressed = watch.keys(['tab']);
-    await tester.pump();
-    final body = sentOf(server, 'windows.keys').single;
-    expect(body['keys'], ['tab']);
-    expect(body['target'], 'w1');
-    expect(body['stay'], isTrue, reason: 'the watched window stays in front');
-    server.relay('pc', {
-      'kind': 'result',
-      'requestId': body['requestId'],
-      'ok': true,
-      'pressed': 1,
-    });
-    await tester.pump();
-    expect((await pressed).ok, isTrue);
-  });
-
-  screenTest('a screen is not a window: fallback input goes to the cursor', (
-    tester,
-  ) async {
-    final (server, watch, _, _) = await started(tester, screen: true);
-    unawaited(watch.text('hi'));
-    await tester.pump();
-    final body = sentOf(server, 'text').single;
-    expect(body.containsKey('target'), isFalse);
+    final (server, _, _, _) = await started(tester, screen: true);
+    final body = sentOf(server, ScreenKind.watch).single;
+    expect(body['target'], 's1');
+    expect(body['control'], isFalse);
   });
 
   screenTest('tracks the caret and the target', (tester) async {
@@ -265,7 +181,6 @@ void main() {
     tester,
   ) async {
     final (server, watch, link, id) = await live(tester);
-    final pending = watch.keys(['enter']);
     watch.stop();
     await tester.pump();
     final cancel = relayFrames(server).last;
@@ -275,7 +190,6 @@ void main() {
     expect(watch.phase, WatchPhase.ended);
     expect(watch.endError, isNull);
     expect(watch.link, isNull);
-    expect((await pending).error, 'cancelled');
   });
 
   screenTest('the computer ending it ends it with its code', (tester) async {
@@ -327,32 +241,6 @@ void main() {
     server.send({'type': 'relay_failed', 'id': id, 'to': 'pc'});
     await tester.pump();
     expect(watch.endError, 'offline');
-  });
-
-  screenTest('Control restarts the watch once the old one has ended', (
-    tester,
-  ) async {
-    final (server, watch, link, id) = await live(tester);
-    final switched = watch.setControl(true);
-    await tester.pump();
-    expect(watch.restarting, isTrue);
-    expect(sentOf(server, 'cancel').single['requestId'], id);
-    expect(sentOf(server, 'screen.watch'), hasLength(1), reason: 'waits');
-    server.relay('pc', {
-      'kind': 'result',
-      'requestId': id,
-      'ok': false,
-      'error': 'cancelled',
-    });
-    await tester.pump();
-    await switched;
-    expect(link.closed, isTrue);
-    final again = sentOf(server, 'screen.watch');
-    expect(again, hasLength(2));
-    expect(again.last['control'], isTrue);
-    expect(again.last['requestId'], isNot(id));
-    expect(watch.phase, WatchPhase.starting);
-    expect(watch.endError, isNull);
   });
 
   screenTest('a late offer for an ended watch is closed, not used', (

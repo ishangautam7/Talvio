@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,6 +16,7 @@ import 'computer_widgets.dart';
 import 'dictate_controller.dart';
 import 'dictate_scope.dart';
 import 'key_pad.dart';
+import 'mic_widgets.dart';
 import 'remote_windows.dart';
 import 'strings.dart';
 
@@ -298,9 +298,12 @@ class _DictateScreenState extends State<DictateScreen> {
                               : null,
                         ),
                         const SizedBox(height: 12),
-                        _MicButton(
-                          phase: c.phase,
+                        MicButton(
+                          recording: c.phase == DictatePhase.recording,
+                          busy: c.phase == DictatePhase.sending,
                           level: c.level,
+                          startLabel: DictateStrings.startRecording,
+                          stopLabel: DictateStrings.stopAndSend,
                           onPressed: switch (c.phase) {
                             DictatePhase.idle when canDictate =>
                               c.startRecording,
@@ -311,7 +314,7 @@ class _DictateScreenState extends State<DictateScreen> {
                         ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48),
                           child: c.phase == DictatePhase.recording
-                              ? _RecordingCaption(
+                              ? RecordingCaption(
                                   elapsed: c.elapsed,
                                   paused: c.paused,
                                   onDiscard: c.discardRecording,
@@ -568,124 +571,6 @@ class _OutcomeCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _MicButton extends StatelessWidget {
-  const _MicButton({
-    required this.phase,
-    required this.level,
-    required this.onPressed,
-  });
-
-  static const _size = 88.0;
-  static const _ring = 128.0;
-
-  final DictatePhase phase;
-  final ValueListenable<double> level;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final recording = phase == DictatePhase.recording;
-    return SizedBox.square(
-      dimension: _ring,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (recording)
-            ValueListenableBuilder(
-              valueListenable: level,
-              builder: (context, value, _) => AnimatedScale(
-                scale: _size / _ring + (1 - _size / _ring) * value,
-                duration: const Duration(milliseconds: 100),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.error.withValues(alpha: 0.2),
-                  ),
-                  child: const SizedBox.square(dimension: _ring),
-                ),
-              ),
-            ),
-          Semantics(
-            label: recording
-                ? DictateStrings.stopAndSend
-                : DictateStrings.startRecording,
-            // Excluding the button's own semantics drops its tap too.
-            excludeSemantics: true,
-            button: true,
-            enabled: onPressed != null,
-            onTap: onPressed,
-            child: SizedBox.square(
-              dimension: _size,
-              child: FilledButton(
-                onPressed: onPressed,
-                style: FilledButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: EdgeInsets.zero,
-                  backgroundColor: recording ? scheme.error : null,
-                  foregroundColor: recording ? scheme.onError : null,
-                ),
-                child: phase == DictatePhase.sending
-                    ? const SizedBox.square(
-                        dimension: 28,
-                        child: CircularProgressIndicator(strokeWidth: 3),
-                      )
-                    : Icon(
-                        recording ? Icons.stop_rounded : Icons.mic,
-                        size: 40,
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecordingCaption extends StatelessWidget {
-  const _RecordingCaption({
-    required this.elapsed,
-    required this.paused,
-    required this.onDiscard,
-  });
-
-  final ValueListenable<Duration> elapsed;
-  final bool paused;
-  final VoidCallback onDiscard;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Flexible(
-          child: ValueListenableBuilder(
-            valueListenable: elapsed,
-            builder: (context, value, _) {
-              final seconds = (value.inSeconds % 60).toString().padLeft(2, '0');
-              final time = paused
-                  ? DictateStrings.paused
-                  : '${value.inMinutes}:$seconds';
-              return Text(
-                '$time · ${DictateStrings.tapToSend}',
-                style: mutedText(
-                  context,
-                )?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        TextButton(
-          onPressed: onDiscard,
-          child: const Text(DictateStrings.discard),
-        ),
-      ],
     );
   }
 }

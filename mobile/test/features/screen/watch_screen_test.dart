@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +8,6 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talvio_mobile/src/core/api_client.dart';
 import 'package:talvio_mobile/src/core/app_services.dart';
-import 'package:talvio_mobile/src/features/dictate/dictate_controller.dart';
 import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
 import 'package:talvio_mobile/src/features/screen/watch_screen.dart';
 
@@ -23,20 +24,10 @@ void main() {
       ..physicalSize = const Size(400, 800)
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final messenger = tester.binding.defaultBinaryMessenger;
-    messenger.setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (_) async => '/nonexistent-talvio-test',
-    );
-    messenger.setMockMethodCallHandler(
-      const MethodChannel('com.llfbandit.record/messages'),
-      (_) async => null,
-    );
     final (server, relay, session) = await connectedSession(tester);
     final prefs = await SharedPreferences.getInstance();
-    final dictate = DictateController(relay: relay, prefs: prefs);
-    cleanups.add(dictate.dispose);
     final links = FakeLinks();
+    final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(
       AppServices(
         session: session,
@@ -47,136 +38,100 @@ void main() {
         relay: relay,
         prefs: prefs,
         child: MaterialApp(
-          home: WatchScreen(
-            dictate: dictate,
-            computer: relay.devices.value!.firstWhere((d) => d.isComputer),
-            target: const WatchTarget(
-              id: 'w1',
-              label: 'Notepad',
-              screen: false,
-            ),
-            linkFactory: links.create,
-          ),
+          navigatorKey: navigator,
+          home: const Text('Home page'),
         ),
       ),
     );
+    unawaited(
+      navigator.currentState!.push(
+        watchRoute(
+          computer: relay.devices.value!.firstWhere((d) => d.isComputer),
+          target: const WatchTarget(id: 'w1', label: 'Notepad', screen: false),
+          linkFactory: links.create,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     cleanups.add(() => tester.pumpWidget(const SizedBox()));
     await tester.pump();
     final id = await goLive(tester, server, links);
     return (server, links, id);
   }
 
-  screenTest(
-    'keys go over the channel, and the caret is followed until a pan',
-    (tester) async {
-      final (_, links, _) = await pumpViewer(tester);
-      final link = links.last;
-      expect(find.text('Live'), findsOneWidget);
-      expect(tester.takeException(), isNull, reason: 'fits');
+  screenTest('watch only: no control, keys, typing or mic', (tester) async {
+    final (server, links, _) = await pumpViewer(tester);
+    expect(find.text('Live'), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: 'fits');
+    expect(sentOf(server, 'screen.watch').single['control'], isFalse);
 
-      // The key pad is folded away until asked for.
-      expect(find.byTooltip('Enter'), findsNothing);
-      await tester.tap(find.byTooltip('Keys'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull, reason: 'fits with the pad');
-      await tester.tap(find.byTooltip('Enter'));
-      await tester.pump();
-      expect(link.sent.last, {
-        't': 'keys',
-        'keys': ['enter'],
-        'id': 'k1',
-      });
+    for (final gone in ['View', 'Control']) {
+      expect(find.text(gone), findsNothing, reason: gone);
+    }
+    for (final gone in ['Keys', 'Type', 'Dictate into this window', 'Enter']) {
+      expect(find.byTooltip(gone), findsNothing, reason: gone);
+    }
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byIcon(Icons.mic), findsNothing);
+    expect(find.byTooltip('Turn sound on'), findsOneWidget);
+    expect(find.text('Stop'), findsOneWidget);
 
-      expect(find.byTooltip('Follow the cursor'), findsNothing, reason: 'none');
-      link.receive({'t': 'caret', 'x': 0.5, 'y': 0.5, 'w': 0, 'h': 0.02});
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byTooltip('Following the cursor'), findsOneWidget);
-      expect(scale(tester), greaterThan(2), reason: 'zoomed in to read');
-
-      await tester.drag(
-        find.byType(InteractiveViewer),
-        const Offset(60, 40),
-        touchSlopX: 0,
-        touchSlopY: 0,
-      );
-      await tester.pump();
-      expect(find.byTooltip('Follow the cursor'), findsOneWidget);
-      final moved = viewOf(tester).clone();
-      link.receive({'t': 'caret', 'x': 0.1, 'y': 0.1, 'w': 0, 'h': 0.02});
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(viewOf(tester), moved, reason: 'Follow is off');
-
-      await tester.tap(find.byTooltip('Follow the cursor'));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(viewOf(tester), isNot(moved));
-    },
-  );
-
-  screenTest('Control: taps map to the picture and Send asks first', (
-    tester,
-  ) async {
-    final (server, links, id) = await pumpViewer(tester);
+    // A tap, a double tap and a long press only look.
     final center = tester.getCenter(find.byType(InteractiveViewer));
-
-    // View: a tap only looks.
     await tester.tapAt(center);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.longPressAt(center);
     await tester.pump(const Duration(milliseconds: 500));
     expect(links.last.sent, isEmpty);
 
-    await tester.tap(find.text('Control'));
+    // Sound is the one thing sent on the channel.
+    await tester.tap(find.byTooltip('Turn sound on'));
     await tester.pump();
+    expect(links.last.sent, [
+      {'t': 'audio', 'on': true},
+    ]);
+    expect(find.byTooltip('Turn sound off'), findsOneWidget);
+  });
+
+  screenTest('Stop ends the watch and closes the viewer', (tester) async {
+    final (server, links, id) = await pumpViewer(tester);
+    await tester.tap(find.text('Stop'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(sentOf(server, 'cancel').single['requestId'], id);
-    server.relay('pc', {
-      'kind': 'result',
-      'requestId': id,
-      'ok': false,
-      'error': 'cancelled',
-    });
-    await tester.pump();
-    await tester.pump();
-    final watch = sentOf(server, 'screen.watch').last;
-    expect(watch['control'], isTrue);
-    await goLive(tester, server, links, watch['requestId']! as String);
+    expect(links.last.closed, isTrue);
+    expect(find.text('Home page'), findsOneWidget);
+    expect(find.byType(InteractiveViewer), findsNothing);
+  });
+
+  screenTest('the caret is followed until a pan', (tester) async {
+    final (_, links, _) = await pumpViewer(tester);
     final link = links.last;
 
-    await tester.tapAt(center);
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(link.sent.last, {
-      't': 'tap',
-      'x': 0.5,
-      'y': 0.5,
-      'button': 'left',
-      'count': 1,
-      'confirmed': false,
-      'id': 'k1',
-    });
-    link.receive({
-      't': 'ack',
-      'id': 'k1',
-      'ok': false,
-      'error': 'confirm',
-      'label': 'Send',
-    });
+    expect(find.byTooltip('Follow the cursor'), findsNothing, reason: 'none');
+    link.receive({'t': 'caret', 'x': 0.5, 'y': 0.5, 'w': 0, 'h': 0.02});
     await tester.pump();
-    await tester.pump();
-    expect(find.text('Press "Send" on the computer?'), findsOneWidget);
-    await tester.tap(find.text('Press'));
-    await tester.pump();
-    expect(link.sent.last['confirmed'], isTrue);
-    expect(link.sent.last['id'], 'k2');
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byTooltip('Following the cursor'), findsOneWidget);
+    expect(scale(tester), greaterThan(2), reason: 'zoomed in to read');
 
-    // A tap on the letterbox bar above the picture clicks nothing.
-    await tester.tapAt(
-      tester.getTopLeft(find.byType(InteractiveViewer)) + const Offset(20, 90),
+    await tester.drag(
+      find.byType(InteractiveViewer),
+      const Offset(60, 40),
+      touchSlopX: 0,
+      touchSlopY: 0,
     );
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(link.sent.last['id'], 'k2');
-
-    await tester.longPressAt(center);
     await tester.pump();
-    expect(link.sent.last['button'], 'right');
+    expect(find.byTooltip('Follow the cursor'), findsOneWidget);
+    final moved = viewOf(tester).clone();
+    link.receive({'t': 'caret', 'x': 0.1, 'y': 0.1, 'w': 0, 'h': 0.02});
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(viewOf(tester), moved, reason: 'Follow is off');
+
+    await tester.tap(find.byTooltip('Follow the cursor'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(viewOf(tester), isNot(moved));
   });
 
   screenTest('a wide picture can fill the view, and the viewer turns', (
@@ -225,18 +180,7 @@ void main() {
     expect(stage.height, 400, reason: 'the picture has the full height');
     expect(stage.width, greaterThan(650), reason: 'a slim column of buttons');
     expect(find.byTooltip('Turn upright'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Keys'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(tester.takeException(), isNull, reason: 'fits with the pad');
-    final up = tester.getRect(find.byTooltip('Up arrow'));
-    expect(up.left, greaterThan(stage.left + 400), reason: 'pad at the side');
-    expect(
-      tester.getRect(find.byType(InteractiveViewer)).height,
-      400,
-      reason: 'the pad takes width, not height',
-    );
+    expect(find.byTooltip('Stop'), findsOneWidget, reason: 'Stop beside it');
 
     // Leaving lets the phone decide again.
     await tester.pumpWidget(const SizedBox());

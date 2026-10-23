@@ -21,7 +21,8 @@ abstract final class ScreenKind {
   static const liveStage = 'live';
   static const approvalStage = 'approval';
 
-  /// The data channel the computer opens for input.
+  /// The data channel the computer opens (this phone only asks for sound
+  /// and keyframes on it).
   static const channel = 'control';
 }
 
@@ -189,12 +190,6 @@ sealed class ControlMessage {
       return null;
     }
     return switch (json) {
-      {'t': 'ack', 'id': String id} => AckMessage(
-        id,
-        ok: json['ok'] == true,
-        error: json['error'] is String ? json['error']! as String : null,
-        label: json['label'] is String ? json['label']! as String : null,
-      ),
       {'t': 'caret', 'x': num x, 'y': num y, 'w': num w, 'h': num h}
           when _unit(x) && _unit(y) && w >= 0 && h >= 0 =>
         CaretMessage(
@@ -226,16 +221,6 @@ sealed class ControlMessage {
   static bool _unit(num v) => v >= 0 && v <= 1;
 }
 
-class AckMessage extends ControlMessage {
-  const AckMessage(this.id, {required this.ok, this.error, this.label});
-  final String id;
-  final bool ok;
-  final String? error;
-
-  /// The control's label, with `error: "confirm"`.
-  final String? label;
-}
-
 class CaretMessage extends ControlMessage {
   const CaretMessage(this.caret);
 
@@ -246,20 +231,4 @@ class CaretMessage extends ControlMessage {
 class TargetMessage extends ControlMessage {
   const TargetMessage(this.target);
   final WatchedTarget target;
-}
-
-/// How an input message ended: [error] null when the computer did it.
-class InputResult {
-  const InputResult.ok() : error = null, label = null;
-  const InputResult.failed(String this.error, {this.label});
-
-  /// An ack's error code, or the phone's own: `timeout`, `not_live`,
-  /// `cancelled`.
-  final String? error;
-
-  /// With `confirm`: what the control is labelled.
-  final String? label;
-
-  bool get ok => error == null;
-  bool get needsConfirm => error == 'confirm';
 }
