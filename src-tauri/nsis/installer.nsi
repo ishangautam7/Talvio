@@ -1,4 +1,4 @@
-; Custom NSIS template for Zynveliq with portable mode support.
+; Custom NSIS template for Talvio with portable mode support.
 ; Based on tauri-apps/tauri@tauri-v2.9.1 crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi
 ; Portable changes are marked with "; --- PORTABLE MODE ---" comments.
 ;
@@ -77,6 +77,16 @@ Var OldMainBinaryName
 
 ; --- PORTABLE MODE ---
 Var PortableMode
+
+; --- RENAME --- The app was called Zynveliq before it was Talvio. The product
+; name keys the uninstall entry, the install folder and the shortcuts, so this
+; installer would not see a Zynveliq install at all and both would stay on the
+; machine. RemoveLegacyInstall takes the old program away (files, uninstall
+; entry, shortcuts, autostart value) and never touches its data: the app moves
+; that to the new name itself on first launch.
+!define LEGACY_PRODUCTNAME "Zynveliq"
+!define LEGACY_MAINBINARYNAME "zynveliq.exe"
+!define LEGACY_UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${LEGACY_PRODUCTNAME}"
 
 Name "${PRODUCTNAME}"
 BrandingText "${COPYRIGHT}"
@@ -620,8 +630,8 @@ Function .onInit
 
   ; --- PORTABLE MODE --- Auto-detect portable mode during updates.
   ; Preserve portable installs that use the current magic-string marker, the
-  ; legacy "Handy Portable Mode" marker written by installs created before
-  ; the Zynveliq rebrand, or the legacy empty marker created by even older
+  ; "Zynveliq Portable Mode" and "Handy Portable Mode" markers written under
+  ; the app's earlier names, or the legacy empty marker created by even older
   ; Handy releases. Require Data/ for the legacy empty-marker case so stale
   ; scoop side-effect files do not accidentally opt an updater run into
   ; portable mode.
@@ -631,7 +641,9 @@ Function .onInit
     FileOpen $1 "$INSTDIR\portable" r
     FileRead $1 $2
     FileClose $1
-    ${If} $2 == "Zynveliq Portable Mode"
+    ${If} $2 == "Talvio Portable Mode"
+      StrCpy $PortableMode 1
+    ${OrIf} $2 == "Zynveliq Portable Mode"
       StrCpy $PortableMode 1
     ${OrIf} $2 == "Handy Portable Mode"
       StrCpy $PortableMode 1
@@ -767,6 +779,12 @@ Section Install
 
   !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
+  ; --- RENAME --- Take an installed Zynveliq away before the new files land,
+  ; so its uninstaller can never remove a file this install just wrote.
+  ${If} $PortableMode <> 1
+    Call RemoveLegacyInstall
+  ${EndIf}
+
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
 
@@ -804,8 +822,13 @@ Section Install
   ; --- PORTABLE MODE --- Create portable marker and Data directory
   ${If} $PortableMode = 1
     FileOpen $0 "$INSTDIR\portable" w
-    FileWrite $0 "Zynveliq Portable Mode"
+    FileWrite $0 "Talvio Portable Mode"
     FileClose $0
+    ; --- RENAME --- A portable Zynveliq updated in place keeps its Data, but
+    ; its old executable would sit beside the new one.
+    !if "${MAINBINARYNAME}.exe" != "${LEGACY_MAINBINARYNAME}"
+      Delete "$INSTDIR\${LEGACY_MAINBINARYNAME}"
+    !endif
     CreateDirectory "$INSTDIR\Data"
     DetailPrint "Portable mode: created marker file and Data directory."
   ${EndIf}
@@ -1031,6 +1054,107 @@ Section Uninstall
     SetAutoClose true
   ${EndIf}
 SectionEnd
+
+; --- RENAME --- Remove an installed Zynveliq (see LEGACY_PRODUCTNAME). Its
+; uninstaller runs silently with /UPDATE, which is the mode in which it keeps
+; the app data (a silent run never ticks "Delete app data" either, so the data
+; is guarded twice) and leaves shortcuts and the autostart value alone; those
+; are removed here instead, and only when they point at the old program.
+Function RemoveLegacyInstall
+  Push $R0
+  Push $R1
+  Push $R2
+  Push $R3
+
+  ; $R0: the registry root the old install is under, $R1: its folder,
+  ; $R2: its main executable.
+  StrCpy $R0 ""
+  ReadRegStr $R1 HKCU "${LEGACY_UNINSTKEY}" "InstallLocation"
+  ${If} $R1 != ""
+    StrCpy $R0 "HKCU"
+    ReadRegStr $R2 HKCU "${LEGACY_UNINSTKEY}" "MainBinaryName"
+  ${Else}
+    ReadRegStr $R1 HKLM "${LEGACY_UNINSTKEY}" "InstallLocation"
+    ${If} $R1 != ""
+      StrCpy $R0 "HKLM"
+      ReadRegStr $R2 HKLM "${LEGACY_UNINSTKEY}" "MainBinaryName"
+    ${EndIf}
+  ${EndIf}
+
+  ${If} $R0 != ""
+    ; InstallLocation is written quoted.
+    StrCpy $R3 $R1 1
+    ${If} $R3 == '"'
+      StrCpy $R1 $R1 -1 1
+    ${EndIf}
+    ${If} $R2 == ""
+      StrCpy $R2 "${LEGACY_MAINBINARYNAME}"
+    ${EndIf}
+    DetailPrint "Removing the previous version (${LEGACY_PRODUCTNAME}) from $R1"
+
+    !insertmacro CheckIfAppIsRunning "${LEGACY_MAINBINARYNAME}" "${LEGACY_PRODUCTNAME}"
+
+    ${If} $R1 == $INSTDIR
+      ; Installed over the same folder: the new files replace the old ones,
+      ; only the old executable would be left behind.
+      Delete "$R1\$R2"
+    ${ElseIf} ${FileExists} "$R1\uninstall.exe"
+      ClearErrors
+      ExecWait '"$R1\uninstall.exe" /S /UPDATE _?=$R1'
+      ${If} ${Errors}
+        ; A per-machine install's uninstaller needs elevation, which ExecWait
+        ; cannot ask for.
+        ExecShellWait "open" "$R1\uninstall.exe" '/S /UPDATE _?=$R1'
+      ${EndIf}
+      ; Run with _?= the uninstaller cannot delete itself or its folder.
+      Delete "$R1\uninstall.exe"
+      RMDir "$R1"
+    ${Else}
+      Delete "$R1\$R2"
+      RMDir "$R1"
+    ${EndIf}
+
+    ; The uninstall entry, in case the uninstaller could not run.
+    ${If} $R0 == "HKCU"
+      DeleteRegKey HKCU "${LEGACY_UNINSTKEY}"
+      DeleteRegKey HKCU "${MANUKEY}\${LEGACY_PRODUCTNAME}"
+    ${Else}
+      DeleteRegKey HKLM "${LEGACY_UNINSTKEY}"
+      DeleteRegKey HKLM "${MANUKEY}\${LEGACY_PRODUCTNAME}"
+    ${EndIf}
+
+    ; Shortcuts that open the old program.
+    !insertmacro IsShortcutTarget "$SMPROGRAMS\${LEGACY_PRODUCTNAME}.lnk" "$R1\$R2"
+    Pop $R3
+    ${If} $R3 = 1
+      !insertmacro UnpinShortcut "$SMPROGRAMS\${LEGACY_PRODUCTNAME}.lnk"
+      Delete "$SMPROGRAMS\${LEGACY_PRODUCTNAME}.lnk"
+    ${EndIf}
+    !insertmacro IsShortcutTarget "$SMPROGRAMS\${LEGACY_PRODUCTNAME}\${LEGACY_PRODUCTNAME}.lnk" "$R1\$R2"
+    Pop $R3
+    ${If} $R3 = 1
+      !insertmacro UnpinShortcut "$SMPROGRAMS\${LEGACY_PRODUCTNAME}\${LEGACY_PRODUCTNAME}.lnk"
+      Delete "$SMPROGRAMS\${LEGACY_PRODUCTNAME}\${LEGACY_PRODUCTNAME}.lnk"
+      RMDir "$SMPROGRAMS\${LEGACY_PRODUCTNAME}"
+    ${EndIf}
+    !insertmacro IsShortcutTarget "$DESKTOP\${LEGACY_PRODUCTNAME}.lnk" "$R1\$R2"
+    Pop $R3
+    ${If} $R3 = 1
+      !insertmacro UnpinShortcut "$DESKTOP\${LEGACY_PRODUCTNAME}.lnk"
+      Delete "$DESKTOP\${LEGACY_PRODUCTNAME}.lnk"
+    ${EndIf}
+  ${EndIf}
+
+  ; The old autostart value starts a program that is gone. The app re-applies
+  ; the user's autostart choice under its new name when it starts.
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${LEGACY_PRODUCTNAME}"
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" "${LEGACY_PRODUCTNAME}"
+
+  Pop $R3
+  Pop $R2
+  Pop $R1
+  Pop $R0
+FunctionEnd
 
 Function RestorePreviousInstallLocation
   ReadRegStr $4 SHCTX "${MANUPRODUCTKEY}" ""
