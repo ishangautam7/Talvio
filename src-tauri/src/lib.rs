@@ -10,6 +10,7 @@ mod autolearn;
 mod catalog;
 pub mod cli;
 mod clipboard;
+mod command_mode;
 mod commands;
 mod dictation_recovery;
 pub mod engine_supervisor;
@@ -1343,6 +1344,16 @@ pub fn run(cli_args: CliArgs) {
             account::fit_account_approval,
             account::set_account_server_url,
             account::set_remote_input_enabled,
+            commands::command_mode::command_run_text,
+            commands::command_mode::command_answer,
+            commands::command_mode::command_confirm,
+            commands::command_mode::command_open_contacts_file,
+            commands::command_mode::change_command_mode_enabled_setting,
+            commands::command_mode::change_command_router_provider_id_setting,
+            commands::command_mode::change_command_router_model_setting,
+            commands::command_mode::change_command_dry_run_setting,
+            commands::command_mode::change_command_google_account_setting,
+            commands::command_mode::change_command_search_url_setting,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 
@@ -1443,6 +1454,12 @@ pub fn run(cli_args: CliArgs) {
 
     builder
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // First, because it carries a value: the others are plain
+            // switches matched by name below.
+            if let Some((text, dry_run)) = cli::run_command_from_argv(&args) {
+                signal_handle::run_command(app, text, dry_run, "CLI");
+                return;
+            }
             if args.iter().any(|a| a == "--toggle-transcription") {
                 signal_handle::send_transcription_input(app, "transcribe", "CLI");
             } else if args.iter().any(|a| a == "--toggle-post-process") {
@@ -1628,6 +1645,7 @@ pub fn run(cli_args: CliArgs) {
             app.manage(TranscriptionCoordinator::new(app_handle.clone()));
             app.manage(assistant::AssistantConversation::new());
             app.manage(voice_conversation::VoiceConversation::default());
+            app.manage(command_mode::CommandModeState::default());
 
             initialize_core_logic(&app_handle);
             account::init(&app_handle);
@@ -1647,6 +1665,16 @@ pub fn run(cli_args: CliArgs) {
             // switching the assistant off to stop the panel loading must not
             // silently swallow an alarm the user is relying on.
             reminders::init(&app_handle);
+
+            // `--run-command` on a launch with no instance running yet. The
+            // remote-control toggles only act on a running instance, but a
+            // command is a whole request, so it runs once the managers above
+            // exist rather than being dropped. It runs in the background, and
+            // waits there for keyboard control, which only exists once the
+            // main window has mounted (see `signal_handle::run_command`).
+            if let Some(text) = cli_args.run_command.clone() {
+                signal_handle::run_command(&app_handle, text, cli_args.dry_run, "CLI");
+            }
 
             // Pre-warm device enumeration on a background thread. The first
             // call starts a short-lived transcription worker that registers
@@ -1670,7 +1698,13 @@ pub fn run(cli_args: CliArgs) {
             // Show main window only if not starting hidden.
             // CLI --start-hidden flag overrides the setting.
             // But if permission onboarding is required, always show the window.
-            let should_hide = settings.start_hidden || cli_args.start_hidden;
+            // A cold-start `--run-command` also starts hidden: the command acts
+            // on the window in front, and showing ours a moment later would put
+            // Zynveliq there, so typed text and keys would land in Settings. The
+            // window still loads hidden, which is what creates keyboard control.
+            let should_hide = settings.start_hidden
+                || cli_args.start_hidden
+                || cli_args.run_command.is_some();
             let should_force_show = should_force_show_permissions_window(&app_handle);
 
             // If start_hidden but tray is disabled, we must show the window

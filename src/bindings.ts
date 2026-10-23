@@ -3838,6 +3838,115 @@ async getSettingsNotices() : Promise<SettingsNotice[]> {
 async dismissSettingsNotice(kind: SettingsNoticeKind) : Promise<void> {
     await TAURI_INVOKE("dismiss_settings_notice", { kind });
 },
+/**
+ * Run a command typed into Settings → Debug. `dry_run` overrides the saved
+ * `command_dry_run` setting for this one command; `null` uses the setting.
+ * 
+ * Not gated on `command_mode_enabled`: this box is the developer surface
+ * (the Debug tab is itself hidden behind debug mode), and testing a command
+ * must not require switching the feature on for the hotkey too.
+ */
+async commandRunText(text: string, dryRun: boolean | null) : Promise<CommandReport> {
+    return await TAURI_INVOKE("command_run_text", { text, dryRun });
+},
+/**
+ * Answer the question a command asked (`status: needs_answer`), by the
+ * report's `id`. The command carries on from where it stopped.
+ */
+async commandAnswer(id: number, answer: string) : Promise<CommandReport> {
+    return await TAURI_INVOKE("command_answer", { id, answer });
+},
+/**
+ * Accept (`true`, "send") or decline what a command left waiting for
+ * confirmation (`status: awaiting_confirmation`), by the report's `id`.
+ */
+async commandConfirm(id: number, accept: boolean) : Promise<CommandReport> {
+    return await TAURI_INVOKE("command_confirm", { id, accept });
+},
+/**
+ * Open the contacts file in the user's editor, creating it with one example
+ * contact first if there is none. A file that exists is never touched, even
+ * an empty or broken one: it is the user's, and the loader already says
+ * what is wrong with it.
+ */
+async commandOpenContactsFile() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("command_open_contacts_file") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Turn command mode on or off.
+ */
+async changeCommandModeEnabledSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_mode_enabled_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The provider (a `post_process_providers` id) that routes commands. Empty
+ * goes back to the default.
+ */
+async changeCommandRouterProviderIdSetting(providerId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_router_provider_id_setting", { providerId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The model that routes commands. Empty goes back to the default.
+ */
+async changeCommandRouterModelSetting(model: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_router_model_setting", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Whether commands show what they would do instead of doing it.
+ */
+async changeCommandDryRunSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_dry_run_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The Google account (`authuser=`) Gmail and Calendar links open in. Empty
+ * means the browser's default account.
+ */
+async changeCommandGoogleAccountSetting(account: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_google_account_setting", { account }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The search page a web search opens. It must contain `{query}`; anything
+ * else goes back to the default rather than opening a page that ignores
+ * what was asked.
+ */
+async changeCommandSearchUrlSetting(url: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_search_url_setting", { url }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async accountGetStatus() : Promise<AccountStatus> {
     return await TAURI_INVOKE("account_get_status");
 },
@@ -4608,6 +4717,37 @@ web_search_api_keys?: SecretMap; theme?: Theme; ui_text_size?: UiTextSize;
  */
 main_window_width?: number | null; main_window_height?: number | null; 
 /**
+ * Command mode: say what you want done and the app does it on screen
+ * (`command_mode/`). Off by default, because a command acts in the
+ * user's apps and sends the transcript to the router's provider.
+ */
+command_mode_enabled?: boolean;
+/**
+ * The provider (an id from `post_process_providers`) that routes a
+ * command to a tool. Its key is the one already saved for that provider.
+ */
+command_router_provider_id?: string;
+/**
+ * The model that routes a command: small and fast, since every command
+ * costs one call to it.
+ */
+command_router_model?: string;
+/**
+ * Show what a command would do instead of doing it. The Debug box and
+ * `--dry-run` can still override it for one command.
+ */
+command_dry_run?: boolean;
+/**
+ * The Google account Gmail and Calendar links open in, sent as
+ * `authuser=`. Empty means the browser's default Google account.
+ */
+command_google_account?: string;
+/**
+ * The search page a web search opens; `{query}` is replaced with the
+ * URL-encoded query.
+ */
+command_search_url?: string; 
+/**
  * The Custom account server this computer signs in to (`account`), or
  * empty for Automatic: the server discovery finds. Changed only while
  * signed out.
@@ -5128,6 +5268,63 @@ export type CloudSttUnavailableReason = "not_enabled" | "selected_provider_missi
  */
 "unsupported_language"
 /**
+ * Where a command came from.
+ */
+export type CommandOrigin =
+/**
+ * Settings → Debug text box.
+ */
+"typed" |
+/**
+ * `--run-command` on the command line.
+ */
+"cli" |
+/**
+ * The command-mode hotkey (Phase 2).
+ */
+"voice"
+/**
+ * Everything about one command, for the UI, the CLI and the log.
+ */
+export type CommandReport = {
+/**
+ * Identifies the pending confirmation or question, if any.
+ */
+id: number; origin: CommandOrigin; transcript: string; status: CommandStatus;
+/**
+ * What to show and say, in order.
+ */
+feedback: Feedback[]; steps: StepReport[];
+/**
+ * What "send" will do, while awaiting confirmation.
+ */
+pending_summary: string | null; question: string | null; choices: string[];
+/**
+ * The task handed to computer use, when the router escalated.
+ */
+escalation: string | null; dry_run: boolean;
+/**
+ * In a dry run, every action that would have happened.
+ */
+dry_run_actions: string[]; model: string; llm_calls: number; usage: Usage; latency_ms: number; error: string | null }
+export type CommandStatus =
+/**
+ * Every call ran.
+ */
+"done" |
+/**
+ * A tool did its reversible half and waits for "send" / "cancel".
+ */
+"awaiting_confirmation" |
+/**
+ * The model or a tool needs an answer before going on.
+ */
+"needs_answer" |
+/**
+ * No tool fits; the computer-use fallback would take over (Phase 3).
+ */
+"needs_computer_use" | "cancelled" | "failed"
+/**
  * Where a conversation happened. The quick ask is one question and one answer;
  * a call is a back-and-forth conversation. History lists them separately and
  * the call's own history shows only calls.
@@ -5275,6 +5472,19 @@ export type EngineType = "Whisper" | "Parakeet" | "Moonshine" | "MoonshineStream
  * Not a transcription engine.
  */
 "NativeTts"
+/**
+ * What a user-facing message says, as a translation key plus parameters.
+ *
+ * Feedback is built from templates rather than a second LLM call. The key is
+ * looked up in the frontend's translations (`commandMode.feedback.*`), and
+ * [`Feedback::render_en`] gives the English text for logs, the CLI and
+ * anywhere without the frontend.
+ */
+export type Feedback = { key: string; params: [string, string][];
+/**
+ * The English rendering, so a surface without translations still has words.
+ */
+text: string }
 /**
  * One screenshot as the dialog hands it over: a MIME type and plain base64.
  */
@@ -6147,6 +6357,18 @@ export type SpeakerSource =
  */
 "system"
 /**
+ * One tool call, as the report shows it.
+ */
+export type StepReport = { tool: string;
+/**
+ * The arguments as JSON text (the frontend only displays them).
+ */
+args_json: string;
+/**
+ * "done", "awaiting_confirmation", "asked", "failed", "skipped".
+ */
+result: string; detail: string }
+/**
  * Where speech-to-text runs. `Local` is the app's original behaviour and the
  * default: a Whisper/Parakeet/GGUF model on the user's own machine. `Cloud`
  * sends the audio to a hosted transcription API instead.
@@ -6270,6 +6492,10 @@ export type UpdateInstallMode =
  */
 "package_manager"
 export type UpdateSupport = { mode: UpdateInstallMode; release_page: string }
+/**
+ * Token counts for one request. Integers so outcomes can derive `Eq`.
+ */
+export type Usage = { input_tokens: number; output_tokens: number; cache_read_tokens: number; cache_write_tokens: number }
 /**
  * One local calendar day of dictation usage, as shown in the recent-activity
  * chart.

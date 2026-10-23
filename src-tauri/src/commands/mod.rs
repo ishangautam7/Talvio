@@ -1,6 +1,7 @@
 pub mod assistant;
 pub mod audio;
 pub mod autolearn;
+pub mod command_mode;
 pub mod history;
 pub mod local_llm;
 pub mod meetings;
