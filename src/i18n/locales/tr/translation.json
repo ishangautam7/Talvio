@@ -2092,8 +2092,7 @@
         "or": "veya",
         "google": "Google ile devam et",
         "googleWaiting": "Oturum açmayı tarayıcınızda tamamlayın.",
-        "privacy": "Sunucu yalnızca hesabınızı ve cihaz listenizi saklar; kayıtlarınızı veya metinlerinizi asla saklamaz.",
-        "serverUnsaved": "Oturum açmadan önce aşağıdaki yeni sunucu adresini kaydedin."
+        "privacy": "Sunucu yalnızca hesabınızı ve cihaz listenizi saklar; kayıtlarınızı veya metinlerinizi asla saklamaz."
       },
       "signOut": "Oturumu kapat",
       "signingOut": "Oturum kapatılıyor…",
@@ -2134,10 +2133,6 @@
       },
       "server": {
         "title": "Hesap sunucusu",
-        "hint": "Hesabınızın tutulduğu yer. Yalnızca kendi sunucunuzu çalıştırıyorsanız değiştirin.",
-        "locked": "Sunucuyu değiştirmek için oturumu kapatın.",
-        "automatic": "Otomatik",
-        "custom": "Özel",
         "using": "Kullanılan: {{host}}",
         "notFound": "Sunucu şu anda bulunamıyor. Talvio denemeye devam ediyor."
       },
@@ -2159,9 +2154,7 @@
         "server": "Sunucu beklenmedik bir yanıt gönderdi. Daha sonra tekrar deneyin.",
         "timeout": "Google ile oturum açmak çok uzun sürdü. Tekrar deneyin.",
         "signed_in": "Sunucuyu değiştirmeden önce oturumu kapatın.",
-        "invalid_url": "Parolanız şifreli gitsin diye https:// ile başlayan bir adres girin. http:// yalnızca bu bilgisayardaki bir sunucuyla çalışır.",
-        "keychain": "Oturumunuz bu bilgisayara güvenli şekilde kaydedilemedi. Tekrar deneyin.",
-        "wrongServer": "Bu sunucu adresi doğru görünmüyor. Aşağıdan kontrol edip tekrar deneyin."
+        "keychain": "Oturumunuz bu bilgisayara güvenli şekilde kaydedilemedi. Tekrar deneyin."
       }
     }
   },

@@ -2110,8 +2110,7 @@
         "or": "lub",
         "google": "Kontynuuj przez Google",
         "googleWaiting": "Dokończ logowanie w przeglądarce.",
-        "privacy": "Serwer przechowuje tylko Twoje konto i listę urządzeń, nigdy nagrania ani teksty.",
-        "serverUnsaved": "Zapisz nowy adres serwera poniżej, zanim się zalogujesz."
+        "privacy": "Serwer przechowuje tylko Twoje konto i listę urządzeń, nigdy nagrania ani teksty."
       },
       "signOut": "Wyloguj się",
       "signingOut": "Wylogowywanie…",
@@ -2152,10 +2151,6 @@
       },
       "server": {
         "title": "Serwer kont",
-        "hint": "Miejsce, w którym przechowywane jest Twoje konto. Zmień je tylko, jeśli masz własny serwer.",
-        "locked": "Wyloguj się, aby zmienić serwer.",
-        "automatic": "Automatycznie",
-        "custom": "Własny",
         "using": "Używany: {{host}}",
         "notFound": "Nie można teraz znaleźć serwera. Talvio wciąż próbuje."
       },
@@ -2177,9 +2172,7 @@
         "server": "Serwer wysłał nieoczekiwaną odpowiedź. Spróbuj ponownie później.",
         "timeout": "Logowanie przez Google trwało zbyt długo. Spróbuj ponownie.",
         "signed_in": "Wyloguj się, zanim zmienisz serwer.",
-        "invalid_url": "Wpisz adres zaczynający się od https://, aby hasło było szyfrowane. http:// działa tylko z serwerem na tym komputerze.",
-        "keychain": "Nie udało się bezpiecznie zapisać logowania na tym komputerze. Spróbuj ponownie.",
-        "wrongServer": "Ten adres serwera wygląda na nieprawidłowy. Sprawdź go poniżej i spróbuj ponownie."
+        "keychain": "Nie udało się bezpiecznie zapisać logowania na tym komputerze. Spróbuj ponownie."
       }
     }
   },

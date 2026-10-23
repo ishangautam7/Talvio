@@ -2101,8 +2101,7 @@
         "or": "o",
         "google": "Continuar con Google",
         "googleWaiting": "Termina de iniciar sesión en tu navegador.",
-        "privacy": "El servidor solo guarda tu cuenta y tu lista de dispositivos, nunca tus grabaciones ni tus textos.",
-        "serverUnsaved": "Guarda la nueva dirección del servidor abajo antes de iniciar sesión."
+        "privacy": "El servidor solo guarda tu cuenta y tu lista de dispositivos, nunca tus grabaciones ni tus textos."
       },
       "signOut": "Cerrar sesión",
       "signingOut": "Cerrando sesión…",
@@ -2143,10 +2142,6 @@
       },
       "server": {
         "title": "Servidor de cuentas",
-        "hint": "Dónde se guarda tu cuenta. Cámbialo solo si usas tu propio servidor.",
-        "locked": "Cierra sesión para cambiar el servidor.",
-        "automatic": "Automático",
-        "custom": "Personalizado",
         "using": "Usando {{host}}",
         "notFound": "No se encuentra el servidor ahora mismo. Talvio sigue intentándolo."
       },
@@ -2168,9 +2163,7 @@
         "server": "El servidor envió una respuesta inesperada. Vuelve a intentarlo más tarde.",
         "timeout": "El inicio de sesión con Google tardó demasiado. Vuelve a intentarlo.",
         "signed_in": "Cierra sesión antes de cambiar el servidor.",
-        "invalid_url": "Escribe una dirección que empiece por https:// para que tu contraseña vaya cifrada. http:// solo funciona con un servidor en este ordenador.",
-        "keychain": "No se pudo guardar tu sesión de forma segura en este equipo. Vuelve a intentarlo.",
-        "wrongServer": "Esa dirección de servidor no parece correcta. Revísala abajo y vuelve a intentarlo."
+        "keychain": "No se pudo guardar tu sesión de forma segura en este equipo. Vuelve a intentarlo."
       }
     }
   },

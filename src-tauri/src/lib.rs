@@ -1351,7 +1351,6 @@ pub fn run(cli_args: CliArgs) {
             account::account_pending_approvals,
             account::account_answer_approval,
             account::fit_account_approval,
-            account::set_account_server_url,
             account::set_remote_input_enabled,
             commands::command_mode::command_run_text,
             commands::command_mode::command_answer,

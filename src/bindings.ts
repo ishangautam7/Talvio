@@ -4084,18 +4084,6 @@ async accountAnswerApproval(deviceId: string, allow: boolean) : Promise<void> {
 async fitAccountApproval(height: number) : Promise<void> {
     await TAURI_INVOKE("fit_account_approval", { height });
 },
-/**
- * A Custom server, or an empty `url` for Automatic. Only while signed out:
- * a session belongs to the server it signed in on.
- */
-async setAccountServerUrl(url: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("set_account_server_url", { url }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_remote_input_enabled", { enabled }) };
@@ -4134,13 +4122,10 @@ approved: boolean }
 export type AccountPhone = { id: string; name: string; platform: string }
 export type AccountStatus = { signed_in: boolean; 
 /**
- * The server in use; empty while Automatic has found none.
+ * The server in use, as discovery found it; empty while it has found
+ * none.
  */
-server_url: string; 
-/**
- * Automatic (discovery) rather than a Custom server the user typed.
- */
-server_automatic: boolean; user: AccountUser | null; device_id: string | null; connection: AccountConnection; 
+server_url: string; user: AccountUser | null; device_id: string | null; connection: AccountConnection; 
 /**
  * `None` until the server has answered `/v1/config`.
  */
@@ -4825,9 +4810,10 @@ command_agent_max_steps?: number;
  */
 command_agent_max_cost_usd?: number; 
 /**
- * The Custom account server this computer signs in to (`account`), or
- * empty for Automatic: the server discovery finds. Changed only while
- * signed out.
+ * Deprecated and ignored: the Custom account server earlier versions let
+ * the user type. The account server now comes only from discovery
+ * (`account/discovery.rs`), so an install that had a custom server follows
+ * discovery too. Kept so existing stores still load.
  */
 account_server_url?: string; 
 /**

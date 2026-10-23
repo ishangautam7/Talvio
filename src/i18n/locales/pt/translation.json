@@ -2101,8 +2101,7 @@
         "or": "ou",
         "google": "Continuar com o Google",
         "googleWaiting": "Termine de entrar no seu navegador.",
-        "privacy": "O servidor guarda só sua conta e sua lista de dispositivos, nunca suas gravações ou textos.",
-        "serverUnsaved": "Salve o novo endereço do servidor abaixo antes de entrar."
+        "privacy": "O servidor guarda só sua conta e sua lista de dispositivos, nunca suas gravações ou textos."
       },
       "signOut": "Sair",
       "signingOut": "Saindo…",
@@ -2143,10 +2142,6 @@
       },
       "server": {
         "title": "Servidor da conta",
-        "hint": "Onde sua conta fica guardada. Mude só se você usa seu próprio servidor.",
-        "locked": "Saia para mudar o servidor.",
-        "automatic": "Automático",
-        "custom": "Personalizado",
         "using": "Usando {{host}}",
         "notFound": "Não foi possível encontrar o servidor agora. O Talvio continua tentando."
       },
@@ -2168,9 +2163,7 @@
         "server": "O servidor enviou uma resposta inesperada. Tente novamente mais tarde.",
         "timeout": "O login com o Google demorou demais. Tente novamente.",
         "signed_in": "Saia antes de mudar o servidor.",
-        "invalid_url": "Digite um endereço que comece com https:// para que sua senha seja enviada criptografada. http:// só funciona com um servidor neste computador.",
-        "keychain": "Não foi possível salvar seu login com segurança neste computador. Tente novamente.",
-        "wrongServer": "Esse endereço de servidor não parece correto. Confira-o abaixo e tente novamente."
+        "keychain": "Não foi possível salvar seu login com segurança neste computador. Tente novamente."
       }
     }
   },

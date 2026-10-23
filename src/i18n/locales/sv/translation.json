@@ -2092,8 +2092,7 @@
         "or": "eller",
         "google": "Fortsätt med Google",
         "googleWaiting": "Slutför inloggningen i webbläsaren.",
-        "privacy": "Servern sparar bara ditt konto och din enhetslista, aldrig dina inspelningar eller texter.",
-        "serverUnsaved": "Spara den nya serveradressen nedan innan du loggar in."
+        "privacy": "Servern sparar bara ditt konto och din enhetslista, aldrig dina inspelningar eller texter."
       },
       "signOut": "Logga ut",
       "signingOut": "Loggar ut…",
@@ -2134,10 +2133,6 @@
       },
       "server": {
         "title": "Kontoserver",
-        "hint": "Där ditt konto sparas. Ändra bara om du kör en egen server.",
-        "locked": "Logga ut för att byta server.",
-        "automatic": "Automatisk",
-        "custom": "Egen",
         "using": "Använder {{host}}",
         "notFound": "Servern går inte att hitta just nu. Talvio fortsätter att försöka."
       },
@@ -2159,9 +2154,7 @@
         "server": "Servern skickade ett oväntat svar. Försök igen senare.",
         "timeout": "Inloggningen med Google tog för lång tid. Försök igen.",
         "signed_in": "Logga ut innan du byter server.",
-        "invalid_url": "Ange en adress som börjar med https:// så att ditt lösenord skickas krypterat. http:// fungerar bara för en server på den här datorn.",
-        "keychain": "Det gick inte att spara inloggningen säkert på den här datorn. Försök igen.",
-        "wrongServer": "Serveradressen verkar inte stämma. Kontrollera den nedan och försök igen."
+        "keychain": "Det gick inte att spara inloggningen säkert på den här datorn. Försök igen."
       }
     }
   },
