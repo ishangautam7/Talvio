@@ -4091,6 +4091,18 @@ async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Settings → Account → Sync API keys. Turning it on syncs at once; turning
+ * it off stops syncing and leaves every key on this computer.
+ */
+async setAccountSyncSecrets(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_account_sync_secrets", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -4825,6 +4837,12 @@ account_discovered_server?: string;
  * dictate or type into this computer.
  */
 remote_input_enabled?: boolean; 
+/**
+ * "Sync API keys": provider keys added on this computer are kept in the
+ * user's account and arrive on their other signed-in computers
+ * (`account/secrets_sync.rs`). Only while signed in.
+ */
+account_sync_secrets?: boolean; 
 /**
  * The account's phones (device ids) this computer's user allowed to
  * dictate and type here. Cleared when the computer signs out; ids that

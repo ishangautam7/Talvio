@@ -1580,6 +1580,7 @@ const accountStatus = (): Json => ({
   google_available: true,
   google_pending: false,
   remote_input_enabled: true,
+  account_sync_secrets: true,
   devices: [
     {
       id: "d1",

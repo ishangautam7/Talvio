@@ -2099,6 +2099,11 @@
         "remoteInputHint": "讓您的手機能在這台電腦上語音輸入和打字。",
         "install": "在手機上安裝 Talvio App，並以 {{email}} 登入。"
       },
+      "keys": {
+        "title": "API 金鑰",
+        "sync": "同步 API 金鑰",
+        "syncHint": "您在這台電腦上新增的金鑰會加密保存在您的 Talvio 帳戶中，並出現在您的其他電腦上。"
+      },
       "devices": {
         "title": "裝置",
         "empty": "連線後，您的裝置會顯示在這裡。",

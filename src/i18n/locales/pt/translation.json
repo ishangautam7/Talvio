@@ -2117,6 +2117,11 @@
         "remoteInputHint": "Permite que seu celular dite e digite neste computador.",
         "install": "Instale o app Talvio no celular e entre como {{email}}."
       },
+      "keys": {
+        "title": "Chaves da API",
+        "sync": "Sincronizar chaves da API",
+        "syncHint": "As chaves que você adiciona neste computador ficam salvas, criptografadas, na sua conta Talvio e aparecem nos seus outros computadores."
+      },
       "devices": {
         "title": "Dispositivos",
         "empty": "Seus dispositivos aparecem aqui quando você estiver conectado.",

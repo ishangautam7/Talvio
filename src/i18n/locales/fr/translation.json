@@ -2117,6 +2117,11 @@
         "remoteInputHint": "Permet à votre téléphone de dicter et de saisir du texte sur cet ordinateur.",
         "install": "Installez l'application Talvio sur votre téléphone et connectez-vous avec {{email}}."
       },
+      "keys": {
+        "title": "Clés API",
+        "sync": "Synchroniser les clés API",
+        "syncHint": "Les clés que vous ajoutez sur cet ordinateur sont enregistrées, chiffrées, dans votre compte Talvio et apparaissent sur vos autres ordinateurs."
+      },
       "devices": {
         "title": "Appareils",
         "empty": "Vos appareils apparaîtront ici une fois la connexion établie.",

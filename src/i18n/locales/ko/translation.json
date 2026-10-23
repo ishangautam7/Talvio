@@ -2099,6 +2099,11 @@
         "remoteInputHint": "휴대폰으로 이 컴퓨터에 받아쓰기하고 입력할 수 있게 합니다.",
         "install": "휴대폰에 Talvio 앱을 설치하고 {{email}}(으)로 로그인하세요."
       },
+      "keys": {
+        "title": "API 키",
+        "sync": "API 키 동기화",
+        "syncHint": "이 컴퓨터에서 추가한 키는 암호화되어 Talvio 계정에 저장되며 다른 컴퓨터에도 표시됩니다."
+      },
       "devices": {
         "title": "기기",
         "empty": "연결되면 기기가 여기에 표시됩니다.",

@@ -292,6 +292,8 @@ const settingUpdaters: {
     commands.changeExtraRecordingBufferSetting(value as number),
   remote_input_enabled: (value) =>
     commands.setRemoteInputEnabled(value as boolean),
+  account_sync_secrets: (value) =>
+    commands.setAccountSyncSecrets(value as boolean),
   command_mode_enabled: (value) =>
     commands.changeCommandModeEnabledSetting(value as boolean),
   command_router_provider_id: (value) =>
@@ -916,6 +918,11 @@ export const useSettingsStore = create<SettingsStore>()(
         // Re-fetch settings when the backend changes them (e.g. language
         // reset during model switch). The backend is the source of truth.
         listen("model-state-changed", () => {
+          get().refreshSettings();
+        });
+        // API keys that arrived from the account (Settings → Account → Sync
+        // API keys) and other changes the backend makes on its own.
+        listen("settings-changed", () => {
           get().refreshSettings();
         });
       };

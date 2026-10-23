@@ -2099,6 +2099,11 @@
         "remoteInputHint": "允许您的手机在这台电脑上语音输入和打字。",
         "install": "在手机上安装 Talvio 应用，并以 {{email}} 登录。"
       },
+      "keys": {
+        "title": "API 密钥",
+        "sync": "同步 API 密钥",
+        "syncHint": "您在这台电脑上添加的密钥会加密保存在您的 Talvio 账户中，并出现在您的其他电脑上。"
+      },
       "devices": {
         "title": "设备",
         "empty": "连接后，您的设备会显示在这里。",

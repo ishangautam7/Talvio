@@ -2099,6 +2099,11 @@
         "remoteInputHint": "Cho phép điện thoại đọc chính tả và gõ chữ trên máy tính này.",
         "install": "Cài ứng dụng Talvio trên điện thoại và đăng nhập bằng {{email}}."
       },
+      "keys": {
+        "title": "Khóa API",
+        "sync": "Đồng bộ khóa API",
+        "syncHint": "Các khóa bạn thêm trên máy tính này được lưu, đã mã hóa, trong tài khoản Talvio của bạn và xuất hiện trên các máy tính khác của bạn."
+      },
       "devices": {
         "title": "Thiết bị",
         "empty": "Các thiết bị của bạn sẽ hiện ở đây khi đã kết nối.",
