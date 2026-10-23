@@ -70,6 +70,27 @@ pub fn account_cloud_stt(provider_id: &str) -> String {
     format!("cloud_stt:{provider_id}")
 }
 
+/// Told about every credential this app changes on the user's behalf, with
+/// whether it now exists. Account sync (`account/secrets_sync.rs`) uses it to
+/// time-stamp a key the moment it is added, changed or cleared.
+type ChangeListener = Box<dyn Fn(&str, bool) + Send + Sync>;
+
+fn change_listener() -> &'static OnceLock<ChangeListener> {
+    static LISTENER: OnceLock<ChangeListener> = OnceLock::new();
+    &LISTENER
+}
+
+/// Install the one change listener. Later calls are ignored.
+pub fn set_change_listener(listener: impl Fn(&str, bool) + Send + Sync + 'static) {
+    let _ = change_listener().set(Box::new(listener));
+}
+
+fn notify_change(account: &str, present: bool) {
+    if let Some(listener) = change_listener().get() {
+        listener(account, present);
+    }
+}
+
 /// account -> cached value. `Some(None)` means "known to be absent" so repeated
 /// lookups of an unset key stay cache hits instead of re-hitting the keychain.
 fn cache() -> &'static Mutex<HashMap<String, Option<String>>> {
@@ -241,6 +262,16 @@ pub fn get(account: &str) -> Option<String> {
 /// Write a secret to the keychain and update the cache. Returns `false` if the
 /// keychain is unavailable or the write failed.
 pub fn set(account: &str, value: &str) -> bool {
+    set_inner(account, value, true)
+}
+
+/// [`set`] for a value that came from the account's key sync, which must not
+/// be reported back to it as a change made on this computer.
+pub fn set_from_sync(account: &str, value: &str) -> bool {
+    set_inner(account, value, false)
+}
+
+fn set_inner(account: &str, value: &str, notify: bool) -> bool {
     if !is_available() {
         return false;
     }
@@ -264,10 +295,13 @@ pub fn set(account: &str, value: &str) -> bool {
     })
     .unwrap_or(false);
     if ok {
-        cache()
+        let previous = cache()
             .lock()
             .unwrap()
             .insert(account.to_string(), Some(value.to_string()));
+        if notify && previous != Some(Some(value.to_string())) {
+            notify_change(account, true);
+        }
     }
     ok
 }
@@ -276,6 +310,15 @@ pub fn set(account: &str, value: &str) -> bool {
 /// counts as success. Returns `false` only if the keychain is unavailable or
 /// the delete failed for another reason.
 pub fn delete(account: &str) -> bool {
+    delete_inner(account, true)
+}
+
+/// [`delete`] for a removal that came from the account's key sync.
+pub fn delete_from_sync(account: &str) -> bool {
+    delete_inner(account, false)
+}
+
+fn delete_inner(account: &str, notify: bool) -> bool {
     if !is_available() {
         return false;
     }
@@ -299,7 +342,10 @@ pub fn delete(account: &str) -> bool {
     })
     .unwrap_or(false);
     if ok {
-        cache().lock().unwrap().insert(account.to_string(), None);
+        let previous = cache().lock().unwrap().insert(account.to_string(), None);
+        if notify && previous != Some(None) {
+            notify_change(account, false);
+        }
     }
     ok
 }
