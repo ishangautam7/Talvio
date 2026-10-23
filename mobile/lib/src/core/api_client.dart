@@ -24,7 +24,7 @@ class ApiException implements Exception {
 /// The account server's HTTP API. Unauthenticated calls go to the server
 /// shown on the sign-in screen; authenticated ones to the session's own
 /// server. A revoked token (`unauthorized`) signs this phone out, and a server
-/// that does not answer at all is looked up again (Automatic mode).
+/// that does not answer at all is looked up again (discovery).
 class ApiClient {
   ApiClient(this._session, {http.Client? httpClient})
     : _http = httpClient ?? http.Client();

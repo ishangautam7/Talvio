@@ -4,9 +4,4 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Debug builds may talk to a development server over plain http
-         (10.0.2.2, a LAN address). This only covers Android's own networking:
-         the app's traffic goes through dart:io, which ignores it, so release
-         builds refuse http in normalizeServerUrl (lib/src/core/config.dart). -->
-    <application android:usesCleartextTraffic="true"/>
 </manifest>

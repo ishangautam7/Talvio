@@ -67,11 +67,11 @@ Map<String, Object?> authJson() => {
 /// [signedIn] is false.
 Future<SessionStore> sessionStore({bool signedIn = true}) async {
   TestWidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences.setMockInitialValues({'server_url': server});
+  SharedPreferences.setMockInitialValues({});
   FlutterSecureStorage.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
-  // A Custom server: discovery stays off.
-  final store = SessionStore(prefs, ServerFinder(prefs));
+  // A pinned server (a development build's): discovery stays off.
+  final store = SessionStore(prefs, ServerFinder(prefs), pinned: server);
   await store.load();
   if (signedIn) await store.signIn(AuthResponse.fromJson(authJson()));
   return store;
