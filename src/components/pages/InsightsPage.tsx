@@ -47,11 +47,11 @@ import "@fontsource-variable/plus-jakarta-sans";
 const WEEKS = 26;
 
 const LEVEL_CLASSES: Record<HeatLevel, string> = {
-  0: "bg-ink/[0.055]",
-  1: "bg-accent/20",
-  2: "bg-accent/40",
-  3: "bg-accent/65",
-  4: "bg-accent",
+  0: "bg-surface-strong",
+  1: "bg-accent-fill/22",
+  2: "bg-accent-fill/45",
+  3: "bg-accent-fill/72",
+  4: "bg-accent-fill",
 };
 
 /** The ribbon behind the summary: the share cards' bands as one wave across
