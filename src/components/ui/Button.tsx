@@ -15,9 +15,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * One button vocabulary for the whole window.
  *
- * `primary` is ink — the pen-dark button a reference app uses for "Add new" —
- * so the brand teal stays free to mean "this is on / this is selected".
- * `accent` is the teal fill, for the rare action that should read as brand.
+ * `primary` is Talvio's coral: the text-safe `--color-accent` (#C2402A with
+ * white text on the light theme, #FF6A52 with ink-navy text on the dark), so
+ * the one action a view asks for reads as the brand. Keep it to one per view;
+ * everything else is `secondary` or `ghost`. `accent` is the same fill, kept
+ * for older call sites.
  */
 export const Button: React.FC<ButtonProps> = ({
   children,
@@ -34,14 +36,16 @@ export const Button: React.FC<ButtonProps> = ({
     "inline-flex shrink-0 items-center justify-center gap-1.5 font-medium whitespace-nowrap border rounded-lg transition-[background-color,border-color,opacity,box-shadow,transform] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer";
 
   const variantClasses = {
+    // Disabled, a coral fill at 40% read as a washed-out pink (a dim maroon
+    // on the dark theme), so it turns neutral instead.
     primary:
-      "bg-ink text-on-ink border-transparent shadow-[0_1px_2px_rgba(13,24,28,0.18)] hover:bg-ink-soft",
+      "bg-accent text-on-primary border-transparent shadow-[0_1px_2px_rgba(43,28,20,0.16)] hover:bg-accent-strong disabled:bg-surface-strong disabled:text-muted disabled:opacity-100 disabled:shadow-none disabled:hover:bg-surface-strong",
     accent:
-      "bg-accent text-on-primary border-transparent hover:bg-accent-strong",
+      "bg-accent text-on-primary border-transparent hover:bg-accent-strong disabled:bg-surface-strong disabled:text-muted disabled:opacity-100 disabled:hover:bg-surface-strong",
     "primary-soft":
       "bg-surface-strong text-ink border-transparent hover:bg-hairline-strong/70",
     secondary:
-      "bg-surface text-ink border-hairline-strong shadow-[0_1px_1px_rgba(13,24,28,0.04)] hover:bg-surface-strong",
+      "bg-surface text-ink border-hairline-strong shadow-[0_1px_1px_rgba(43,28,20,0.04)] hover:bg-surface-strong",
     danger: "text-white bg-error border-transparent hover:opacity-90",
     "danger-ghost":
       "text-error border-transparent hover:bg-error/10 focus-visible:ring-error/30",

@@ -143,7 +143,7 @@ export function Segmented<T extends string>({
         const Icon = option.icon;
         const text = selected
           ? glass
-            ? "text-[#0b3f3a]"
+            ? "text-[#1b1d33]"
             : "text-ink"
           : glass
             ? "text-white/80 hover:text-white"

@@ -66,7 +66,7 @@ export function ScreenPositionMap<T extends string>({
             }}
             className={`absolute cursor-pointer ${radius} border transition-[background-color,border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
               active
-                ? "border-accent-fill bg-accent-fill shadow-[0_4px_12px_-4px_rgb(0_150_132/0.55)]"
+                ? "border-accent-fill bg-accent-fill shadow-[0_4px_12px_-4px_rgb(242_84_61/0.45)]"
                 : "border-dashed border-ink/20 bg-surface/50 hover:border-accent/60 hover:bg-accent/10"
             }`}
           />
