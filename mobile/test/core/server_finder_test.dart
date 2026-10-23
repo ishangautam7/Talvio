@@ -238,4 +238,109 @@ void main() {
     await tester.pump(const Duration(minutes: 2));
     expect(lookups, 5);
   });
+  group('when the phone cannot look the discovery host up', () {
+    final apiAnswer = jsonEncode({'apiBaseUrl': 'http://192.168.101.69:8787'});
+
+    Future<ServerFinder> failingDns({
+      required Future<List<String>> Function(String host) resolve,
+      http.Client Function(String host, String ip)? pinned,
+    }) async {
+      SharedPreferences.setMockInitialValues({});
+      return ServerFinder(
+        await SharedPreferences.getInstance(),
+        httpClient: MockClient(
+          (_) async => throw http.ClientException(
+            "Failed host lookup: 'domain.gautamishan.com.np' (OS Error: No "
+            'address associated with hostname, errno = 7)',
+          ),
+        ),
+        release: true,
+        resolveFallback: resolve,
+        pinnedClient: pinned,
+      );
+    }
+
+    /// Android's Private DNS (or a resolver that does not know the name yet)
+    /// answered nothing on a real phone while the browser loaded the page:
+    /// secure DNS finds the address and discovery goes there.
+    test('secure DNS finds it and discovery succeeds', () async {
+      final asked = <String>[];
+      final finder = await failingDns(
+        resolve: (host) async {
+          asked.add(host);
+          return ['104.21.38.165'];
+        },
+        pinned: (host, ip) {
+          expect(host, 'domain.gautamishan.com.np');
+          expect(ip, '104.21.38.165');
+          return MockClient((_) async => http.Response(apiAnswer, 200));
+        },
+      );
+      finder.enabled = true;
+      await pumpEventQueue();
+      expect(asked, ['domain.gautamishan.com.np']);
+      expect(finder.server, 'http://192.168.101.69:8787');
+      expect(finder.lastError, isNull);
+    });
+
+    /// Both failing says so, with the first reason kept for diagnosis.
+    test('both failing reports both reasons', () async {
+      final finder = await failingDns(resolve: (_) async => const []);
+      finder.enabled = true;
+      await pumpEventQueue();
+      expect(finder.server, isNull);
+      expect(finder.lastError, contains('Failed host lookup'));
+      expect(finder.lastError, contains('secure DNS found no address'));
+    });
+
+    /// Only a lookup failure takes the detour: an HTTP error from the real
+    /// host is the real answer.
+    test('an HTTP error does not try secure DNS', () async {
+      var resolved = false;
+      SharedPreferences.setMockInitialValues({});
+      final finder = ServerFinder(
+        await SharedPreferences.getInstance(),
+        httpClient: MockClient((_) async => http.Response('nope', 403)),
+        release: true,
+        resolveFallback: (_) async {
+          resolved = true;
+          return ['1.2.3.4'];
+        },
+      );
+      finder.enabled = true;
+      await pumpEventQueue();
+      expect(resolved, isFalse);
+      expect(finder.lastError, 'HTTP 403');
+    });
+  });
+
+  test('reads A records from a DNS-over-HTTPS JSON answer', () {
+    expect(
+      parseDnsJsonAnswer(
+        jsonEncode({
+          'Status': 0,
+          'Answer': [
+            {'name': 'x', 'type': 5, 'data': 'alias.example.'},
+            {'name': 'x', 'type': 1, 'data': '104.21.38.165'},
+            {'name': 'x', 'type': 1, 'data': '172.67.136.119'},
+            {'name': 'x', 'type': 1, 'data': 'not-an-ip'},
+          ],
+        }),
+      ),
+      ['104.21.38.165', '172.67.136.119'],
+    );
+    expect(parseDnsJsonAnswer('{"Status":3}'), isEmpty);
+    expect(parseDnsJsonAnswer('garbage'), isEmpty);
+  });
+
+  test('recognises the phone\'s DNS failing', () {
+    expect(
+      isHostLookupFailure(
+        "ClientException with SocketException: Failed host lookup: 'x' "
+        '(OS Error: No address associated with hostname, errno = 7)',
+      ),
+      isTrue,
+    );
+    expect(isHostLookupFailure('Connection refused'), isFalse);
+  });
 }

@@ -172,6 +172,17 @@ class _SignInScreenState extends State<SignInScreen> {
             onPressed: finder.lookUp,
             child: const Text(AuthStrings.tryAgain),
           ),
+        if (url == null && !finder.looking && finder.lastError != null)
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              AuthStrings.serverProblem(finder.lastError!),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
       ],
     );
   }
