@@ -372,7 +372,7 @@ A computer whose `capabilities` include `windows` lets an approved phone list
 its open windows, aim `text` and `dictate` at one of them, and press keys in it
 (Enter after a dictation, Tab, Esc, arrows, Ctrl+C). It is gated by the
 approval rules above **and** by a second switch on the computer, "Let phones
-choose windows", off by default; with it off every request below answers
+see and use windows", off by default; with it off every request below answers
 `remote_windows_off` (and `text` / `dictate` with a `target` do too).
 
 ```jsonc
@@ -424,6 +424,135 @@ Error codes these add: `remote_windows_off` (the switch is off), `target_gone`
 window would not come forward, for example because it is not responding),
 `key_refused` (a combo on the refused list), `keys_failed` (the keys could not
 be pressed), and `unsupported` for a combo it cannot read.
+
+### Live view: watching and using a window or screen (capability `screen`)
+
+A computer whose `capabilities` include `screen` streams one window or one whole
+screen to an approved phone, live, and takes keys, text, taps and scrolls back.
+The same two switches gate it as `windows` ("Phone dictation" and "Let phones
+see and use windows"), with the same errors. Video, sound and input do **not** go through the account server: the
+relay only carries the WebRTC handshake below, and the media then flows directly
+between phone and computer (or through a TURN server when they cannot reach each
+other), encrypted end to end by WebRTC (DTLS-SRTP).
+
+`windows.list` also lists the screens when the computer has `screen`:
+
+```jsonc
+{ "kind": "result", "requestId": "uuid", "ok": true,
+  "windows": [ … ],
+  "screens": [ { "id": "s3", "name": "Display 1", "width": 2560, "height": 1440, "primary": true } ] }
+```
+
+Screen ids follow the window id rules (made up per list, per phone, 30 minutes).
+
+**Starting** (phone → computer). One watch at a time per computer; a second
+one, from any phone, answers `busy`.
+
+```jsonc
+{ "kind": "screen.watch", "requestId": "uuid",
+  "target": "w1",          // a window or screen id from windows.list
+  "control": false,         // true: taps and scrolls are allowed too
+  "audio": false }          // start with the computer's sound on (it can be switched later)
+```
+
+**Handshake.** The computer offers; the phone answers. Both sides trickle ICE
+candidates. Messages from the phone carry the watch's own `requestId` and are
+not requests: a computer delivers an `rtc.*` body to the running watch with
+that `requestId` from the same device, and ignores it otherwise (no reply).
+
+```jsonc
+// computer → phone, as progress of the watch
+{ "kind": "progress", "requestId": "uuid", "stage": "rtc.offer", "sdp": "…",
+  "iceServers": [ { "urls": ["stun:…", "turn:…"], "username": "…", "credential": "…" } ] }
+{ "kind": "progress", "requestId": "uuid", "stage": "rtc.ice",
+  "candidate": { "candidate": "candidate:…", "sdpMid": "0", "sdpMLineIndex": 0 } }
+{ "kind": "progress", "requestId": "uuid", "stage": "live" }   // media is flowing
+
+// phone → computer
+{ "kind": "rtc.answer", "requestId": "uuid", "sdp": "…" }
+{ "kind": "rtc.ice", "requestId": "uuid",
+  "candidate": { "candidate": "candidate:…", "sdpMid": "0", "sdpMLineIndex": 0 } }
+```
+
+The phone uses the `iceServers` from the offer. The computer gets them from the
+account server (`GET /v1/turn`, below). There is exactly one offer per watch
+and no renegotiation: switching between View and Control is a new watch (the
+computer frees its one-watch slot before it sends the old watch's result, so
+the new one is never `busy`). The phone waits 20 s for the offer (3 minutes
+while the last progress is `approval`); the session must be `live` within 30
+seconds of the offer or it ends with `connect_failed`. Once live, the view
+lives as long as the WebRTC connection: losing the relay socket does not end
+it, and the computer ends it when the connection fails or closes.
+
+**Media.** One video track: H.264 Constrained Baseline, `packetization-mode=1`,
+at most 1920 pixels on the long side and 30 frames a second, sent only when the
+picture changes (plus one frame every two seconds so the phone can tell the
+link is alive). One audio track: Opus, 48 kHz stereo, carrying what the computer
+is playing, silent until the phone turns sound on. The computer adapts the
+bitrate to the link.
+
+**Input: the data channel `control`**, opened by the computer, ordered and
+reliable. Every message is one JSON text message.
+
+```jsonc
+// phone → computer; "id" is the phone's own, echoed in the ack
+{ "t": "keys",   "id": "k1", "keys": ["enter"] }        // as windows.keys
+{ "t": "text",   "id": "k2", "text": "…" }               // as text, 1–10 000 chars
+{ "t": "tap",    "id": "k3", "x": 0.42, "y": 0.81,       // 0..1 across the picture
+  "button": "left", "count": 1, "confirmed": false }     // "left" | "right"; count 1 or 2
+{ "t": "scroll", "id": "k4", "x": 0.5, "y": 0.5, "dy": 3, "dx": 0 }   // wheel notches; +dy scrolls down, +dx right
+{ "t": "audio",  "on": true }                             // the computer's sound on or off
+{ "t": "keyframe" }                                       // the phone lost the picture
+
+// computer → phone
+{ "t": "ack", "id": "k3", "ok": false, "error": "confirm", "label": "Send" }
+{ "t": "caret", "x": 0.1, "y": 0.88, "w": 0.002, "h": 0.03 } // the text cursor (a thin rectangle), or {"t":"caret"} for none
+{ "t": "target", "title": "…", "width": 1280, "height": 720, "state": "normal" } // "minimized" | "covered"
+```
+
+- Input is aimed at the watched window, as `windows.keys` aims (`stay` is
+  implied: the window being watched stays in front while input arrives). On a
+  watched screen it goes wherever the keyboard is.
+- `tap` and `scroll` need `"control": true` in the watch, else `not_allowed`.
+- A tap on a control whose label sends, buys, posts or deletes is not clicked:
+  its ack is `error: "confirm"` with the control's `label`, and the phone asks
+  its user before sending the same tap again with `"confirmed": true`.
+- Text and taps are never delivered into a password field (`password_field`).
+- Every input message (`keys`, `text`, `tap`, `scroll`) gets exactly one ack:
+  `{ "t": "ack", "id", "ok": true }` and nothing else, or `ok: false` with an
+  `error`. Ack error codes: those of `windows.keys` and `text`, plus
+  `not_allowed`, `confirm`, `password_field` and `tap_failed`.
+- Screen ids are only for `screen.watch`. `text`, `dictate` and `windows.keys`
+  take window ids; input for a watched screen is sent without a `target`, or
+  over the data channel.
+
+**Ending.** The phone sends `cancel` for the watch; the computer's user can
+press Stop on the "Phone is viewing" notice; switching either switch off,
+signing out, revoking the phone, or the target closing ends it too. After 10
+minutes with no input from the phone and no change in the picture the computer
+ends it. Every ending is the watch's one `result`: `ok: true` when the phone
+stopped it, otherwise an error: `stopped` (the computer's user pressed Stop),
+`target_gone`, `idle`, `connect_failed`, `capture_failed`, `cancelled`,
+`remote_input_off`, `remote_windows_off`, `not_approved`.
+
+### TURN: `GET /v1/turn` (authenticated)
+
+```jsonc
+{ "iceServers": [ { "urls": ["stun:stun.cloudflare.com:3478"] },
+                  { "urls": ["turn:turn.example.com:3478?transport=udp", "turns:turn.example.com:5349"],
+                    "username": "1792800000:uuid", "credential": "…" } ],
+  "ttl": 86400 }
+```
+
+The server always includes a public STUN server. It adds a TURN server when
+configured: a coturn-style shared secret (`TURN_URLS`, `TURN_SECRET`; the
+username is `<expiry unix seconds>:<user id>` and the credential the base64
+HMAC-SHA1 of the username, the standard TURN REST scheme), or Cloudflare's TURN
+service (`CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN`), whose
+short-lived credentials the server requests for each call. Credentials last
+`ttl` seconds. Without TURN, phone and computer still connect on the same
+network and across most home routers; strict NATs (many mobile networks) need
+it.
 
 Result error codes: `remote_input_off` (the computer's "Phone dictation" switch
 is off, or was turned off or its session ended while the request transcribed;
