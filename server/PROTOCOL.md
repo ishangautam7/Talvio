@@ -313,7 +313,7 @@ be added without touching the others:
 
 Signing into the account is not enough to type into a computer: each computer
 keeps its own list of approved device ids, and every request except `cancel`
-(today `dictate` and `text`, and every `agent.*` kind) passes this gate first,
+(today `dictate`, `text`, `windows.*`, and every `agent.*` kind) passes this gate first,
 in the computer's shared dispatch, so a new kind inherits it.
 
 1. "Phone dictation" off → `remote_input_off`, no prompt.
@@ -365,6 +365,65 @@ answers `ok` with the transcript and `"pasted": false`, and a `text` answers
 `paste_off`. The phone treats a `relay_failed` for its
 request as "computer offline", and no result within 60 s plus the recording's
 length as a timeout (other kinds set their own).
+
+### Windows: choosing where phone input goes (capability `windows`)
+
+A computer whose `capabilities` include `windows` lets an approved phone list
+its open windows, aim `text` and `dictate` at one of them, and press keys in it
+(Enter after a dictation, Tab, Esc, arrows, Ctrl+C). It is gated by the
+approval rules above **and** by a second switch on the computer, "Let phones
+choose windows", off by default; with it off every request below answers
+`remote_windows_off` (and `text` / `dictate` with a `target` do too).
+
+```jsonc
+// phone → computer
+{ "kind": "windows.list", "requestId": "uuid" }
+{ "kind": "windows.keys", "requestId": "uuid",
+  "target": "w1",            // optional: a window id from windows.list; absent = the window in front
+  "keys": ["enter"],          // 1–20 key combos, pressed in order
+  "stay": false }             // optional, see below
+{ "kind": "text", "requestId": "uuid", "text": "…", "target": "w1", "stay": false }
+{ "kind": "dictate", "requestId": "uuid", "deliver": "paste", "audio": "…", "target": "w1", "stay": false }
+
+// computer → phone
+{ "kind": "result", "requestId": "uuid", "ok": true,
+  "windows": [ { "id": "w1", "title": "Claude Code — zynveliq", "app": "Windows Terminal", "front": true } ] }
+{ "kind": "result", "requestId": "uuid", "ok": true, "pressed": 1 }   // windows.keys
+```
+
+- **Window ids** are opaque strings of at most 64 characters, made up by the
+  computer and good only for the phone they were listed to. A window keeps its
+  id across that phone's lists for as long as it stays open, so listing again
+  does not lose a choice; an id stops working when its window closes or 30
+  minutes after the phone's latest `windows.list`. A phone can only name a
+  window the computer offered it. At most 60 windows are listed, the window in
+  front first and marked `"front": true`; the computer's own windows are never
+  listed.
+- **A combo** is modifiers and one key joined by `+`, the syntax command mode's
+  `press_keys` reads: `enter`, `shift+enter`, `tab`, `escape`, `up`, `down`,
+  `left`, `right`, `backspace`, `delete`, `home`, `end`, `pageup`, `pagedown`,
+  `space`, `f1`–`f12`, a letter or a digit, with `ctrl`, `alt`, `shift`, and
+  `win` / `cmd`. Combos that close or quit an app or window, lock or log out,
+  or delete past the bin are refused (`key_refused`) and nothing is pressed.
+  Every combo is checked before the first is pressed; a `keys_failed` partway
+  through may have pressed the ones before it.
+  Enter is not held for confirmation the way command mode holds it: a person
+  pressed it on purpose.
+- **Aiming** brings the target forward, delivers the text or keys there, and
+  then gives the foreground back to the window that had it before, so someone
+  working at the computer is interrupted for a moment, not moved. `"stay": true`
+  leaves the target in front instead, and means nothing without a `target`.
+  When the target is already in front nothing moves.
+- A phone sends `target` only to a computer that lists `windows`: an older one
+  ignores the field and pastes at its cursor.
+- The phone's timeout for `windows.list` and `windows.keys` is 20 s, restarted
+  by every `progress` and 3 minutes while the last progress is `approval`.
+
+Error codes these add: `remote_windows_off` (the switch is off), `target_gone`
+(the id is unknown, expired, or its window has closed), `focus_failed` (the
+window would not come forward, for example because it is not responding),
+`key_refused` (a combo on the refused list), `keys_failed` (the keys could not
+be pressed), and `unsupported` for a combo it cannot read.
 
 Result error codes: `remote_input_off` (the computer's "Phone dictation" switch
 is off, or was turned off or its session ended while the request transcribed;
