@@ -1350,6 +1350,8 @@ pub fn run(cli_args: CliArgs) {
             account::account_set_device_approved,
             account::account_pending_approvals,
             account::account_answer_approval,
+            account::account_viewing,
+            account::account_stop_viewing,
             account::fit_account_approval,
             account::set_remote_input_enabled,
             account::set_remote_windows_enabled,

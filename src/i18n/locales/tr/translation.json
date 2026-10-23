@@ -2106,8 +2106,8 @@
         "title": "Telefon",
         "remoteInput": "Telefondan dikte",
         "remoteInputHint": "Telefonunuzun bu bilgisayarda dikte etmesine ve yazmasına izin verir.",
-        "remoteWindows": "Telefonların pencere seçmesine izin ver",
-        "remoteWindowsHint": "Telefonunuz açık pencerelerin başlıklarını görebilir, seçtiğiniz pencereye dikte ve metin gönderebilir ve orada Enter gibi tuşlara basabilir.",
+        "remoteWindows": "Telefonların pencereleri görmesine ve kullanmasına izin ver",
+        "remoteWindowsHint": "Telefonunuz açık pencereleri listeleyebilir, birini canlı izleyebilir ve içinde yazabilir, tuşlara basabilir veya tıklayabilir. Bir telefon izlerken burada Durdur düğmesiyle bir kart görünür.",
         "install": "Telefonunuza Talvio uygulamasını yükleyin ve {{email}} ile oturum açın."
       },
       "keys": {
@@ -2532,6 +2532,12 @@
     "body": "Bu bilgisayardaki uygulamalarda dikte etmek ve yazmak istiyor, bu yüzden yalnızca size ait telefonlara izin verin.",
     "allow": "İzin ver",
     "deny": "İzin verme"
+  },
+  "phoneViewing": {
+    "title": "Telefon izliyor",
+    "body": "{{phone}}, {{title}} penceresini görebilir.",
+    "unnamedPhone": "Telefonunuz",
+    "stop": "Durdur"
   },
   "assistant": {
     "conversation": {

@@ -2115,8 +2115,8 @@
         "title": "Telefono",
         "remoteInput": "Dettatura dal telefono",
         "remoteInputHint": "Permette al telefono di dettare e scrivere su questo computer.",
-        "remoteWindows": "Lascia scegliere le finestre ai telefoni",
-        "remoteWindowsHint": "Il telefono può vedere i titoli delle finestre aperte, inviare dettatura e testo a quella che scegli e premere lì tasti come Invio.",
+        "remoteWindows": "Lascia vedere e usare le finestre ai telefoni",
+        "remoteWindowsHint": "Il telefono può elencare le finestre aperte, guardarne una dal vivo e scriverci, premere tasti o fare clic. Quando un telefono sta guardando, qui compare una scheda con Ferma.",
         "install": "Installa l'app Talvio sul telefono e accedi come {{email}}."
       },
       "keys": {
@@ -2546,6 +2546,12 @@
     "body": "Vuole dettare e scrivere nelle app di questo computer, quindi consenti solo telefoni che ti appartengono.",
     "allow": "Consenti",
     "deny": "Non consentire"
+  },
+  "phoneViewing": {
+    "title": "Un telefono sta guardando",
+    "body": "{{phone}} può vedere {{title}}.",
+    "unnamedPhone": "Il tuo telefono",
+    "stop": "Ferma"
   },
   "assistant": {
     "conversation": {

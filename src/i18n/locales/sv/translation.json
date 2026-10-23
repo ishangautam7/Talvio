@@ -2106,8 +2106,8 @@
         "title": "Telefon",
         "remoteInput": "Diktering från telefonen",
         "remoteInputHint": "Låter telefonen diktera och skriva på den här datorn.",
-        "remoteWindows": "Låt telefoner välja fönster",
-        "remoteWindowsHint": "Telefonen kan se titlarna på öppna fönster, skicka diktering och text till det du väljer och trycka på tangenter som Enter där.",
+        "remoteWindows": "Låt telefoner se och använda fönster",
+        "remoteWindowsHint": "Telefonen kan lista öppna fönster, titta på ett live och skriva, trycka på tangenter eller klicka i det. Ett kort här visar när en telefon tittar, med Stoppa.",
         "install": "Installera Talvio-appen på telefonen och logga in som {{email}}."
       },
       "keys": {
@@ -2532,6 +2532,12 @@
     "body": "Den vill diktera och skriva i apparna på den här datorn, så tillåt bara telefoner som du äger.",
     "allow": "Tillåt",
     "deny": "Tillåt inte"
+  },
+  "phoneViewing": {
+    "title": "Telefonen tittar",
+    "body": "{{phone}} kan se {{title}}.",
+    "unnamedPhone": "Din telefon",
+    "stop": "Stoppa"
   },
   "assistant": {
     "conversation": {

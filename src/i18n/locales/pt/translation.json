@@ -2115,8 +2115,8 @@
         "title": "Celular",
         "remoteInput": "Ditado pelo celular",
         "remoteInputHint": "Permite que seu celular dite e digite neste computador.",
-        "remoteWindows": "Permitir que celulares escolham janelas",
-        "remoteWindowsHint": "Seu celular pode ver os títulos das janelas abertas, enviar ditado e texto para a que você escolher e pressionar teclas como Enter nela.",
+        "remoteWindows": "Permitir que celulares vejam e usem janelas",
+        "remoteWindowsHint": "Seu celular pode listar as janelas abertas, assistir a uma ao vivo e digitar, pressionar teclas ou clicar nela. Um cartão aqui avisa quando um celular está assistindo, com Parar.",
         "install": "Instale o app Talvio no celular e entre como {{email}}."
       },
       "keys": {
@@ -2546,6 +2546,12 @@
     "body": "Ele quer ditar e digitar nos apps deste computador, então só permita celulares que sejam seus.",
     "allow": "Permitir",
     "deny": "Não permitir"
+  },
+  "phoneViewing": {
+    "title": "Celular assistindo",
+    "body": "{{phone}} pode ver {{title}}.",
+    "unnamedPhone": "Seu celular",
+    "stop": "Parar"
   },
   "assistant": {
     "conversation": {

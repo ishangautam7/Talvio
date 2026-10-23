@@ -4079,6 +4079,18 @@ async accountAnswerApproval(deviceId: string, allow: boolean) : Promise<void> {
     await TAURI_INVOKE("account_answer_approval", { deviceId, allow });
 },
 /**
+ * "Phone is viewing": who is watching what, for the popup that just loaded.
+ */
+async accountViewing() : Promise<ViewingCard | null> {
+    return await TAURI_INVOKE("account_viewing");
+},
+/**
+ * Stop on "Phone is viewing": the live view ends with `stopped`.
+ */
+async accountStopViewing() : Promise<void> {
+    await TAURI_INVOKE("account_stop_viewing");
+},
+/**
  * The approval popup measured its content; the window takes that height.
  */
 async fitAccountApproval(height: number) : Promise<void> {
@@ -4093,7 +4105,7 @@ async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
 }
 },
 /**
- * Settings → Account → Let phones choose windows.
+ * Settings → Account → Let phones see and use windows.
  */
 async setRemoteWindowsEnabled(enabled: boolean) : Promise<Result<null, string>> {
     try {
@@ -4849,7 +4861,7 @@ account_discovered_server?: string;
  */
 remote_input_enabled?: boolean; 
 /**
- * "Let phones choose windows": an allowed phone may list this computer's
+ * "Let phones see and use windows": an allowed phone may list this computer's
  * windows, aim its dictation and text at one, and press keys there
  * (`account/remote/windows.rs`). Off by default: window titles say a lot.
  */
@@ -6635,6 +6647,10 @@ about_you?: string;
  * Durable facts, selected by relevance within the detail budget.
  */
 notes?: MemoryNote[] }
+/**
+ * Who is watching what.
+ */
+export type ViewingCard = { phone: string; title: string }
 /**
  * When the frame an assistant turn might look at is grabbed.
  * 

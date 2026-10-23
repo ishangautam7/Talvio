@@ -2115,8 +2115,8 @@
         "title": "Teléfono",
         "remoteInput": "Dictado desde el teléfono",
         "remoteInputHint": "Permite que tu teléfono dicte y escriba en este equipo.",
-        "remoteWindows": "Permitir que los teléfonos elijan ventanas",
-        "remoteWindowsHint": "Tu teléfono puede ver los títulos de las ventanas abiertas, enviar dictado y texto a la que elijas y pulsar teclas como Intro en ella.",
+        "remoteWindows": "Permitir que los teléfonos vean y usen ventanas",
+        "remoteWindowsHint": "Tu teléfono puede ver la lista de ventanas abiertas, mirar una en directo y escribir, pulsar teclas o hacer clic en ella. Aquí aparece una tarjeta cuando un teléfono está mirando, con Detener.",
         "install": "Instala la app Talvio en tu teléfono e inicia sesión como {{email}}."
       },
       "keys": {
@@ -2546,6 +2546,12 @@
     "body": "Quiere dictar y escribir en las apps de este equipo, así que permite solo teléfonos que sean tuyos.",
     "allow": "Permitir",
     "deny": "No permitir"
+  },
+  "phoneViewing": {
+    "title": "Un teléfono está mirando",
+    "body": "{{phone}} puede ver {{title}}.",
+    "unnamedPhone": "Tu teléfono",
+    "stop": "Detener"
   },
   "assistant": {
     "conversation": {

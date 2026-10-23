@@ -2034,7 +2034,7 @@ pub struct AppSettings {
     /// dictate or type into this computer.
     #[serde(default = "default_true")]
     pub remote_input_enabled: bool,
-    /// "Let phones choose windows": an allowed phone may list this computer's
+    /// "Let phones see and use windows": an allowed phone may list this computer's
     /// windows, aim its dictation and text at one, and press keys there
     /// (`account/remote/windows.rs`). Off by default: window titles say a lot.
     #[serde(default)]

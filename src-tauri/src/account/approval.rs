@@ -14,6 +14,10 @@
 //! so the next paste lands there. Several phones asking at once stack in one
 //! window, below a reminder popup that shares the corner. All window work runs
 //! on the main thread.
+//!
+//! The same window carries "Phone is viewing" while a live view runs
+//! ([`set_viewing`]), with Stop: a card that is up for as long as someone can
+//! see this computer, so it is never a surprise.
 
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Mutex, MutexGuard};
@@ -37,6 +41,28 @@ const MARGIN: i32 = 18;
 
 /// The phones being asked about, oldest first: what the popup shows.
 static ASKING: Mutex<Vec<AccountPhone>> = Mutex::new(Vec::new());
+/// The live view running now, if any: the popup's "Phone is viewing" card.
+static VIEWING: Mutex<Option<ViewingCard>> = Mutex::new(None);
+/// The viewing card, sent to the popup whenever it changes.
+const VIEWING_EVENT: &str = "account-viewing-changed";
+
+/// Who is watching what.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, specta::Type)]
+pub struct ViewingCard {
+    pub phone: String,
+    pub title: String,
+}
+
+/// The viewing card, for a webview that just loaded.
+pub fn viewing() -> Option<ViewingCard> {
+    VIEWING.lock().unwrap_or_else(|e| e.into_inner()).clone()
+}
+
+/// Show "Phone is viewing" (or take it down), in the approval window.
+pub fn set_viewing(app: &AppHandle, card: Option<ViewingCard>) {
+    *VIEWING.lock().unwrap_or_else(|e| e.into_inner()) = card;
+    refresh(app);
+}
 /// The height the popup measured for its cards; 0 until it has.
 static HEIGHT: AtomicU32 = AtomicU32::new(0);
 /// Whether Talvio was the active app the last time it was looked at before
@@ -87,7 +113,8 @@ fn refresh(app: &AppHandle) {
     let handle = app.clone();
     if let Err(e) = app.run_on_main_thread(move || {
         let asking = asking();
-        if asking.is_empty() {
+        let viewing = viewing();
+        if asking.is_empty() && viewing.is_none() {
             HEIGHT.store(0, Ordering::SeqCst);
             if let Some(window) = handle.get_webview_window(POPUP_LABEL) {
                 let _ = window.hide();
@@ -110,6 +137,7 @@ fn refresh(app: &AppHandle) {
         }
         // After the window exists; a webview still loading asks on mount.
         let _ = handle.emit_to(POPUP_LABEL, CHANGED_EVENT, &asking);
+        let _ = handle.emit_to(POPUP_LABEL, VIEWING_EVENT, &viewing);
     }) {
         warn!("Could not queue the phone approval popup onto the main thread: {e}");
     }
@@ -163,9 +191,15 @@ fn build(app: &AppHandle) {
             let app_handle = app.clone();
             window.on_window_event(move |event| {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    // Closing it is Don't allow, for every phone it shows.
+                    // Closing it is Don't allow, for every phone it shows, and
+                    // Stop for a phone viewing this computer.
                     api.prevent_close();
                     let app = app_handle.clone();
+                    if viewing().is_some() {
+                        if let Some(router) = super::manager(&app).router() {
+                            router.stop_watching();
+                        }
+                    }
                     let phones = asking().into_iter().map(|phone| phone.id).collect();
                     tauri::async_runtime::spawn(async move {
                         super::answer_from_popup(&app, phones, false).await;
