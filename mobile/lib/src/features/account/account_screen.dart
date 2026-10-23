@@ -7,6 +7,7 @@ import '../../core/models.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
 import '../../shell/feature_tab.dart';
+import '../../shell/shell_scope.dart';
 import 'strings.dart';
 
 final accountTab = FeatureTab(
@@ -14,6 +15,7 @@ final accountTab = FeatureTab(
   label: AccountStrings.tab,
   icon: Icons.person_outline,
   selectedIcon: Icons.person,
+  secondary: true,
   builder: (_) => const AccountScreen(),
 );
 
@@ -127,7 +129,10 @@ class _AccountScreenState extends State<AccountScreen> {
     final busy = _signingOut || _deleting;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AccountStrings.title)),
+      appBar: AppBar(
+        leading: shellLeading(context),
+        title: const Text(AccountStrings.title),
+      ),
       body: ListenableBuilder(
         listenable: Listenable.merge([session, relay.devices]),
         builder: (context, _) {

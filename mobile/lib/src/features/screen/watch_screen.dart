@@ -8,7 +8,9 @@ import '../../core/app_services.dart';
 import '../../core/models.dart';
 import '../../theme.dart';
 import '../dictate/dictate_controller.dart';
-import '../dictate/dictate_screen.dart' show KeyRow, typedTextLimit;
+import '../dictate/dictate_screen.dart' show typedTextLimit;
+import '../dictate/key_pad.dart';
+import '../dictate/remote_windows.dart';
 import '../dictate/strings.dart';
 import 'live_protocol.dart';
 import 'rtc_link.dart';
@@ -37,6 +39,23 @@ Route<void> watchRoute({
     linkFactory: linkFactory ?? WebRtcLink.create,
   ),
 );
+
+/// Opens live view of [target] on [dictate]'s computer. What is watched is
+/// also where dictation and typing go: [window], or for a screen wherever
+/// the keyboard is. Completes when the viewer closes.
+Future<void> openWatch(
+  BuildContext context,
+  DictateController dictate,
+  WatchTarget target, {
+  RemoteWindow? window,
+}) async {
+  final computer = dictate.computer;
+  if (computer == null) return;
+  dictate.chooseWindow(window);
+  await Navigator.of(
+    context,
+  ).push(watchRoute(dictate: dictate, computer: computer, target: target));
+}
 
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
@@ -72,6 +91,15 @@ class _WatchScreenState extends State<WatchScreen>
   /// Keep the text cursor in view. Any pan or zoom by hand turns it off.
   var _follow = true;
   var _typing = false;
+
+  /// The key pad is open (closed at first, so the picture gets the room).
+  var _keys = false;
+
+  /// The picture fills the view, cropped, rather than fits in it whole.
+  var _filled = false;
+
+  /// The orientation the viewer is held in; null to follow the phone.
+  Orientation? _held;
   Size _viewport = Size.zero;
   Caret? _followed;
   DictateOutcome? _shownOutcome;
@@ -109,6 +137,7 @@ class _WatchScreenState extends State<WatchScreen>
   @override
   void dispose() {
     _keepAwake(false);
+    if (_held != null) _hold(null);
     _lifecycle.dispose();
     widget.dictate.removeListener(_onDictate);
     _watch
@@ -130,6 +159,48 @@ class _WatchScreenState extends State<WatchScreen>
   );
 
   String get _name => widget.computer.name;
+
+  /// Holds the viewer sideways or upright; null lets the phone decide again.
+  /// Best effort, like the wake lock.
+  static void _hold(Orientation? orientation) => unawaited(
+    Future.sync(
+      () => SystemChrome.setPreferredOrientations(switch (orientation) {
+        Orientation.landscape => const [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ],
+        Orientation.portrait => const [DeviceOrientation.portraitUp],
+        null => const [],
+      }),
+    ).catchError((Object _) {}),
+  );
+
+  void _rotate(Orientation now) {
+    final next = now == Orientation.portrait
+        ? Orientation.landscape
+        : Orientation.portrait;
+    setState(() => _held = next);
+    _hold(next);
+  }
+
+  /// Fills the view with the picture, or shows all of it again. Either is a
+  /// view chosen by hand, so it stops Follow.
+  void _toggleFill() {
+    final fill = !_filled;
+    setState(() {
+      _filled = fill;
+      _follow = false;
+    });
+    _moveView(fill ? fillTransform(_picture, _viewport) : Matrix4.identity());
+  }
+
+  void _moveView(Matrix4 to) {
+    _moveTo = Matrix4Tween(
+      begin: _transform.value.clone(),
+      end: to,
+    ).animate(CurvedAnimation(parent: _move, curve: Curves.easeOutCubic));
+    unawaited(_move.forward(from: 0));
+  }
 
   /// The picture's size: the decoded frames', else the window's as the
   /// computer described it, else the viewport's (no letterbox).
@@ -171,16 +242,13 @@ class _WatchScreenState extends State<WatchScreen>
       picture: _picture,
     );
     if (to == _transform.value) return;
+    if (_filled) setState(() => _filled = false);
     if (!animate) {
       _move.stop();
       _transform.value = to;
       return;
     }
-    _moveTo = Matrix4Tween(
-      begin: _transform.value.clone(),
-      end: to,
-    ).animate(CurvedAnimation(parent: _move, curve: Curves.easeOutCubic));
-    unawaited(_move.forward(from: 0));
+    _moveView(to);
   }
 
   void _setFollow(bool follow) {
@@ -316,9 +384,13 @@ class _WatchScreenState extends State<WatchScreen>
   void _onInteractionEnd(ScaleEndDetails details) {
     final from = _gestureFrom;
     _gestureFrom = null;
-    if (from != null && from != _transform.value && _follow) {
-      setState(() => _follow = false);
-    }
+    if (from == null || from == _transform.value) return;
+    if (_follow) setState(() => _follow = false);
+    final zoomed =
+        (from.getMaxScaleOnAxis() - _transform.value.getMaxScaleOnAxis())
+            .abs() >
+        0.01;
+    if (_filled && zoomed) setState(() => _filled = false);
   }
 
   @override
@@ -330,12 +402,20 @@ class _WatchScreenState extends State<WatchScreen>
           listenable: Listenable.merge([_watch, widget.dictate]),
           builder: (context, _) => Scaffold(
             backgroundColor: Colors.black,
-            body: Column(
-              children: [
-                Expanded(child: _buildStage(context)),
-                _buildBar(context),
-              ],
-            ),
+            body: MediaQuery.orientationOf(context) == Orientation.landscape
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: _buildStage(context)),
+                      _buildSide(context),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      Expanded(child: _buildStage(context)),
+                      _buildBar(context),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -419,6 +499,18 @@ class _WatchScreenState extends State<WatchScreen>
             follow: _follow,
             onFollow: w.caret == null ? null : () => _setFollow(!_follow),
             onClose: () => Navigator.maybePop(context),
+            filled: _filled,
+            // Only a picture that leaves bars can fill the view.
+            onFill:
+                _filled ||
+                    (link != null &&
+                        !_viewport.isEmpty &&
+                        fillScale(_picture, _viewport) >= 1.05)
+                ? _toggleFill
+                : null,
+            sideways:
+                MediaQuery.orientationOf(context) == Orientation.landscape,
+            onRotate: () => _rotate(MediaQuery.orientationOf(context)),
             notice: switch (w.watched?.state) {
               'minimized' => ScreenStrings.minimized,
               'covered' => ScreenStrings.covered,
@@ -520,17 +612,15 @@ class _WatchScreenState extends State<WatchScreen>
     );
   }
 
-  Widget _buildBar(BuildContext context) {
+  /// The mic: dictates into the watched window, always pasting.
+  Widget _mic(BuildContext context) {
     final w = _watch;
     final d = widget.dictate;
-    final live = w.phase == WatchPhase.live;
-    final caps = widget.computer.capabilities;
     final canDictate =
-        live && caps.contains(DictateKind.dictate) && !w.restarting;
-    final landscape =
-        MediaQuery.orientationOf(context) == Orientation.landscape;
-
-    final mic = switch (d.phase) {
+        w.phase == WatchPhase.live &&
+        widget.computer.capabilities.contains(DictateKind.dictate) &&
+        !w.restarting;
+    return switch (d.phase) {
       DictatePhase.sending => const Padding(
         padding: EdgeInsets.all(14),
         child: SizedBox.square(
@@ -553,14 +643,26 @@ class _WatchScreenState extends State<WatchScreen>
         icon: const Icon(Icons.mic),
       ),
     };
-    final buttons = <Widget>[
-      mic,
+  }
+
+  /// Mic, typing, the key pad and sound.
+  List<Widget> _buttons(BuildContext context) {
+    final w = _watch;
+    final live = w.phase == WatchPhase.live;
+    return [
+      _mic(context),
       IconButton(
         tooltip: _typing ? ScreenStrings.hideKeyboard : ScreenStrings.keyboard,
         isSelected: _typing,
         onPressed: live ? _toggleKeyboard : null,
         icon: const Icon(Icons.keyboard_outlined),
         selectedIcon: const Icon(Icons.keyboard_hide_outlined),
+      ),
+      IconButton(
+        tooltip: _keys ? ScreenStrings.hideKeys : ScreenStrings.keys,
+        isSelected: _keys,
+        onPressed: () => setState(() => _keys = !_keys),
+        icon: const Icon(Icons.keyboard_command_key),
       ),
       IconButton(
         tooltip: w.soundOn ? ScreenStrings.soundOff : ScreenStrings.soundOn,
@@ -572,7 +674,11 @@ class _WatchScreenState extends State<WatchScreen>
         selectedIcon: const Icon(Icons.volume_up),
       ),
     ];
-    final mode = SegmentedButton<bool>(
+  }
+
+  Widget _mode() {
+    final w = _watch;
+    return SegmentedButton<bool>(
       showSelectedIcon: false,
       segments: const [
         ButtonSegment(value: false, label: Text(ScreenStrings.view)),
@@ -583,67 +689,122 @@ class _WatchScreenState extends State<WatchScreen>
           ? null
           : (value) => unawaited(_setControl(value.single)),
     );
-    final keys = KeyRow(
-      platform: widget.computer.platform,
-      onPress: live ? _press : null,
-    );
+  }
 
+  /// What sits above the buttons: the transcribing line, the text field and
+  /// the key pad, each only while it is wanted.
+  List<Widget> _panels() {
+    final w = _watch;
+    final live = w.phase == WatchPhase.live;
+    return [
+      if (widget.dictate.phase == DictatePhase.sending)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Semantics(
+            liveRegion: true,
+            child: Text(ScreenStrings.transcribing(_name)),
+          ),
+        ),
+      if (_typing)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: _TypeField(
+            controller: _text,
+            focusNode: _textFocus,
+            hint: ScreenStrings.typeHint(w.title),
+            enabled: live,
+            onSend: _sendText,
+          ),
+        ),
+      if (_keys)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: KeyPad(
+            platform: widget.computer.platform,
+            onPress: live ? _press : null,
+          ),
+        ),
+    ];
+  }
+
+  /// Portrait: the controls under the picture.
+  Widget _buildBar(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.surface,
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (d.phase == DictatePhase.sending)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Text(ScreenStrings.transcribing(_name)),
-                  ),
-                ),
-              if (_typing)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: _TypeField(
-                    controller: _text,
-                    focusNode: _textFocus,
-                    hint: ScreenStrings.typeHint(w.title),
-                    enabled: live,
-                    onSend: _sendText,
-                  ),
-                ),
-              if (landscape)
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            alignment: Alignment.bottomCenter,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ..._panels(),
                 Row(
                   children: [
-                    ...buttons,
-                    const SizedBox(width: 4),
-                    Expanded(child: keys),
-                    const SizedBox(width: 4),
-                    mode,
-                  ],
-                )
-              else ...[
-                keys,
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    ...buttons,
+                    ..._buttons(context),
                     const SizedBox(width: 8),
                     // Shrinks rather than overflows on the smallest phones.
                     Expanded(
                       child: Align(
                         alignment: AlignmentDirectional.centerEnd,
-                        child: FittedBox(fit: BoxFit.scaleDown, child: mode),
+                        child: FittedBox(fit: BoxFit.scaleDown, child: _mode()),
                       ),
                     ),
                   ],
                 ),
               ],
-            ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Landscape: the controls beside the picture, a slim column of buttons
+  /// until the key pad or the text field needs the width.
+  Widget _buildSide(BuildContext context) {
+    final w = _watch;
+    final wide = _keys || _typing;
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+        left: false,
+        child: SizedBox(
+          width: wide ? KeyPad.minWidth + 24 : 64,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(8),
+            child: wide
+                ? Column(
+                    children: [
+                      ..._panels(),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        children: _buttons(context),
+                      ),
+                      const SizedBox(height: 8),
+                      FittedBox(fit: BoxFit.scaleDown, child: _mode()),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      ..._buttons(context),
+                      const SizedBox(height: 8),
+                      IconButton(
+                        tooltip: w.control
+                            ? ScreenStrings.controlMode
+                            : ScreenStrings.view,
+                        isSelected: w.control,
+                        onPressed: w.restarting
+                            ? null
+                            : () => unawaited(_setControl(!w.control)),
+                        icon: const Icon(Icons.visibility_outlined),
+                        selectedIcon: const Icon(Icons.mouse),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -661,6 +822,10 @@ class _TopBar extends StatelessWidget {
     required this.onFollow,
     required this.onClose,
     required this.notice,
+    required this.filled,
+    required this.onFill,
+    required this.sideways,
+    required this.onRotate,
   });
 
   final String title;
@@ -673,6 +838,15 @@ class _TopBar extends StatelessWidget {
   final VoidCallback? onFollow;
   final VoidCallback onClose;
   final String? notice;
+
+  /// The picture fills the view; [onFill] toggles it, null while there are
+  /// no bars to fill.
+  final bool filled;
+  final VoidCallback? onFill;
+
+  /// The viewer is on its side; [onRotate] turns it.
+  final bool sideways;
+  final VoidCallback onRotate;
 
   @override
   Widget build(BuildContext context) {
@@ -711,30 +885,60 @@ class _TopBar extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall,
                         ),
-                        Text(
-                          computerName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.circle,
+                              size: 8,
+                              color: live
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Semantics(
+                              liveRegion: true,
+                              child: Text(
+                                status,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: live
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                ' · $computerName',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Semantics(
-                    liveRegion: true,
-                    child: Chip(
-                      visualDensity: VisualDensity.compact,
-                      avatar: Icon(
-                        Icons.circle,
-                        size: 10,
-                        color: live
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
-                      ),
-                      label: Text(status),
+                  if (onFill case final onFill?)
+                    IconButton(
+                      tooltip: filled ? ScreenStrings.fit : ScreenStrings.fill,
+                      isSelected: filled,
+                      onPressed: onFill,
+                      icon: const Icon(Icons.fit_screen_outlined),
+                      selectedIcon: const Icon(Icons.fit_screen),
+                    ),
+                  IconButton(
+                    tooltip: sideways
+                        ? ScreenStrings.unrotate
+                        : ScreenStrings.rotate,
+                    onPressed: onRotate,
+                    icon: Icon(
+                      sideways
+                          ? Icons.stay_current_portrait
+                          : Icons.stay_current_landscape,
                     ),
                   ),
                   if (onFollow != null)

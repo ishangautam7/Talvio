@@ -204,4 +204,35 @@ void main() {
     }
     expect(text('brand_new_code'), 'Something went wrong. Try again.');
   });
+
+  group('fill', () {
+    test('a wide picture on a tall view fills its height, centred', () {
+      const picture = Size(1920, 1080);
+      const viewport = Size(400, 700);
+      final scale = fillScale(picture, viewport);
+      expect(scale, moreOrLessEquals(700 / 225));
+      final fill = fillTransform(picture, viewport);
+      final shown = MatrixUtils.transformRect(
+        fill,
+        containRect(picture, viewport),
+      );
+      expect(shown.top, moreOrLessEquals(0));
+      expect(shown.bottom, moreOrLessEquals(700));
+      expect(shown.center.dx, moreOrLessEquals(200), reason: 'centred');
+      // What is shown still maps back to the picture.
+      final at = pictureCoords(
+        point: const Offset(200, 350),
+        transform: fill,
+        viewport: viewport,
+        picture: picture,
+      )!;
+      expect(at.dx, moreOrLessEquals(0.5));
+      expect(at.dy, moreOrLessEquals(0.5));
+    });
+
+    test('a picture that already fills the view stays as it is', () {
+      expect(fillScale(const Size(400, 700), const Size(400, 700)), 1);
+      expect(fillScale(Size.zero, const Size(400, 700)), 1);
+    });
+  });
 }

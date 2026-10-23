@@ -1,6 +1,36 @@
 import '../dictate/strings.dart';
 
 abstract final class ScreenStrings {
+  // Home: the computer's screen and windows.
+  static const homeTab = 'Screen';
+  static const viewScreen = 'View screen';
+  static String viewScreenDetail(String screen, String size) =>
+      '$screen · $size';
+  static const openWindows = 'Open windows';
+  static const otherScreens = 'Screens';
+  static const loadingWindows = 'Looking for windows and screens…';
+  static String noWindows(String name) => 'No windows are open on $name.';
+  static const refresh = 'Refresh';
+  static const inFront = DictateStrings.inFront;
+  static const dictateOrType = 'Dictate or type';
+  static const sendInstead = 'Dictate or type instead';
+  static String turnOnTitle(String name) => "See $name's screen here";
+  static const turnOnBody =
+      'In Talvio on the computer, open Settings, Account, and turn on '
+      '"Let phones see and use windows". Then pull down here to refresh.';
+  static String updateBody(String name) =>
+      'Update Talvio on $name to see its screen from your phone.';
+  static String offlineBody(String name) =>
+      'Open Talvio on $name to see its screen and send to it.';
+  static String waitingBody(String name) => 'Connecting to $name…';
+  static String online(String platform) => switch (platform) {
+    'windows' => 'Online · Windows',
+    'macos' => 'Online · Mac',
+    'linux' => 'Online · Linux',
+    _ => 'Online',
+  };
+  static const offline = 'Offline';
+
   static const watch = 'Watch';
   static String watchItem(String label) => 'Watch $label';
   static const screens = 'Screens';
@@ -29,6 +59,13 @@ abstract final class ScreenStrings {
   static const controlHint =
       'Control: tap to click, hold for right click, double tap to double '
       'click, drag two fingers up or down to scroll.';
+
+  static const keys = 'Keys';
+  static const hideKeys = 'Hide keys';
+  static const rotate = 'Turn sideways';
+  static const unrotate = 'Turn upright';
+  static const fill = 'Fill the screen';
+  static const fit = 'Show all of it';
 
   static const follow = 'Follow the cursor';
   static const following = 'Following the cursor';

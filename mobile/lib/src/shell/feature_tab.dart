@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/models.dart';
 
-/// One tab of the home shell.
+/// One page of the home shell, as its menu lists it. The first is home.
 class FeatureTab {
   const FeatureTab({
     required this.id,
@@ -11,6 +11,7 @@ class FeatureTab {
     required this.selectedIcon,
     required this.builder,
     this.requires,
+    this.secondary = false,
   });
 
   final String id;
@@ -22,6 +23,10 @@ class FeatureTab {
   /// The capability a computer must advertise for this tab to show; null for
   /// a tab that is always there.
   final String? requires;
+
+  /// Listed below a divider in the menu, away from the things you do (the
+  /// account, settings).
+  final bool secondary;
 
   /// Hidden only when computers are online and none of them advertises
   /// [requires]. A computer that advertises nothing is unknown, not lacking:
