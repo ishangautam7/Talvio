@@ -342,7 +342,7 @@ export function issueBody(
     ...rows.map(([key, value]) => `| ${key} | ${value} |`),
   ].join("\n");
 
-  return `${quoted}\n\n${imagesSection(images)}${table}\n\n<sub>Sent from Zynveliq's in-app feedback form.</sub>\n`;
+  return `${quoted}\n\n${imagesSection(images)}${table}\n\n<sub>Sent from Talvio's in-app feedback form.</sub>\n`;
 }
 
 export function issueLabels(feedback: Feedback): string[] {

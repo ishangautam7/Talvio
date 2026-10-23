@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "zynveliq-feedback-worker",
+      "name": "talvio-feedback-worker",
       "devDependencies": {
         "wrangler": "4.142.0",
       },

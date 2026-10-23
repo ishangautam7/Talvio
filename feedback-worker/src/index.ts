@@ -1,5 +1,5 @@
 /**
- * Zynveliq feedback endpoint: `POST /v1/feedback` from the desktop app,
+ * Talvio feedback endpoint: `POST /v1/feedback` from the desktop app,
  * filed as an issue in a private GitHub repository.
  *
  * It is a public URL with no user accounts behind it, so the defences are
@@ -64,6 +64,12 @@ function json(status: number, body: Record<string, unknown>): Response {
   });
 }
 
+/**
+ * The desktop app's User-Agent is `Talvio/<version>`. Builds from before the
+ * rename from Zynveliq send `Zynveliq/<version>` and must still reach us.
+ */
+const APP_AGENTS = ["Talvio/", "Zynveliq/"];
+
 export async function handle(
   request: Request,
   env: Env,
@@ -81,7 +87,9 @@ export async function handle(
     return json(405, { error: "method not allowed" });
 
   const agent = request.headers.get("User-Agent") ?? "";
-  if (!agent.startsWith("Zynveliq/")) return json(403, { error: "forbidden" });
+  if (!APP_AGENTS.some((prefix) => agent.startsWith(prefix))) {
+    return json(403, { error: "forbidden" });
+  }
 
   const type = request.headers.get("Content-Type") ?? "";
   if (!type.toLowerCase().startsWith("application/json")) {

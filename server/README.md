@@ -1,6 +1,6 @@
-# Zynveliq account server
+# Talvio account server
 
-The small server behind Zynveliq accounts. It signs people in (email and password,
+The small server behind Talvio accounts. It signs people in (email and password,
 or Google) on the desktop app and the phone app, keeps the list of devices on each
 account, and relays messages between a person's own devices, which is what lets a
 phone use the computer as its microphone and keyboard.
@@ -59,7 +59,7 @@ address decides where people's sign-ins go, so keep it locked down.
 | ---------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `PORT`                 | `8787`                   | Port to listen on.                                                                                                                     |
 | `HOST`                 | `0.0.0.0`                | Address to listen on.                                                                                                                  |
-| `DATABASE_PATH`        | `./data/zynveliq.db`     | SQLite file. Its folder is created if missing.                                                                                         |
+| `DATABASE_PATH`        | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.  |
 | `PUBLIC_URL`           | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                    |
 | `GOOGLE_CLIENT_ID`     | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                     |
 | `GOOGLE_CLIENT_SECRET` | unset                    | Stays on the server; the apps never see it.                                                                                            |
@@ -85,16 +85,24 @@ the PKCE verifier can use.
 ## Deploy
 
 ```sh
-docker build -t zynveliq-server server
-docker run -d --name zynveliq-server --restart unless-stopped \
+docker build -t talvio-server server
+docker run -d --name talvio-server --restart unless-stopped \
   -p 127.0.0.1:8787:8787 \
-  -v zynveliq-data:/data \
+  -v talvio-data:/data \
   -e PUBLIC_URL=https://sync.example.com -e TRUST_PROXY=1 \
   -e GOOGLE_CLIENT_ID=... -e GOOGLE_CLIENT_SECRET=... \
-  zynveliq-server
+  talvio-server
 ```
 
 The image runs as a non-root user and keeps the database on the `/data` volume.
+
+**A deployment from before the rename to Talvio** used the image and container
+name `zynveliq-server`, the volume `zynveliq-data` and the file
+`/data/zynveliq.db`. Keep that volume: mount it as before
+(`-v zynveliq-data:/data`) and the server keeps opening `zynveliq.db`, since it
+only starts a new `talvio.db` where neither file exists (it logs the old file
+when it uses it). In the backup command, use your container's name and that
+file.
 
 - **Serve it over HTTPS.** Passwords and session tokens travel in requests, so put
   a TLS-terminating reverse proxy in front and never expose plain HTTP. The proxy
@@ -108,8 +116,8 @@ The image runs as a non-root user and keeps the database on the `/data` volume.
   runs:
 
   ```sh
-  docker exec zynveliq-server bun -e \
-    'new (require("bun:sqlite").Database)("/data/zynveliq.db").run("VACUUM INTO ?", ["/data/backup.db"])'
+  docker exec talvio-server bun -e \
+    'new (require("bun:sqlite").Database)("/data/talvio.db").run("VACUUM INTO ?", ["/data/backup.db"])'
   ```
 
   then move `/data/backup.db` off the machine.
