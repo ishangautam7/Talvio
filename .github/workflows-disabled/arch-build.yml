@@ -2,8 +2,8 @@ name: "Arch Linux Test Build"
 
 # Unsigned test build compiled natively on Arch Linux, packaged as a pacman
 # package and uploaded as an artifact (not a GitHub Release). Install it with
-#   sudo pacman -U zynveliq-test-*.pkg.tar.zst
-# and remove it with `sudo pacman -R zynveliq-test`.
+#   sudo pacman -U talvio-test-*.pkg.tar.zst
+# and remove it with `sudo pacman -R talvio-test`.
 #
 # It compiles inside the official archlinux image rather than repackaging the
 # Ubuntu .deb, so the binary links against Arch's rolling libraries (glibc,
@@ -97,15 +97,15 @@ jobs:
           mkdir -p /tmp/pkg
           mv pkgroot /tmp/pkg/pkgroot
           cat > /tmp/pkg/PKGBUILD <<EOF
-          pkgname=zynveliq-test
+          pkgname=talvio-test
           pkgver=${PKGVER}
           pkgrel=1
-          pkgdesc="Zynveliq test build: voice dictation and AI assistant"
+          pkgdesc="Talvio test build: voice dictation and AI assistant"
           arch=(x86_64)
           url="https://github.com/ishangautam7/zynveliq"
           license=(MIT)
-          provides=(zynveliq)
-          conflicts=(zynveliq zynveliq-bin)
+          provides=(talvio)
+          conflicts=(talvio talvio-bin)
           depends=(alsa-lib gtk-layer-shell gtk3 libappindicator libdrm libevdev
                    libglvnd librsvg libx11 libxrandr libxtst openssl pipewire
                    vulkan-icd-loader wayland webkit2gtk-4.1)
@@ -127,9 +127,9 @@ jobs:
         run: |
           set -euo pipefail
           pacman -U --noconfirm dist/*.pkg.tar.zst
-          pacman -Ql zynveliq-test | grep -E 'bin/speak$|libtranscribe|silero' 
+          pacman -Ql talvio-test | grep -E 'bin/talvio$|libtranscribe|silero' 
           # Every shared library the binary needs must resolve on a clean Arch.
-          if ldd /usr/lib/zynveliq/bin/zynveliq | grep 'not found'; then
+          if ldd /usr/lib/talvio/bin/talvio | grep 'not found'; then
             echo "ERROR: unresolved shared libraries" >&2
             exit 1
           fi
@@ -137,6 +137,6 @@ jobs:
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: zynveliq-test-archlinux-x86_64
+          name: talvio-test-archlinux-x86_64
           path: dist/*.pkg.tar.zst
           if-no-files-found: error

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# Build Zynveliq from this checkout and install it for the current user.
+# Build Talvio from this checkout and install it for the current user.
 # The default layout is self-contained under ~/.local:
 #
-#   bin/speak -> ../lib/zynveliq/bin/zynveliq
-#   lib/zynveliq/lib/{libtranscribe,libggml*,Zynveliq/resources}
+#   bin/talvio -> ../lib/talvio/bin/talvio
+#   lib/talvio/lib/{libtranscribe,libggml*,Talvio/resources}
 #
 # Keeping the executable and libraries in that shape satisfies the
 # $ORIGIN/../lib rpath embedded by src-tauri/build.rs without putting generic
@@ -21,7 +21,7 @@ Options:
   --skip-build   Install an existing release build without rebuilding it
   -h, --help     Show this help
 
-After installation, run Zynveliq with: speak
+After installation, run Talvio with: talvio
 EOF
 }
 
@@ -136,12 +136,12 @@ if [[ ! -s "$vad_model" ]]; then
   exit 1
 fi
 
-release_binary="$repo_root/src-tauri/target/release/zynveliq"
+release_binary="$repo_root/src-tauri/target/release/talvio"
 if $build_release; then
-  echo "Building the Zynveliq frontend..."
+  echo "Building the Talvio frontend..."
   (
     cd "$repo_root"
-    bun_scratch_dir="$(mktemp -d /tmp/zynveliq-bun.XXXXXX)"
+    bun_scratch_dir="$(mktemp -d /tmp/talvio-bun.XXXXXX)"
     trap 'rm -rf -- "$bun_scratch_dir"' EXIT
     mkdir -p "$bun_scratch_dir/install" "$bun_scratch_dir/tmp"
     BUN_INSTALL="$bun_scratch_dir/install" \
@@ -150,7 +150,7 @@ if $build_release; then
     bun run build
   )
 
-  echo "Building the Zynveliq release binary..."
+  echo "Building the Talvio release binary..."
   (
     cd "$repo_root/src-tauri"
     # CMake 4 removed compatibility with policies used by a few native speech
@@ -182,30 +182,29 @@ if ((${#transcribe_libraries[@]} == 0 || ${#cpu_backends[@]} == 0)); then
   exit 1
 fi
 
-app_root="$install_prefix/lib/zynveliq"
+app_root="$install_prefix/lib/talvio"
 app_bin_dir="$app_root/bin"
 app_lib_dir="$app_root/lib"
-resource_dir="$app_lib_dir/Zynveliq"
+resource_dir="$app_lib_dir/Talvio"
 
-echo "Installing Zynveliq below $install_prefix..."
-install -Dm755 "$release_binary" "$app_bin_dir/zynveliq"
+echo "Installing Talvio below $install_prefix..."
+install -Dm755 "$release_binary" "$app_bin_dir/talvio"
 install -d "$app_lib_dir" "$resource_dir" "$install_prefix/bin"
 bash "$repo_root/scripts/ci/stage-transcribe-libs.sh" "$transcribe_lib_dir" "$app_lib_dir"
 cp -a "$repo_root/src-tauri/resources" "$resource_dir/"
 
-ln -sfn ../lib/zynveliq/bin/zynveliq "$install_prefix/bin/speak"
-ln -sfn ../lib/zynveliq/bin/zynveliq "$install_prefix/bin/zynveliq"
+ln -sfn ../lib/talvio/bin/talvio "$install_prefix/bin/talvio"
 
 desktop_dir="$install_prefix/share/applications"
 icon_root="$install_prefix/share/icons/hicolor"
-install -Dm644 "$repo_root/packaging/linux/zynveliq.desktop" \
-  "$desktop_dir/zynveliq.desktop"
+install -Dm644 "$repo_root/packaging/linux/talvio.desktop" \
+  "$desktop_dir/talvio.desktop"
 install -Dm644 "$repo_root/src-tauri/icons/32x32.png" \
-  "$icon_root/32x32/apps/zynveliq.png"
+  "$icon_root/32x32/apps/talvio.png"
 install -Dm644 "$repo_root/src-tauri/icons/128x128.png" \
-  "$icon_root/128x128/apps/zynveliq.png"
+  "$icon_root/128x128/apps/talvio.png"
 install -Dm644 "$repo_root/src-tauri/icons/128x128@2x.png" \
-  "$icon_root/256x256/apps/zynveliq.png"
+  "$icon_root/256x256/apps/talvio.png"
 
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$desktop_dir" >/dev/null 2>&1 || true
@@ -224,4 +223,4 @@ case ":$PATH:" in
 esac
 
 echo
-echo "Zynveliq installed successfully. Run it with: speak"
+echo "Talvio installed successfully. Run it with: talvio"

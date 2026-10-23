@@ -1,6 +1,6 @@
-# Contributing Translations to Zynveliq
+# Contributing Translations to Talvio
 
-Thank you for helping translate Zynveliq! This guide explains how to add or improve translations.
+Thank you for helping translate Talvio! This guide explains how to add or improve translations.
 
 ## Quick Start
 
@@ -152,7 +152,7 @@ key order. `.i18n-work/` is scratch space and is not committed.
 
 ### Don't:
 
-- Translate brand names (Zynveliq, Handy, Whisper.cpp, OpenAI) — "Handy" appears only in the Acknowledgments credit and must stay untranslated too
+- Translate brand names (Talvio, Handy, Whisper.cpp, OpenAI) — "Handy" appears only in the Acknowledgments credit and must stay untranslated too
 - Change or remove `{{variables}}`
 - Modify JSON keys
 - Add extra spaces or formatting
@@ -203,4 +203,4 @@ We'd love help with:
 
 ---
 
-Thank you for making Zynveliq accessible to more people around the world!
+Thank you for making Talvio accessible to more people around the world!

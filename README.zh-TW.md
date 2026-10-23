@@ -4,7 +4,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="Logo/final-v2/png/lockup-dark-h256.png" />
-  <img src="Logo/final-v2/png/lockup-h256.png" alt="Zynveliq" width="320" />
+  <img src="Logo/final-v2/png/lockup-h256.png" alt="Talvio" width="320" />
 </picture>
 
 # 適用於 Windows、macOS 與 Linux 的免費語音輸入與 AI 助理
@@ -17,19 +17,19 @@
 [![Platforms](https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-informational)](#安裝)
 [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri%202-24C8DB?logo=tauri&logoColor=white)](https://tauri.app)
 
-<img src="assets/readme/demo.webp" width="760" alt="Zynveliq 示範：口述一封電子郵件並自動輸入，請助理翻譯選取的文字並以答案取代，接著與助理進行語音對話" />
+<img src="assets/readme/demo.webp" width="760" alt="Talvio 示範：口述一封電子郵件並自動輸入，請助理翻譯選取的文字並以答案取代，接著與助理進行語音對話" />
 
 [![Download for Windows](https://img.shields.io/badge/Download-Windows-0078D4?logo=windows&logoColor=white&style=for-the-badge)](https://github.com/ishangautam7/zynveliq/releases/latest)
 [![Download for macOS](https://img.shields.io/badge/Download-macOS-000000?logo=apple&logoColor=white&style=for-the-badge)](https://github.com/ishangautam7/zynveliq/releases/latest)
 [![Download for Linux](https://img.shields.io/badge/Download-Linux-FCC624?logo=linux&logoColor=black&style=for-the-badge)](https://github.com/ishangautam7/zynveliq/releases/latest)
 
-[官方網站](https://zynveliq.invalid) &nbsp;·&nbsp; [使用文件](https://zynveliq.invalid/docs) &nbsp;·&nbsp; [所有版本](https://github.com/ishangautam7/zynveliq/releases)
+[官方網站](https://talvio.invalid) &nbsp;·&nbsp; [使用文件](https://talvio.invalid/docs) &nbsp;·&nbsp; [所有版本](https://github.com/ishangautam7/zynveliq/releases)
 
 </div>
 
 ## 它能做什麼
 
-你思考的速度比打字更快。Zynveliq 讓你在任何應用程式中，只要一組快速鍵，就能改用聲音工作：
+你思考的速度比打字更快。Talvio 讓你在任何應用程式中，只要一組快速鍵，就能改用聲音工作：
 
 <table>
 <tr>
@@ -67,18 +67,18 @@
 
 除非你選擇雲端服務，語音都會在你自己的電腦上轉錄。助理使用你選擇的模型：可離線執行的內建模型、你自己的 Ollama 或 LM Studio 伺服器，或使用自有 API 金鑰的雲端服務。
 
-我在獨自準備考試時做了 Zynveliq。當時我付費使用的語音輸入軟體聽得見我說話，卻幫不上忙，所以我做了一個兩件事都能做的工具。
+我在獨自準備考試時做了 Talvio。當時我付費使用的語音輸入軟體聽得見我說話，卻幫不上忙，所以我做了一個兩件事都能做的工具。
 
 ## 中文使用者須知
 
-Zynveliq 內建繁體中文與簡體中文介面，也支援中文語音轉文字，辨識全程在本機完成。你可以依需求選擇模型：
+Talvio 內建繁體中文與簡體中文介面，也支援中文語音轉文字，辨識全程在本機完成。你可以依需求選擇模型：
 
 - **Nemotron：** 支援包括中文在內的 28 種語言，並能自動偵測語言。
 - **SenseVoice：** 體積小、速度快，支援國語、粵語、英語、日語與韓語。
 - **Breeze ASR：** 針對臺灣華語調校，也能辨識中英夾雜的口述內容。
 - **Whisper：** 多語言模型，可以辨識中文，也能把其他語言翻譯成英文。
 
-在語言選單中選擇「繁體中文」或「簡體中文」後，Zynveliq 會透過 OpenCC 將輸出統一轉成所選的字形，不必手動轉換。如果語言設為「自動」，可以在「中文字形」中選擇繁體或簡體：只有中文轉寫結果會被轉換，其他語言保持不變。
+在語言選單中選擇「繁體中文」或「簡體中文」後，Talvio 會透過 OpenCC 將輸出統一轉成所選的字形，不必手動轉換。如果語言設為「自動」，可以在「中文字形」中選擇繁體或簡體：只有中文轉寫結果會被轉換，其他語言保持不變。
 
 > **AI 整理的語言限制：** 內建的 SpeakoFlow Mini 整理模型目前只支援英語。中文使用者可以不啟用 AI 整理，或改用支援中文的其他本機或雲端模型。這項限制不影響中文語音辨識。
 
@@ -123,7 +123,7 @@ Zynveliq 內建繁體中文與簡體中文介面，也支援中文語音轉文�
 </tr>
 </table>
 
-開會前按下「開始錄製」。Zynveliq 會把你的麥克風與電腦播放的聲音分成兩路錄製，並在大家說話時即時轉錄，所以它始終知道哪些話是你說的。不會有機器人加入會議，任何會議軟體都能使用。在 Windows 上，它偵測到通話時也會主動詢問是否錄製。
+開會前按下「開始錄製」。Talvio 會把你的麥克風與電腦播放的聲音分成兩路錄製，並在大家說話時即時轉錄，所以它始終知道哪些話是你說的。不會有機器人加入會議，任何會議軟體都能使用。在 Windows 上，它偵測到通話時也會主動詢問是否錄製。
 
 通話結束後，它會依照你選擇的範本（一般、站立會議、一對一、面試或待辦事項）寫出會議紀錄，包含摘要、決議與附負責人的後續事項。其他人的聲音會標示為「說話者 1」「說話者 2」等。之後你可以針對這場會議提問，也可以選擇「討論這場會議」，在對話中把它討論一遍。
 
@@ -143,7 +143,7 @@ AI 整理預設關閉。啟用後，它可以有自己的快速鍵（語音輸�
 - **使用 Flow 生成。** 以「Hey Flow」開頭開始口述，描述你想寫的內容，貼上的會是寫好的文字，而不是你的原話。預設關閉，可在「設定 → 語音輸入」中啟用。
 - **20 種介面語言。**
 
-每項功能在[使用文件](https://zynveliq.invalid/docs)中都有專屬頁面。
+每項功能在[使用文件](https://talvio.invalid/docs)中都有專屬頁面。
 
 ## 介面一覽
 
@@ -185,7 +185,7 @@ Esc 只在有工作進行時（例如正在錄音，或正在朗讀回答）才�
 
 在 Mac 上，請把「系統設定 → 鍵盤 → 按下 🌐 鍵來」設為「不執行任何動作」，否則按下地球鍵時還會開啟表情符號選擇器。原本使用舊版 Option + Space 預設快速鍵的 Mac，更新後會保留原來的設定。
 
-指令碼與視窗管理員可以透過 `--toggle-transcription` 等[命令列參數](https://zynveliq.invalid/docs/settings/cli)控制 Zynveliq。
+指令碼與視窗管理員可以透過 `--toggle-transcription` 等[命令列參數](https://talvio.invalid/docs/settings/cli)控制 Talvio。
 
 ## 模型與服務供應商
 
@@ -209,7 +209,7 @@ Esc 只在有工作進行時（例如正在錄音，或正在朗讀回答）才�
 - **網路搜尋**：如果你啟用了它。搜尋服務會收到搜尋字詞。
 - **意見回饋**：如果你從應用程式內傳送意見回饋。傳送的內容與對話框中顯示的完全相同，而且只會送到一個僅有開發者能查看的私人問題追蹤系統。
 
-API 金鑰儲存在系統鑰匙圈中。記憶在你啟用之前都是關閉的，而且只儲存在你的電腦上，你可以查看、編輯或清除。更多細節請見[隱私頁面](https://zynveliq.invalid/docs/reference/privacy)。
+API 金鑰儲存在系統鑰匙圈中。記憶在你啟用之前都是關閉的，而且只儲存在你的電腦上，你可以查看、編輯或清除。更多細節請見[隱私頁面](https://talvio.invalid/docs/reference/privacy)。
 
 ## 安裝
 
@@ -223,13 +223,13 @@ API 金鑰儲存在系統鑰匙圈中。記憶在你啟用之前都是關閉的�
 
 ### macOS
 
-下載適合你 Mac 的 `.dmg`（Apple 晶片選 `aarch64`，Intel 選 `x64`），把 **Zynveliq** 拖到「應用程式」。這個應用程式尚未取得 Apple 簽章，所以 macOS 會顯示它「已損毀，無法打開」。它並沒有損毀。請在「終端機」執行下面這行指令解除一次限制，之後就能正常開啟：
+下載適合你 Mac 的 `.dmg`（Apple 晶片選 `aarch64`，Intel 選 `x64`），把 **Talvio** 拖到「應用程式」。這個應用程式尚未取得 Apple 簽章，所以 macOS 會顯示它「已損毀，無法打開」。它並沒有損毀。請在「終端機」執行下面這行指令解除一次限制，之後就能正常開啟：
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/Zynveliq.app
+xattr -dr com.apple.quarantine /Applications/Talvio.app
 ```
 
-接著 Zynveliq 會要求**麥克風**與**輔助使用**權限，這樣它才能聽見你說話，並在其他應用程式中輸入文字。
+接著 Talvio 會要求**麥克風**與**輔助使用**權限，這樣它才能聽見你說話，並在其他應用程式中輸入文字。
 
 <details>
 <summary>關於 macOS 安裝的更多說明</summary>
@@ -240,7 +240,7 @@ xattr -dr com.apple.quarantine /Applications/Zynveliq.app
 
 每次下載後執行一次即可。在應用程式內安裝的更新不會帶有這個標記，因此不必再執行。如果你手動下載了新的 `.dmg`，就需要對那個副本再執行一次。
 
-更新後，macOS 有時會在「輔助使用」「麥克風」或「螢幕錄製」中繼續顯示 Zynveliq 已獲授權，但實際上不再生效。如果某個權限畫面一直在等待，請按下其中的「重設權限」按鈕，然後在「系統設定」中重新開啟 Zynveliq。
+更新後，macOS 有時會在「輔助使用」「麥克風」或「螢幕錄製」中繼續顯示 Talvio 已獲授權，但實際上不再生效。如果某個權限畫面一直在等待，請按下其中的「重設權限」按鈕，然後在「系統設定」中重新開啟 Talvio。
 
 Intel 版本需要 macOS 14 Sonoma 或更新版本。它只使用處理器執行，所以轉錄速度比 Apple 晶片慢，但所有功能都能使用。每個 Intel 版本發布前，CI 都會在實體 Intel Mac 上啟動測試。
 
@@ -248,10 +248,10 @@ Intel 版本需要 macOS 14 Sonoma 或更新版本。它只使用處理器執行
 
 ### Linux
 
-- **Arch Linux。** 從 AUR 安裝 `zynveliq-bin`，例如 `yay -S zynveliq-bin`。
+- **Arch Linux。** 從 AUR 安裝 `talvio-bin`，例如 `yay -S talvio-bin`。
 - **Debian 13+、Ubuntu 24.04+、Mint 22+、Pop!\_OS。** 安裝 `.deb`，它也會加入應用程式圖示與選單項目：
   ```bash
-  sudo apt install ./Zynveliq_*_amd64.deb
+  sudo apt install ./Talvio_*_amd64.deb
   ```
 - **其他發行版，包括 Fedora 與 openSUSE。** 使用 AppImage：以 `chmod +x` 加上執行權限後啟動。Gear Lever 或 AppImageLauncher 等工具可以把它加入應用程式選單。
 
@@ -259,7 +259,7 @@ Intel 版本需要 macOS 14 Sonoma 或更新版本。它只使用處理器執行
 
 ### 更新
 
-Zynveliq 會在背景檢查新版本，並在「設定 → 關於」中安裝更新，安裝前會以專案的簽章金鑰驗證每個版本。AUR 套件則透過你的套件管理員更新。如果想在 GitHub 上收到新版本通知，請點選本頁上方的 **Watch → Custom → Releases**。
+Talvio 會在背景檢查新版本，並在「設定 → 關於」中安裝更新，安裝前會以專案的簽章金鑰驗證每個版本。AUR 套件則透過你的套件管理員更新。如果想在 GitHub 上收到新版本通知，請點選本頁上方的 **Watch → Custom → Releases**。
 
 ## 從原始碼建置
 
@@ -267,7 +267,7 @@ Zynveliq 會在背景檢查新版本，並在「設定 → 關於」中安裝更
 
 ```bash
 git clone https://github.com/ishangautam7/zynveliq.git
-cd Zynveliq
+cd Talvio
 bun install
 mkdir -p src-tauri/resources/models
 curl -o src-tauri/resources/models/silero_vad_v4.onnx https://blob.handy.computer/silero_vad_v4.onnx
@@ -280,7 +280,7 @@ bun run tauri dev
 
 ## 比較
 
-|          | Zynveliq   | Wispr Flow                                    | Superwhisper                                   | Handy      |
+|          | Talvio   | Wispr Flow                                    | Superwhisper                                   | Handy      |
 | -------- | ---------- | --------------------------------------------- | ---------------------------------------------- | ---------- |
 | 價格     | 免費       | 桌面版每週 2,000 字以內免費，之後每月 15 美元 | 有免費版，Pro 每月 8.49 美元或買斷 249.99 美元 | 免費       |
 | 原始碼   | 開源 (MIT) | 閉源                                          | 閉源                                           | 開源 (MIT) |
@@ -290,11 +290,11 @@ bun run tauri dev
 
 <sub>價格與平台資訊取自各產品官網，查閱於 2026 年 10 月。</sub>
 
-Zynveliq 的語音輸入核心來自 [Handy](https://github.com/cjpais/Handy)；如果你只需要語音輸入，Handy 是很好的選擇。更多細節：[Zynveliq 與 Wispr Flow 比較](https://zynveliq.invalid/blog/zynveliq-vs-wispr-flow)，以及[免費開源的 Wispr Flow 替代方案](https://zynveliq.invalid/blog/best-free-open-source-wispr-flow-alternatives)。
+Talvio 的語音輸入核心來自 [Handy](https://github.com/cjpais/Handy)；如果你只需要語音輸入，Handy 是很好的選擇。更多細節：[Talvio 與 Wispr Flow 比較](https://talvio.invalid/blog/talvio-vs-wispr-flow)，以及[免費開源的 Wispr Flow 替代方案](https://talvio.invalid/blog/best-free-open-source-wispr-flow-alternatives)。
 
 ## 疑難排解
 
-下方列出常見問題。其他問題請查看[疑難排解文件](https://zynveliq.invalid/docs/reference/troubleshooting)或[建立 issue](https://github.com/ishangautam7/zynveliq/issues)。
+下方列出常見問題。其他問題請查看[疑難排解文件](https://talvio.invalid/docs/reference/troubleshooting)或[建立 issue](https://github.com/ishangautam7/zynveliq/issues)。
 
 <details>
 <summary><b>macOS：會議只錄到我這一方的聲音</b></summary>
@@ -303,7 +303,7 @@ Zynveliq 的語音輸入核心來自 [Handy](https://github.com/cjpais/Handy)；
 
 macOS 沒有提供應用程式直接錄製電腦播放聲音的方式。Windows 有 WASAPI loopback，Linux 有 PulseAudio 或 PipeWire 的監聽來源，而 Mac 需要在中間加入虛擬音訊裝置。
 
-安裝 [BlackHole](https://github.com/ExistentialAudio/BlackHole) 之類的回送驅動程式，在「音訊 MIDI 設定」中建立同時輸出到喇叭與 BlackHole 的「多重輸出裝置」，並把它設為輸出裝置。這樣 Zynveliq 就能錄到通話另一方的聲音。你的麥克風無論如何都會被錄製。
+安裝 [BlackHole](https://github.com/ExistentialAudio/BlackHole) 之類的回送驅動程式，在「音訊 MIDI 設定」中建立同時輸出到喇叭與 BlackHole 的「多重輸出裝置」，並把它設為輸出裝置。這樣 Talvio 就能錄到通話另一方的聲音。你的麥克風無論如何都會被錄製。
 
 </details>
 
@@ -312,10 +312,10 @@ macOS 沒有提供應用程式直接錄製電腦播放聲音的方式。Windows 
 
 <br />
 
-在 Linux 上，視窗只能透過 `wlr-layer-shell` 協定（Sway、Hyprland 等 wlroots compositor，以及 KDE Plasma）或 X11 的「keep above」堆疊來浮在其他視窗上方。原生 GNOME Wayland 兩者都不支援，所以 Zynveliq 偵測到它時會改以 XWayland 執行，浮層就能正常置頂。這不需要任何設定，X11 以及 KDE 或 wlroots 的 Wayland 也都能直接使用。
+在 Linux 上，視窗只能透過 `wlr-layer-shell` 協定（Sway、Hyprland 等 wlroots compositor，以及 KDE Plasma）或 X11 的「keep above」堆疊來浮在其他視窗上方。原生 GNOME Wayland 兩者都不支援，所以 Talvio 偵測到它時會改以 XWayland 執行，浮層就能正常置頂。這不需要任何設定，X11 以及 KDE 或 wlroots 的 Wayland 也都能直接使用。
 
-- 若仍要強制使用原生 Wayland，請以 `ZYNVELIQ_ALLOW_WAYLAND=1` 啟動。浮層可能無法保持置頂。
-- 若浮層在 layer-shell compositor 下運作異常，請以 `ZYNVELIQ_NO_GTK_LAYER_SHELL=1` 啟動。
+- 若仍要強制使用原生 Wayland，請以 `TALVIO_ALLOW_WAYLAND=1` 啟動。浮層可能無法保持置頂。
+- 若浮層在 layer-shell compositor 下運作異常，請以 `TALVIO_NO_GTK_LAYER_SHELL=1` 啟動。
 
 </details>
 
@@ -324,17 +324,17 @@ macOS 沒有提供應用程式直接錄製電腦播放聲音的方式。Windows 
 
 <br />
 
-如果日誌中出現 `handy-keys: permission denied reading /dev/input`，代表應用程式無法讀取你的輸入裝置。這只會影響 **Zynveliq Keys** 鍵盤引擎：它要讀取 `/dev/input/event*`（需要你的使用者屬於 `input` 群組），還要透過 `/dev/uinput` 重新送出按鍵（在包括 Ubuntu 在內的許多發行版上預設只有 root 可寫入，所以只加入該群組還不夠）。Linux 預設使用的是 Tauri 引擎，所以只有手動切換過引擎才會遇到這個問題。首頁的「快捷鍵」卡片會提示這種情況，並列出要執行的指令。
+如果日誌中出現 `handy-keys: permission denied reading /dev/input`，代表應用程式無法讀取你的輸入裝置。這只會影響 **Talvio Keys** 鍵盤引擎：它要讀取 `/dev/input/event*`（需要你的使用者屬於 `input` 群組），還要透過 `/dev/uinput` 重新送出按鍵（在包括 Ubuntu 在內的許多發行版上預設只有 root 可寫入，所以只加入該群組還不夠）。Linux 預設使用的是 Tauri 引擎，所以只有手動切換過引擎才會遇到這個問題。首頁的「快捷鍵」卡片會提示這種情況，並列出要執行的指令。
 
 - 授予這兩項權限，然後登出再登入：
   ```bash
   sudo usermod -aG input "$USER"
-  echo 'KERNEL=="uinput", GROUP="input", MODE="0660"' | sudo tee /etc/udev/rules.d/70-zynveliq-uinput.rules
+  echo 'KERNEL=="uinput", GROUP="input", MODE="0660"' | sudo tee /etc/udev/rules.d/70-talvio-uinput.rules
   sudo udevadm control --reload && sudo udevadm trigger /dev/uinput
   ```
 - 或在「設定 → 進階」中把鍵盤引擎切回 **Tauri**。它不需要任何權限，但透過 X11 註冊快速鍵，所以在原生 Wayland 下，只有當某個 X11 視窗取得焦點時才能回應。
 
-在 Wayland 上，最可靠的做法是使用桌面環境本身的快速鍵。在 Wayland 工作階段中，「快捷鍵」卡片會顯示「設定」按鈕，列出每個操作對應的指令，可直接複製。在 GNOME 或 KDE 設定中新增自訂快速鍵，或在 Sway、Hyprland 中加入一行 `bind`，讓它執行 `zynveliq --toggle-transcription`（若使用 AppImage，就寫它的路徑再加上相同參數）。`--toggle-post-process`、`--toggle-assistant`、`--toggle-call`（開始或結束對話）與 `--cancel` 的用法相同。這樣設定的快速鍵按一次開始、再按一次停止，和「按一下切換」一樣。
+在 Wayland 上，最可靠的做法是使用桌面環境本身的快速鍵。在 Wayland 工作階段中，「快捷鍵」卡片會顯示「設定」按鈕，列出每個操作對應的指令，可直接複製。在 GNOME 或 KDE 設定中新增自訂快速鍵，或在 Sway、Hyprland 中加入一行 `bind`，讓它執行 `talvio --toggle-transcription`（若使用 AppImage，就寫它的路徑再加上相同參數）。`--toggle-post-process`、`--toggle-assistant`、`--toggle-call`（開始或結束對話）與 `--cancel` 的用法相同。這樣設定的快速鍵按一次開始、再按一次停止，和「按一下切換」一樣。
 
 </details>
 
@@ -364,9 +364,9 @@ macOS 沒有提供應用程式直接錄製電腦播放聲音的方式。Windows 
 
 ## 授權與致謝
 
-Zynveliq 依 [MIT License](LICENSE) 發布。
+Talvio 依 [MIT License](LICENSE) 發布。
 
-語音輸入核心來自 CJ Pais 開發的 [Handy](https://github.com/cjpais/Handy)，依 MIT 授權使用。感謝 CJ 將它開源。助理、對話、會議、螢幕視覺、使用 Flow 生成、翻譯、語音回答與記憶功能由 Zynveliq 自行開發。
+語音輸入核心來自 CJ Pais 開發的 [Handy](https://github.com/cjpais/Handy)，依 MIT 授權使用。感謝 CJ 將它開源。助理、對話、會議、螢幕視覺、使用 Flow 生成、翻譯、語音回答與記憶功能由 Talvio 自行開發。
 
 也感謝 [Tauri](https://tauri.app)、transcribe.cpp、llama.cpp、ONNX Runtime、[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)、Silero VAD、WeSpeaker、[Kokoro](https://github.com/hexgrad/kokoro) 以及 Kyutai 的 Pocket TTS。
 
@@ -374,6 +374,6 @@ Zynveliq 依 [MIT License](LICENSE) 發布。
 
 <div align="center">
 
-作者：[Ishan Gautam](https://github.com/ishangautam7) · [zynveliq.invalid](https://zynveliq.invalid)
+作者：[Ishan Gautam](https://github.com/ishangautam7) · [talvio.invalid](https://talvio.invalid)
 
 </div>
