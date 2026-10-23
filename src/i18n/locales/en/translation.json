@@ -1980,6 +1980,94 @@
         "medium": "Medium",
         "high": "High"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Connect your phone",
+        "body": "Sign in here and in the Zynveliq phone app with the same account. Then you can dictate and type on this computer from your phone.",
+        "modeLabel": "Sign in or create an account",
+        "signIn": "Sign in",
+        "createAccount": "Create account",
+        "name": "Name (optional)",
+        "email": "Email",
+        "password": "Password",
+        "passwordHint": "At least 8 characters",
+        "signingIn": "Signing in…",
+        "creating": "Creating account…",
+        "or": "or",
+        "google": "Continue with Google",
+        "googleWaiting": "Finish signing in in your browser.",
+        "privacy": "The server keeps only your account and device list, never your recordings or text.",
+        "serverUnsaved": "Save the new server address below before you sign in."
+      },
+      "signOut": "Sign out",
+      "signingOut": "Signing out…",
+      "connection": {
+        "online": "Connected",
+        "connecting": "Connecting…",
+        "offline": "Offline",
+        "offlineHint": "Zynveliq can't reach the server right now and keeps trying. Until it's back, your phone can't use this computer."
+      },
+      "phone": {
+        "title": "Phone",
+        "remoteInput": "Phone dictation",
+        "remoteInputHint": "Lets your phone dictate and type on this computer.",
+        "install": "Get the Zynveliq app on your phone and sign in as {{email}}."
+      },
+      "devices": {
+        "title": "Devices",
+        "empty": "Your devices show up here once you're connected.",
+        "thisComputer": "This computer",
+        "online": "Online",
+        "lastSeen": "Last seen {{time}}",
+        "removeLabel": "Remove {{name}}",
+        "removeTitle": "Remove this device?",
+        "removeBody": "It's signed out of your account and can't use this computer until you sign in on it again.",
+        "removeConfirm": "Remove device",
+        "allowed": "Can use this computer",
+        "notAllowed": "Can't use this computer yet",
+        "allow": "Allow",
+        "allowLabel": "Allow {{name}} to use this computer",
+        "removeAccess": "Remove access",
+        "removeAccessLabel": "Remove access for {{name}}"
+      },
+      "delete": {
+        "button": "Delete account",
+        "title": "Delete your account?",
+        "body": "This deletes your account and signs out all your devices, including this computer and your phone. Your history, recordings and settings stay on this computer.",
+        "deleting": "Deleting…"
+      },
+      "server": {
+        "title": "Account server",
+        "hint": "Where your account is kept. Change it only if you run your own server.",
+        "locked": "Sign out to change the server.",
+        "automatic": "Automatic",
+        "custom": "Custom",
+        "using": "Using {{host}}",
+        "notFound": "Can't find the server right now. Zynveliq keeps trying."
+      },
+      "errors": {
+        "generic": "Something went wrong. Try again.",
+        "invalid_credentials": "Wrong email or password.",
+        "email_taken": "There's already an account with this email. Sign in instead.",
+        "invalid_email": "Enter a valid email address.",
+        "weak_password": "Use at least 8 characters for your password.",
+        "rate_limited": "Too many attempts. Wait a few minutes, then try again.",
+        "invalid_code": "Google sign-in expired. Try again.",
+        "google_unavailable": "This server doesn't offer Google sign-in.",
+        "account_conflict": "The account with this email is linked to a different Google account. Sign in with that one instead.",
+        "unauthorized": "You've been signed out. Sign in again.",
+        "not_found": "That device was already removed.",
+        "invalid_request": "The server couldn't accept that. Check what you entered and try again.",
+        "network": "Can't reach the server. Check your internet connection and the server address.",
+        "no_server": "Can't find the account server right now. Check your internet connection and try again.",
+        "server": "The server sent an unexpected reply. Try again later.",
+        "timeout": "Google sign-in took too long. Try again.",
+        "signed_in": "Sign out before changing the server.",
+        "invalid_url": "Enter an address that starts with https:// so your password stays encrypted. http:// works only for a server on this computer.",
+        "keychain": "Couldn't save your sign-in securely on this computer. Try again.",
+        "wrongServer": "That server address doesn't look right. Check it below and try again."
+      }
     }
   },
   "footer": {
@@ -2344,6 +2432,12 @@
       "dueAt": "Due {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Allow this phone?",
+    "body": "It wants to dictate and type into the apps on this computer, so only allow phones you own.",
+    "allow": "Allow",
+    "deny": "Don't allow"
+  },
   "assistant": {
     "conversation": {
       "title": "Conversation",
@@ -2595,6 +2689,7 @@
     "title": "Settings",
     "tabs": {
       "general": "General",
+      "account": "Account",
       "shortcuts": "Shortcuts",
       "audio": "Audio",
       "dictation": "Dictation",

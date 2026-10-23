@@ -248,7 +248,7 @@ const CLEANED_TEXT_FIELD: &str = "cleaned_text";
 /// turns, which made one History row overwrite another row's audio.
 static RECORDING_FILE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
-fn next_recording_file_name() -> String {
+pub(crate) fn next_recording_file_name() -> String {
     let sequence = RECORDING_FILE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
     format!(
         "zynveliq-{}-{}-{}.wav",
@@ -3577,6 +3577,7 @@ fn paste_final(
                     allow_trailing_space: false,
                     allow_auto_submit: false,
                     smart_spacing: None,
+                    restore_target: true,
                 },
             )
         } else if let Some(fitted) = fitted {

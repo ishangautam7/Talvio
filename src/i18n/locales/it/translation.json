@@ -1989,6 +1989,94 @@
         "medium": "Medio",
         "high": "Alto"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Collega il telefono",
+        "body": "Accedi qui e nell'app Zynveliq sul telefono con lo stesso account. Potrai così dettare e scrivere su questo computer dal telefono.",
+        "modeLabel": "Accedi o crea un account",
+        "signIn": "Accedi",
+        "createAccount": "Crea account",
+        "name": "Nome (facoltativo)",
+        "email": "Email",
+        "password": "Password",
+        "passwordHint": "Almeno 8 caratteri",
+        "signingIn": "Accesso in corso…",
+        "creating": "Creazione dell'account…",
+        "or": "oppure",
+        "google": "Continua con Google",
+        "googleWaiting": "Completa l'accesso nel browser.",
+        "privacy": "Il server conserva solo il tuo account e l'elenco dei dispositivi, mai le tue registrazioni o i tuoi testi.",
+        "serverUnsaved": "Salva il nuovo indirizzo del server qui sotto prima di accedere."
+      },
+      "signOut": "Esci",
+      "signingOut": "Uscita in corso…",
+      "connection": {
+        "online": "Connesso",
+        "connecting": "Connessione in corso…",
+        "offline": "Non connesso",
+        "offlineHint": "Zynveliq al momento non riesce a raggiungere il server e continua a riprovare. Fino ad allora il telefono non può usare questo computer."
+      },
+      "phone": {
+        "title": "Telefono",
+        "remoteInput": "Dettatura dal telefono",
+        "remoteInputHint": "Permette al telefono di dettare e scrivere su questo computer.",
+        "install": "Installa l'app Zynveliq sul telefono e accedi come {{email}}."
+      },
+      "devices": {
+        "title": "Dispositivi",
+        "empty": "I tuoi dispositivi compariranno qui appena sarai connesso.",
+        "thisComputer": "Questo computer",
+        "online": "Attivo",
+        "lastSeen": "Ultima attività {{time}}",
+        "removeLabel": "Rimuovi {{name}}",
+        "removeTitle": "Rimuovere questo dispositivo?",
+        "removeBody": "Verrà disconnesso dal tuo account e non potrà usare questo computer finché non accederai di nuovo da lì.",
+        "removeConfirm": "Rimuovi dispositivo",
+        "allowed": "Può usare questo computer",
+        "notAllowed": "Non può ancora usare questo computer",
+        "allow": "Consenti",
+        "allowLabel": "Consenti a {{name}} di usare questo computer",
+        "removeAccess": "Rimuovi accesso",
+        "removeAccessLabel": "Rimuovi l'accesso di {{name}}"
+      },
+      "delete": {
+        "button": "Elimina account",
+        "title": "Eliminare il tuo account?",
+        "body": "Il tuo account verrà eliminato e tutti i tuoi dispositivi verranno disconnessi, compresi questo computer e il telefono. Cronologia, registrazioni e impostazioni restano su questo computer.",
+        "deleting": "Eliminazione…"
+      },
+      "server": {
+        "title": "Server dell'account",
+        "hint": "Dove viene conservato il tuo account. Cambialo solo se usi un tuo server.",
+        "locked": "Esci per cambiare server.",
+        "automatic": "Automatico",
+        "custom": "Personalizzato",
+        "using": "In uso: {{host}}",
+        "notFound": "Al momento il server non si trova. Zynveliq continua a riprovare."
+      },
+      "errors": {
+        "generic": "Qualcosa è andato storto. Riprova.",
+        "invalid_credentials": "Email o password errata.",
+        "email_taken": "Esiste già un account con questa email. Accedi.",
+        "invalid_email": "Inserisci un indirizzo email valido.",
+        "weak_password": "Usa almeno 8 caratteri per la password.",
+        "rate_limited": "Troppi tentativi. Attendi qualche minuto e riprova.",
+        "invalid_code": "L'accesso con Google è scaduto. Riprova.",
+        "google_unavailable": "Questo server non offre l'accesso con Google.",
+        "account_conflict": "L'account con questa email è collegato a un altro account Google. Accedi con quello.",
+        "unauthorized": "Sei stato disconnesso. Accedi di nuovo.",
+        "not_found": "Quel dispositivo è già stato rimosso.",
+        "invalid_request": "Il server non ha potuto accettare la richiesta. Controlla i dati inseriti e riprova.",
+        "network": "Impossibile raggiungere il server. Controlla la connessione a internet e l'indirizzo del server.",
+        "no_server": "Al momento il server dell'account non si trova. Controlla la connessione a internet e riprova.",
+        "server": "Il server ha inviato una risposta inattesa. Riprova più tardi.",
+        "timeout": "L'accesso con Google ha richiesto troppo tempo. Riprova.",
+        "signed_in": "Esci prima di cambiare server.",
+        "invalid_url": "Inserisci un indirizzo che inizia con https:// così la tua password resta cifrata. http:// funziona solo con un server su questo computer.",
+        "keychain": "Impossibile salvare l'accesso in modo sicuro su questo computer. Riprova.",
+        "wrongServer": "L'indirizzo del server non sembra corretto. Controllalo qui sotto e riprova."
+      }
     }
   },
   "footer": {
@@ -2358,6 +2446,12 @@
       "dueAt": "Scade {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Consentire questo telefono?",
+    "body": "Vuole dettare e scrivere nelle app di questo computer, quindi consenti solo telefoni che ti appartengono.",
+    "allow": "Consenti",
+    "deny": "Non consentire"
+  },
   "assistant": {
     "conversation": {
       "title": "Conversazione",
@@ -2613,6 +2707,7 @@
     "title": "Impostazioni",
     "tabs": {
       "general": "Generali",
+      "account": "Account",
       "shortcuts": "Scorciatoie",
       "audio": "Audio",
       "dictation": "Dettatura",

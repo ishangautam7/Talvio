@@ -1980,6 +1980,94 @@
         "medium": "Orta",
         "high": "Yüksek"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Telefonunuzu bağlayın",
+        "body": "Burada ve telefonunuzdaki Zynveliq uygulamasında aynı hesapla oturum açın. Ardından telefonunuzdan bu bilgisayarda dikte edip yazabilirsiniz.",
+        "modeLabel": "Oturum açın veya hesap oluşturun",
+        "signIn": "Oturum aç",
+        "createAccount": "Hesap oluştur",
+        "name": "Ad (isteğe bağlı)",
+        "email": "E-posta",
+        "password": "Parola",
+        "passwordHint": "En az 8 karakter",
+        "signingIn": "Oturum açılıyor…",
+        "creating": "Hesap oluşturuluyor…",
+        "or": "veya",
+        "google": "Google ile devam et",
+        "googleWaiting": "Oturum açmayı tarayıcınızda tamamlayın.",
+        "privacy": "Sunucu yalnızca hesabınızı ve cihaz listenizi saklar; kayıtlarınızı veya metinlerinizi asla saklamaz.",
+        "serverUnsaved": "Oturum açmadan önce aşağıdaki yeni sunucu adresini kaydedin."
+      },
+      "signOut": "Oturumu kapat",
+      "signingOut": "Oturum kapatılıyor…",
+      "connection": {
+        "online": "Bağlı",
+        "connecting": "Bağlanıyor…",
+        "offline": "Bağlı değil",
+        "offlineHint": "Zynveliq şu anda sunucuya ulaşamıyor ve denemeye devam ediyor. O zamana kadar telefonunuz bu bilgisayarı kullanamaz."
+      },
+      "phone": {
+        "title": "Telefon",
+        "remoteInput": "Telefondan dikte",
+        "remoteInputHint": "Telefonunuzun bu bilgisayarda dikte etmesine ve yazmasına izin verir.",
+        "install": "Telefonunuza Zynveliq uygulamasını yükleyin ve {{email}} ile oturum açın."
+      },
+      "devices": {
+        "title": "Cihazlar",
+        "empty": "Bağlandığınızda cihazlarınız burada görünür.",
+        "thisComputer": "Bu bilgisayar",
+        "online": "Etkin",
+        "lastSeen": "Son etkinlik: {{time}}",
+        "removeLabel": "{{name}} cihazını kaldır",
+        "removeTitle": "Bu cihaz kaldırılsın mı?",
+        "removeBody": "Hesabınızdaki oturumu kapatılır ve siz o cihazda yeniden oturum açana kadar bu bilgisayarı kullanamaz.",
+        "removeConfirm": "Cihazı kaldır",
+        "allowed": "Bu bilgisayarı kullanabilir",
+        "notAllowed": "Henüz bu bilgisayarı kullanamaz",
+        "allow": "İzin ver",
+        "allowLabel": "{{name}} cihazının bu bilgisayarı kullanmasına izin ver",
+        "removeAccess": "Erişimi kaldır",
+        "removeAccessLabel": "{{name}} cihazının erişimini kaldır"
+      },
+      "delete": {
+        "button": "Hesabı sil",
+        "title": "Hesabınız silinsin mi?",
+        "body": "Hesabınız silinir ve bu bilgisayar ile telefonunuz dahil tüm cihazlarınızın oturumu kapatılır. Geçmişiniz, kayıtlarınız ve ayarlarınız bu bilgisayarda kalır.",
+        "deleting": "Siliniyor…"
+      },
+      "server": {
+        "title": "Hesap sunucusu",
+        "hint": "Hesabınızın tutulduğu yer. Yalnızca kendi sunucunuzu çalıştırıyorsanız değiştirin.",
+        "locked": "Sunucuyu değiştirmek için oturumu kapatın.",
+        "automatic": "Otomatik",
+        "custom": "Özel",
+        "using": "Kullanılan: {{host}}",
+        "notFound": "Sunucu şu anda bulunamıyor. Zynveliq denemeye devam ediyor."
+      },
+      "errors": {
+        "generic": "Bir şeyler ters gitti. Tekrar deneyin.",
+        "invalid_credentials": "E-posta veya parola yanlış.",
+        "email_taken": "Bu e-postayla zaten bir hesap var. Bunun yerine oturum açın.",
+        "invalid_email": "Geçerli bir e-posta adresi girin.",
+        "weak_password": "Parolanız en az 8 karakter olmalı.",
+        "rate_limited": "Çok fazla deneme yapıldı. Birkaç dakika bekleyip tekrar deneyin.",
+        "invalid_code": "Google ile oturum açmanın süresi doldu. Tekrar deneyin.",
+        "google_unavailable": "Bu sunucu Google ile oturum açmayı sunmuyor.",
+        "account_conflict": "Bu e-postanın hesabı farklı bir Google hesabına bağlı. Bunun yerine o hesapla oturum açın.",
+        "unauthorized": "Oturumunuz kapatıldı. Yeniden oturum açın.",
+        "not_found": "Bu cihaz zaten kaldırıldı.",
+        "invalid_request": "Sunucu bu isteği kabul edemedi. Girdiklerinizi kontrol edip tekrar deneyin.",
+        "network": "Sunucuya ulaşılamıyor. İnternet bağlantınızı ve sunucu adresini kontrol edin.",
+        "no_server": "Hesap sunucusu şu anda bulunamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+        "server": "Sunucu beklenmedik bir yanıt gönderdi. Daha sonra tekrar deneyin.",
+        "timeout": "Google ile oturum açmak çok uzun sürdü. Tekrar deneyin.",
+        "signed_in": "Sunucuyu değiştirmeden önce oturumu kapatın.",
+        "invalid_url": "Parolanız şifreli gitsin diye https:// ile başlayan bir adres girin. http:// yalnızca bu bilgisayardaki bir sunucuyla çalışır.",
+        "keychain": "Oturumunuz bu bilgisayara güvenli şekilde kaydedilemedi. Tekrar deneyin.",
+        "wrongServer": "Bu sunucu adresi doğru görünmüyor. Aşağıdan kontrol edip tekrar deneyin."
+      }
     }
   },
   "footer": {
@@ -2344,6 +2432,12 @@
       "dueAt": "Zamanı: {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Bu telefona izin verilsin mi?",
+    "body": "Bu bilgisayardaki uygulamalarda dikte etmek ve yazmak istiyor, bu yüzden yalnızca size ait telefonlara izin verin.",
+    "allow": "İzin ver",
+    "deny": "İzin verme"
+  },
   "assistant": {
     "conversation": {
       "title": "Sohbet",
@@ -2595,6 +2689,7 @@
     "title": "Ayarlar",
     "tabs": {
       "general": "Genel",
+      "account": "Hesap",
       "shortcuts": "Kısayollar",
       "audio": "Ses",
       "dictation": "Dikte",

@@ -738,11 +738,21 @@ fn build_popup(app: &AppHandle) {
     }
 }
 
-/// Top-right of the display under the cursor — the corner every desktop reserves
-/// for notifications, on the screen the user is actually looking at.
 fn place_popup(app: &AppHandle, window: &tauri::WebviewWindow) {
-    let height = popup_height();
-    let _ = window.set_size(tauri::LogicalSize::new(POPUP_WIDTH, height));
+    place_top_right(app, window, POPUP_WIDTH, popup_height());
+    crate::account::approval::make_room(app);
+}
+
+/// Top-right of the display under the cursor — the corner every desktop reserves
+/// for notifications, on the screen the user is actually looking at. Also where
+/// the phone approval popup goes (`account::approval`).
+pub(crate) fn place_top_right(
+    app: &AppHandle,
+    window: &tauri::WebviewWindow,
+    width: f64,
+    height: f64,
+) {
+    let _ = window.set_size(tauri::LogicalSize::new(width, height));
 
     let monitor = app
         .cursor_position()
@@ -762,7 +772,7 @@ fn place_popup(app: &AppHandle, window: &tauri::WebviewWindow) {
     {
         let scale = monitor.scale_factor();
         let right = monitor.position().x as f64 + monitor.size().width as f64;
-        let x = right - (POPUP_WIDTH + POPUP_MARGIN) * scale;
+        let x = right - (width + POPUP_MARGIN) * scale;
         let y = monitor.position().y as f64 + POPUP_MARGIN * scale;
         let _ = window.set_position(tauri::PhysicalPosition::new(
             x.round() as i32,
@@ -775,7 +785,7 @@ fn place_popup(app: &AppHandle, window: &tauri::WebviewWindow) {
         let mx = monitor.position().x as f64 / scale;
         let my = monitor.position().y as f64 / scale;
         let mw = monitor.size().width as f64 / scale;
-        let x = mx + mw - POPUP_WIDTH - POPUP_MARGIN;
+        let x = mx + mw - width - POPUP_MARGIN;
         let y = my + POPUP_MARGIN;
         let _ = window.set_position(tauri::LogicalPosition::new(x, y));
     }

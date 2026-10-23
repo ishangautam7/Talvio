@@ -1998,6 +1998,94 @@
         "medium": "Średnie",
         "high": "Wysokie"
       }
+    },
+    "account": {
+      "signedOut": {
+        "title": "Połącz telefon",
+        "body": "Zaloguj się tutaj i w aplikacji Zynveliq na telefonie na to samo konto. Wtedy możesz dyktować i pisać na tym komputerze z telefonu.",
+        "modeLabel": "Zaloguj się lub utwórz konto",
+        "signIn": "Zaloguj się",
+        "createAccount": "Utwórz konto",
+        "name": "Imię (opcjonalnie)",
+        "email": "E-mail",
+        "password": "Hasło",
+        "passwordHint": "Co najmniej 8 znaków",
+        "signingIn": "Logowanie…",
+        "creating": "Tworzenie konta…",
+        "or": "lub",
+        "google": "Kontynuuj przez Google",
+        "googleWaiting": "Dokończ logowanie w przeglądarce.",
+        "privacy": "Serwer przechowuje tylko Twoje konto i listę urządzeń, nigdy nagrania ani teksty.",
+        "serverUnsaved": "Zapisz nowy adres serwera poniżej, zanim się zalogujesz."
+      },
+      "signOut": "Wyloguj się",
+      "signingOut": "Wylogowywanie…",
+      "connection": {
+        "online": "Połączono",
+        "connecting": "Łączenie…",
+        "offline": "Brak połączenia",
+        "offlineHint": "Zynveliq nie może teraz połączyć się z serwerem i wciąż próbuje. Do tego czasu telefon nie może korzystać z tego komputera."
+      },
+      "phone": {
+        "title": "Telefon",
+        "remoteInput": "Dyktowanie z telefonu",
+        "remoteInputHint": "Pozwala telefonowi dyktować i pisać na tym komputerze.",
+        "install": "Zainstaluj aplikację Zynveliq na telefonie i zaloguj się jako {{email}}."
+      },
+      "devices": {
+        "title": "Urządzenia",
+        "empty": "Twoje urządzenia pojawią się tutaj po połączeniu.",
+        "thisComputer": "Ten komputer",
+        "online": "Aktywne",
+        "lastSeen": "Ostatnio aktywne {{time}}",
+        "removeLabel": "Usuń {{name}}",
+        "removeTitle": "Usunąć to urządzenie?",
+        "removeBody": "Zostanie wylogowane z Twojego konta i nie będzie mogło korzystać z tego komputera, dopóki znów się na nim nie zalogujesz.",
+        "removeConfirm": "Usuń urządzenie",
+        "allowed": "Może używać tego komputera",
+        "notAllowed": "Jeszcze nie może używać tego komputera",
+        "allow": "Zezwól",
+        "allowLabel": "Zezwól urządzeniu {{name}} na używanie tego komputera",
+        "removeAccess": "Odbierz dostęp",
+        "removeAccessLabel": "Odbierz dostęp urządzeniu {{name}}"
+      },
+      "delete": {
+        "button": "Usuń konto",
+        "title": "Usunąć Twoje konto?",
+        "body": "Twoje konto zostanie usunięte, a wszystkie urządzenia wylogowane, w tym ten komputer i telefon. Historia, nagrania i ustawienia zostają na tym komputerze.",
+        "deleting": "Usuwanie…"
+      },
+      "server": {
+        "title": "Serwer kont",
+        "hint": "Miejsce, w którym przechowywane jest Twoje konto. Zmień je tylko, jeśli masz własny serwer.",
+        "locked": "Wyloguj się, aby zmienić serwer.",
+        "automatic": "Automatycznie",
+        "custom": "Własny",
+        "using": "Używany: {{host}}",
+        "notFound": "Nie można teraz znaleźć serwera. Zynveliq wciąż próbuje."
+      },
+      "errors": {
+        "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+        "invalid_credentials": "Nieprawidłowy e-mail lub hasło.",
+        "email_taken": "Konto z tym adresem e-mail już istnieje. Zaloguj się.",
+        "invalid_email": "Wpisz prawidłowy adres e-mail.",
+        "weak_password": "Hasło musi mieć co najmniej 8 znaków.",
+        "rate_limited": "Zbyt wiele prób. Odczekaj kilka minut i spróbuj ponownie.",
+        "invalid_code": "Logowanie przez Google wygasło. Spróbuj ponownie.",
+        "google_unavailable": "Ten serwer nie obsługuje logowania przez Google.",
+        "account_conflict": "Konto z tym adresem e-mail jest połączone z innym kontem Google. Zaloguj się za jego pomocą.",
+        "unauthorized": "Wylogowano Cię. Zaloguj się ponownie.",
+        "not_found": "To urządzenie zostało już usunięte.",
+        "invalid_request": "Serwer nie przyjął żądania. Sprawdź wpisane dane i spróbuj ponownie.",
+        "network": "Nie można połączyć się z serwerem. Sprawdź połączenie z internetem i adres serwera.",
+        "no_server": "Nie można teraz znaleźć serwera kont. Sprawdź połączenie z internetem i spróbuj ponownie.",
+        "server": "Serwer wysłał nieoczekiwaną odpowiedź. Spróbuj ponownie później.",
+        "timeout": "Logowanie przez Google trwało zbyt długo. Spróbuj ponownie.",
+        "signed_in": "Wyloguj się, zanim zmienisz serwer.",
+        "invalid_url": "Wpisz adres zaczynający się od https://, aby hasło było szyfrowane. http:// działa tylko z serwerem na tym komputerze.",
+        "keychain": "Nie udało się bezpiecznie zapisać logowania na tym komputerze. Spróbuj ponownie.",
+        "wrongServer": "Ten adres serwera wygląda na nieprawidłowy. Sprawdź go poniżej i spróbuj ponownie."
+      }
     }
   },
   "footer": {
@@ -2372,6 +2460,12 @@
       "dueAt": "Termin: {{when}}"
     }
   },
+  "phoneApproval": {
+    "title": "Zezwolić temu telefonowi?",
+    "body": "Chce dyktować i pisać w aplikacjach na tym komputerze, więc zezwalaj tylko telefonom, które należą do Ciebie.",
+    "allow": "Zezwól",
+    "deny": "Nie zezwalaj"
+  },
   "assistant": {
     "conversation": {
       "title": "Rozmowa",
@@ -2631,6 +2725,7 @@
     "title": "Ustawienia",
     "tabs": {
       "general": "Ogólne",
+      "account": "Konto",
       "shortcuts": "Skróty",
       "audio": "Dźwięk",
       "dictation": "Dyktowanie",
