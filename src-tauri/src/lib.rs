@@ -992,6 +992,7 @@ pub fn run(cli_args: CliArgs) {
             shortcut::change_ptt_setting,
             shortcut::change_dictation_silence_stop_setting,
             shortcut::change_assistant_ptt_setting,
+            shortcut::change_command_ptt_setting,
             shortcut::change_audio_feedback_setting,
             shortcut::change_audio_feedback_volume_setting,
             shortcut::change_sound_theme_setting,
@@ -1371,6 +1372,11 @@ pub fn run(cli_args: CliArgs) {
             commands::command_mode::change_command_agent_max_steps_setting,
             commands::command_mode::change_command_agent_max_cost_usd_setting,
             commands::command_mode::command_cancel,
+            commands::command_mode::command_model_in_use,
+            commands::command_mode::command_card,
+            commands::command_mode::command_card_confirm,
+            commands::command_mode::command_card_answer,
+            commands::command_mode::command_card_dismiss,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 

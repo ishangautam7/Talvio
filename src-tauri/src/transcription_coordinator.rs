@@ -405,8 +405,15 @@ pub struct TranscriptionCoordinator {
     tx: Sender<Command>,
 }
 
+/// The shortcuts that record through the coordinator: dictation (with or
+/// without cleanup), the ask, and a spoken command. Each has its own pipeline
+/// (`ACTION_MAP`), so a command is never dictated and a dictation is never
+/// run as a command.
 pub fn is_transcribe_binding(id: &str) -> bool {
-    id == "transcribe" || id == "transcribe_with_post_process" || id == "assistant"
+    id == "transcribe"
+        || id == "transcribe_with_post_process"
+        || id == "assistant"
+        || id == crate::settings::COMMAND_BINDING_ID
 }
 
 impl TranscriptionCoordinator {
@@ -1187,6 +1194,53 @@ mod tests {
     }
 
     const LOCK: RecordingMode = RecordingMode::Lock;
+
+    /// A spoken command records through the coordinator like the ask, so Hold,
+    /// Tap, Esc and the processing cap all apply to it; the call and Cancel
+    /// act on a press and are not recordings.
+    #[test]
+    fn a_command_records_through_the_coordinator() {
+        let command = crate::settings::COMMAND_BINDING_ID;
+        assert!(is_transcribe_binding(command));
+        assert!(is_transcribe_binding("assistant"));
+        assert!(is_transcribe_binding("transcribe"));
+        assert!(!is_transcribe_binding("assistant_call"));
+        assert!(!is_transcribe_binding("cancel"));
+        assert!(!is_transcribe_binding(
+            crate::settings::HANDS_FREE_BINDING_ID
+        ));
+    }
+
+    /// A command is not dictation: it never ends on silence, and the
+    /// hands-free key does not turn a held one hands-free.
+    #[test]
+    fn a_command_is_never_treated_as_dictation() {
+        let command = crate::settings::COMMAND_BINDING_ID;
+        assert!(!is_dictation_binding(command));
+        assert_eq!(silence_timeout_for(command, LOCK, 5), None);
+        assert_eq!(silence_timeout_for(command, RecordingMode::Hold, 5), None);
+        assert!(!keeps_listening(&recording(command, RecordingMode::Hold)));
+        assert!(!keeps_listening(&recording(command, LOCK)));
+    }
+
+    /// Hold or Tap for a command follows its own setting.
+    #[test]
+    fn a_command_press_follows_its_own_hold_setting() {
+        let command = crate::settings::COMMAND_BINDING_ID;
+        let mut settings = crate::settings::get_default_settings();
+        settings.command_push_to_talk = true;
+        settings.assistant_push_to_talk = false;
+        assert_eq!(
+            recording_mode(crate::settings::holds_to_record(&settings, command)),
+            RecordingMode::Hold
+        );
+        settings.command_push_to_talk = false;
+        settings.assistant_push_to_talk = true;
+        assert_eq!(
+            recording_mode(crate::settings::holds_to_record(&settings, command)),
+            RecordingMode::Lock
+        );
+    }
 
     #[test]
     fn only_a_hands_free_dictation_stops_on_silence() {

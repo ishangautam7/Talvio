@@ -101,7 +101,7 @@ fn is_pill_only_state(state: &str) -> bool {
 fn is_labeled_state(state: &str) -> bool {
     matches!(
         state,
-        "generating" | "vision" | "notice" | "downloading" | "update" | "loading"
+        "generating" | "vision" | "command" | "notice" | "downloading" | "update" | "loading"
     )
 }
 
@@ -1590,6 +1590,12 @@ pub fn show_generating_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "generating");
 }
 
+/// Shows the overlay in the "command" state: a spoken command is being carried
+/// out (`command_mode::voice`). An open-ended wait, so the looping ripple.
+pub fn show_command_overlay(app_handle: &AppHandle) {
+    show_overlay_state(app_handle, "command");
+}
+
 /// Shows the overlay in the "vision" state (Flow is looking at the screen).
 pub fn show_vision_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "vision");
@@ -2097,6 +2103,15 @@ mod model_load_tests {
             assert_eq!(load_change(state, true), LoadChange::Nothing, "{state}");
             assert_eq!(load_change(state, false), LoadChange::Nothing, "{state}");
         }
+    }
+
+    /// "Working on it…" for a spoken command is a written line too, and it is
+    /// not waiting on the speech model.
+    #[test]
+    fn a_running_command_is_a_labeled_state() {
+        assert!(is_labeled_state("command"));
+        assert_eq!(load_change("command", true), LoadChange::Nothing);
+        assert_eq!(load_change("command", false), LoadChange::Nothing);
     }
 
     /// "Loading model…" is a written line, so it gets the wider frame.

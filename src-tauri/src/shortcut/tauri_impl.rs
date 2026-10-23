@@ -42,6 +42,10 @@ pub fn init_shortcuts(app: &AppHandle) {
         if crate::assistant::is_assistant_binding(&id) && !user_settings.assistant_enabled {
             continue;
         }
+        // And the command shortcut while command mode is off.
+        if id == settings::COMMAND_BINDING_ID && !settings::command_binding_active(&user_settings) {
+            continue;
+        }
         let binding = user_settings
             .bindings
             .get(&id)
