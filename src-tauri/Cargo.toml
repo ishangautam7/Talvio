@@ -172,6 +172,10 @@ strsim = "0.11.0"
 natural = "0.5.0"
 regex = "1"
 chrono = "0.4"
+# Command mode tells the router model the local time zone by name
+# ("Asia/Kathmandu"), which chrono cannot give. Already in the graph through
+# chrono; pinned to the version the lockfile resolves.
+iana-time-zone = "=0.1.65"
 rusqlite = { version = "0.37", features = ["bundled"] }
 tar = "0.4.44"
 flate2 = "1.0"
@@ -278,6 +282,8 @@ windows = { version = "0.61.3", features = [
   # handle. tao already enables all three on this same `windows` version, so
   # nothing extra is compiled.
   "Win32_Graphics_Gdi",
+  # Command mode (command_mode/effects/windows.rs): DWMWA_CLOAKED, so a suspended Store app's hidden frame is not offered as an open window.
+  "Win32_Graphics_Dwm",
   "Win32_System_Memory",
   # The module handle above, and `GetProcAddress` for `IsWow64Process2`,
   # resolved at run time so the x64 build can tell it is emulated on a Windows
@@ -379,7 +385,9 @@ objc2-app-kit = { version = "=0.3.2", default-features = false, features = [
   "std",
   "objc2-core-foundation",
   "NSResponder",
+  "NSRunningApplication",
   "NSSharingService",
+  "NSWorkspace",
   "NSView",
 ] }
 # Audio ducking (see audio_toolkit/ducking/macos.rs): reads the default output
