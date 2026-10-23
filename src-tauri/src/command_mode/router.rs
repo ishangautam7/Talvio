@@ -232,6 +232,11 @@ user's own voice, from what they said. No placeholders such as [Your name], and 
 line of the context, in the user's time zone.
 - Use ask_user only when the command is genuinely ambiguous and no tool could settle it. Do not \
 ask about things a tool resolves itself, such as which contact, app or file is meant.
+- \"Open <name>\" is open_app with the name as said, also for a website (\"open YouTube\", \
+\"open Gmail\"): it opens the site's app when one is installed and the website otherwise. Use \
+open_url for an address or \"go to <site>\". Never web_search a site's name to open it.
+- To play a song, video, artist or playlist by name (\"play Believer\", \"play some lo-fi\"), \
+use play_media. To pause, resume, skip or stop what is already playing, use media_control.
 - Use say for a question that needs no action (for example \"what time is it\"), with a \
 one-sentence answer.
 - When the user message lists steps as already done, they have run. Never call them again; \
