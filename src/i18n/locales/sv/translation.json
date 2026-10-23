@@ -1579,6 +1579,24 @@
           "description": "Namnen som kommandon kan mejla, i en JSON-fil som du redigerar. Den skapas med ett exempel första gången.",
           "open": "Öppna kontaktfilen",
           "openFailed": "Kunde inte öppna kontaktfilen: {{error}}"
+        },
+        "stop": "Stoppa",
+        "autoEscalate": {
+          "title": "Styr skärmen vid behov",
+          "description": "När inget verktyg passar ett kommando läser en agent appens kontroller och använder dem åt dig, och frågar innan allt som skickar, köper eller raderar. Endast Windows än så länge."
+        },
+        "agentModel": {
+          "title": "Agentmodell",
+          "description": "Modellen som styr skärmen, hos routerns leverantör. En starkare modell än routerns fungerar bättre. Tomt återgår till standard.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Stegbegränsning för agenten",
+          "description": "Det högsta antalet modellanrop en uppgift får använda, från 1 till 60. Där stannar agenten och lämnar skärmen som den är."
+        },
+        "agentMaxCost": {
+          "title": "Kostnadsgräns för agenten (US$)",
+          "description": "Stoppar en uppgift när den har kostat ungefär så här mycket. Bara kända Claude-modeller har ett pris; alla andra modeller begränsas endast av stegbegränsningen."
         }
       }
     },
@@ -3764,6 +3782,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Stoppat. Jag lämnade allt som det är.",
+      "agentConfirm": "”{{name}}” i {{window}} kan skicka, köpa eller radera något. Säg ja för att fortsätta, eller avbryt.",
+      "agentConfirmed": "Klart: ”{{name}}”.",
+      "agentCostLimit": "Det skulle ha kostat mer än ${{limit}}, så jag stannade och lämnade allt som det är.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Jag kunde inte styra skärmen: {{reason}}",
+      "agentGaveUp": "Jag kunde inte slutföra det: {{reason}}",
+      "agentNotConfigured": "Det kräver att jag styr skärmen, men agenten är inte konfigurerad: {{why}}",
+      "agentOff": "Inget av mina verktyg kan göra det. Slå på ”Styr skärmen vid behov” så kan jag använda appen åt dig.",
+      "agentStepLimit": "Det tog mer än {{steps}} steg, så jag stannade och lämnade allt som det är.",
+      "agentWorking": "Jobbar på det i {{app}}…",
+      "agentWorkingNoApp": "Jobbar på det…",
       "calendarDraft": "Kalenderhändelsen ”{{title}}” är redo att sparas.",
       "calendarDraftMissingGuests": "Kalenderhändelsen ”{{title}}” är redo att sparas. Jag utelämnade {{guests}}: jag har ingen e-postadress till dem, så lägg till dem i formuläret.",
       "cancelled": "Avbrutet. Inget skickades.",

@@ -1579,6 +1579,24 @@
           "description": "The names commands can email, in a JSON file you edit. It is created with one example the first time.",
           "open": "Open contacts file",
           "openFailed": "Could not open the contacts file: {{error}}"
+        },
+        "stop": "Stop",
+        "autoEscalate": {
+          "title": "Control the screen when needed",
+          "description": "When no tool fits a command, an agent reads the app's controls and works them for you, and asks before anything that sends, buys or deletes. Windows only for now."
+        },
+        "agentModel": {
+          "title": "Agent model",
+          "description": "The model that controls the screen, on the router's provider. A stronger model than the router's works better. Empty goes back to the default.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Agent step limit",
+          "description": "The most model calls one task may use, from 1 to 60. The agent stops there and leaves the screen as it is."
+        },
+        "agentMaxCost": {
+          "title": "Agent cost limit (US$)",
+          "description": "Stops a task once it has cost about this much. Only known Claude models are priced; any other model is held to the step limit alone."
         }
       }
     },
@@ -3764,6 +3782,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Stopped. I left everything as it is.",
+      "agentConfirm": "“{{name}}” in {{window}} could send, buy or delete something. Say yes to go ahead, or cancel.",
+      "agentConfirmed": "Done: “{{name}}”.",
+      "agentCostLimit": "That was about to cost more than ${{limit}}, so I stopped and left everything as it is.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "I couldn't control the screen: {{reason}}",
+      "agentGaveUp": "I couldn't finish that: {{reason}}",
+      "agentNotConfigured": "That needs me to control the screen, but the agent isn't set up: {{why}}",
+      "agentOff": "None of my tools can do that. Turn on “Control the screen when needed” to let me work the app for you.",
+      "agentStepLimit": "That took more than {{steps}} steps, so I stopped and left everything as it is.",
+      "agentWorking": "Working on it in {{app}}…",
+      "agentWorkingNoApp": "Working on it…",
       "calendarDraft": "Calendar event “{{title}}” is ready to save.",
       "calendarDraftMissingGuests": "Calendar event “{{title}}” is ready to save. I left out {{guests}}: I don't have an email address for them, so add them in the form.",
       "cancelled": "Cancelled. Nothing was sent.",

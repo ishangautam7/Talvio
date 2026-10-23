@@ -1354,6 +1354,11 @@ pub fn run(cli_args: CliArgs) {
             commands::command_mode::change_command_dry_run_setting,
             commands::command_mode::change_command_google_account_setting,
             commands::command_mode::change_command_search_url_setting,
+            commands::command_mode::change_command_auto_escalate_setting,
+            commands::command_mode::change_command_agent_model_setting,
+            commands::command_mode::change_command_agent_max_steps_setting,
+            commands::command_mode::change_command_agent_max_cost_usd_setting,
+            commands::command_mode::command_cancel,
         ])
         .events(collect_events![managers::history::HistoryUpdatePayload,]);
 
@@ -1702,9 +1707,8 @@ pub fn run(cli_args: CliArgs) {
             // on the window in front, and showing ours a moment later would put
             // Zynveliq there, so typed text and keys would land in Settings. The
             // window still loads hidden, which is what creates keyboard control.
-            let should_hide = settings.start_hidden
-                || cli_args.start_hidden
-                || cli_args.run_command.is_some();
+            let should_hide =
+                settings.start_hidden || cli_args.start_hidden || cli_args.run_command.is_some();
             let should_force_show = should_force_show_permissions_window(&app_handle);
 
             // If start_hidden but tray is disabled, we must show the window

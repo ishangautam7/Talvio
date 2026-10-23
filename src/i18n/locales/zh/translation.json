@@ -1570,6 +1570,24 @@
           "description": "命令可以发送邮件的联系人，保存在一个由您编辑的 JSON 文件中。首次使用时会创建一个示例。",
           "open": "打开联系人文件",
           "openFailed": "无法打开联系人文件：{{error}}"
+        },
+        "stop": "停止",
+        "autoEscalate": {
+          "title": "需要时控制屏幕",
+          "description": "当没有合适的工具执行命令时，由代理读取应用的控件并替您操作；任何会发送、购买或删除内容的操作，都会先征求您的同意。目前仅支持 Windows。"
+        },
+        "agentModel": {
+          "title": "代理模型",
+          "description": "控制屏幕的模型，使用路由的提供商。比路由模型更强的模型效果更好。留空则恢复为默认值。",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "代理步数上限",
+          "description": "单个任务最多可使用的模型调用次数，范围 1 到 60。达到上限后，代理会停止，并保持屏幕原样。"
+        },
+        "agentMaxCost": {
+          "title": "代理费用上限（US$）",
+          "description": "任务花费大约达到此金额时即停止。只有已知的 Claude 模型有价格；其他模型仅受步数上限约束。"
         }
       }
     },
@@ -3710,6 +3728,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "已停止，一切保持原样。",
+      "agentConfirm": "{{window}} 中的“{{name}}”可能会发送、购买或删除内容。说“是”继续，或者取消。",
+      "agentConfirmed": "已完成：“{{name}}”。",
+      "agentCostLimit": "再继续花费就会超过 ${{limit}}，所以我停了下来，一切保持原样。",
+      "agentDone": "{{summary}}",
+      "agentFailed": "我无法控制屏幕：{{reason}}",
+      "agentGaveUp": "我没能完成：{{reason}}",
+      "agentNotConfigured": "这需要我控制屏幕，但代理尚未设置：{{why}}",
+      "agentOff": "我的工具都做不到这一点。开启“需要时控制屏幕”，我就能替您操作应用。",
+      "agentStepLimit": "这超过了 {{steps}} 步，所以我停了下来，一切保持原样。",
+      "agentWorking": "正在 {{app}} 中处理…",
+      "agentWorkingNoApp": "正在处理…",
       "calendarDraft": "日历活动“{{title}}”已准备好，可以保存了。",
       "calendarDraftMissingGuests": "日历活动“{{title}}”已准备好，可以保存了。我没有添加 {{guests}}：我没有他们的邮箱地址，请在表单中添加。",
       "cancelled": "已取消，没有发送任何内容。",

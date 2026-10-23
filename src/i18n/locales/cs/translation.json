@@ -1597,6 +1597,24 @@
           "description": "Jména, kterým mohou příkazy posílat e-maily, v souboru JSON, který upravujete. Při prvním použití se vytvoří s jedním příkladem.",
           "open": "Otevřít soubor s kontakty",
           "openFailed": "Soubor s kontakty se nepodařilo otevřít: {{error}}"
+        },
+        "stop": "Zastavit",
+        "autoEscalate": {
+          "title": "V případě potřeby ovládat obrazovku",
+          "description": "Když se k příkazu nehodí žádný nástroj, agent přečte ovládací prvky aplikace a ovládá je za vás. Před čímkoli, co něco odesílá, kupuje nebo maže, se zeptá. Zatím jen ve Windows."
+        },
+        "agentModel": {
+          "title": "Model agenta",
+          "description": "Model, který ovládá obrazovku, u poskytovatele routeru. Silnější model než model routeru funguje lépe. Prázdné pole znamená výchozí model.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Limit kroků agenta",
+          "description": "Nejvyšší počet volání modelu, který smí jeden úkol použít, od 1 do 60. Tam se agent zastaví a nechá obrazovku tak, jak je."
+        },
+        "agentMaxCost": {
+          "title": "Limit nákladů agenta (US$)",
+          "description": "Zastaví úkol, jakmile stál přibližně tolik. Cenu mají jen známé modely Claude; jakýkoli jiný model omezuje pouze limit kroků."
         }
       }
     },
@@ -3872,6 +3890,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Zastaveno. Nechal jsem vše tak, jak je.",
+      "agentConfirm": "„{{name}}“ v {{window}} by mohlo něco odeslat, koupit nebo smazat. Řekněte ano, chcete-li pokračovat, nebo zrušte.",
+      "agentConfirmed": "Hotovo: „{{name}}“.",
+      "agentCostLimit": "Stálo by to víc než ${{limit}}, tak jsem se zastavil a nechal vše tak, jak je.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Nepodařilo se mi ovládat obrazovku: {{reason}}",
+      "agentGaveUp": "Nepodařilo se mi to dokončit: {{reason}}",
+      "agentNotConfigured": "K tomu musím ovládat obrazovku, ale agent není nastavený: {{why}}",
+      "agentOff": "Žádný z mých nástrojů to neumí. Zapněte „V případě potřeby ovládat obrazovku“ a já aplikaci ovládnu za vás.",
+      "agentStepLimit": "Zabralo to víc než {{steps}} kroků, tak jsem se zastavil a nechal vše tak, jak je.",
+      "agentWorking": "Pracuji na tom v {{app}}…",
+      "agentWorkingNoApp": "Pracuji na tom…",
       "calendarDraft": "Událost v kalendáři „{{title}}“ je připravena k uložení.",
       "calendarDraftMissingGuests": "Událost v kalendáři „{{title}}“ je připravena k uložení. Vynechal jsem {{guests}}: nemám pro ně e-mailovou adresu, tak je přidejte ve formuláři.",
       "cancelled": "Zrušeno. Nic nebylo odesláno.",

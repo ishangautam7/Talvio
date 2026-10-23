@@ -3947,6 +3947,58 @@ async changeCommandSearchUrlSetting(url: string) : Promise<Result<null, string>>
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Whether a command no tool fits is handed to the screen agent.
+ */
+async changeCommandAutoEscalateSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_auto_escalate_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The model the screen agent runs on. Empty goes back to the default.
+ */
+async changeCommandAgentModelSetting(model: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_agent_model_setting", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The most LLM rounds one agent task may use, kept within 1–60.
+ */
+async changeCommandAgentMaxStepsSetting(steps: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_agent_max_steps_setting", { steps }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * What one agent task may cost, in US dollars, kept within $0.01–$20.
+ */
+async changeCommandAgentMaxCostUsdSetting(usd: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_agent_max_cost_usd_setting", { usd }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stop the command that is running, if any: an agent task stops before its
+ * next request or action and leaves the screen as it is. Esc and `--cancel`
+ * do the same through `utils::cancel_current_operation`.
+ */
+async commandCancel() : Promise<void> {
+    await TAURI_INVOKE("command_cancel");
+},
 async accountGetStatus() : Promise<AccountStatus> {
     return await TAURI_INVOKE("account_get_status");
 },
@@ -4746,7 +4798,32 @@ command_google_account?: string;
  * The search page a web search opens; `{query}` is replaced with the
  * URL-encoded query.
  */
-command_search_url?: string; 
+command_search_url?: string;
+/**
+ * When no tool fits a command (or a tool fails in a way another approach
+ * could fix), hand it to the tier-2 agent that works the app's controls
+ * through the accessibility tree (`command_mode/agent/`). On by default:
+ * the agent holds anything that sends, buys or deletes for the user, and
+ * the step and cost limits below bound it. Off reports that the command
+ * needs computer use instead.
+ */
+command_auto_escalate?: boolean;
+/**
+ * The model the agent runs on, on the router's provider. Stronger than
+ * the router's, since it plans over many steps.
+ */
+command_agent_model?: string;
+/**
+ * The most LLM rounds one agent task may use
+ * (`clamp_command_agent_max_steps`).
+ */
+command_agent_max_steps?: number;
+/**
+ * What one agent task may cost, in US dollars, priced from the agent's
+ * table (`command_mode::agent::price_per_mtok`). A model the table does
+ * not know is held to the step limit alone.
+ */
+command_agent_max_cost_usd?: number; 
 /**
  * The Custom account server this computer signs in to (`account`), or
  * empty for Automatic: the server discovery finds. Changed only while

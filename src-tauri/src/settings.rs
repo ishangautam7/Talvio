@@ -2063,6 +2063,27 @@ pub struct AppSettings {
     /// URL-encoded query.
     #[serde(default = "default_command_search_url")]
     pub command_search_url: String,
+    /// When no tool fits a command (or a tool fails in a way another approach
+    /// could fix), hand it to the tier-2 agent that works the app's controls
+    /// through the accessibility tree (`command_mode/agent/`). On by default:
+    /// the agent holds anything that sends, buys or deletes for the user, and
+    /// the step and cost limits below bound it. Off reports that the command
+    /// needs computer use instead.
+    #[serde(default = "default_true")]
+    pub command_auto_escalate: bool,
+    /// The model the agent runs on, on the router's provider. Stronger than
+    /// the router's, since it plans over many steps.
+    #[serde(default = "default_command_agent_model")]
+    pub command_agent_model: String,
+    /// The most LLM rounds one agent task may use
+    /// (`clamp_command_agent_max_steps`).
+    #[serde(default = "default_command_agent_max_steps")]
+    pub command_agent_max_steps: u32,
+    /// What one agent task may cost, in US dollars, priced from the agent's
+    /// table (`command_mode::agent::price_per_mtok`). A model the table does
+    /// not know is held to the step limit alone.
+    #[serde(default = "default_command_agent_max_cost_usd")]
+    pub command_agent_max_cost_usd: f64,
 }
 
 /// The provider command mode routes with on a new install.
@@ -2073,6 +2094,50 @@ pub const DEFAULT_COMMAND_ROUTER_MODEL: &str = "claude-haiku-5-5";
 pub const DEFAULT_COMMAND_SEARCH_URL: &str = "https://www.google.com/search?q={query}";
 /// The placeholder a search URL must contain.
 pub const COMMAND_SEARCH_QUERY_PLACEHOLDER: &str = "{query}";
+
+/// The agent model on a new install (docs/command-mode-plan.md §8).
+pub const DEFAULT_COMMAND_AGENT_MODEL: &str = "claude-sonnet-5-5";
+/// LLM rounds per agent task on a new install.
+pub const DEFAULT_COMMAND_AGENT_MAX_STEPS: u32 = 20;
+/// The most rounds the step limit may be set to: past it a task is not
+/// converging, and each round costs a request.
+pub const MAX_COMMAND_AGENT_MAX_STEPS: u32 = 60;
+/// US dollars per agent task on a new install.
+pub const DEFAULT_COMMAND_AGENT_MAX_COST_USD: f64 = 0.50;
+/// The range the cost limit may be set to.
+pub const COMMAND_AGENT_MAX_COST_RANGE: (f64, f64) = (0.01, 20.0);
+
+/// The step limit, kept within 1..=[`MAX_COMMAND_AGENT_MAX_STEPS`]. Applied
+/// by the setter and again where the limit is used, so a hand-edited store
+/// cannot run an agent unbounded.
+pub fn clamp_command_agent_max_steps(steps: u32) -> u32 {
+    steps.clamp(1, MAX_COMMAND_AGENT_MAX_STEPS)
+}
+
+/// The cost limit, kept within [`COMMAND_AGENT_MAX_COST_RANGE`]; a value
+/// that is not a number goes back to the default.
+pub fn clamp_command_agent_max_cost_usd(usd: f64) -> f64 {
+    if usd.is_finite() {
+        usd.clamp(
+            COMMAND_AGENT_MAX_COST_RANGE.0,
+            COMMAND_AGENT_MAX_COST_RANGE.1,
+        )
+    } else {
+        DEFAULT_COMMAND_AGENT_MAX_COST_USD
+    }
+}
+
+fn default_command_agent_model() -> String {
+    DEFAULT_COMMAND_AGENT_MODEL.to_string()
+}
+
+fn default_command_agent_max_steps() -> u32 {
+    DEFAULT_COMMAND_AGENT_MAX_STEPS
+}
+
+fn default_command_agent_max_cost_usd() -> f64 {
+    DEFAULT_COMMAND_AGENT_MAX_COST_USD
+}
 
 fn default_command_router_provider_id() -> String {
     DEFAULT_COMMAND_ROUTER_PROVIDER_ID.to_string()
@@ -4536,6 +4601,10 @@ pub fn get_default_settings() -> AppSettings {
         command_dry_run: false,
         command_google_account: String::new(),
         command_search_url: default_command_search_url(),
+        command_auto_escalate: true,
+        command_agent_model: default_command_agent_model(),
+        command_agent_max_steps: default_command_agent_max_steps(),
+        command_agent_max_cost_usd: default_command_agent_max_cost_usd(),
     }
 }
 
@@ -8224,5 +8293,44 @@ mod tests {
         assert_eq!(after.command_router_model, DEFAULT_COMMAND_ROUTER_MODEL);
         assert_eq!(after.command_search_url, DEFAULT_COMMAND_SEARCH_URL);
         assert_eq!(after.command_google_account, "");
+        assert!(after.command_auto_escalate);
+        assert_eq!(after.command_agent_model, DEFAULT_COMMAND_AGENT_MODEL);
+        assert_eq!(
+            after.command_agent_max_steps,
+            DEFAULT_COMMAND_AGENT_MAX_STEPS
+        );
+        assert_eq!(
+            after.command_agent_max_cost_usd,
+            DEFAULT_COMMAND_AGENT_MAX_COST_USD
+        );
+    }
+
+    /// The agent starts allowed to take over, on Sonnet, held to 20 rounds
+    /// and fifty cents.
+    #[test]
+    fn the_agent_settings_start_with_the_documented_defaults() {
+        let settings = get_default_settings();
+        assert!(settings.command_auto_escalate);
+        assert_eq!(settings.command_agent_model, "claude-sonnet-5-5");
+        assert_eq!(settings.command_agent_max_steps, 20);
+        assert_eq!(settings.command_agent_max_cost_usd, 0.50);
+    }
+
+    /// A hand-edited store cannot run the agent without a bound.
+    #[test]
+    fn the_agent_limits_are_clamped() {
+        assert_eq!(clamp_command_agent_max_steps(0), 1);
+        assert_eq!(clamp_command_agent_max_steps(20), 20);
+        assert_eq!(
+            clamp_command_agent_max_steps(10_000),
+            MAX_COMMAND_AGENT_MAX_STEPS
+        );
+        assert_eq!(clamp_command_agent_max_cost_usd(0.0), 0.01);
+        assert_eq!(clamp_command_agent_max_cost_usd(1.5), 1.5);
+        assert_eq!(clamp_command_agent_max_cost_usd(1e9), 20.0);
+        assert_eq!(
+            clamp_command_agent_max_cost_usd(f64::NAN),
+            DEFAULT_COMMAND_AGENT_MAX_COST_USD
+        );
     }
 }

@@ -264,7 +264,12 @@ mod tests {
     #[tokio::test]
     async fn the_wait_gives_up_at_the_limit() {
         let started = std::time::Instant::now();
-        assert!(!wait_until(Duration::from_millis(40), Duration::from_millis(10), || false).await);
+        assert!(
+            !wait_until(Duration::from_millis(40), Duration::from_millis(10), || {
+                false
+            })
+            .await
+        );
         let waited = started.elapsed();
         assert!(waited >= Duration::from_millis(40));
         assert!(waited < Duration::from_secs(1));

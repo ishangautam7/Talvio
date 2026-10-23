@@ -305,6 +305,14 @@ const settingUpdaters: {
     commands.changeCommandGoogleAccountSetting(value as string),
   command_search_url: (value) =>
     commands.changeCommandSearchUrlSetting(value as string),
+  command_auto_escalate: (value) =>
+    commands.changeCommandAutoEscalateSetting(value as boolean),
+  command_agent_model: (value) =>
+    commands.changeCommandAgentModelSetting(value as string),
+  command_agent_max_steps: (value) =>
+    commands.changeCommandAgentMaxStepsSetting(value as number),
+  command_agent_max_cost_usd: (value) =>
+    commands.changeCommandAgentMaxCostUsdSetting(value as number),
 };
 
 export const useSettingsStore = create<SettingsStore>()(

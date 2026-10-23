@@ -1570,6 +1570,24 @@
           "description": "Những người mà lệnh có thể gửi email, trong một tệp JSON bạn tự chỉnh sửa. Lần đầu, tệp được tạo với một ví dụ.",
           "open": "Mở tệp danh bạ",
           "openFailed": "Không thể mở tệp danh bạ: {{error}}"
+        },
+        "stop": "Dừng",
+        "autoEscalate": {
+          "title": "Điều khiển màn hình khi cần",
+          "description": "Khi không có công cụ nào phù hợp với lệnh, một tác tử sẽ đọc các điều khiển của ứng dụng và thao tác giúp bạn, đồng thời hỏi trước mọi việc gửi, mua hoặc xóa. Hiện chỉ có trên Windows."
+        },
+        "agentModel": {
+          "title": "Mô hình tác tử",
+          "description": "Mô hình điều khiển màn hình, trên nhà cung cấp của bộ định tuyến. Một mô hình mạnh hơn mô hình định tuyến sẽ hoạt động tốt hơn. Để trống sẽ quay về mặc định.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Giới hạn bước của tác tử",
+          "description": "Số lần gọi mô hình tối đa một tác vụ được dùng, từ 1 đến 60. Đến đó tác tử sẽ dừng và để nguyên màn hình."
+        },
+        "agentMaxCost": {
+          "title": "Giới hạn chi phí của tác tử (US$)",
+          "description": "Dừng tác vụ khi nó đã tốn khoảng số tiền này. Chỉ các mô hình Claude đã biết mới có giá; mọi mô hình khác chỉ bị giới hạn bởi số bước."
         }
       }
     },
@@ -3710,6 +3728,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Đã dừng. Tôi để nguyên mọi thứ.",
+      "agentConfirm": "“{{name}}” trong {{window}} có thể gửi, mua hoặc xóa thứ gì đó. Hãy nói có để tiếp tục, hoặc hủy.",
+      "agentConfirmed": "Xong: “{{name}}”.",
+      "agentCostLimit": "Việc đó sắp tốn hơn ${{limit}}, nên tôi đã dừng và để nguyên mọi thứ.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Tôi không thể điều khiển màn hình: {{reason}}",
+      "agentGaveUp": "Tôi không thể hoàn thành việc đó: {{reason}}",
+      "agentNotConfigured": "Việc đó cần tôi điều khiển màn hình, nhưng tác tử chưa được thiết lập: {{why}}",
+      "agentOff": "Không công cụ nào của tôi làm được việc đó. Hãy bật “Điều khiển màn hình khi cần” để tôi thao tác ứng dụng giúp bạn.",
+      "agentStepLimit": "Việc đó mất hơn {{steps}} bước, nên tôi đã dừng và để nguyên mọi thứ.",
+      "agentWorking": "Đang thực hiện trong {{app}}…",
+      "agentWorkingNoApp": "Đang thực hiện…",
       "calendarDraft": "Sự kiện lịch “{{title}}” đã sẵn sàng để lưu.",
       "calendarDraftMissingGuests": "Sự kiện lịch “{{title}}” đã sẵn sàng để lưu. Tôi chưa thêm {{guests}} vì không có địa chỉ email của họ, bạn hãy thêm trong biểu mẫu.",
       "cancelled": "Đã hủy. Chưa có gì được gửi.",

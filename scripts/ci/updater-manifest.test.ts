@@ -19,12 +19,18 @@ const conf = JSON.parse(
     "utf8",
   ),
 ) as { plugins: { updater: { pubkey: string; endpoints: string[] } } };
-const PUBKEY = conf.plugins.updater.pubkey;
+// The key the test vector was signed with (key id 73D1FDFF87780381). A
+// private build ships no updater key, so the vector is checked against the
+// key that made it rather than the build's configuration.
+const PUBKEY =
+  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDczRDFGREZGODc3ODAzODEKUldTQkEzaUgvLzNSYzRMakMrcU5PNGRWOHZZTFJzZUx1dWE0Wi9kNjViRUZheWhSU2pOcnRIeVMK";
+const CONFIGURED_PUBKEY = conf.plugins.updater.pubkey;
 
 // Produced once with `tauri signer sign` and the real Zynveliq updater key
-// over the 16 bytes "hello zynveliq". A known-good vector ties the verifier
+// over the 16 bytes "hello speakoflow". These bytes were signed; never
+// rename them with the product (a renamed payload no longer verifies). A known-good vector ties the verifier
 // to the exact format the Tauri CLI writes, not to our reading of the spec.
-const PAYLOAD = new TextEncoder().encode("hello zynveliq");
+const PAYLOAD = new TextEncoder().encode("hello speakoflow");
 const SIGNATURE =
   "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQkEzaUgvLzNSYzJ0dVM1emFGdGtKaGEzUVpHRU9YY253VWtmR0dyUUtQUFc2eDhsQzZCRGs1czVvTXY3NnAxdlVVeTdVSUZDd3BzbldpM2RLYkhLbHVwQzlZRVJVdEF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTkxMjU5CWZpbGU6c2Ytc2lnbi10ZXN0LmJpbgpnQlRzTm9HZGtFcjVvNEVKay9WUlJKVWpVSUxBSktZRklQMGRzeDJwSUhlWEFydUNGODJzRlVpYVkyNDYvT3BlcTQ1SEU0R0R3eUFpZ2RHMTJmbDNBQT09Cg==";
 
@@ -72,13 +78,16 @@ describe("verifyUpdaterSignature", () => {
 
 describe("the shipped config", () => {
   test("no longer trusts upstream Handy's updater key", () => {
-    expect(PUBKEY).not.toBe(HANDY_PUBKEY);
+    expect(CONFIGURED_PUBKEY).not.toBe(HANDY_PUBKEY);
   });
 
-  test("polls this repository's latest release", () => {
-    expect(conf.plugins.updater.endpoints).toEqual([
-      "https://github.com/ishangautam7/zynveliq/releases/latest/download/latest.json",
-    ]);
+  // The private build ships with self-update off (PRIVATE_BUILD in
+  // updates.rs): no endpoint and no key, so nothing is ever fetched or
+  // trusted. Turning updates on means setting both here, and this test is
+  // where that choice gets made on purpose.
+  test("ships with self-update switched off", () => {
+    expect(conf.plugins.updater.endpoints).toEqual([]);
+    expect(CONFIGURED_PUBKEY).toBe("");
   });
 });
 

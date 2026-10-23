@@ -1588,6 +1588,24 @@
           "description": "Os nomes para os quais os comandos podem enviar e-mail, em um arquivo JSON que você edita. Ele é criado com um exemplo na primeira vez.",
           "open": "Abrir arquivo de contatos",
           "openFailed": "Não foi possível abrir o arquivo de contatos: {{error}}"
+        },
+        "stop": "Parar",
+        "autoEscalate": {
+          "title": "Controlar a tela quando necessário",
+          "description": "Quando nenhuma ferramenta serve para um comando, um agente lê os controles do app e os opera por você, perguntando antes de qualquer coisa que envie, compre ou exclua. Por enquanto, só no Windows."
+        },
+        "agentModel": {
+          "title": "Modelo do agente",
+          "description": "O modelo que controla a tela, no provedor do roteador. Um modelo mais forte que o do roteador funciona melhor. Vazio volta para o padrão.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "Limite de etapas do agente",
+          "description": "O máximo de chamadas ao modelo que uma tarefa pode usar, de 1 a 60. O agente para aí e deixa a tela como está."
+        },
+        "agentMaxCost": {
+          "title": "Limite de custo do agente (US$)",
+          "description": "Para uma tarefa quando ela tiver custado mais ou menos esse valor. Só os modelos Claude conhecidos têm preço; qualquer outro modelo fica sujeito apenas ao limite de etapas."
         }
       }
     },
@@ -3818,6 +3836,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "Parei. Deixei tudo como estava.",
+      "agentConfirm": "“{{name}}” em {{window}} pode enviar, comprar ou excluir algo. Diga sim para continuar, ou cancele.",
+      "agentConfirmed": "Feito: “{{name}}”.",
+      "agentCostLimit": "Isso ia custar mais de ${{limit}}, então parei e deixei tudo como estava.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "Não consegui controlar a tela: {{reason}}",
+      "agentGaveUp": "Não consegui terminar: {{reason}}",
+      "agentNotConfigured": "Para isso preciso controlar a tela, mas o agente não está configurado: {{why}}",
+      "agentOff": "Nenhuma das minhas ferramentas consegue fazer isso. Ative “Controlar a tela quando necessário” para eu operar o app por você.",
+      "agentStepLimit": "Isso levou mais de {{steps}} etapas, então parei e deixei tudo como estava.",
+      "agentWorking": "Trabalhando nisso em {{app}}…",
+      "agentWorkingNoApp": "Trabalhando nisso…",
       "calendarDraft": "O evento “{{title}}” está pronto para salvar.",
       "calendarDraftMissingGuests": "O evento “{{title}}” está pronto para salvar. Deixei de fora {{guests}}: não tenho um endereço de e-mail para eles, então adicione-os no formulário.",
       "cancelled": "Cancelado. Nada foi enviado.",

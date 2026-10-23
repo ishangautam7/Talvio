@@ -1570,6 +1570,24 @@
           "description": "명령으로 이메일을 보낼 수 있는 이름 목록으로, 직접 편집하는 JSON 파일입니다. 처음에 예시 하나와 함께 만들어집니다.",
           "open": "연락처 파일 열기",
           "openFailed": "연락처 파일을 열 수 없습니다: {{error}}"
+        },
+        "stop": "중지",
+        "autoEscalate": {
+          "title": "필요할 때 화면 제어",
+          "description": "명령에 맞는 도구가 없으면 에이전트가 앱의 컨트롤을 읽고 대신 조작하며, 보내기·구매·삭제가 따르는 작업 전에는 먼저 묻습니다. 현재는 Windows에서만 지원합니다."
+        },
+        "agentModel": {
+          "title": "에이전트 모델",
+          "description": "화면을 제어하는 모델로, 라우터 제공자에서 실행됩니다. 라우터 모델보다 강력한 모델이 더 잘 작동합니다. 비워 두면 기본값으로 돌아갑니다.",
+          "placeholder": "claude-sonnet-5-5"
+        },
+        "agentMaxSteps": {
+          "title": "에이전트 단계 한도",
+          "description": "작업 하나가 사용할 수 있는 최대 모델 호출 횟수(1~60)입니다. 여기에 이르면 에이전트가 멈추고 화면을 그대로 둡니다."
+        },
+        "agentMaxCost": {
+          "title": "에이전트 비용 한도(US$)",
+          "description": "작업 비용이 대략 이 금액에 이르면 중지합니다. 가격이 알려진 것은 Claude 모델뿐이며, 다른 모델은 단계 한도만 적용됩니다."
         }
       }
     },
@@ -3710,6 +3728,18 @@
   },
   "commandMode": {
     "feedback": {
+      "agentCancelled": "중지했습니다. 모든 것을 그대로 두었습니다.",
+      "agentConfirm": "{{window}}의 “{{name}}”은(는) 무언가를 보내거나 구매하거나 삭제할 수 있습니다. 계속하려면 '예'라고 말하고, 아니면 취소하세요.",
+      "agentConfirmed": "완료: “{{name}}”.",
+      "agentCostLimit": "비용이 ${{limit}}을(를) 넘을 것 같아 중지하고 모든 것을 그대로 두었습니다.",
+      "agentDone": "{{summary}}",
+      "agentFailed": "화면을 제어할 수 없었습니다: {{reason}}",
+      "agentGaveUp": "끝내지 못했습니다: {{reason}}",
+      "agentNotConfigured": "그러려면 화면을 제어해야 하는데 에이전트가 설정되지 않았습니다: {{why}}",
+      "agentOff": "제 도구로는 그 작업을 할 수 없습니다. “필요할 때 화면 제어”를 켜면 제가 대신 앱을 조작할 수 있습니다.",
+      "agentStepLimit": "{{steps}}단계를 넘겨서 중지하고 모든 것을 그대로 두었습니다.",
+      "agentWorking": "{{app}}에서 작업 중…",
+      "agentWorkingNoApp": "작업 중…",
       "calendarDraft": "캘린더 일정 “{{title}}”을(를) 저장할 준비가 되었습니다.",
       "calendarDraftMissingGuests": "캘린더 일정 “{{title}}”을(를) 저장할 준비가 되었습니다. {{guests}}의 이메일 주소가 없어 제외했으니 양식에서 추가하세요.",
       "cancelled": "취소했습니다. 아무것도 보내지 않았습니다.",
