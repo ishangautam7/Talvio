@@ -1,4 +1,4 @@
-# Zynveliq account & device protocol (v1)
+# Talvio account & device protocol (v1)
 
 The contract between the account server (`server/`), the desktop app
 (`src-tauri/`), and the phone app (`mobile/`). Change it here first, then in all
@@ -143,7 +143,8 @@ PKCE verifier.
    `redirect_uri` must be exactly one of:
    - desktop: `http://127.0.0.1:<port>/callback` (a loopback listener the app
      started; port 1024–65535)
-   - phone: `zynveliq://auth/callback`
+   - phone: `talvio://auth/callback`, or `zynveliq://auth/callback` from a
+     phone app built before the rename from Zynveliq
 
    Anything else answers 400 with an HTML page and no redirect. If Google is not
    configured the server redirects to `redirect_uri?error=google_unavailable`.

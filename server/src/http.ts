@@ -75,7 +75,7 @@ export const redirect = (location: string) =>
 /** A page for a browser in the Google flow; `text` is always one of our own fixed sentences. */
 export const htmlPage = (status: number, text: string) =>
   new Response(
-    `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Zynveliq</title><p>${text}</p>`,
+    `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Talvio</title><p>${text}</p>`,
     {
       status,
       headers: {

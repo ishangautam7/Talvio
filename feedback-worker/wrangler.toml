@@ -1,4 +1,4 @@
-# Zynveliq feedback Worker: the in-app "Send feedback" form posts here, and
+# Talvio feedback Worker: the in-app "Send feedback" form posts here, and
 # each message becomes an issue in a private GitHub repository.
 #
 # One-time setup (from this folder):
@@ -34,7 +34,11 @@
 # The app sends to https://zynveliq.invalid/v1/feedback
 # (FEEDBACK_ENDPOINT in src-tauri/src/feedback.rs). Change both together.
 
-name = "zynveliq-feedback"
+# Renamed from "zynveliq-feedback" with the product. Cloudflare keys a Worker
+# by this name, so the running Worker keeps the old name until the next
+# `wrangler deploy`, which creates "talvio-feedback"; then move the route and
+# secrets over (step 3 again) and delete the old Worker in the dashboard.
+name = "talvio-feedback"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
 workers_dev = false
@@ -45,6 +49,7 @@ workers_dev = false
 routes = []
 
 [vars]
+# The repository keeps its name; it was not renamed with the product.
 FEEDBACK_REPO = "ishangautam7/zynveliq-feedback"
 
 # Rate limits are counted per Cloudflare location, not worldwide, and the

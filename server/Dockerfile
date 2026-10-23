@@ -9,7 +9,9 @@ COPY src ./src
 RUN mkdir -p /data && chown bun:bun /data
 USER bun
 
-ENV DATABASE_PATH=/data/zynveliq.db
+# A volume from before the rename to Talvio holds zynveliq.db; the server
+# opens that one while no talvio.db exists (src/databasePath.ts).
+ENV DATABASE_PATH=/data/talvio.db
 VOLUME /data
 EXPOSE 8787
 CMD ["bun", "src/main.ts"]

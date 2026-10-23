@@ -32,15 +32,22 @@ const ISSUERS = new Set<unknown>([
 ]);
 const STATE_TTL_MS = 10 * 60 * 1000;
 const LOGIN_CODE_TTL_MS = 2 * 60 * 1000;
-const PHONE_REDIRECT = "zynveliq://auth/callback";
+/**
+ * The phone app's redirect. `zynveliq://` is the scheme from before the rename
+ * to Talvio, kept so a phone app built before it can still sign in.
+ */
+const PHONE_REDIRECTS = new Set<string>([
+  "talvio://auth/callback",
+  "zynveliq://auth/callback",
+]);
 const LOOPBACK_REDIRECT = /^http:\/\/127\.0\.0\.1:([1-9]\d{3,4})\/callback$/;
 const S256_CHALLENGE = /^[A-Za-z0-9_-]{43}$/;
 
 const callbackUrl = (ctx: Ctx) => `${ctx.publicUrl}/v1/auth/google/callback`;
 
-/** Only the two redirects the apps use, matched exactly, so the code can go nowhere else. */
+/** Only the redirects the apps use, matched exactly, so the code can go nowhere else. */
 function isAllowedRedirect(uri: string): boolean {
-  if (uri === PHONE_REDIRECT) return true;
+  if (PHONE_REDIRECTS.has(uri)) return true;
   const port = Number(LOOPBACK_REDIRECT.exec(uri)?.[1]);
   return port >= 1024 && port <= 65535;
 }
@@ -55,7 +62,7 @@ export function start(url: URL, ctx: Ctx): Response {
   ) {
     return htmlPage(
       400,
-      "This sign-in link is not valid. Start again from the Zynveliq app.",
+      "This sign-in link is not valid. Start again from the Talvio app.",
     );
   }
   if (!ctx.google) return redirect(`${redirectUri}?error=google_unavailable`);
@@ -82,7 +89,7 @@ export async function callback(url: URL, ctx: Ctx): Promise<Response> {
   if (!flow || flow.expires_at <= ctx.now()) {
     return htmlPage(
       400,
-      "This sign-in has expired. Start again from the Zynveliq app.",
+      "This sign-in has expired. Start again from the Talvio app.",
     );
   }
   const back = (query: string) => redirect(`${flow.redirect_uri}?${query}`);
