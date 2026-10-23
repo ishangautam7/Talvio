@@ -10,6 +10,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::oneshot;
 
 use super::{AccountPhone, APPROVAL_TIMEOUT};
+use crate::assistant::phone::{PhoneAnswer, PhoneAsk, PhoneAskError};
 use crate::clipboard::PasteBehavior;
 use crate::command_mode::effects::{Effects as _, KeyCombo, SystemEffects, WindowEntry};
 
@@ -122,7 +123,17 @@ pub trait Host: Send + Sync + 'static {
     fn command_enabled(&self) -> bool;
     /// Run, confirm or answer a command through command mode.
     fn command(&self, ask: Ask) -> CommandFuture;
+
+    // ── The assistant (`assistant.rs`) ─────────────────────────────────────
+
+    /// The assistant's master switch (`assistant_enabled`).
+    fn assistant_enabled(&self) -> bool;
+    /// Answer a phone's question with this computer's assistant. Dropping the
+    /// future stops it.
+    fn assistant_ask(&self, ask: PhoneAsk) -> AssistantFuture;
 }
+
+pub type AssistantFuture = BoxFuture<'static, Result<PhoneAnswer, PhoneAskError>>;
 
 pub type VideoStart = Result<
     (
@@ -347,12 +358,21 @@ impl Host for AppHost {
         let app = self.0.clone();
         Box::pin(async move {
             let report = match ask {
-                Ask::Run(text) => run_command(&app, &text, CommandOrigin::Voice, None, None).await,
+                Ask::Run(text) => run_command(&app, &text, CommandOrigin::Phone, None, None).await,
                 Ask::Confirm { id, accept } => confirm_command(&app, id, accept).await,
                 Ask::Answer { id, answer } => answer_command(&app, id, &answer).await,
             };
             super::outcome_of(&report)
         })
+    }
+
+    fn assistant_enabled(&self) -> bool {
+        get_settings(&self.0).assistant_enabled
+    }
+
+    fn assistant_ask(&self, ask: PhoneAsk) -> AssistantFuture {
+        let app = self.0.clone();
+        Box::pin(async move { crate::assistant::phone::answer_for_phone(&app, ask).await })
     }
 }
 

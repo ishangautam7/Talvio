@@ -1009,6 +1009,38 @@ pub enum AssistantSearchDepth {
     High,
 }
 
+/// How long a quick ask remembers the one before it ("Remember the
+/// conversation"). Within that time of the last answer, the next quick ask is a
+/// follow-up; after it, or after the user starts a new conversation, it starts
+/// empty. Calls and a phone's questions keep their own conversations.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Type)]
+#[serde(rename_all = "snake_case")]
+pub enum QuickAskMemory {
+    /// Every quick ask starts empty.
+    Off,
+    FiveMinutes,
+    #[default]
+    TenMinutes,
+    ThirtyMinutes,
+    /// Until the user starts a new conversation (or the app restarts).
+    UntilCleared,
+}
+
+impl QuickAskMemory {
+    /// How long after the last answer a quick ask still continues it; `None`
+    /// for no limit.
+    pub fn window(self) -> Option<std::time::Duration> {
+        use std::time::Duration;
+        match self {
+            QuickAskMemory::Off => Some(Duration::ZERO),
+            QuickAskMemory::FiveMinutes => Some(Duration::from_secs(5 * 60)),
+            QuickAskMemory::TenMinutes => Some(Duration::from_secs(10 * 60)),
+            QuickAskMemory::ThirtyMinutes => Some(Duration::from_secs(30 * 60)),
+            QuickAskMemory::UntilCleared => None,
+        }
+    }
+}
+
 /// How much a reasoning model may think before it answers. One dial each for AI
 /// cleanup (`post_process_thinking`) and the assistant (`assistant_thinking`).
 ///
@@ -1982,6 +2014,10 @@ pub struct AppSettings {
     /// "max results" number as the primary control; tuned to stay fast.
     #[serde(default)]
     pub assistant_search_depth: AssistantSearchDepth,
+    /// How long a quick ask remembers the one before it (see
+    /// [`QuickAskMemory`]).
+    #[serde(default)]
+    pub assistant_quick_ask_memory: QuickAskMemory,
     /// How much a reasoning model may think before answering an ask or a call.
     /// See [`ThinkingLevel`]; `Off` keeps replies on the fast path.
     #[serde(default)]
@@ -4682,6 +4718,7 @@ pub fn get_default_settings() -> AppSettings {
         assistant_web_search_max_results: default_assistant_web_search_max_results(),
         assistant_web_search_fetch_content: default_assistant_web_search_fetch_content(),
         assistant_search_depth: AssistantSearchDepth::default(),
+        assistant_quick_ask_memory: QuickAskMemory::default(),
         assistant_thinking: ThinkingLevel::default(),
         assistant_web_search_daily_credit_budget: default_assistant_web_search_daily_credit_budget(
         ),

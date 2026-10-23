@@ -1279,6 +1279,8 @@ pub fn run(cli_args: CliArgs) {
             commands::assistant::set_assistant_web_search_provider,
             commands::assistant::set_assistant_web_search_max_results,
             commands::assistant::set_assistant_search_depth,
+            commands::assistant::set_assistant_quick_ask_memory,
+            commands::assistant::assistant_new_quick_ask,
             commands::assistant::set_assistant_thinking,
             commands::assistant::set_assistant_web_search_daily_credit_budget,
             commands::assistant::set_assistant_local_search_smart,

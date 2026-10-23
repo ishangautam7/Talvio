@@ -348,7 +348,10 @@ async fn account_live_serve_a_live_view() {
     let pc = device("Live view test PC", "windows", "desktop");
     let computer = match api.login(&email, &password, &pc).await {
         Ok(auth) => auth,
-        Err(_) => api.signup(&email, &password, None, &pc).await.expect("sign up"),
+        Err(_) => api
+            .signup(&email, &password, None, &pc)
+            .await
+            .expect("sign up"),
     };
 
     let host = FakeHost {
@@ -383,7 +386,10 @@ async fn account_live_serve_a_live_view() {
         }
         let pressed = host.pressed.lock().unwrap().clone();
         if !pressed.is_empty() {
-            println!("keys so far: {pressed:?}; clicks: {:?}", host.clicks.lock().unwrap());
+            println!(
+                "keys so far: {pressed:?}; clicks: {:?}",
+                host.clicks.lock().unwrap()
+            );
         }
     }
 }
