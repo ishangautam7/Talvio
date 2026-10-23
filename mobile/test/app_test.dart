@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,11 +14,13 @@ import 'helpers.dart';
 
 /// The whole signed-in app on a small phone (iPhone SE size, 320×568), with
 /// [devices] on the account. With [recordEvents], the recorder records and
-/// its state events go to the sink.
+/// its state events go to the sink; with [recording] too, stopping it
+/// answers that file.
 Future<(FakeServer, RelayClient)> pumpApp(
   WidgetTester tester,
   List<Map<String, Object?>> devices, {
   void Function(MockStreamHandlerEventSink events)? recordEvents,
+  String? recording,
 }) async {
   tester.view
     ..physicalSize = const Size(320, 568)
@@ -44,7 +48,11 @@ Future<(FakeServer, RelayClient)> pumpApp(
           ),
         );
       }
-      return call.method == 'hasPermission' ? true : null;
+      return switch (call.method) {
+        'hasPermission' => true,
+        'stop' => recording,
+        _ => null,
+      };
     },
   );
 
@@ -183,8 +191,9 @@ void main() {
       (const Size(640, 360), 1.0),
       (const Size(360, 640), 2.0),
     ]) {
+      // With the window and key rows, the most this screen shows.
       final (_, relay) = await pumpApp(tester, [
-        deviceJson(),
+        deviceJson(capabilities: ['dictate', 'text', 'windows']),
       ], recordEvents: (_) {});
       tester.view.physicalSize = size;
       tester.platformDispatcher.textScaleFactorTestValue = scale;
@@ -598,6 +607,288 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.text('Sign out'), findsOneWidget);
     await finish(tester, relay);
+  });
+
+  group('windows', () {
+    final windowsPc = deviceJson(capabilities: ['dictate', 'text', 'windows']);
+
+    /// The body of the last relay the phone sent.
+    Map<String, Object?> lastBody(FakeServer server) =>
+        server.relays.last['body']! as Map<String, Object?>;
+
+    /// The computer answers request [id] with [result].
+    Future<void> answer(
+      WidgetTester tester,
+      FakeServer server,
+      Object? id,
+      Map<String, Object?> result,
+    ) async {
+      server.relay('pc', {'kind': 'result', 'requestId': id, ...result});
+      await tester.pump();
+      await tester.pump();
+    }
+
+    Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+      await tester.ensureVisible(finder);
+      await tester.pump();
+      await tester.tap(finder);
+      // A sheet's animation starts on the frame after the tap.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    /// Opens the picker; the computer lists Windows Terminal (in front) and
+    /// Notepad, and one entry the phone cannot read.
+    Future<void> openPicker(WidgetTester tester, FakeServer server) async {
+      await tapVisible(tester, find.bySemanticsLabel('Choose window'));
+      final body = lastBody(server);
+      expect(body['kind'], 'windows.list');
+      await answer(tester, server, body['requestId'], {
+        'ok': true,
+        'windows': [
+          {
+            'id': 'w1',
+            'title': 'Claude Code — zynveliq',
+            'app': 'Windows Terminal',
+            'front': true,
+          },
+          {'id': 'w2', 'title': 'notes.txt', 'app': 'Notepad', 'front': false},
+          {'id': 3},
+        ],
+      });
+    }
+
+    /// Picks the window of [app] in the open picker.
+    Future<void> pick(WidgetTester tester, String app) async {
+      await tester.ensureVisible(find.text(app));
+      await tester.pump();
+      await tester.tap(find.text(app));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    Future<void> sendVisibleText(WidgetTester tester) async {
+      await tester.enterText(find.byType(TextField), 'Hello');
+      await tester.pump();
+      await tapVisible(tester, find.byTooltip('Send'));
+    }
+
+    testWidgets('a computer without them shows nothing about windows', (
+      tester,
+    ) async {
+      final (_, relay) = await pumpApp(tester, [deviceJson()]);
+      expect(find.text('Where the cursor is'), findsNothing);
+      expect(find.byTooltip('Enter'), findsNothing);
+      expect(find.byTooltip('More keys'), findsNothing);
+      await finish(tester, relay);
+    });
+
+    testWidgets('text, Enter and keys go to the chosen window', (tester) async {
+      final handle = tester.ensureSemantics();
+      final (server, relay) = await pumpApp(tester, [windowsPc]);
+      expect(find.text('Where the cursor is'), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: 'fits a small phone');
+
+      await openPicker(tester, server);
+      expect(find.text('Windows Terminal'), findsOneWidget);
+      expect(find.text('Claude Code — zynveliq'), findsOneWidget);
+      expect(find.text('In front'), findsOneWidget);
+      await pick(tester, 'Notepad');
+      expect(find.text('Notepad'), findsOneWidget, reason: 'the row');
+      expect(find.text('notes.txt'), findsOneWidget);
+
+      await sendVisibleText(tester);
+      final text = lastBody(server);
+      expect(text, containsPair('target', 'w2'));
+      expect(text, containsPair('stay', false));
+      await answer(tester, server, text['requestId'], {
+        'ok': true,
+        'pasted': true,
+      });
+      expect(find.text('Sent to Notepad on ISHAN-PC and pasted.'), findsOne);
+
+      await tapVisible(tester, find.text('Press Enter'));
+      expect(lastBody(server), {
+        'kind': 'windows.keys',
+        'keys': ['enter'],
+        'target': 'w2',
+        'stay': false,
+        'requestId': lastBody(server)['requestId'],
+      });
+      await answer(tester, server, lastBody(server)['requestId'], {
+        'ok': true,
+        'pressed': 1,
+      });
+      expect(find.text('Press Enter'), findsNothing, reason: 'used up');
+
+      await tapVisible(tester, find.byTooltip('Tab'));
+      expect(lastBody(server)['keys'], ['tab']);
+      expect(lastBody(server)['target'], 'w2');
+      await tapVisible(tester, find.bySemanticsLabel('Escape'));
+      expect(lastBody(server)['keys'], ['escape']);
+      await tapVisible(tester, find.byTooltip('More keys'));
+      await tester.tap(find.text('Ctrl + C (copy)'));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(lastBody(server)['keys'], ['ctrl+c']);
+
+      await finish(tester, relay);
+      handle.dispose();
+    });
+
+    testWidgets('a dictation carries the chosen window too', (tester) async {
+      final file = File(
+        '${Directory.systemTemp.createTempSync('talvio-test').path}/d.wav',
+      )..writeAsBytesSync(List.filled(44, 0));
+      final (server, relay) = await pumpApp(
+        tester,
+        [windowsPc],
+        recordEvents: (_) {},
+        recording: file.path,
+      );
+      await openPicker(tester, server);
+      await pick(tester, 'Windows Terminal');
+
+      await tapVisible(tester, find.widgetWithIcon(FilledButton, Icons.mic));
+      await tester.pump();
+      expect(
+        tester
+            .widget<InkWell>(
+              find.descendant(
+                of: find.bySemanticsLabel('Choose window'),
+                matching: find.byType(InkWell),
+              ),
+            )
+            .onTap,
+        isNull,
+        reason: 'a recording keeps its window',
+      );
+      await tapVisible(
+        tester,
+        find.widgetWithIcon(FilledButton, Icons.stop_rounded),
+      );
+      // The audio is encoded on another isolate.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pump();
+      final body = lastBody(server);
+      expect(body['kind'], 'dictate');
+      expect(body['target'], 'w1');
+      expect(body['stay'], false);
+      await answer(tester, server, body['requestId'], {
+        'ok': true,
+        'text': 'ls',
+        'pasted': true,
+      });
+      // The sent recording is deleted from disk before the outcome shows.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+      expect(find.text('Pasted in Windows Terminal on ISHAN-PC'), findsOne);
+      expect(find.text('Press Enter'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 9));
+      expect(find.text('Press Enter'), findsNothing, reason: 'it goes');
+      await finish(tester, relay);
+    });
+
+    testWidgets('a window that closed is forgotten and can be chosen again', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final (server, relay) = await pumpApp(tester, [windowsPc]);
+      await openPicker(tester, server);
+      await pick(tester, 'Notepad');
+
+      await sendVisibleText(tester);
+      await answer(tester, server, lastBody(server)['requestId'], {
+        'ok': false,
+        'error': 'target_gone',
+      });
+      expect(find.textContaining('That window closed on ISHAN-PC'), findsOne);
+      expect(find.text('Where the cursor is'), findsOneWidget);
+      expect(find.text('Hello'), findsOneWidget, reason: 'text kept');
+
+      await tapVisible(
+        tester,
+        find.widgetWithText(TextButton, 'Choose window'),
+      );
+      expect(lastBody(server)['kind'], 'windows.list');
+      await finish(tester, relay);
+      handle.dispose();
+    });
+
+    testWidgets('a new list moves the chosen window to its new id', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final (server, relay) = await pumpApp(tester, [windowsPc]);
+      await openPicker(tester, server);
+      await pick(tester, 'Notepad');
+
+      await tapVisible(tester, find.bySemanticsLabel('Choose window'));
+      await answer(tester, server, lastBody(server)['requestId'], {
+        'ok': true,
+        'windows': [
+          {'id': 'n7', 'title': 'notes.txt', 'app': 'Notepad', 'front': true},
+        ],
+      });
+      // Closed without a choice: the same window, under its new id.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tapVisible(tester, find.byTooltip('Enter'));
+      expect(lastBody(server)['target'], 'n7');
+      await finish(tester, relay);
+      handle.dispose();
+    });
+
+    testWidgets('keys go to the window in front by default, three at most', (
+      tester,
+    ) async {
+      final (server, relay) = await pumpApp(tester, [windowsPc]);
+      final enter = find.byTooltip('Enter');
+      await tester.ensureVisible(enter);
+      await tester.pump();
+      for (var i = 0; i < 5; i++) {
+        await tester.tap(enter);
+        await tester.pump();
+      }
+      final keys = [
+        for (final relay in server.relays)
+          if ((relay['body']! as Map)['kind'] == 'windows.keys') relay['body'],
+      ];
+      expect(keys, hasLength(3));
+      expect((keys.first! as Map).containsKey('target'), isFalse);
+
+      await answer(tester, server, lastBody(server)['requestId'], {
+        'ok': false,
+        'error': 'remote_windows_off',
+      });
+      expect(
+        find.textContaining('Turn on "Let phones choose windows"'),
+        findsOneWidget,
+      );
+      await finish(tester, relay);
+    });
+
+    testWidgets('the picker says when the computer has it turned off', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final (server, relay) = await pumpApp(tester, [windowsPc]);
+      await tapVisible(tester, find.bySemanticsLabel('Choose window'));
+      await answer(tester, server, lastBody(server)['requestId'], {
+        'ok': false,
+        'error': 'remote_windows_off',
+      });
+      expect(
+        find.textContaining('Turn on "Let phones choose windows"'),
+        findsOneWidget,
+      );
+      expect(find.text('Where the cursor is'), findsNWidgets(2));
+      await finish(tester, relay);
+      handle.dispose();
+    });
   });
 
   testWidgets('account lists devices and confirms a removal', (tester) async {

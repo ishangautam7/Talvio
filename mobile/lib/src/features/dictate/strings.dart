@@ -49,6 +49,43 @@ abstract final class DictateStrings {
   static const dismiss = 'Dismiss';
   static const recent = 'Recent';
 
+  // Choosing a window and pressing keys (capability `windows`).
+  static const cursorWindow = 'Where the cursor is';
+  static String cursorWindowDetail(String name) =>
+      'The window in front on $name';
+  static const chooseWindow = 'Choose window';
+  static const pickWindowTitle = 'Choose a window';
+  static String pickWindowBody(String name) =>
+      'It comes forward on $name for a moment, then goes back.';
+  static const refresh = 'Refresh';
+  static const inFront = 'In front';
+  static const loadingWindows = 'Looking for windows…';
+  static String noWindows(String name) => 'No other windows are open on $name.';
+  static String pastedIn(String app, String name) => 'Pasted in $app on $name';
+  static String typedPastedIn(String app, String name) =>
+      'Sent to $app on $name and pasted.';
+  static const untitled = 'Untitled';
+  static const pressEnter = 'Press Enter';
+  static const keys = 'Keys';
+  static const moreKeys = 'More keys';
+  static const keyEnter = 'Enter';
+  static const keyTab = 'Tab';
+  static const keyEscape = 'Esc';
+  static const keyEscapeLabel = 'Escape';
+  static const keyLeft = 'Left arrow';
+  static const keyUp = 'Up arrow';
+  static const keyDown = 'Down arrow';
+  static const keyRight = 'Right arrow';
+  static const keyBackspace = 'Backspace';
+  static const keyShiftEnter = 'Shift + Enter (new line)';
+  static const keySpace = 'Space';
+  static String keyCopy(String mod) => '$mod + C (copy)';
+  static String keyPaste(String mod) => '$mod + V (paste)';
+  static String keyUndo(String mod) => '$mod + Z (undo)';
+  static String keySelectAll(String mod) => '$mod + A (select all)';
+  static String modifier(String platform) =>
+      platform == 'macos' ? 'Cmd' : 'Ctrl';
+
   /// Text for a result error code from the computer (PROTOCOL.md) or one the
   /// phone sets itself (offline, not_connected, interrupted, timeout, mic_*).
   static String error(String code, String name) => switch (code) {
@@ -70,6 +107,19 @@ abstract final class DictateStrings {
           'under Dictation, Paste method.',
     'unsupported' => 'Update Talvio on $name to use this.',
     'cancelled' => 'Cancelled.',
+    'remote_windows_off' =>
+      "$name doesn't let phones choose windows. Turn on \"Let phones choose "
+          'windows" in Talvio on that computer, under Settings, Account.',
+    'target_gone' =>
+      'That window closed on $name, or it has been a while since you chose '
+          'it. Choose the window again.',
+    'focus_failed' =>
+      "That window on $name didn't come forward. It may not be responding. "
+          'Try again or choose another window.',
+    'keys_failed' => "Couldn't press that key on $name. Try again.",
+    'key_refused' =>
+      "$name doesn't press keys that close apps or windows, lock it, or "
+          'sign out.',
     'not_approved' =>
       "This phone isn't allowed on $name. Allow it in Talvio's Settings on "
           'that computer, under Account, then try again.',

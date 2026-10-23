@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,7 @@ import '../../core/widgets.dart';
 import '../../shell/feature_tab.dart';
 import 'dictate_controller.dart';
 import 'recent_dictations.dart';
+import 'remote_windows.dart';
 import 'strings.dart';
 
 final dictateTab = FeatureTab(
@@ -88,6 +90,47 @@ class _DictateScreenState extends State<DictateScreen> {
     ),
   );
 
+  Future<void> _chooseWindow() => showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (context) => FractionallySizedBox(
+      heightFactor: 0.9,
+      child: SafeArea(child: _WindowPicker(_controller)),
+    ),
+  );
+
+  /// Presses [keys] in the chosen window; a failure shows as a snack bar,
+  /// since the screen's card belongs to the last dictation.
+  Future<void> _press(List<String> keys) async {
+    unawaited(HapticFeedback.lightImpact());
+    final name = _controller.computer?.name ?? '';
+    _showKeyError(await _controller.pressKeys(keys), name);
+  }
+
+  Future<void> _pressEnter() async {
+    unawaited(HapticFeedback.lightImpact());
+    final name = _controller.computer?.name ?? '';
+    _showKeyError(await _controller.pressEnter(), name);
+  }
+
+  void _showKeyError(String? error, String name) {
+    if (error == null || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(DictateStrings.error(error, name)),
+          action: error == 'target_gone'
+              ? SnackBarAction(
+                  label: DictateStrings.chooseWindow,
+                  onPressed: _chooseWindow,
+                )
+              : null,
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final relay = _services.relay;
@@ -153,6 +196,9 @@ class _DictateScreenState extends State<DictateScreen> {
     final canDictate =
         ready && computer.capabilities.contains(DictateKind.dictate);
     final canType = ready && computer.capabilities.contains(DictateKind.text);
+    // The window and key rows exist only for a computer that offers them.
+    final hasWindows = c.hasWindows;
+    final canAim = ready && hasWindows;
     final typing = _textFocus.hasFocus;
     final outcome = c.outcome;
     final (progress, progressDetail) = c.cancelling
@@ -196,6 +242,12 @@ class _DictateScreenState extends State<DictateScreen> {
                     computerName: outcome.computer ?? computer.name,
                     onCopy: _copy,
                     onRetry: c.canRetry && canDictate ? c.retry : null,
+                    onChooseWindow: c.windowLost && hasWindows && idle
+                        ? _chooseWindow
+                        : null,
+                    onPressEnter: c.offersEnter && hasWindows
+                        ? _pressEnter
+                        : null,
                     onDismiss: c.dismissOutcome,
                   ),
                 if (note == null &&
@@ -235,6 +287,15 @@ class _DictateScreenState extends State<DictateScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   child: Column(
                     children: [
+                      if (hasWindows) ...[
+                        _WindowRow(
+                          window: c.window,
+                          computerName: computer.name,
+                          // A recording or request keeps its window too.
+                          onTap: canAim && idle ? _chooseWindow : null,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                       // While typing the keyboard needs the room, and the delivery
                       // choice and mic only apply to speech.
                       if (!typing) ...[
@@ -289,6 +350,15 @@ class _DictateScreenState extends State<DictateScreen> {
                         enabled: canType && idle,
                         onSend: _sendText,
                       ),
+                      // Below the mic and the field, which matter more on a
+                      // small phone; next to the field, where Enter is wanted.
+                      if (hasWindows) ...[
+                        const SizedBox(height: 8),
+                        _KeyRow(
+                          platform: computer.platform,
+                          onPress: canAim ? _press : null,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -570,6 +640,8 @@ class _OutcomeCard extends StatelessWidget {
     required this.computerName,
     required this.onCopy,
     required this.onRetry,
+    required this.onChooseWindow,
+    required this.onPressEnter,
     required this.onDismiss,
   });
 
@@ -577,6 +649,12 @@ class _OutcomeCard extends StatelessWidget {
   final String computerName;
   final ValueChanged<String> onCopy;
   final VoidCallback? onRetry;
+
+  /// Offered when the request's window is gone.
+  final VoidCallback? onChooseWindow;
+
+  /// Offered for a few seconds after a paste.
+  final VoidCallback? onPressEnter;
   final VoidCallback onDismiss;
 
   @override
@@ -609,6 +687,11 @@ class _OutcomeCard extends StatelessWidget {
                     onPressed: onDismiss,
                     child: const Text(DictateStrings.dismiss),
                   ),
+                  if (onChooseWindow != null)
+                    TextButton(
+                      onPressed: onChooseWindow,
+                      child: const Text(DictateStrings.chooseWindow),
+                    ),
                   if (onRetry != null)
                     TextButton(
                       onPressed: onRetry,
@@ -622,11 +705,17 @@ class _OutcomeCard extends StatelessWidget {
       );
     }
 
-    final title = outcome.typed
-        ? DictateStrings.typedPasted(computerName)
-        : outcome.pasted
-        ? DictateStrings.pasted(computerName)
-        : DictateStrings.result;
+    final app = switch (outcome.window) {
+      final window? => windowLabel(window).$1,
+      null => null,
+    };
+    final title = switch ((outcome.typed, outcome.pasted, app)) {
+      (true, _, final app?) => DictateStrings.typedPastedIn(app, computerName),
+      (true, _, null) => DictateStrings.typedPasted(computerName),
+      (false, true, final app?) => DictateStrings.pastedIn(app, computerName),
+      (false, true, null) => DictateStrings.pasted(computerName),
+      (false, false, _) => DictateStrings.result,
+    };
     return Card.outlined(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
@@ -654,20 +743,31 @@ class _OutcomeCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (!outcome.typed && text != null && text.isNotEmpty) ...[
+            if (!outcome.typed && text != null && text.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: SelectableText(text, style: theme.textTheme.bodyLarge),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => onCopy(text),
-                  icon: const Icon(Icons.copy, size: 18),
-                  label: const Text(DictateStrings.copy),
-                ),
+            if (onPressEnter != null ||
+                (!outcome.typed && text != null && text.isNotEmpty))
+              OverflowBar(
+                alignment: MainAxisAlignment.end,
+                spacing: 8,
+                children: [
+                  if (onPressEnter case final onPressEnter?)
+                    ActionChip(
+                      avatar: const Icon(Icons.keyboard_return, size: 18),
+                      label: const Text(DictateStrings.pressEnter),
+                      onPressed: onPressEnter,
+                    ),
+                  if (!outcome.typed && text != null && text.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () => onCopy(text),
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: const Text(DictateStrings.copy),
+                    ),
+                ],
               ),
-            ],
           ],
         ),
       ),
@@ -880,6 +980,405 @@ class _Composer extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// A window as two lines: the app, and its title (null when the app is all
+/// there is to say).
+(String, String?) windowLabel(RemoteWindow window) => switch (window) {
+  RemoteWindow(app: '', title: '') => (DictateStrings.untitled, null),
+  RemoteWindow(app: '', :final title) => (title, null),
+  RemoteWindow(:final app, title: '') => (app, null),
+  RemoteWindow(:final app, :final title) => (app, title),
+};
+
+/// Where input goes: the chosen window, or wherever the cursor is.
+class _WindowRow extends StatelessWidget {
+  const _WindowRow({
+    required this.window,
+    required this.computerName,
+    required this.onTap,
+  });
+
+  final RemoteWindow? window;
+  final String computerName;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (title, detail) = switch (window) {
+      final window? => windowLabel(window),
+      null => (
+        DictateStrings.cursorWindow,
+        DictateStrings.cursorWindowDetail(computerName),
+      ),
+    };
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: DictateStrings.chooseWindow,
+      value: detail == null ? title : '$title, $detail',
+      // Excluding the row's own semantics drops its tap too.
+      excludeSemantics: true,
+      onTap: onTap,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            children: [
+              Icon(
+                window == null ? Icons.ads_click : Icons.web_asset,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    if (detail != null)
+                      Text(
+                        detail,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (onTap != null) const Icon(Icons.arrow_drop_down),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One key the key row presses, and how it is shown.
+typedef _Key = ({String combo, String label, IconData? icon, String? text});
+
+/// Keys to press in the chosen window: the common ones as buttons, the rest
+/// behind "More keys". Scrolls sideways when it does not fit.
+class _KeyRow extends StatelessWidget {
+  const _KeyRow({required this.platform, required this.onPress});
+
+  /// The computer's, for Ctrl or Cmd.
+  final String platform;
+  final ValueChanged<List<String>>? onPress;
+
+  static const List<_Key> _keys = [
+    (
+      combo: 'enter',
+      label: DictateStrings.keyEnter,
+      icon: Icons.keyboard_return,
+      text: null,
+    ),
+    (
+      combo: 'tab',
+      label: DictateStrings.keyTab,
+      icon: Icons.keyboard_tab,
+      text: null,
+    ),
+    (
+      combo: 'escape',
+      label: DictateStrings.keyEscapeLabel,
+      icon: null,
+      text: DictateStrings.keyEscape,
+    ),
+    (
+      combo: 'left',
+      label: DictateStrings.keyLeft,
+      icon: Icons.keyboard_arrow_left,
+      text: null,
+    ),
+    (
+      combo: 'up',
+      label: DictateStrings.keyUp,
+      icon: Icons.keyboard_arrow_up,
+      text: null,
+    ),
+    (
+      combo: 'down',
+      label: DictateStrings.keyDown,
+      icon: Icons.keyboard_arrow_down,
+      text: null,
+    ),
+    (
+      combo: 'right',
+      label: DictateStrings.keyRight,
+      icon: Icons.keyboard_arrow_right,
+      text: null,
+    ),
+    (
+      combo: 'backspace',
+      label: DictateStrings.keyBackspace,
+      icon: Icons.backspace_outlined,
+      text: null,
+    ),
+  ];
+
+  List<(String, String)> _more() {
+    final mod = DictateStrings.modifier(platform);
+    return [
+      ('shift+enter', DictateStrings.keyShiftEnter),
+      (commandCombo(platform, 'c'), DictateStrings.keyCopy(mod)),
+      (commandCombo(platform, 'v'), DictateStrings.keyPaste(mod)),
+      (commandCombo(platform, 'z'), DictateStrings.keyUndo(mod)),
+      (commandCombo(platform, 'a'), DictateStrings.keySelectAll(mod)),
+      ('space', DictateStrings.keySpace),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final onPress = this.onPress;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final key in _keys)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: key.icon == null
+                  ? Semantics(
+                      label: key.label,
+                      button: true,
+                      excludeSemantics: true,
+                      enabled: onPress != null,
+                      onTap: onPress == null
+                          ? null
+                          : () => onPress([key.combo]),
+                      child: OutlinedButton(
+                        onPressed: onPress == null
+                            ? null
+                            : () => onPress([key.combo]),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(48, 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        child: Text(key.text!),
+                      ),
+                    )
+                  : IconButton.outlined(
+                      tooltip: key.label,
+                      onPressed: onPress == null
+                          ? null
+                          : () => onPress([key.combo]),
+                      icon: Icon(key.icon),
+                    ),
+            ),
+          PopupMenuButton<String>(
+            tooltip: DictateStrings.moreKeys,
+            enabled: onPress != null,
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (combo) => onPress?.call([combo]),
+            itemBuilder: (context) => [
+              for (final (combo, label) in _more())
+                PopupMenuItem(value: combo, child: Text(label)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The computer's windows, to aim input at one of them.
+class _WindowPicker extends StatefulWidget {
+  const _WindowPicker(this.controller);
+
+  final DictateController controller;
+
+  @override
+  State<_WindowPicker> createState() => _WindowPickerState();
+}
+
+class _WindowPickerState extends State<_WindowPicker> {
+  List<RemoteWindow>? _windows;
+  String? _error;
+  var _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    final listed = await widget.controller.listWindows();
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _error = listed.error;
+      if (listed.error == null) _windows = listed.windows;
+    });
+  }
+
+  void _choose(RemoteWindow? window) {
+    unawaited(HapticFeedback.selectionClick());
+    widget.controller.chooseWindow(window);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final c = widget.controller;
+    final name = c.computer?.name ?? '';
+    final windows = _windows;
+    final error = _error;
+    return ListenableBuilder(
+      listenable: c,
+      builder: (context, _) => RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 12, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      DictateStrings.pickWindowTitle,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  if (_loading)
+                    const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: ButtonSpinner(),
+                    )
+                  else
+                    IconButton(
+                      tooltip: DictateStrings.refresh,
+                      onPressed: _load,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text(
+                DictateStrings.pickWindowBody(name),
+                style: _muted(context),
+              ),
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Icons.ads_click),
+              title: const Text(DictateStrings.cursorWindow),
+              subtitle: Text(DictateStrings.cursorWindowDetail(name)),
+              trailing: c.window == null ? const Icon(Icons.check) : null,
+              onTap: () => _choose(null),
+            ),
+            const Divider(),
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    DictateStrings.error(error, name),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              )
+            else if (windows == null)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Semantics(
+                    label: DictateStrings.loadingWindows,
+                    child: const CircularProgressIndicator(),
+                  ),
+                ),
+              )
+            else if (windows.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Text(
+                  DictateStrings.noWindows(name),
+                  style: _muted(context),
+                ),
+              ),
+            for (final window in windows ?? const <RemoteWindow>[])
+              _WindowTile(
+                window,
+                selected: c.window?.id == window.id,
+                onTap: () => _choose(window),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WindowTile extends StatelessWidget {
+  const _WindowTile(this.window, {required this.selected, required this.onTap});
+
+  final RemoteWindow window;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (title, detail) = windowLabel(window);
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      leading: const Icon(Icons.web_asset),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: detail == null
+          ? null
+          : Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (window.front)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: Text(
+                  DictateStrings.inFront,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              ),
+            ),
+          if (selected) ...[const SizedBox(width: 8), const Icon(Icons.check)],
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

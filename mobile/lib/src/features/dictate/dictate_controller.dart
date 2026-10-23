@@ -13,6 +13,7 @@ import '../../core/relay_client.dart';
 import '../../core/relay_protocol.dart';
 import '../../core/session_store.dart';
 import 'recent_dictations.dart';
+import 'remote_windows.dart';
 
 /// The request kinds (and computer capabilities) of this feature.
 abstract final class DictateKind {
@@ -33,6 +34,7 @@ class DictateOutcome {
     required this.text,
     required this.pasted,
     required this.typed,
+    this.window,
   }) : error = null;
 
   const DictateOutcome.failed(
@@ -40,7 +42,8 @@ class DictateOutcome {
     this.computer,
     this.typed = false,
   }) : text = null,
-       pasted = false;
+       pasted = false,
+       window = null;
 
   final String? computer;
   final String? text;
@@ -49,6 +52,9 @@ class DictateOutcome {
 
   /// Typed text rather than a recording.
   final bool typed;
+
+  /// The window the text went to; null for wherever the cursor was.
+  final RemoteWindow? window;
 }
 
 /// The protocol allows 5 minutes of audio; stopping a second early keeps the
@@ -61,6 +67,17 @@ const _resultTimeout = Duration(seconds: 60);
 /// The wait while the computer asks its user to allow this phone; its own
 /// prompt gives up after 2 minutes (PROTOCOL.md, Approval).
 const _approvalTimeout = Duration(minutes: 3);
+
+/// The wait for a `windows.list` or `windows.keys` result: nothing to
+/// transcribe, so it is quick unless the computer asks to allow this phone.
+const _windowsTimeout = Duration(seconds: 20);
+
+/// Key presses waiting for their result at most; taps beyond it are ignored
+/// rather than queued, so a stuck computer is not sent a burst of keys later.
+const maxPendingKeys = 3;
+
+/// How long the "Press Enter" chip stays after a paste.
+const enterOfferFor = Duration(seconds: 8);
 
 /// Errors a resend of the same recording cannot fix.
 const _final = {'bad_audio', 'no_speech', 'unsupported'};
@@ -122,6 +139,16 @@ class DictateController extends ChangeNotifier {
   /// A recording kept after a failed send, for Try again.
   ({String path, Duration length})? _kept;
 
+  /// The window input goes to, and the computer it is on. Not remembered
+  /// across runs: its id expires after 30 minutes anyway.
+  ({String computer, RemoteWindow window})? _window;
+
+  /// The last request's window closed or its id expired, so Try again waits
+  /// until the user chooses again (it would otherwise go to the cursor).
+  var _windowLost = false;
+  var _keysPending = 0;
+  Timer? _enterOffer;
+
   DictatePhase get phase => _phase;
 
   /// Recording, but paused by a call or another app's audio; it resumes on
@@ -132,7 +159,25 @@ class DictateController extends ChangeNotifier {
   String? get stage => _stage;
   bool get cancelling => _cancelling;
   DictateOutcome? get outcome => _outcome;
-  bool get canRetry => _kept != null && _phase == DictatePhase.idle;
+  bool get canRetry =>
+      _kept != null && _phase == DictatePhase.idle && !_windowLost;
+
+  /// Whether the computer lets this phone choose its window and press keys.
+  bool get hasWindows =>
+      computer?.capabilities.contains(WindowsKind.capability) ?? false;
+
+  /// The window input goes to; null for wherever the cursor is.
+  RemoteWindow? get window {
+    final window = _window;
+    if (window == null || !hasWindows) return null;
+    return window.computer == computer?.id ? window.window : null;
+  }
+
+  /// The last request failed because its window is gone.
+  bool get windowLost => _windowLost;
+
+  /// Whether the "Press Enter" chip shows: a paste just finished.
+  bool get offersEnter => _enterOffer != null;
 
   List<Device> get computers => computersOf(_relay.devices.value ?? const []);
   Device? get computer {
@@ -152,7 +197,78 @@ class DictateController extends ChangeNotifier {
 
   void choose(String deviceId) {
     unawaited(_prefs.setString(_chosenKey, deviceId));
+    _window = null;
+    _windowLost = false;
+    _clearEnterOffer();
     _notify();
+  }
+
+  /// Aims what is sent next at [window]; null for wherever the cursor is.
+  void chooseWindow(RemoteWindow? window) {
+    final computer = this.computer;
+    _window = window == null || computer == null
+        ? null
+        : (computer: computer.id, window: window);
+    _windowLost = false;
+    _clearEnterOffer();
+    _notify();
+  }
+
+  /// Lists the computer's windows, or answers an error code. A new list ends
+  /// the ids of the last one, so the chosen window moves to its new id, or
+  /// is forgotten when the list does not have it exactly once.
+  Future<({List<RemoteWindow> windows, String? error})> listWindows() async {
+    final computer = this.computer;
+    if (computer == null) {
+      return (windows: const <RemoteWindow>[], error: 'offline');
+    }
+    final reply = await _ask(computer, {
+      'kind': WindowsKind.list,
+    }, timeout: _windowsTimeout);
+    if (reply.error case final error?) {
+      return (windows: const <RemoteWindow>[], error: error);
+    }
+    final windows = windowsOf(reply.result!);
+    if (_window case (
+      computer: final id,
+      :final window,
+    ) when id == computer.id) {
+      final same = windows.where(window.sameAs).toList();
+      _window = same.length == 1
+          ? (computer: computer.id, window: same.single)
+          : null;
+      _notify();
+    }
+    return (windows: windows, error: null);
+  }
+
+  /// Presses [keys] (combos) in the chosen window. Null when they were
+  /// pressed, or the tap was ignored because [maxPendingKeys] still wait;
+  /// otherwise an error code.
+  Future<String?> pressKeys(List<String> keys) async {
+    final computer = this.computer;
+    if (computer == null) return 'offline';
+    if (_keysPending >= maxPendingKeys) return null;
+    final window = this.window;
+    _keysPending++;
+    try {
+      final reply = await _ask(computer, {
+        'kind': WindowsKind.keys,
+        'keys': keys,
+        ..._aim(window),
+      }, timeout: _windowsTimeout);
+      if (reply.error == 'target_gone') _loseWindow(window);
+      return reply.error;
+    } finally {
+      _keysPending--;
+    }
+  }
+
+  /// Presses Enter where the last paste went.
+  Future<String?> pressEnter() {
+    _clearEnterOffer();
+    _notify();
+    return pressKeys(const ['enter']);
   }
 
   Deliver get deliver =>
@@ -269,11 +385,18 @@ class DictateController extends ChangeNotifier {
       _finish(const DictateOutcome.failed('mic_failed'));
       return;
     }
-    final outcome = await _send(computer, {
-      'kind': DictateKind.dictate,
-      'deliver': deliver == Deliver.keep ? 'return' : 'paste',
-      'audio': audio,
-    }, timeout: _resultTimeout + kept.length);
+    final window = this.window;
+    final outcome = await _send(
+      computer,
+      {
+        'kind': DictateKind.dictate,
+        'deliver': deliver == Deliver.keep ? 'return' : 'paste',
+        'audio': audio,
+        ..._aim(window),
+      },
+      timeout: _resultTimeout + kept.length,
+      window: window,
+    );
 
     if (outcome.error == null || _final.contains(outcome.error)) {
       await _dropKept();
@@ -294,11 +417,13 @@ class DictateController extends ChangeNotifier {
     _outcome = null;
     await _dropKept();
     _notify();
+    final window = this.window;
     final outcome = await _send(
       computer,
-      {'kind': DictateKind.text, 'text': text},
+      {'kind': DictateKind.text, 'text': text, ..._aim(window)},
       timeout: _resultTimeout,
       typed: true,
+      window: window,
     );
     _finish(outcome);
     return outcome.error == null;
@@ -315,6 +440,8 @@ class DictateController extends ChangeNotifier {
 
   void dismissOutcome() {
     _outcome = null;
+    _windowLost = false;
+    _clearEnterOffer();
     unawaited(_dropKept());
     _notify();
   }
@@ -324,9 +451,49 @@ class DictateController extends ChangeNotifier {
     Map<String, Object?> body, {
     required Duration timeout,
     bool typed = false,
+    RemoteWindow? window,
+  }) async {
+    final reply = await _ask(
+      computer,
+      body,
+      timeout: timeout,
+      onRequest: (request) => _request = request,
+      onStage: (stage) {
+        _stage = stage;
+        _notify();
+      },
+    );
+    _request = null;
+    _cancelling = false;
+    if (reply.error == 'target_gone') _loseWindow(window);
+    return switch (reply) {
+      (result: final result?, error: null) => DictateOutcome.done(
+        computer: computer.name,
+        text: result['text'] is String ? result['text']! as String : null,
+        pasted: result['pasted'] == true,
+        typed: typed,
+        window: window,
+      ),
+      (:final error, result: _) => DictateOutcome.failed(
+        error ?? 'unknown',
+        computer: computer.name,
+        typed: typed,
+      ),
+    };
+  }
+
+  /// Sends [body] to [computer] and waits for its result: the result when
+  /// it is `ok`, else an error code (the computer's, or the phone's own:
+  /// offline, not_connected, interrupted, timeout).
+  Future<({Map<String, Object?>? result, String? error})> _ask(
+    Device computer,
+    Map<String, Object?> body, {
+    required Duration timeout,
+    void Function(RelayRequest request)? onRequest,
+    void Function(String stage)? onStage,
   }) async {
     final request = _relay.request(computer.id, body);
-    _request = request;
+    onRequest?.call(request);
     final result = Completer<Map<String, Object?>>();
     Timer? timer;
     // Every progress starts the wait again: the computer is still at it.
@@ -342,9 +509,8 @@ class DictateController extends ChangeNotifier {
     final subscription = request.replies.listen(
       (reply) {
         if (reply['kind'] == RelayKind.progress) {
-          if (reply['stage'] case final String stage) _stage = stage;
+          if (reply['stage'] case final String stage) onStage?.call(stage);
           wait(reply['stage'] == 'approval' ? _approvalTimeout : timeout);
-          _notify();
         } else if (reply['kind'] == RelayKind.result && !result.isCompleted) {
           result.complete(reply);
         }
@@ -356,40 +522,47 @@ class DictateController extends ChangeNotifier {
 
     try {
       return switch (await result.future) {
-        {'ok': true} && final reply => DictateOutcome.done(
-          computer: computer.name,
-          text: reply['text'] is String ? reply['text']! as String : null,
-          pasted: reply['pasted'] == true,
-          typed: typed,
-        ),
-        final reply => DictateOutcome.failed(
-          reply['error'] is String ? reply['error']! as String : 'unknown',
-          computer: computer.name,
-          typed: typed,
+        {'ok': true} && final reply => (result: reply, error: null),
+        final reply => (
+          result: null,
+          error: reply['error'] is String
+              ? reply['error']! as String
+              : 'unknown',
         ),
       };
     } on RelayException catch (e) {
-      return DictateOutcome.failed(
-        switch (e.error) {
+      return (
+        result: null,
+        error: switch (e.error) {
           RelayError.offline => 'offline',
           RelayError.notConnected => 'not_connected',
           RelayError.interrupted => 'interrupted',
         },
-        computer: computer.name,
-        typed: typed,
       );
     } on _TimedOut {
-      return DictateOutcome.failed(
-        'timeout',
-        computer: computer.name,
-        typed: typed,
-      );
+      return (result: null, error: 'timeout');
     } finally {
       timer?.cancel();
       unawaited(subscription.cancel());
-      _request = null;
-      _cancelling = false;
     }
+  }
+
+  /// The fields that aim a request at [window]; none for the cursor.
+  static Map<String, Object?> _aim(RemoteWindow? window) =>
+      window == null ? const {} : {'target': window.id, 'stay': false};
+
+  /// [window] closed or its id expired: forget it, unless another one was
+  /// chosen meanwhile.
+  void _loseWindow(RemoteWindow? window) {
+    if (window == null || _window?.window.id != window.id) return;
+    _window = null;
+    _windowLost = true;
+    _notify();
+  }
+
+  void _clearEnterOffer() {
+    _enterOffer?.cancel();
+    _enterOffer = null;
   }
 
   void _finish(DictateOutcome outcome) {
@@ -397,6 +570,14 @@ class DictateController extends ChangeNotifier {
     _phase = DictatePhase.idle;
     _stage = null;
     _outcome = outcome;
+    _clearEnterOffer();
+    // The computer never presses Enter after a phone's paste (PROTOCOL.md).
+    if (outcome.pasted || (outcome.typed && outcome.error == null)) {
+      _enterOffer = Timer(enterOfferFor, () {
+        _enterOffer = null;
+        _notify();
+      });
+    }
     _notify();
   }
 
@@ -465,6 +646,7 @@ class DictateController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _clearEnterOffer();
     _endRecording();
     unawaited(_recorder.dispose());
     if (_recordingPath case final path?) unawaited(_delete(path));
