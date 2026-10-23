@@ -2106,8 +2106,8 @@
         "title": "Phone",
         "remoteInput": "Phone dictation",
         "remoteInputHint": "Lets your phone dictate and type on this computer.",
-        "remoteWindows": "Let phones choose windows",
-        "remoteWindowsHint": "Your phone can see the titles of open windows, send dictation and text to the one you pick, and press keys like Enter there.",
+        "remoteWindows": "Let phones see and use windows",
+        "remoteWindowsHint": "Your phone can list open windows, watch one live, and type, press keys or click in it. A card here says when a phone is watching, with Stop.",
         "install": "Get the Talvio app on your phone and sign in as {{email}}."
       },
       "keys": {
@@ -2532,6 +2532,12 @@
     "body": "It wants to dictate and type into the apps on this computer, so only allow phones you own.",
     "allow": "Allow",
     "deny": "Don't allow"
+  },
+  "phoneViewing": {
+    "title": "Phone is viewing",
+    "body": "{{phone}} can see {{title}}.",
+    "unnamedPhone": "Your phone",
+    "stop": "Stop"
   },
   "assistant": {
     "conversation": {

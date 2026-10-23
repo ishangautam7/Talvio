@@ -2097,8 +2097,8 @@
         "title": "Điện thoại",
         "remoteInput": "Đọc chính tả từ điện thoại",
         "remoteInputHint": "Cho phép điện thoại đọc chính tả và gõ chữ trên máy tính này.",
-        "remoteWindows": "Cho phép điện thoại chọn cửa sổ",
-        "remoteWindowsHint": "Điện thoại có thể thấy tiêu đề các cửa sổ đang mở, gửi nội dung đọc chính tả và văn bản đến cửa sổ bạn chọn, và nhấn các phím như Enter ở đó.",
+        "remoteWindows": "Cho phép điện thoại xem và dùng cửa sổ",
+        "remoteWindowsHint": "Điện thoại có thể liệt kê các cửa sổ đang mở, xem trực tiếp một cửa sổ và gõ chữ, nhấn phím hoặc bấm chuột trong đó. Khi có điện thoại đang xem, một thẻ sẽ hiện ở đây kèm nút Dừng.",
         "install": "Cài ứng dụng Talvio trên điện thoại và đăng nhập bằng {{email}}."
       },
       "keys": {
@@ -2518,6 +2518,12 @@
     "body": "Điện thoại này muốn đọc chính tả và gõ chữ vào các ứng dụng trên máy tính này, nên chỉ cho phép điện thoại của bạn.",
     "allow": "Cho phép",
     "deny": "Không cho phép"
+  },
+  "phoneViewing": {
+    "title": "Điện thoại đang xem",
+    "body": "{{phone}} có thể thấy {{title}}.",
+    "unnamedPhone": "Điện thoại của bạn",
+    "stop": "Dừng"
   },
   "assistant": {
     "conversation": {

@@ -2124,8 +2124,8 @@
         "title": "Telefon",
         "remoteInput": "Dyktowanie z telefonu",
         "remoteInputHint": "Pozwala telefonowi dyktować i pisać na tym komputerze.",
-        "remoteWindows": "Pozwól telefonom wybierać okna",
-        "remoteWindowsHint": "Telefon widzi tytuły otwartych okien, może wysyłać dyktowanie i tekst do wybranego okna i naciskać w nim klawisze takie jak Enter.",
+        "remoteWindows": "Pozwól telefonom widzieć i używać okien",
+        "remoteWindowsHint": "Telefon może wyświetlić listę otwartych okien, oglądać jedno na żywo i pisać w nim, naciskać klawisze lub klikać. Gdy telefon ogląda, pojawia się tu karta z przyciskiem Zatrzymaj.",
         "install": "Zainstaluj aplikację Talvio na telefonie i zaloguj się jako {{email}}."
       },
       "keys": {
@@ -2560,6 +2560,12 @@
     "body": "Chce dyktować i pisać w aplikacjach na tym komputerze, więc zezwalaj tylko telefonom, które należą do Ciebie.",
     "allow": "Zezwól",
     "deny": "Nie zezwalaj"
+  },
+  "phoneViewing": {
+    "title": "Telefon ogląda",
+    "body": "{{phone}} widzi {{title}}.",
+    "unnamedPhone": "Twój telefon",
+    "stop": "Zatrzymaj"
   },
   "assistant": {
     "conversation": {

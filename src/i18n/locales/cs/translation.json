@@ -2124,8 +2124,8 @@
         "title": "Telefon",
         "remoteInput": "Diktování z telefonu",
         "remoteInputHint": "Umožní telefonu diktovat a psát na tomto počítači.",
-        "remoteWindows": "Povolit telefonům vybírat okna",
-        "remoteWindowsHint": "Telefon uvidí názvy otevřených oken, může posílat diktování a text do okna, které vyberete, a mačkat v něm klávesy jako Enter.",
+        "remoteWindows": "Povolit telefonům vidět a používat okna",
+        "remoteWindowsHint": "Telefon může vypsat otevřená okna, sledovat jedno živě a psát do něj, mačkat v něm klávesy nebo do něj klikat. Když telefon sleduje, zobrazí se tu karta s tlačítkem Zastavit.",
         "install": "Nainstalujte si do telefonu aplikaci Talvio a přihlaste se jako {{email}}."
       },
       "keys": {
@@ -2560,6 +2560,12 @@
     "body": "Chce diktovat a psát do aplikací na tomto počítači, proto povolte jen telefony, které vlastníte.",
     "allow": "Povolit",
     "deny": "Nepovolit"
+  },
+  "phoneViewing": {
+    "title": "Telefon sleduje",
+    "body": "{{phone}} vidí {{title}}.",
+    "unnamedPhone": "Váš telefon",
+    "stop": "Zastavit"
   },
   "assistant": {
     "conversation": {

@@ -2115,8 +2115,8 @@
         "title": "Téléphone",
         "remoteInput": "Dictée depuis le téléphone",
         "remoteInputHint": "Permet à votre téléphone de dicter et de saisir du texte sur cet ordinateur.",
-        "remoteWindows": "Laisser les téléphones choisir les fenêtres",
-        "remoteWindowsHint": "Votre téléphone peut voir les titres des fenêtres ouvertes, envoyer la dictée et du texte à celle que vous choisissez, et y appuyer sur des touches comme Entrée.",
+        "remoteWindows": "Laisser les téléphones voir et utiliser les fenêtres",
+        "remoteWindowsHint": "Votre téléphone peut lister les fenêtres ouvertes, en regarder une en direct, et y saisir du texte, appuyer sur des touches ou cliquer. Une carte ici indique quand un téléphone regarde, avec Arrêter.",
         "install": "Installez l'application Talvio sur votre téléphone et connectez-vous avec {{email}}."
       },
       "keys": {
@@ -2546,6 +2546,12 @@
     "body": "Il veut dicter et saisir du texte dans les applications de cet ordinateur : n'autorisez que les téléphones qui vous appartiennent.",
     "allow": "Autoriser",
     "deny": "Ne pas autoriser"
+  },
+  "phoneViewing": {
+    "title": "Un téléphone regarde",
+    "body": "{{phone}} peut voir {{title}}.",
+    "unnamedPhone": "Votre téléphone",
+    "stop": "Arrêter"
   },
   "assistant": {
     "conversation": {

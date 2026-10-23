@@ -2097,8 +2097,8 @@
         "title": "휴대폰",
         "remoteInput": "휴대폰으로 받아쓰기",
         "remoteInputHint": "휴대폰으로 이 컴퓨터에 받아쓰기하고 입력할 수 있게 합니다.",
-        "remoteWindows": "휴대폰에서 창 선택 허용",
-        "remoteWindowsHint": "휴대폰에서 열려 있는 창의 제목을 보고, 선택한 창으로 받아쓰기와 텍스트를 보내고, 그 창에서 Enter 같은 키를 누를 수 있습니다.",
+        "remoteWindows": "휴대폰에서 창 보기 및 사용 허용",
+        "remoteWindowsHint": "휴대폰에서 열려 있는 창 목록을 보고, 한 창을 실시간으로 보면서 그 창에 입력하거나 키를 누르거나 클릭할 수 있습니다. 휴대폰이 보고 있을 때는 여기에 중지 버튼이 있는 카드가 표시됩니다.",
         "install": "휴대폰에 Talvio 앱을 설치하고 {{email}}(으)로 로그인하세요."
       },
       "keys": {
@@ -2518,6 +2518,12 @@
     "body": "이 컴퓨터의 앱에 받아쓰기하고 입력하려고 합니다. 본인 소유의 휴대폰만 허용하세요.",
     "allow": "허용",
     "deny": "허용 안 함"
+  },
+  "phoneViewing": {
+    "title": "휴대폰이 보는 중",
+    "body": "{{phone}}에서 {{title}}을(를) 볼 수 있습니다.",
+    "unnamedPhone": "내 휴대폰",
+    "stop": "중지"
   },
   "assistant": {
     "conversation": {
