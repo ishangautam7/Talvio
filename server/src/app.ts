@@ -29,6 +29,7 @@ import { Hub, type SocketData } from "./hub";
 import { addressKey, RateLimit } from "./rateLimit";
 import { deleteSecret, listSecrets, putSecret, SecretBox } from "./secrets";
 import { resolveSecretsKey } from "./secretsKey";
+import { turn, type TurnConfig } from "./turn";
 
 export interface Options {
   port: number;
@@ -43,6 +44,8 @@ export interface Options {
   trustProxy: boolean;
   /** Base64 of the 32-byte key for stored API keys (`TALVIO_SECRETS_KEY`); unset uses `secrets.key` beside the database. */
   secretsKey?: string;
+  /** Where live-view TURN credentials come from (PROTOCOL.md, "TURN"); null offers STUN only. */
+  turn?: TurnConfig | null;
   /** Seconds without a byte from a client before its socket is dropped (75; tests shorten it). */
   idleSeconds?: number;
   now?: () => number;
@@ -58,6 +61,7 @@ export interface Ctx {
   google: GoogleConfig | null;
   loginFailures: RateLimit;
   secrets: SecretBox;
+  turn: TurnConfig | null;
 }
 
 type Route = (
@@ -83,6 +87,7 @@ const routes = new Map<string, Route>([
   ["DELETE /v1/me", (req, ctx) => deleteMe(req, ctx)],
   ["GET /v1/devices", (req, ctx) => listDevices(req, ctx)],
   ["GET /v1/secrets", (req, ctx) => listSecrets(req, ctx)],
+  ["GET /v1/turn", (req, ctx) => turn(req, ctx)],
   [
     "GET /v1/ws",
     (req, ctx, _url, server) => {
@@ -140,6 +145,7 @@ export function startServer(options: Options) {
     google: options.google && { tokenUrl: GOOGLE_TOKEN_URL, ...options.google },
     loginFailures,
     secrets: new SecretBox(secretsKey.key),
+    turn: options.turn ?? null,
   };
 
   function clientIp(req: Request, server: Server<SocketData>): string {

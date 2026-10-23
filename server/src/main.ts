@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { startServer } from "./app";
 import { resolveDatabasePath } from "./databasePath";
+import { turnFromEnv } from "./turn";
 
 const env = process.env;
 
@@ -29,6 +30,8 @@ const google =
     ? { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }
     : null;
 
+const turn = turnFromEnv(env);
+
 const app = startServer({
   port,
   hostname: env.HOST ?? "0.0.0.0",
@@ -37,9 +40,10 @@ const app = startServer({
   google,
   trustProxy: env.TRUST_PROXY === "1",
   secretsKey: env.TALVIO_SECRETS_KEY,
+  turn,
 });
 console.log(
-  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"})`,
+  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"})`,
 );
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
