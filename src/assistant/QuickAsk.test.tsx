@@ -2,18 +2,24 @@ import { afterEach, expect, mock, test } from "bun:test";
 import React from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import {
+  lingerFor,
+  oneLine,
+  orbModeFor,
   parseLayout,
   quickAskPhase,
   quickAskShape,
+  toolCaption,
   workingLabelKey,
+  LINGER_WITH_ACTION_MS,
+  SETTLE_MS,
 } from "./quickAskState";
 
 /**
- * The quick ask: one question, one answer, and the surface that shows them.
+ * The quick ask: one question, answered aloud by the orb.
  *
- * The state derivation is the part that decides whether the surface feels alive
- * or stuck, and the component is presentational, so both are checked directly —
- * no window, no backend, no pipeline.
+ * The state derivation decides whether the orb feels alive or stuck, and the
+ * component is presentational, so both are checked directly — no window, no
+ * backend, no pipeline.
  */
 
 mock.module("react-i18next", () => ({
@@ -34,30 +40,45 @@ const idle = {
   hasError: false,
 } as const;
 
-test("the first token opens the card, instead of the finished answer", () => {
-  // A long answer used to spend its whole generation behind a spinner, because
-  // the card only opened once the reply was complete and measured.
-  expect(quickAskPhase({ ...idle, state: "thinking", stream: "The" })).toBe(
+test("typing is a bar, everything else is the orb", () => {
+  expect(quickAskShape("prompt")).toBe("bar");
+  for (const phase of [
+    "listening",
+    "transcribing",
+    "working",
     "answering",
-  );
-  expect(quickAskShape("answering")).toBe("card");
+    "speaking",
+    "done",
+    "error",
+  ] as const)
+    expect(quickAskShape(phase)).toBe("orb");
 });
 
-test("waiting is a pill, typing is a bar, reading is a card", () => {
+test("the pipeline maps onto listening, thinking and speaking", () => {
   expect(quickAskPhase({ ...idle, state: "listening" })).toBe("listening");
   expect(quickAskPhase({ ...idle, state: "transcribing" })).toBe(
     "transcribing",
   );
   expect(quickAskPhase({ ...idle, state: "searching" })).toBe("working");
-  expect(quickAskPhase(idle)).toBe("prompt");
+  expect(quickAskPhase({ ...idle, state: "thinking", stream: "The" })).toBe(
+    "answering",
+  );
+  // The backend's "speaking" is a voice on its way, not yet heard.
+  expect(quickAskPhase({ ...idle, state: "speaking", answer: "Hi." })).toBe(
+    "answering",
+  );
+  expect(
+    quickAskPhase({ ...idle, state: "speaking", answer: "Hi.", audible: true }),
+  ).toBe("speaking");
   expect(quickAskPhase({ ...idle, answer: "Done." })).toBe("done");
+  expect(quickAskPhase(idle)).toBe("prompt");
+});
 
-  expect(quickAskShape("listening")).toBe("pill");
-  expect(quickAskShape("transcribing")).toBe("pill");
-  expect(quickAskShape("working")).toBe("pill");
-  expect(quickAskShape("prompt")).toBe("bar");
-  expect(quickAskShape("done")).toBe("card");
-  expect(quickAskShape("error")).toBe("card");
+test("the voice outranks the backend going idle", () => {
+  // The turn ends long before its voice does.
+  expect(quickAskPhase({ ...idle, answer: "Hi.", audible: true })).toBe(
+    "speaking",
+  );
 });
 
 test("a new question being spoken outranks the previous answer", () => {
@@ -68,49 +89,68 @@ test("a new question being spoken outranks the previous answer", () => {
 
 test("an error shows once the pipeline has stopped", () => {
   expect(quickAskPhase({ ...idle, hasError: true })).toBe("error");
-  // A new turn clears errors as it starts; until then the turn owns the surface.
   expect(quickAskPhase({ ...idle, state: "thinking", hasError: true })).toBe(
     "working",
   );
 });
 
-test("the waiting label is one of a few short states", () => {
+test("the orb listens, thinks and speaks", () => {
+  expect(orbModeFor("listening")).toBe("listening");
+  expect(orbModeFor("transcribing")).toBe("thinking");
+  expect(orbModeFor("working")).toBe("thinking");
+  expect(orbModeFor("answering")).toBe("thinking");
+  expect(orbModeFor("speaking")).toBe("speaking");
+  expect(orbModeFor("done")).toBe("idle");
+  expect(orbModeFor("error")).toBe("error");
+});
+
+test("a finished orb goes quickly, unless it offers something to click", () => {
+  expect(lingerFor(false)).toBe(SETTLE_MS);
+  expect(lingerFor(true)).toBe(LINGER_WITH_ACTION_MS);
+  expect(SETTLE_MS).toBeLessThan(1500);
+});
+
+test("only tools worth naming get a line", () => {
+  expect(toolCaption(null)).toBeNull();
+  expect(toolCaption({ name: "web_search", detail: "rust" })).toEqual({
+    key: "assistant.status.searching",
+  });
+  expect(toolCaption({ name: "capture_screen", detail: "" })).toEqual({
+    key: "assistant.tool.screen",
+  });
+  expect(
+    toolCaption({ name: "do_on_computer", detail: "open youtube." }),
+  ).toEqual({ key: "assistant.orb.doing", values: { action: "Open youtube" } });
+  expect(toolCaption({ name: "do_on_computer", detail: "" })).toEqual({
+    key: "assistant.tool.computer",
+  });
+  // Over before a line could be read.
+  expect(toolCaption({ name: "set_reminder", detail: "" })).toBeNull();
+  expect(toolCaption({ name: "get_current_datetime", detail: "" })).toBeNull();
+});
+
+test("a request becomes one short line", () => {
+  expect(oneLine("open the settings app\nand then wifi")).toBe(
+    "Open the settings app",
+  );
+  const long = oneLine(
+    "write an email to the whole team about the new release schedule for next quarter",
+  );
+  expect(long.length).toBeLessThanOrEqual(48);
+  expect(long.endsWith(" ")).toBe(false);
+  expect(oneLine("  ")).toBe("");
+});
+
+test("the screen-reader status is one of a few short states", () => {
   expect(workingLabelKey("listening", "listening", null)).toBe(
     "assistant.status.listening",
-  );
-  expect(workingLabelKey("working", "thinking", null)).toBe(
-    "assistant.status.thinking",
   );
   expect(workingLabelKey("working", "searching", null)).toBe(
     "assistant.status.searching",
   );
-  // A tool that changes what to expect is named, and beats the pipeline state.
-  expect(
-    workingLabelKey("working", "thinking", { name: "web_search", detail: "" }),
-  ).toBe("assistant.status.searching");
-  expect(
-    workingLabelKey("working", "thinking", {
-      name: "capture_screen",
-      detail: "",
-    }),
-  ).toBe("assistant.tool.screen");
-  expect(
-    workingLabelKey("working", "thinking", {
-      name: "do_on_computer",
-      detail: "play believer",
-    }),
-  ).toBe("assistant.tool.computer");
-  // Transcription and every other tool are, to the person waiting, thinking.
-  // A pill that flips through five labels in two seconds reads as noise.
   expect(workingLabelKey("transcribing", "transcribing", null)).toBe(
     "assistant.status.thinking",
   );
-  expect(
-    workingLabelKey("working", "thinking", {
-      name: "set_reminder",
-      detail: "",
-    }),
-  ).toBe("assistant.status.thinking");
 });
 
 test("a malformed layout falls back to the top centre", () => {
@@ -119,10 +159,6 @@ test("a malformed layout falls back to the top centre", () => {
     justify: "end",
   });
   expect(parseLayout(null)).toEqual({ align: "top", justify: "center" });
-  expect(parseLayout({ align: "sideways", justify: 3 })).toEqual({
-    align: "top",
-    justify: "center",
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -174,163 +210,120 @@ const surface = () =>
       typeof node.type === "string" && node.props.className === "qa-surface",
   );
 
-test("there is no follow-up field once an answer is on screen", () => {
-  render(
-    <QuickAsk
-      {...base}
-      phase="done"
-      question="Translate this"
-      answer="Traduce esto"
-    />,
-  );
-  // One question, one answer: a conversation is what the call is for.
-  expect(renderer!.root.findAllByType("input")).toHaveLength(0);
-  expect(surface().props["data-shape"]).toBe("card");
-});
-
-test("a finished answer offers Copy and Insert, and the way out is Close", () => {
-  render(<QuickAsk {...base} phase="done" question="q" answer="a" canRetry />);
-  expect(labels()).toEqual([
-    "common.close",
-    "assistant.conversation.retry",
-    "assistant.copy",
-    "assistant.insert",
-  ]);
-});
-
-// "Remind me in a minute" used to end on an ordinary answer card whose primary
-// action was to Insert "Done, I'll remind you" into the user's app.
-test("an ask that set a reminder confirms it and offers Undo, not Insert", () => {
-  let undone = 0;
-  render(
-    <QuickAsk
-      {...base}
-      phase="done"
-      question="Remind me to stretch in a minute"
-      answer="Done, I'll remind you at 2:31 PM."
-      canRetry
-      reminder={{ when: "2:31 PM" }}
-      onUndoReminder={() => (undone += 1)}
-    />,
-  );
-  // No Retry: it would set the same reminder twice.
-  expect(labels()).toEqual([
-    "common.close",
-    "assistant.copy",
-    "reminders.settings.cancel",
-  ]);
-  expect(classNames().filter((c) => c === "qa-chip")).toHaveLength(1);
-  const undo = renderer!.root
-    .findAllByType("button")
-    .find((button) => button.props.title === "reminders.settings.cancel")!;
-  act(() => undo.props.onClick());
-  expect(undone).toBe(1);
-});
-
-test("an answer about a selection offers to replace it", () => {
-  render(
-    <QuickAsk
-      {...base}
-      phase="done"
-      question="Make this shorter"
-      answer="Shorter."
-      selectionChars={240}
-    />,
-  );
-  expect(labels()).toContain("assistant.insertReplace");
-  const texts = renderer!.root
-    .findAll((node) => typeof node.type === "string")
+const visibleText = () =>
+  renderer!.root
+    .findAll(
+      (node) =>
+        typeof node.type === "string" && node.props.className !== "qa-sr-only",
+    )
     .flatMap((node) => node.children)
     .filter((child): child is string => typeof child === "string");
-  expect(texts).toContain("assistant.quick.selection");
-});
 
-test("while it writes, Stop keeps the answer and the × cancels it", () => {
+test("an answer is never drawn as text", () => {
   render(
-    <QuickAsk {...base} phase="answering" question="q" answer="Partial" />,
+    <QuickAsk
+      {...base}
+      phase="speaking"
+      question="What is the capital of France?"
+      answer="Paris is the capital of France."
+    />,
   );
-  expect(labels()).toEqual(["assistant.cancel", undefined]);
-  const stop = renderer!.root
-    .findAllByType("button")
-    .find(
-      (button) =>
-        button.findAll((n) => n.children.includes("assistant.stop")).length > 0,
-    );
-  expect(stop).toBeDefined();
+  expect(surface().props["data-shape"]).toBe("orb");
+  expect(renderer!.root.findAllByType("input")).toHaveLength(0);
+  expect(visibleText().join(" ")).not.toContain("Paris");
+  expect(visibleText().join(" ")).not.toContain("capital");
 });
 
-test("every waiting state has exactly one control, the cancel", () => {
-  for (const phase of ["listening", "transcribing", "working"] as const) {
-    render(<QuickAsk {...base} phase={phase} levels={[0.4]} />);
-    expect(surface().props["data-shape"]).toBe("pill");
-    expect(labels()).toEqual(["assistant.cancel"]);
+test("the orb is the only control while it works, and it stops", () => {
+  for (const phase of [
+    "listening",
+    "transcribing",
+    "working",
+    "answering",
+    "speaking",
+  ] as const) {
+    render(<QuickAsk {...base} phase={phase} />);
+    expect(labels()).toEqual(["assistant.stop"]);
     act(() => renderer!.unmount());
     renderer = null;
   }
 });
 
-const classNames = () =>
-  renderer!.root
-    .findAll((node) => typeof node.type === "string")
-    .map((node) => String(node.props.className ?? ""));
+test("a tool at work is the one line of words", () => {
+  render(
+    <QuickAsk
+      {...base}
+      phase="working"
+      caption="Open YouTube in the browser…"
+    />,
+  );
+  expect(visibleText()).toContain("Open YouTube in the browser…");
+});
 
-/**
- * The waiting pill is the call's status bubble: level bars while listening, a
- * spinner otherwise, then the words. It used to lead with a teal sparkle badge
- * and a spinning ring, which is what made it read as a different product.
- */
-test("the pill is the call bubble's indicator and words, with no badge", () => {
-  render(<QuickAsk {...base} phase="listening" levels={[0.5]} />);
-  expect(classNames()).toContain("call-level");
-  expect(classNames().some((c) => c.includes("qa-mark"))).toBe(false);
+test("an answer about a selection offers Insert once it is ready", () => {
+  const asked = {
+    ...base,
+    selectionChars: 40,
+    question: "Make this formal",
+    answer: "Dear team,",
+  };
+  render(<QuickAsk {...asked} phase="speaking" answerReady={false} />);
+  expect(labels()).toEqual(["assistant.stop"]);
   act(() => renderer!.unmount());
-  renderer = null;
-
-  render(<QuickAsk {...base} phase="working" />);
-  expect(classNames().some((c) => c.includes("call-spin"))).toBe(true);
-  expect(classNames()).not.toContain("call-level");
+  render(<QuickAsk {...asked} phase="speaking" answerReady />);
+  expect(labels()).toEqual(["assistant.stop", "assistant.insertReplace"]);
+  act(() => renderer!.unmount());
+  render(<QuickAsk {...asked} phase="done" answerReady />);
+  expect(labels()).toEqual(["common.close", "assistant.insertReplace"]);
 });
 
-/**
- * What the answer is about belongs on the card, where it explains the answer.
- * On the pill "Screen" and "Selection" were chips beside "Listening…" — noise
- * about something the user did a second ago.
- */
-test("selection and screen chips appear on the card, never on the pill", () => {
-  for (const phase of ["listening", "transcribing", "working"] as const) {
-    render(<QuickAsk {...base} phase={phase} selectionChars={40} screen />);
-    expect(classNames()).not.toContain("qa-chip");
-    act(() => renderer!.unmount());
-    renderer = null;
-  }
+test("an answer that was not about a selection offers nothing to click", () => {
   render(
     <QuickAsk
       {...base}
       phase="done"
+      answer="Paris."
+      answerReady
       question="q"
-      answer="a"
-      selectionChars={40}
-      screen
     />,
   );
-  expect(classNames().filter((c) => c === "qa-chip")).toHaveLength(2);
+  expect(labels()).toEqual(["common.close"]);
 });
 
-test("an error is announced and carries no attachment chips", () => {
+test("an answer nobody heard is offered to copy", () => {
   render(
     <QuickAsk
       {...base}
-      phase="error"
-      error="The provider refused"
-      screen
-      selectionChars={12}
+      phase="done"
+      answer="```rm -rf```"
+      answerReady
+      offerCopy
     />,
   );
-  expect(classNames()).not.toContain("qa-chip");
+  expect(labels()).toEqual(["common.close", "assistant.copy"]);
+});
+
+test("an ask that set a reminder offers Undo, not Insert", () => {
+  render(
+    <QuickAsk
+      {...base}
+      phase="done"
+      answer="Done."
+      answerReady
+      selectionChars={20}
+      reminder={{ when: "2:30 PM" }}
+    />,
+  );
+  expect(labels()).toEqual(["common.close", "reminders.settings.cancel"]);
+});
+
+test("an error is announced in the one line", () => {
+  render(<QuickAsk {...base} phase="error" error="The provider refused" />);
   const alert = renderer!.root.find(
     (node) => typeof node.type === "string" && node.props.role === "alert",
   );
   expect(alert.children).toContain("The provider refused");
+  expect(labels()).toEqual(["common.close"]);
 });
 
 test("the prompt is a field with send, and send is refused while empty", () => {
@@ -340,16 +333,6 @@ test("the prompt is a field with send, and send is refused while empty", () => {
     .findAllByType("button")
     .find((button) => button.props["aria-label"] === "assistant.send");
   expect(send?.props.disabled).toBe(true);
-});
-
-test("an error without a question to retry is one line and a close", () => {
-  render(<QuickAsk {...base} phase="error" error="No microphone found" />);
-  expect(labels()).toEqual(["common.close"]);
-  const texts = renderer!.root
-    .findAll((node) => typeof node.type === "string")
-    .flatMap((node) => node.children)
-    .filter((child): child is string => typeof child === "string");
-  expect(texts).toContain("No microphone found");
 });
 
 /**

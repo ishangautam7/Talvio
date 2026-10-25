@@ -19,6 +19,7 @@ import {
 import { type } from "@tauri-apps/plugin-os";
 import { invoke } from "@tauri-apps/api/core";
 import AudioWaveform from "../components/shared/AudioWaveform";
+import { LuminousOrb } from "@/assistant/LuminousOrb";
 import { shortKeyCombination } from "../components/ui/Keycaps";
 import type { OSType } from "@/lib/utils/keyboard";
 import {
@@ -191,7 +192,9 @@ const LiveWaveform: React.FC<
  * bars carry listening, working and done, so a change of state moves
  * nothing. */
 const CARD_WAVE: WaveShape = { bars: 5, pitch: 5, barWidth: 3 };
-const PILL_WAVE: WaveShape = { bars: 14 };
+/** The pill's bars: few and full, the assistant's listening oval's, beside the
+ *  pill's one word. Fourteen hairline bars read as noise at this size. */
+const PILL_WAVE: WaveShape = { bars: 7, pitch: 5, barWidth: 3 };
 const LABELED_PILL_WAVE: WaveShape = { bars: 9 };
 
 /** Coalesce transcript updates onto the display's own clock. The engines emit
@@ -399,6 +402,19 @@ const RecordingOverlay: React.FC = () => {
   const levelStore = useRef<LevelStore | null>(null);
   levelStore.current ??= createLevelStore();
   const levels = levelStore.current;
+  /** The pill's glow follows the voice: written straight to a CSS variable
+   *  from the level store, so 30 levels a second never re-render the pill. */
+  const energyRef = useRef<HTMLDivElement>(null);
+  useEffect(
+    () =>
+      levels.subscribe(() => {
+        energyRef.current?.style.setProperty(
+          "--ov-energy",
+          voiceEnergy(levels.get()).toFixed(3),
+        );
+      }),
+    [levels],
+  );
   const [micLive, setMicLive] = useState(false);
   const [transcript, setTranscript] = useState<Transcript>(EMPTY_TRANSCRIPT);
   const [streamingWindow, setStreamingWindow] = useState(false);
@@ -1314,9 +1330,19 @@ const RecordingOverlay: React.FC = () => {
         </div>
       ) : (
         <div
+          ref={energyRef}
           className={`overlay-pill ${state}${labeled ? " labeled" : ""}${
             !labeled && hasLiveText && !working ? " has-text" : ""
-          }${handsFreeNow ? " hands-free" : ""}${controls ? " has-controls" : ""}`}
+          }${
+            !labeled &&
+            !downloading &&
+            !needsUpdate &&
+            !(hasLiveText && !working)
+              ? " is-compact"
+              : ""
+          }${handsFreeNow ? " hands-free" : ""}${controls ? " has-controls" : ""}${
+            live ? " is-live" : ""
+          }`}
           role="group"
           aria-label={ariaLabel}
         >
@@ -1346,10 +1372,18 @@ const RecordingOverlay: React.FC = () => {
             </>
           ) : labeled ? (
             <>
-              {state !== "notice" && (
-                <div className="pill-wave compact">
-                  {indicator(LABELED_PILL_WAVE)}
-                </div>
+              {state === "command" ? (
+                // A spoken command being carried out is the assistant at
+                // work, so it wears the assistant's orb, thinking.
+                <span className="pill-orb">
+                  <LuminousOrb mode="thinking" size={18} />
+                </span>
+              ) : (
+                state !== "notice" && (
+                  <div className="pill-wave compact">
+                    {indicator(LABELED_PILL_WAVE)}
+                  </div>
+                )
               )}
               <span className="pill-label" role="status">
                 {pillLabel}
@@ -1360,26 +1394,33 @@ const RecordingOverlay: React.FC = () => {
               {transcriptLine}
             </div>
           ) : (
-            <div
-              className={`pill-wave${showHint ? " is-hinting" : ""}`}
-              role="status"
-              aria-label={pillLabel}
-            >
-              {indicator(PILL_WAVE)}
-              {/* In the waveform's own slot, so the pill keeps its size and
-                  the window never grows. Not announced: anything spoken now
-                  would be spoken into the microphone. */}
-              {showHint && (
-                <span
-                  className="pill-hint-key"
-                  aria-hidden="true"
-                  title={t("overlay.handsFreeHint", { key: hintKey })}
-                >
-                  <Lock size={9} strokeWidth={2.2} />
-                  <kbd>{hintKey}</kbd>
+            <>
+              <div className="pill-wave" role="status" aria-label={pillLabel}>
+                {indicator(PILL_WAVE)}
+              </div>
+              {/* One word beside the bars, as on the assistant's listening
+                  oval. The hands-free key's hint takes the word's place for a
+                  few seconds, so the pill keeps its size and the window never
+                  grows. Not announced: anything spoken now would be spoken
+                  into the microphone. */}
+              <span
+                className={`pill-state${showHint ? " is-hinting" : ""}`}
+                aria-hidden="true"
+              >
+                <span key={pillLabel} className="pill-state-word">
+                  {pillLabel}
                 </span>
-              )}
-            </div>
+                {showHint && (
+                  <span
+                    className="pill-hint-key"
+                    title={t("overlay.handsFreeHint", { key: hintKey })}
+                  >
+                    <Lock size={9} strokeWidth={2.2} />
+                    <kbd>{hintKey}</kbd>
+                  </span>
+                )}
+              </span>
+            </>
           )}
           {countdown}
           {controls && finishButton("hands-free-control pill-control")}

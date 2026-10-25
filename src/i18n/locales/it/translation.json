@@ -2797,6 +2797,10 @@
       "selection": "Selezione",
       "copied": "Copiato",
       "newConversation": "Nuova conversazione"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Preparo la voce · {{percent}}%"
     }
   },
   "nav": {

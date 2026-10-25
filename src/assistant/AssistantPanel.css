@@ -905,15 +905,13 @@
 }
 
 /* =========================================================================
- * The quick ask — one surface in three shapes
+ * The quick ask — the orb, and a bar for typing
  *
  * The window is a fixed, transparent frame placed at the dock zone the user
  * chose (see `ask_placement` in assistant.rs), and it does not change size while
- * an ask runs. The surface inside it is one element that is a pill while it
- * waits, a bar while you type, and a card once there is something to read; it
- * widens and unfolds in place rather than being swapped for another element.
- * `hitRegion.ts` measures it so the empty part of the frame passes clicks
- * through.
+ * an ask runs. The surface inside it is a bar while you type and the voice orb
+ * for everything else (`QuickAsk.tsx`). `hitRegion.ts` measures it so the empty
+ * part of the frame passes clicks through.
  * ========================================================================= */
 
 /* The frame: empty space, pinned to whichever edge of the screen the surface is
@@ -977,32 +975,12 @@
   --qa-arrive-y: 6px;
 }
 
-/* Waiting: the call's status bubble, to the pixel — chip surface, faint
-   hairline that firms up under the pointer, 13px muted words. */
-.qa-surface[data-shape="pill"] {
-  background: var(--as-sheen, none), var(--as-chip-surface);
-}
-
-.qa-surface[data-shape="pill"]:hover {
-  border-color: var(--as-hairline-strong);
-}
-
 /* Typing: the call's text bar. A one-line question does not need the width of
    the answer card, so the bar stays a bar. */
 .qa-surface[data-shape="bar"] {
   width: min(100%, 460px);
   border-radius: 22px;
   border-color: var(--as-hairline-strong);
-}
-
-.qa-surface[data-shape="card"] {
-  width: 100%;
-}
-
-/* A failure wears the call's error bubble: a faint red tint, not a badge. */
-.qa-surface[data-phase="error"] {
-  background: var(--as-error-surface);
-  border-color: var(--as-error-line);
 }
 
 @keyframes qa-arrive {
@@ -1033,49 +1011,6 @@
   padding: 0 6px 0 16px;
 }
 
-.qa-surface[data-shape="card"] .qa-row {
-  min-height: 44px;
-  padding: 8px 8px 4px 16px;
-}
-
-/* ---------- Pill contents ---------- */
-
-/* The indicator is `.call-level` / `.call-spin` from CallBar.css. */
-.qa-row > .call-spin {
-  color: var(--as-muted);
-}
-
-.qa-status {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 320px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--as-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* What the answer was about, on the card only. The thread's `.screen-chip`. */
-.qa-chip {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 20px;
-  padding: 0 8px;
-  box-sizing: border-box;
-  border: 1px solid var(--as-hairline);
-  border-radius: 999px;
-  background: var(--as-inset-bg);
-  color: var(--as-muted);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
 /* ---------- Bar contents ---------- */
 
 .qa-input {
@@ -1097,51 +1032,6 @@
 }
 
 /* ---------- Buttons ---------- */
-
-/* Round and borderless, like `.call-icon`. */
-.qa-icon-btn {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--as-muted);
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    transform 140ms ease;
-}
-
-.qa-icon-btn:hover {
-  background: var(--as-raise);
-  color: var(--as-ink);
-}
-
-.qa-icon-btn:active {
-  transform: scale(0.93);
-}
-
-/* The way out. Quiet in the pill — the call bubble's dismiss — so the words,
-   not the ×, are what the eye lands on. */
-.qa-close {
-  width: 28px;
-  height: 28px;
-  color: var(--as-faint);
-}
-
-.qa-surface[data-shape="pill"] .qa-close {
-  width: 22px;
-  height: 22px;
-}
-
-.qa-surface[data-phase="error"] .qa-close {
-  align-self: flex-start;
-}
 
 .qa-send {
   flex: none;
@@ -1224,47 +1114,114 @@
   outline: none;
 }
 
-/* ---------- Card contents ---------- */
+/* ---------- The orb ----------
+ *
+ * Everything but typing. No surface of its own: the orb is light, drawn
+ * straight onto the transparent window, with at most one line of words and a
+ * chip under it. The surface's box is only the sphere and that line, so the
+ * halo, which spills past it, is drawn but never catches a click
+ * (`hitRegion.ts` measures the box). Margins, not padding, give the halo room
+ * from the window's edge, for the same reason. */
 
-/* What was asked: context for the answer, so one quiet line. An error takes
-   its place and may wrap, because it is the content. */
-.qa-question {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 500;
-  letter-spacing: 0.005em;
-  color: var(--as-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.qa-surface[data-shape="orb"] {
+  align-items: center;
+  margin: 34px 30px 10px;
+  overflow: visible;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  animation: qa-orb-arrive 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    opacity 300ms ease,
+    transform 380ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 380ms ease;
 }
 
-.qa-surface[data-phase="error"] .qa-question {
-  padding-block: 4px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--as-error);
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+.qa-frame[data-align="bottom"] .qa-surface[data-shape="orb"] {
+  flex-direction: column-reverse;
+  margin: 10px 30px 34px;
 }
 
-.qa-body {
+/* Leaving: the orb draws into itself and fades, a breath rather than a cut. */
+.qa-surface[data-shape="orb"][data-leaving] {
+  opacity: 0;
+  transform: scale(0.62);
+  filter: blur(2px);
+}
+
+@keyframes qa-orb-arrive {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: blur(6px);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.qa-orb {
+  position: relative;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: transform 260ms var(--as-ease);
+}
+
+.qa-orb .luminous-orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.qa-orb:hover {
+  transform: scale(1.04);
+}
+
+.qa-orb:active {
+  transform: scale(0.97);
+}
+
+.qa-orb:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 6px;
+}
+
+/* One line of words and the chips, under the orb (over it when docked at the
+   bottom). Each sits on its own small dark capsule: the window has no surface,
+   and text straight on someone's desktop is unreadable half the time. */
+.qa-orb-row {
   display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  animation: qa-unfold 240ms var(--as-ease) both;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: min(92vw, 440px);
+  margin-top: 16px;
+  animation: qa-row-in 260ms var(--as-ease) both;
 }
 
-@keyframes qa-unfold {
+.qa-frame[data-align="bottom"] .qa-orb-row {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+@keyframes qa-row-in {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-3px);
   }
   to {
     opacity: 1;
@@ -1272,59 +1229,66 @@
   }
 }
 
-.qa-answer.ask-answer-body {
-  padding: 4px 18px 10px;
-  /* Left-aligned with the row above rather than centred: in a wide banner a
-     centred column floats away from the question it answers. */
-  margin-inline: 0;
+.qa-caption {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  height: 28px;
+  padding: 0 13px;
+  box-sizing: border-box;
+  border: 1px solid var(--as-hairline);
+  border-radius: 999px;
+  background: var(--as-sheen, none), var(--as-chip-surface);
+  box-shadow: var(--as-inner);
+  color: var(--as-body);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: qa-caption-in 220ms ease-out both;
 }
 
-/* Keep the line breaks the model wrote. A quick ask is often a draft — an
-   email, a reply — and markdown's soft breaks would fold "Best,\nSam" into one
-   line on screen while Insert pastes it correctly. */
-.qa-answer p,
-.qa-answer li {
-  white-space: pre-line;
-}
-
-/* A caret at the end of the text while it is still being written, so a pause
-   between tokens reads as "still writing" rather than "finished". */
-.qa-surface[data-phase="answering"] .qa-answer > :last-child::after {
-  content: "";
-  display: inline-block;
-  width: 7px;
-  height: 1.05em;
-  margin-inline-start: 3px;
-  vertical-align: -0.16em;
-  border-radius: 2px;
-  background: var(--as-body);
-  animation: qa-caret 1s steps(2, jump-none) infinite;
-}
-
-@keyframes qa-caret {
-  50% {
+@keyframes qa-caption-in {
+  from {
     opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
-.qa-notice {
-  margin: 0;
-  padding: 0 18px 8px;
-  font-size: 11.5px;
-  color: var(--as-muted);
+.qa-surface[data-phase="error"] .qa-caption {
+  background: var(--as-error-surface);
+  border-color: var(--as-error-line);
+  color: var(--as-error);
 }
 
-.qa-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  padding: 8px 10px 10px;
-  border-top: 1px solid var(--as-hairline);
+.qa-btn.qa-chip-action {
+  flex: none;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  font-size: 12px;
 }
 
-.qa-actions-gap {
-  flex: 1;
+.qa-btn.qa-chip-action:not(.primary) {
+  background: var(--as-sheen, none), var(--as-chip-surface);
+  border-color: var(--as-hairline-strong);
+}
+
+.qa-btn.qa-chip-action:not(.primary):hover {
+  background: var(--as-sheen, none), var(--as-menu-surface);
+}
+
+.qa-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* =========================================================================
@@ -1615,7 +1579,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .qa-surface,
-  .qa-body,
   .assistant-message,
   .assistant-notice {
     animation: none;
@@ -1623,11 +1586,20 @@
   }
 
   .as-spin,
-  .typing-dot {
+  .typing-dot,
+  .qa-orb-row,
+  .qa-caption {
     animation: none;
   }
 
-  .qa-surface[data-phase="answering"] .qa-answer > :last-child::after {
-    animation: none;
+  .qa-orb {
+    transition: none;
+  }
+
+  /* Leaving still fades; it just does not shrink. */
+  .qa-surface[data-shape="orb"][data-leaving] {
+    transform: none;
+    filter: none;
+    transition: opacity 200ms ease;
   }
 }

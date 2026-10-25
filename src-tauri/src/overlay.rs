@@ -48,9 +48,10 @@ tauri_panel! {
 // hugs its content (auto width) and floats centered inside this transparent
 // frame, so these are the *maximum* bounds across all states rather than the
 // chip's actual size. Keeping them tight is what makes the overlay read as a
-// small, unobtrusive lozenge — the compact pill is only ~86pt wide, and every
-// point of frame beyond that is invisible padding that still swallows clicks.
-const OVERLAY_WIDTH: f64 = 96.0;
+// small, unobtrusive lozenge — the compact pill (level bars and one word, the
+// assistant's listening oval) is at most 164pt wide, and every point of frame
+// beyond that is invisible padding that still swallows clicks.
+const OVERLAY_WIDTH: f64 = 172.0;
 const OVERLAY_HEIGHT: f64 = 44.0;
 
 // Labeled pill states (Flow generating / looking at the screen / a brief

@@ -484,6 +484,7 @@ pub(crate) fn request_messages(
         settings,
         &PromptPlan {
             call: false,
+            selection: false,
             meeting_section: None,
             tools_section: &tools_section,
             web_via_online,

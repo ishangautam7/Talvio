@@ -2779,6 +2779,10 @@
       "selection": "Seçim",
       "copied": "Kopyalandı",
       "newConversation": "Yeni sohbet"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Ses hazırlanıyor · %{{percent}}"
     }
   },
   "nav": {

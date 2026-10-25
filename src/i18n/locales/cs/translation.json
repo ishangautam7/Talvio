@@ -2815,6 +2815,10 @@
       "selection": "Výběr",
       "copied": "Zkopírováno",
       "newConversation": "Nová konverzace"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Připravuji hlas · {{percent}} %"
     }
   },
   "nav": {

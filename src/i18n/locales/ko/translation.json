@@ -2761,6 +2761,10 @@
       "selection": "선택 영역",
       "copied": "복사됨",
       "newConversation": "새 대화"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "음성 준비 중 · {{percent}}%"
     }
   },
   "nav": {
