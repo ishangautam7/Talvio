@@ -7,6 +7,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { MenuButton, type MenuItem } from "@/components/ui/Menu";
@@ -87,17 +88,11 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
 
   if (meetings.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-dashed border-hairline-strong px-6 py-12 text-center">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface-strong text-muted">
-          <AudioLines className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <p className="mt-4 text-[0.9375rem] font-medium text-ink">
-          {t("meetings.list.emptyTitle")}
-        </p>
-        <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted text-pretty">
-          {t("meetings.list.emptyHint")}
-        </p>
-      </div>
+      <EmptyState
+        icon={AudioLines}
+        title={t("meetings.list.emptyTitle")}
+        hint={t("meetings.list.emptyHint")}
+      />
     );
   }
 
