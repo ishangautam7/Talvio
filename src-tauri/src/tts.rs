@@ -3470,6 +3470,19 @@ mod tests {
                     let path = std::env::temp_dir().join(format!("elevenlabs-{name}-{take}.mp3"));
                     std::fs::write(&path, &speech.bytes).unwrap();
                     println!("{name}: {} bytes -> {}", speech.bytes.len(), path.display());
+                    // The orb moves with this: the clip decodes, and metering
+                    // it as the playback thread does finds a speaking voice.
+                    let decoded = rodio::Decoder::new(std::io::Cursor::new(speech.bytes.clone()))
+                        .expect("the clip decodes");
+                    let mut metered = super::Metered::new(decoded);
+                    let mut loudest = 0.0f32;
+                    while metered.next().is_some() {
+                        loudest = loudest.max(f32::from_bits(
+                            super::SPEECH_LEVEL.load(std::sync::atomic::Ordering::Relaxed),
+                        ));
+                    }
+                    println!("{name}: loudest 33 ms window RMS {loudest:.3}");
+                    assert!(loudest > 0.02, "{name}: the voice metered as silence");
                 }
             }
         });
