@@ -6,10 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talvio_mobile/src/features/assistant/assistant_controller.dart';
 
-import '../../app_test.dart' show finish, pumpApp;
+import '../../app_test.dart' show finish, pumpApp, tabs;
 import '../../helpers.dart';
-import '../command/command_page_test.dart'
-    show answer, lastBody, menuLabels, tapVisible;
+import '../command/command_page_test.dart' show answer, lastBody, tapVisible;
 
 final assistantPc = deviceJson(
   capabilities: ['dictate', 'text', 'command', 'assistant'],
@@ -51,14 +50,11 @@ Future<void> progress(
 }
 
 void main() {
-  testWidgets('Assistant shows only for a computer that has it, after Do', (
+  testWidgets('Ask shows only for a computer that has it, and is home', (
     tester,
   ) async {
     final (server, relay) = await pumpApp(tester, [deviceJson()], page: null);
-    await tester.tap(find.byTooltip('Open menu'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(menuLabels(tester), isNot(contains('Assistant')));
+    expect(tabs(tester), isNot(contains('Ask')));
 
     server.send({
       'type': 'devices',
@@ -69,23 +65,14 @@ void main() {
     });
     await tester.pump();
     await tester.pump();
-    expect(menuLabels(tester), [
-      'Screen',
-      'Do',
-      'Assistant',
-      'Send',
-      'History',
-      'Account',
-    ]);
+    expect(tabs(tester), ['Ask', 'Do', 'Dictate', 'Screen']);
     await finish(tester, relay);
   });
 
   testWidgets('a question streams its answer, then what was done', (
     tester,
   ) async {
-    final (server, relay) = await pumpApp(tester, [
-      assistantPc,
-    ], page: 'Assistant');
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
     expect(find.text('Ask Talvio on ISHAN-PC'), findsOneWidget);
     expect(find.text('Play Believer on YouTube'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'fits a small phone');
@@ -131,7 +118,7 @@ void main() {
     );
     expect(find.text('Played “Believer” on YouTube'), findsOneWidget);
     expect(find.text('Turned it up'), findsOneWidget);
-    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    expect(find.byIcon(Icons.error_rounded), findsOneWidget);
     expect(find.text('Thinking…'), findsNothing);
     expect(tester.takeException(), isNull);
 
@@ -157,9 +144,7 @@ void main() {
   testWidgets('a pending action is confirmed with command.confirm', (
     tester,
   ) async {
-    final (server, relay) = await pumpApp(tester, [
-      assistantPc,
-    ], page: 'Assistant');
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
     final id = await ask(tester, server, 'email Ron');
     await answer(tester, server, id, {
       'ok': true,
@@ -172,6 +157,8 @@ void main() {
     });
     expect(find.text('Go ahead?'), findsOneWidget);
     expect(find.text('Send the email to Ron'), findsOneWidget);
+    // Listed in `actions` too, but shown once: as the card.
+    expect(find.text('Wrote the email to Ron'), findsNothing);
 
     await tapVisible(tester, find.text('Do it'));
     final confirm = lastBody(server);
@@ -196,7 +183,7 @@ void main() {
       'answer': 'Ready.',
       'pending': {'id': 8, 'summary': 'Send it'},
     });
-    await tapVisible(tester, find.widgetWithText(TextButton, 'Cancel'));
+    await tapVisible(tester, find.widgetWithText(OutlinedButton, 'Cancel'));
     expect(lastBody(server)['kind'], 'command.confirm');
     expect(lastBody(server)['id'], 8);
     expect(lastBody(server)['accept'], isFalse);
@@ -212,9 +199,7 @@ void main() {
   testWidgets('errors read as short messages, and Try again asks again', (
     tester,
   ) async {
-    final (server, relay) = await pumpApp(tester, [
-      assistantPc,
-    ], page: 'Assistant');
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
     final id = await ask(tester, server, 'hi');
     await answer(tester, server, id, {'ok': false, 'error': 'assistant_off'});
     expect(
@@ -244,9 +229,7 @@ void main() {
   testWidgets('no answer in 60 s is a timeout; progress restarts it', (
     tester,
   ) async {
-    final (server, relay) = await pumpApp(tester, [
-      assistantPc,
-    ], page: 'Assistant');
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
     final id = await ask(tester, server, 'hi');
     await tester.pump(assistantTimeout - const Duration(seconds: 5));
     await progress(tester, server, id, 'thinking');
@@ -269,13 +252,13 @@ void main() {
     final (server, relay) = await pumpApp(
       tester,
       [assistantPc],
-      page: 'Assistant',
+      page: 'Ask',
       recordEvents: (_) {},
       recording: file.path,
     );
     await tester.tap(find.byTooltip('Ask by voice'));
     await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     expect(find.byTooltip('Stop and ask'), findsOneWidget);
     await tester.tap(find.byTooltip('Stop and ask'));
     await tester.runAsync(
@@ -298,10 +281,11 @@ void main() {
   testWidgets('the chat is kept on this phone, under the account', (
     tester,
   ) async {
-    final (server, relay) = await pumpApp(tester, [
-      assistantPc,
-    ], page: 'Assistant');
-    await tapVisible(tester, find.text('Open Gmail'));
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
+    await tapVisible(
+      tester,
+      find.text('Open Gmail', skipOffstage: false).first,
+    );
     final id = lastBody(server)['requestId'];
     expect(lastBody(server)['text'], 'Open Gmail');
     await answer(tester, server, id, {
@@ -320,6 +304,48 @@ void main() {
       containsPair('question', 'Open Gmail'),
     );
     expect(sent(server, 'assistant.ask'), hasLength(1));
+    await finish(tester, relay);
+  });
+
+  testWidgets('the stop button cancels an answer; tools get minutes', (
+    tester,
+  ) async {
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
+    final id = await ask(tester, server, 'tidy my desktop');
+    await progress(tester, server, id, 'tool', {'label': 'Tidying'});
+    expect(find.text('Tidying…'), findsOneWidget);
+    // A tool may run on the computer for a while, saying nothing.
+    await tester.pump(const Duration(minutes: 5));
+    expect(find.textContaining("didn't answer in time"), findsNothing);
+
+    await tester.tap(find.byTooltip('Stop answering'));
+    await tester.pump();
+    expect(lastBody(server), {'kind': 'cancel', 'requestId': id});
+    expect(find.text('Cancelling…'), findsOneWidget);
+    await answer(tester, server, id, {'ok': false, 'error': 'cancelled'});
+    expect(find.text('Cancelled.'), findsOneWidget);
+    await finish(tester, relay);
+  });
+
+  testWidgets('a confirmation error reads as a command error', (tester) async {
+    final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
+    final id = await ask(tester, server, 'email Ron');
+    await answer(tester, server, id, {
+      'ok': true,
+      'answer': 'Ready.',
+      'pending': {'id': 7, 'summary': 'Send the email to Ron'},
+    });
+    await tapVisible(tester, find.text('Do it'));
+    await answer(tester, server, lastBody(server)['requestId'], {
+      'ok': false,
+      'error': 'command_mode_off',
+    });
+    expect(
+      find.text(
+        'Turn on Voice commands in Talvio on ISHAN-PC (Commands page).',
+      ),
+      findsOneWidget,
+    );
     await finish(tester, relay);
   });
 }

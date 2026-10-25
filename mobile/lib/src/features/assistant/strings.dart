@@ -1,7 +1,7 @@
 import '../dictate/strings.dart';
 
 abstract final class AssistantStrings {
-  static const tab = 'Assistant';
+  static const tab = 'Ask';
   static const title = 'Assistant';
 
   static String prompt(String name) => 'Ask Talvio on $name';
@@ -17,7 +17,15 @@ abstract final class AssistantStrings {
     'Open Gmail',
   ];
 
+  /// What each example is, shown under it.
+  static const exampleDetails = [
+    'Acts on the computer',
+    'Answers from the web',
+    'Opens it in the browser',
+  ];
+
   static const newChat = 'New chat';
+  static const stopAnswer = 'Stop answering';
   static const typeHint = 'Ask anything';
   static const send = 'Send';
   static const startRecording = 'Ask by voice';
@@ -61,6 +69,7 @@ abstract final class AssistantStrings {
   static const confirmedDone = 'Done';
   static const confirmedCancelled = 'Cancelled';
   static const confirmedFailed = "Couldn't do that";
+  static const confirmedAsks = 'It has a question';
 
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to ask its assistant.';

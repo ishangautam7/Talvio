@@ -1,19 +1,18 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/app_services.dart';
 import '../../core/models.dart';
-import '../../core/widgets.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
+import '../../design/voice.dart';
 import '../../shell/feature_tab.dart';
-import '../../shell/shell_scope.dart';
 import '../dictate/computer_widgets.dart';
-import '../dictate/dictate_controller.dart';
+import '../dictate/dictate_parts.dart' show ProgressCard;
 import '../dictate/dictate_scope.dart';
-import '../dictate/mic_widgets.dart';
 import '../dictate/strings.dart';
+import '../dictate/voice_recorder.dart';
 import 'command_controller.dart';
 import 'command_scope.dart';
 import 'recent_commands.dart';
@@ -23,11 +22,20 @@ import 'strings.dart';
 final doTab = FeatureTab(
   id: 'do',
   label: CommandStrings.tab,
-  icon: Icons.auto_awesome_outlined,
-  selectedIcon: Icons.auto_awesome,
+  icon: Icons.bolt_outlined,
+  selectedIcon: Icons.bolt_rounded,
   requires: CommandKind.capability,
   builder: (_) => const CommandScreen(),
 );
+
+/// An icon for each of [CommandStrings.exampleCommands].
+const _exampleIcons = [
+  Icons.smart_display_outlined,
+  Icons.music_note_rounded,
+  Icons.pause_circle_outline_rounded,
+  Icons.volume_down_rounded,
+  Icons.mail_outline_rounded,
+];
 
 class CommandScreen extends StatefulWidget {
   const CommandScreen({super.key});
@@ -38,30 +46,26 @@ class CommandScreen extends StatefulWidget {
 
 class _CommandScreenState extends State<CommandScreen> {
   late final AppServices _services = AppServices.of(context);
-  late final DictateController _dictate = DictateScope.of(context);
   late final CommandController _controller = CommandScope.of(context);
-  final _text = TextEditingController();
-  final _textFocus = FocusNode();
   final _answer = TextEditingController();
 
   @override
   void dispose() {
-    _text.dispose();
-    _textFocus.dispose();
     _answer.dispose();
     super.dispose();
   }
 
-  Future<void> _send(String text) async {
-    if (text.trim().isEmpty) return;
-    _textFocus.unfocus();
-    unawaited(HapticFeedback.lightImpact());
-    if (await _controller.sendText(text) && mounted) _text.clear();
+  Future<bool> _send(String text) async {
+    if (text.trim().isEmpty) return false;
+    FocusManager.instance.primaryFocus?.unfocus();
+    Haptic.tap();
+    return _controller.sendText(text);
   }
 
   Future<void> _sendAnswer(String text) async {
     if (text.trim().isEmpty) return;
     FocusManager.instance.primaryFocus?.unfocus();
+    Haptic.tap();
     await _controller.answer(text);
     if (mounted) _answer.clear();
   }
@@ -74,25 +78,12 @@ class _CommandScreenState extends State<CommandScreen> {
         _controller,
         relay.devices,
         relay.status,
-        _textFocus,
+        VoiceRecorder.holder,
       ]),
-      builder: (context, _) {
-        final computer = _controller.computer;
-        return Scaffold(
-          appBar: AppBar(
-            leading: shellLeading(context),
-            title: computer == null
-                ? const Text(CommandStrings.title)
-                : ComputerTitle(
-                    computer,
-                    onTap: canChooseComputer(_dictate) && _controller.idle
-                        ? () => chooseComputer(context, _dictate)
-                        : null,
-                  ),
-          ),
-          body: ComputerGate(controller: _dictate, builder: _buildBody),
-        );
-      },
+      builder: (context, _) => ComputerGate(
+        controller: DictateScope.of(context),
+        builder: _buildBody,
+      ),
     );
   }
 
@@ -103,7 +94,6 @@ class _CommandScreenState extends State<CommandScreen> {
         connected &&
         computer.online &&
         computer.capabilities.contains(CommandKind.capability);
-    final typing = _textFocus.hasFocus;
     final outcome = c.outcome;
     final name = computer.name;
 
@@ -115,165 +105,157 @@ class _CommandScreenState extends State<CommandScreen> {
               !computer.capabilities.contains(CommandKind.capability)
         ? CommandStrings.updateNote(name)
         : null;
-
-    final progress = c.cancelling
-        ? CommandStrings.cancelling
-        : switch (c.stage) {
-            'approval' => DictateStrings.approval(name),
-            'transcribing' => CommandStrings.transcribing(name),
-            'working' => CommandStrings.working(name),
-            _ => CommandStrings.sending(name),
-          };
     final recents = c.recents.items;
 
-    return LayoutBuilder(
-      builder: (context, constraints) => Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              children: [
-                if (note != null && c.phase != CommandPhase.sending)
-                  _Note(note),
-                if (c.phase == CommandPhase.sending)
-                  _ProgressCard(
-                    text: progress,
-                    detail: c.stage == 'approval'
-                        ? DictateStrings.approvalDetail
-                        : null,
-                    onCancel: c.cancelling ? null : c.cancelRequest,
-                  )
-                else if (outcome != null)
-                  _ResultCard(
-                    outcome: outcome,
-                    computerName: outcome.computer.isEmpty
-                        ? name
-                        : outcome.computer,
-                    enabled: ready && idle,
-                    answer: _answer,
-                    onConfirm: (accept) => c.confirm(accept: accept),
-                    onAnswer: _sendAnswer,
-                    onRetry: c.canRetry && ready ? c.retry : null,
-                    onDismiss: c.dismissOutcome,
-                  )
-                else if (note == null)
-                  _Prompt(name),
-                if (c.phase == CommandPhase.idle) ...[
-                  const SectionTitle(CommandStrings.examples),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      for (final example in CommandStrings.exampleCommands)
-                        ActionChip(
-                          avatar: const Icon(Icons.auto_awesome, size: 18),
-                          label: Text(example),
-                          onPressed: ready && idle
-                              ? () => unawaited(_send(example))
-                              : null,
-                        ),
-                    ],
+    final voice = VoiceState(
+      recording: c.phase == CommandPhase.recording,
+      paused: c.paused,
+      level: c.level,
+      elapsed: c.elapsed,
+      onStart: ready && idle && !c.micBlocked ? c.startRecording : null,
+      onStop: c.stopAndSend,
+      onDiscard: c.discardRecording,
+      startLabel: CommandStrings.startRecording,
+      stopLabel: CommandStrings.stopAndSend,
+      discardLabel: DictateStrings.discard,
+      pausedLabel: DictateStrings.paused,
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              Space.lg,
+              Space.xs,
+              Space.lg,
+              Space.lg,
+            ),
+            children: [
+              if (note != null && c.phase != CommandPhase.sending)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Space.md),
+                  child: Notice(
+                    tone: computer.online ? Tone.warning : Tone.neutral,
+                    icon: computer.online
+                        ? Icons.system_update_alt_rounded
+                        : Icons.power_settings_new_rounded,
+                    message: note,
                   ),
-                ],
-                if (recents.isNotEmpty) ...[
-                  const SectionTitle(CommandStrings.recent),
-                  for (final item in recents)
-                    _RecentTile(
-                      item,
-                      onRunAgain: ready && idle
-                          ? () => unawaited(_send(item.said))
-                          : null,
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: Text(
-                      CommandStrings.recentNote,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              if (c.phase == CommandPhase.sending)
+                _Sending(controller: c, name: name)
+              else if (outcome != null)
+                _ResultCard(
+                  outcome: outcome,
+                  computerName: outcome.computer.isEmpty
+                      ? name
+                      : outcome.computer,
+                  enabled: ready && idle,
+                  answer: _answer,
+                  onConfirm: (accept) {
+                    accept ? Haptic.firm() : Haptic.tick();
+                    unawaited(c.confirm(accept: accept));
+                  },
+                  onAnswer: _sendAnswer,
+                  onRetry: c.canRetry && ready ? c.retry : null,
+                  onDismiss: c.dismissOutcome,
+                )
+              else if (note == null && c.phase == CommandPhase.idle)
+                _Prompt(name),
+              if (c.phase == CommandPhase.idle && outcome == null) ...[
+                const SectionHeader(CommandStrings.examples),
+                _Examples(
+                  onTap: ready && idle
+                      ? (text) => unawaited(_send(text))
+                      : null,
+                ),
               ],
-            ),
-          ),
-          // As on Send: short screens scroll the controls, and while typing
-          // the controls are the text field.
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: typing
-                  ? constraints.maxHeight
-                  : math.max(
-                      constraints.maxHeight - 96,
-                      constraints.maxHeight / 2,
-                    ),
-            ),
-            child: SingleChildScrollView(
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              if (recents.isNotEmpty) ...[
+                SectionHeader(
+                  CommandStrings.recent,
+                  trailing: Text(
+                    CommandStrings.recentShort,
+                    style: context.text.bodySmall,
+                  ),
+                ),
+                Surface(
+                  padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      if (!typing) ...[
-                        MicButton(
-                          recording: c.phase == CommandPhase.recording,
-                          busy: c.phase == CommandPhase.sending,
-                          level: c.level,
-                          startLabel: CommandStrings.startRecording,
-                          stopLabel: CommandStrings.stopAndSend,
-                          onPressed: switch (c.phase) {
-                            CommandPhase.idle when ready && idle =>
-                              c.startRecording,
-                            CommandPhase.recording => c.stopAndSend,
-                            _ => null,
-                          },
-                        ),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 48),
-                          child: c.phase == CommandPhase.recording
-                              ? RecordingCaption(
-                                  elapsed: c.elapsed,
-                                  paused: c.paused,
-                                  onDiscard: c.discardRecording,
-                                )
-                              : Center(
-                                  child: Text(
-                                    c.phase == CommandPhase.idle
-                                        ? CommandStrings.tapToSpeak
-                                        : '',
-                                    style: mutedText(context),
-                                  ),
-                                ),
+                      for (final (i, item) in recents.indexed) ...[
+                        if (i > 0)
+                          Divider(indent: 60, color: context.talvio.hairline),
+                        _RecentTile(
+                          item,
+                          onRunAgain: ready && idle
+                              ? () => unawaited(_send(item.said))
+                              : null,
                         ),
                       ],
-                      _Composer(
-                        controller: _text,
-                        focusNode: _textFocus,
-                        enabled: ready && idle,
-                        onSend: () => _send(_text.text),
-                      ),
                     ],
                   ),
                 ),
-              ),
-            ),
+              ],
+            ],
           ),
-        ],
-      ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.md),
+          child: Composer(
+            hint: CommandStrings.typeHint,
+            sendLabel: CommandStrings.sendCommand,
+            voice: voice,
+            enabled: ready && idle,
+            busy: c.phase == CommandPhase.sending,
+            maxLines: 3,
+            // The field clears at once: the command shows in its card, and
+            // Try again sends it again.
+            onSubmit: (text) {
+              unawaited(_send(text));
+              return Future.value(true);
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _Note extends StatelessWidget {
-  const _Note(this.text);
+/// A command on its way: approval, transcribing, at work.
+class _Sending extends StatelessWidget {
+  const _Sending({required this.controller, required this.name});
 
-  final String text;
+  final CommandController controller;
+  final String name;
 
   @override
-  Widget build(BuildContext context) => Card.filled(
-    child: ListTile(leading: const Icon(Icons.info_outline), title: Text(text)),
-  );
+  Widget build(BuildContext context) {
+    final c = controller;
+    if (c.stage == 'approval' && !c.cancelling) {
+      return ApprovalCard(
+        title: DictateStrings.approval(name),
+        body: DictateStrings.approvalDetail,
+        onCancel: c.cancelRequest,
+        cancelLabel: CommandStrings.cancel,
+      );
+    }
+    final text = c.cancelling
+        ? CommandStrings.cancelling
+        : switch (c.stage) {
+            'transcribing' => CommandStrings.transcribing(name),
+            'working' => CommandStrings.working(name),
+            _ => CommandStrings.sending(name),
+          };
+    return ProgressCard(
+      text: text,
+      detail: c.stage == 'working' && !c.cancelling
+          ? CommandStrings.workingDetail
+          : null,
+      onCancel: c.cancelling ? null : c.cancelRequest,
+      cancelLabel: CommandStrings.cancel,
+    );
+  }
 }
 
 class _Prompt extends StatelessWidget {
@@ -283,17 +265,19 @@ class _Prompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      padding: const EdgeInsets.fromLTRB(Space.xs, Space.xl, Space.xs, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            CommandStrings.prompt(name),
-            style: theme.textTheme.headlineSmall,
+          const IconTile(
+            Icons.bolt_rounded,
+            size: 52,
+            gradient: TalvioColors.gradient,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: Space.lg),
+          Text(CommandStrings.prompt(name), style: context.text.headlineMedium),
+          const SizedBox(height: Space.sm),
           Text(CommandStrings.promptDetail, style: mutedText(context)),
         ],
       ),
@@ -301,57 +285,34 @@ class _Prompt extends StatelessWidget {
   }
 }
 
-class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({
-    required this.text,
-    required this.detail,
-    required this.onCancel,
-  });
+/// Commands to tap and send as they are.
+class _Examples extends StatelessWidget {
+  const _Examples({required this.onTap});
 
-  final String text;
-  final String? detail;
-  final VoidCallback? onCancel;
+  final ValueChanged<String>? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card.outlined(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const LinearProgressIndicator(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(text),
-                        if (detail case final detail?)
-                          Text(detail, style: mutedText(context)),
-                      ],
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: onCancel,
-                  child: const Text(CommandStrings.cancel),
-                ),
-              ],
+    final t = context.talvio;
+    return Wrap(
+      spacing: Space.sm,
+      runSpacing: 0,
+      children: [
+        for (final (i, example) in CommandStrings.exampleCommands.indexed)
+          ActionChip(
+            avatar: Icon(
+              _exampleIcons[i % _exampleIcons.length],
+              size: 18,
+              color: onTap == null ? t.faint : t.accent,
             ),
+            label: Text(example),
+            onPressed: onTap == null ? null : () => onTap!(example),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-/// What came of the last command: the computer's result, or why the
-/// request failed.
 class _ResultCard extends StatelessWidget {
   const _ResultCard({
     required this.outcome,
@@ -377,96 +338,114 @@ class _ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final t = context.talvio;
     final result = outcome.result;
     final error = outcome.error;
-    final failed = error != null || result?.status == CommandStatus.failed;
-    final onCard = failed ? scheme.onErrorContainer : scheme.onSurface;
 
-    final (IconData icon, String title) = switch (result?.status) {
-      _ when error != null => (Icons.error_outline, CommandStrings.failed),
+    final (IconData icon, Tone tone, String title) = switch (result?.status) {
+      _ when error == 'cancelled' => (
+        Icons.block_rounded,
+        Tone.neutral,
+        CommandStrings.cancelled,
+      ),
+      _ when error != null => (
+        Icons.error_outline_rounded,
+        Tone.danger,
+        CommandStrings.failed,
+      ),
       CommandStatus.awaitingConfirmation => (
-        Icons.help_outline,
+        Icons.front_hand_outlined,
+        Tone.accent,
         CommandStrings.awaitingConfirmation,
       ),
       CommandStatus.needsAnswer => (
-        Icons.question_answer_outlined,
+        Icons.help_outline_rounded,
+        Tone.accent,
         CommandStrings.needsAnswer,
       ),
-      CommandStatus.cancelled => (Icons.block, CommandStrings.cancelled),
-      CommandStatus.failed => (Icons.error_outline, CommandStrings.failed),
+      CommandStatus.cancelled => (
+        Icons.block_rounded,
+        Tone.neutral,
+        CommandStrings.cancelled,
+      ),
+      CommandStatus.failed => (
+        Icons.error_outline_rounded,
+        Tone.danger,
+        CommandStrings.failed,
+      ),
       CommandStatus.needsComputerUse => (
         Icons.mouse_outlined,
+        Tone.warning,
         CommandStrings.needsComputerUse,
       ),
-      _ => (Icons.check_circle_outline, CommandStrings.done),
+      _ => (Icons.check_rounded, Tone.success, CommandStrings.done),
     };
 
     final body = <Widget>[
       if (outcome.said case final said?)
         Padding(
-          padding: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.only(bottom: Space.sm),
           child: Text(
             CommandStrings.said(said),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontStyle: FontStyle.italic,
-              color: failed ? onCard : scheme.onSurfaceVariant,
-            ),
+            style: context.text.bodyMedium?.copyWith(color: t.muted),
           ),
         ),
       if (error != null)
         Text(
           CommandStrings.error(error, computerName),
-          style: theme.textTheme.bodyLarge?.copyWith(color: onCard),
+          style: context.text.bodyLarge,
         )
       else if (result != null) ...[
         if (result.feedback.isNotEmpty)
+          Text(result.feedback, style: context.text.bodyLarge)
+        else if (result.status == CommandStatus.needsComputerUse)
           Text(
-            result.feedback,
-            style: theme.textTheme.bodyLarge?.copyWith(color: onCard),
-          ),
-        if (result.status == CommandStatus.needsComputerUse)
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Text(
-              CommandStrings.needsComputerUseBody,
-              style: mutedText(context),
-            ),
+            CommandStrings.needsComputerUseBody,
+            style: context.text.bodyLarge,
           ),
         if (result.confirmable) ...[
           if (result.pending case final pending?)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.only(top: Space.md),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: scheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+                  color: t.accentSoft,
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    pending,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: scheme.onSecondaryContainer,
-                    ),
+                  padding: const EdgeInsets.all(Space.md),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 18,
+                        color: t.accent,
+                      ),
+                      const SizedBox(width: Space.sm),
+                      Expanded(
+                        child: Text(pending, style: context.text.titleSmall),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: OverflowBar(
-              alignment: MainAxisAlignment.end,
-              spacing: 8,
+            padding: const EdgeInsets.only(top: Space.md),
+            child: Row(
               children: [
-                TextButton(
-                  onPressed: enabled ? () => onConfirm(false) : null,
-                  child: const Text(CommandStrings.cancel),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: enabled ? () => onConfirm(false) : null,
+                    child: const Text(CommandStrings.cancel),
+                  ),
                 ),
-                FilledButton(
-                  onPressed: enabled ? () => onConfirm(true) : null,
-                  child: const Text(CommandStrings.doIt),
+                const SizedBox(width: Space.sm),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: enabled ? () => onConfirm(true) : null,
+                    child: const Text(CommandStrings.doIt),
+                  ),
                 ),
               ],
             ),
@@ -475,26 +454,30 @@ class _ResultCard extends StatelessWidget {
         if (result.answerable) ...[
           if (result.question case final question?)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text(question, style: theme.textTheme.titleMedium),
+              padding: const EdgeInsets.only(top: Space.md),
+              child: Text(question, style: context.text.titleMedium),
             ),
           if (result.choices.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: Space.sm),
               child: Wrap(
-                spacing: 8,
-                runSpacing: 4,
+                spacing: Space.sm,
+                runSpacing: Space.sm,
                 children: [
                   for (final choice in result.choices)
                     FilledButton.tonal(
                       onPressed: enabled ? () => onAnswer(choice) : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: t.sunken,
+                        foregroundColor: t.ink,
+                      ),
                       child: Text(choice),
                     ),
                 ],
               ),
             ),
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: Space.sm),
             child: Row(
               children: [
                 Expanded(
@@ -512,7 +495,7 @@ class _ResultCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: Space.sm),
                 ValueListenableBuilder(
                   valueListenable: answer,
                   builder: (context, value, _) => IconButton.filled(
@@ -520,7 +503,7 @@ class _ResultCard extends StatelessWidget {
                     onPressed: enabled && value.text.trim().isNotEmpty
                         ? () => onAnswer(value.text)
                         : null,
-                    icon: const Icon(Icons.send),
+                    icon: const Icon(Icons.arrow_upward_rounded),
                   ),
                 ),
               ],
@@ -529,48 +512,54 @@ class _ResultCard extends StatelessWidget {
         ],
       ],
       if (error != null && onRetry != null)
-        OverflowBar(
-          alignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: onRetry,
+        Padding(
+          padding: const EdgeInsets.only(top: Space.sm),
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: FilledButton(
+              onPressed: () {
+                Haptic.tap();
+                onRetry!();
+              },
               child: const Text(CommandStrings.tryAgain),
             ),
-          ],
+          ),
         ),
     ];
 
-    final content = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 12),
+    final danger = tone == Tone.danger;
+    return Surface(
+      color: danger ? t.dangerSoft : null,
+      borderColor: danger ? t.dangerSoft : null,
+      padding: const EdgeInsets.fromLTRB(
+        Space.lg,
+        Space.md,
+        Space.xs,
+        Space.lg,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: 20,
-                color: failed ? scheme.onErrorContainer : scheme.primary,
-              ),
-              const SizedBox(width: 8),
+              IconTile(icon, tone: tone, size: 32),
+              const SizedBox(width: Space.md),
               Expanded(
                 child: Semantics(
                   liveRegion: true,
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(color: onCard),
-                  ),
+                  child: Text(title, style: context.text.titleMedium),
                 ),
               ),
               IconButton(
                 tooltip: CommandStrings.dismiss,
-                icon: Icon(Icons.close, color: onCard),
+                icon: Icon(Icons.close_rounded, color: t.muted),
                 onPressed: onDismiss,
               ),
             ],
           ),
+          const SizedBox(height: Space.sm),
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: Space.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: body,
@@ -579,9 +568,6 @@ class _ResultCard extends StatelessWidget {
         ],
       ),
     );
-    return failed
-        ? Card.filled(color: scheme.errorContainer, child: content)
-        : Card.outlined(child: content);
   }
 }
 
@@ -593,96 +579,34 @@ class _RecentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final failed = item.status == CommandStatus.failed;
+    final (IconData icon, Tone tone) = switch (item.status) {
+      CommandStatus.done => (Icons.check_rounded, Tone.success),
+      CommandStatus.failed => (Icons.error_outline_rounded, Tone.danger),
+      CommandStatus.cancelled => (Icons.block_rounded, Tone.neutral),
+      CommandStatus.awaitingConfirmation => (
+        Icons.front_hand_outlined,
+        Tone.accent,
+      ),
+      CommandStatus.needsAnswer => (Icons.help_outline_rounded, Tone.accent),
+      _ => (Icons.bolt_rounded, Tone.neutral),
+    };
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      leading: Icon(switch (item.status) {
-        CommandStatus.done => Icons.check_circle_outline,
-        CommandStatus.failed => Icons.error_outline,
-        CommandStatus.cancelled => Icons.block,
-        _ => Icons.more_horiz,
-      }, color: failed ? scheme.error : scheme.onSurfaceVariant),
-      title: Text(item.said, maxLines: 2, overflow: TextOverflow.ellipsis),
+      contentPadding: const EdgeInsets.only(left: Space.lg, right: Space.xs),
+      leading: IconTile(icon, tone: tone, size: 32),
+      title: Text(
+        item.said,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: context.text.titleSmall,
+      ),
       subtitle: item.feedback.isEmpty
           ? null
           : Text(item.feedback, maxLines: 2, overflow: TextOverflow.ellipsis),
       trailing: IconButton(
         tooltip: CommandStrings.runAgain(item.said),
         onPressed: onRunAgain,
-        icon: const Icon(Icons.replay),
+        icon: const Icon(Icons.replay_rounded),
       ),
     );
   }
 }
-
-/// The text field and Go. Commands are at most [maxCommandChars].
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.controller,
-    required this.focusNode,
-    required this.enabled,
-    required this.onSend,
-  });
-
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final bool enabled;
-  final VoidCallback onSend;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            minLines: 1,
-            maxLines: 3,
-            inputFormatters: [_commandLimit],
-            textCapitalization: TextCapitalization.sentences,
-            textInputAction: TextInputAction.go,
-            onSubmitted: (_) => onSend(),
-            onTapOutside: (_) => focusNode.unfocus(),
-            decoration: const InputDecoration(
-              hintText: CommandStrings.typeHint,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        ValueListenableBuilder(
-          valueListenable: controller,
-          builder: (context, value, _) => Semantics(
-            label: CommandStrings.sendCommand,
-            button: true,
-            excludeSemantics: true,
-            enabled: enabled && value.text.trim().isNotEmpty,
-            onTap: enabled && value.text.trim().isNotEmpty ? onSend : null,
-            child: FilledButton(
-              onPressed: enabled && value.text.trim().isNotEmpty
-                  ? onSend
-                  : null,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(64, 56),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              child: const Text(CommandStrings.go),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-final _commandLimit = TextInputFormatter.withFunction((old, next) {
-  if (next.text.runes.length <= maxCommandChars) return next;
-  final text = String.fromCharCodes(next.text.runes.take(maxCommandChars));
-  return TextEditingValue(
-    text: text,
-    selection: TextSelection.collapsed(offset: text.length),
-  );
-});
