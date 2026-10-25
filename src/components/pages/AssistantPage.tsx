@@ -6,7 +6,9 @@ import { useSettingCommand } from "@/hooks/useSettingCommand";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Switch } from "@/components/ui/Switch";
 import { Dialog } from "@/components/ui/Dialog";
-import { Hero, HeroShortcut, HeroTitle } from "@/components/ui/Hero";
+import { HeroShortcut, HeroTitle, Stage } from "@/components/ui/Stage";
+import { CallGlyph, Mic } from "@/components/icons/glyphs";
+import { AssistantPreview } from "./assistant/AssistantPreview";
 import { SettingsGroup } from "@/components/ui/SettingsGroup";
 import { SettingContainer } from "@/components/ui/SettingContainer";
 import { ShortcutInput } from "@/components/settings/ShortcutInput";
@@ -53,6 +55,7 @@ export const AssistantPage: React.FC = () => {
     <Page>
       <PageHeader
         title={t("nav.assistant")}
+        feature="assistant"
         description={t("assistantPage.description")}
         actions={
           <div className="inline-flex items-center gap-2.5 text-sm font-medium text-ink">
@@ -75,13 +78,14 @@ export const AssistantPage: React.FC = () => {
         </p>
       ) : (
         <>
-          <Hero
-            art="assistant"
+          <Stage
+            picture={<AssistantPreview />}
             title={<HeroTitle i18nKey="assistantPage.hero.title" />}
             subtitle={t("assistantPage.hero.subtitle")}
             actions={
-              <div className="flex flex-wrap gap-x-9 gap-y-5">
+              <div className="flex flex-wrap gap-x-8 gap-y-5">
                 <HeroShortcut
+                  icon={<Mic className="h-4 w-4 text-hue" aria-hidden="true" />}
                   label={t("assistantPage.hero.ask")}
                   hint={
                     holdToTalk
@@ -93,10 +97,13 @@ export const AssistantPage: React.FC = () => {
                     shortcutId="assistant"
                     bare
                     finish="hero"
-                    size="lg"
+                    size="md"
                   />
                 </HeroShortcut>
                 <HeroShortcut
+                  icon={
+                    <CallGlyph className="h-4 w-4 text-hue" aria-hidden="true" />
+                  }
                   label={t("assistantPage.hero.callLabel")}
                   hint={t("assistantPage.hero.callShort")}
                 >
@@ -104,7 +111,7 @@ export const AssistantPage: React.FC = () => {
                     shortcutId="assistant_call"
                     bare
                     finish="hero"
-                    size="lg"
+                    size="md"
                   />
                 </HeroShortcut>
               </div>

@@ -1,15 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { listen } from "@tauri-apps/api/event";
-import { Eye, EyeOff, Pause, Play, Square } from "lucide-react";
-import { useHeroArt } from "@/components/ui/Hero";
+import { Eye, EyeOff, Pause, Play, Square } from "@/components/icons/glyphs";
+import { Stage } from "@/components/ui/Stage";
+import { Button } from "@/components/ui/Button";
 import { SectionTitle } from "@/components/ui/Page";
-import {
-  MEETING_LEVEL_EVENT,
-  type MeetingLevels,
-  type MeetingSpeaker,
-  type MeetingState,
-} from "./api";
+import { type MeetingSpeaker, type MeetingState } from "./api";
+import { MeetingLanes } from "./MeetingLanes";
 import { useMeetingIndicator } from "./CallDetectionToggle";
 import { formatClock, type TranscriptItem } from "./speakers";
 import { SystemAudioNotice } from "./SystemAudioNotice";
@@ -26,15 +22,12 @@ interface RecorderCardProps {
   onTogglePause: () => void;
 }
 
-/** Below this a stream counts as silent. Matches the pill. */
-const SILENT_LEVEL = 0.02;
-
 /**
  * A meeting that is recording right now, in the main window.
  *
- * The page's banner becomes the recorder: the same stage and the same art,
- * now carrying the clock, which side is audible, and the two things you can
- * do (stop, pause). Starting a meeting used to replace the banner with a
+ * The page's stage becomes the recorder: the clock in place of the headline,
+ * the two lanes now fed by the real levels of each side, and the two things
+ * you can do (stop, pause). Starting a meeting used to replace the banner with a
  * plain white card, so the moment the page mattered most it looked least like
  * the rest of the app. The live transcript sits underneath as an ordinary
  * section.
@@ -56,7 +49,6 @@ export const RecorderCard: React.FC<RecorderCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const indicator = useMeetingIndicator();
-  const meetingsArt = useHeroArt("meetings");
   const paused = state.paused;
 
   const anchor = useRef({ elapsed: state.elapsed_ms, at: Date.now() });
@@ -81,59 +73,47 @@ export const RecorderCard: React.FC<RecorderCardProps> = ({
 
   return (
     <div className="w-full">
-      <section
-        className="hero-stage rounded-[1.25rem]"
-        data-paused={String(paused)}
-        aria-label={`${statusLabel} ${clock}`}
-      >
-        <img
-          src={meetingsArt}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          decoding="async"
-          className="hero-art"
-        />
-        <div className="relative flex min-h-[10.5rem] flex-col justify-center px-7 py-7 @3xl:max-w-[58%] @3xl:px-9 @3xl:py-8">
-          <p
-            className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-hero-muted"
-            role="status"
-          >
+      <Stage
+        wide
+        label={`${statusLabel} ${clock}`}
+        kicker={
+          <span className="flex items-center gap-2" role="status">
             <span
               className="rec-dot"
               data-paused={String(paused)}
               aria-hidden="true"
             />
             {statusLabel}
-          </p>
-          <p
-            className="rec-clock mt-3"
+          </span>
+        }
+        title={
+          <span
+            className="rec-clock"
             data-paused={String(paused)}
             aria-hidden="true"
           >
             {clock}
-          </p>
-          <SideLights paused={paused} systemCaptured={state.system_audio} />
-          <div className="flex flex-wrap items-center gap-2.5 pt-6">
+          </span>
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={onStop}
               disabled={busy !== null}
-              className="hero-button inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full ps-5 pe-6 text-[0.9375rem] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink focus-visible:ring-offset-2 focus-visible:ring-offset-hero-surface disabled:cursor-wait disabled:opacity-70"
+              className="stage-cta inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full ps-5 pe-6 text-[0.9375rem] font-semibold disabled:cursor-wait disabled:opacity-70"
             >
-              <Square
-                className="h-3.5 w-3.5 fill-[#e5484d] text-[#e5484d]"
-                aria-hidden="true"
-              />
+              <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
               {busy === "stopping"
                 ? t("meetings.recorder.stopping")
                 : t("meetings.pill.stop")}
             </button>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="lg"
               onClick={onTogglePause}
               disabled={busy !== null}
-              className="hero-glass inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full ps-4 pe-5 text-[0.9375rem] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink/70 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full"
             >
               {paused ? (
                 <Play className="h-4 w-4" aria-hidden="true" />
@@ -143,38 +123,46 @@ export const RecorderCard: React.FC<RecorderCardProps> = ({
               {paused
                 ? t("meetings.recorder.resume")
                 : t("meetings.recorder.pause")}
-            </button>
+            </Button>
           </div>
-        </div>
-
-        {indicator.enabled !== null && (
-          // The floating pill, from the one place that is still on screen when
-          // it has been switched off. Where the banner keeps its tips button.
-          <button
-            type="button"
-            onClick={() => indicator.set(!indicator.enabled)}
-            disabled={indicator.saving}
-            title={
-              indicator.enabled
-                ? t("meetings.indicator.hide")
-                : t("meetings.indicator.show")
-            }
-            aria-label={
-              indicator.enabled
-                ? t("meetings.indicator.hide")
-                : t("meetings.indicator.show")
-            }
-            aria-pressed={indicator.enabled}
-            className="hero-corner hero-corner-plain absolute end-3.5 top-3.5 grid h-8 w-8 cursor-pointer place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink/70 disabled:cursor-wait"
-          >
-            {indicator.enabled ? (
-              <Eye className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <EyeOff className="h-4 w-4" aria-hidden="true" />
-            )}
-          </button>
-        )}
-      </section>
+        }
+        picture={
+          <MeetingLanes
+            live
+            paused={paused}
+            systemCaptured={state.system_audio}
+          />
+        }
+        corner={
+          indicator.enabled !== null && (
+            // The floating pill, from the one place that is still on screen
+            // when it has been switched off.
+            <button
+              type="button"
+              onClick={() => indicator.set(!indicator.enabled)}
+              disabled={indicator.saving}
+              title={
+                indicator.enabled
+                  ? t("meetings.indicator.hide")
+                  : t("meetings.indicator.show")
+              }
+              aria-label={
+                indicator.enabled
+                  ? t("meetings.indicator.hide")
+                  : t("meetings.indicator.show")
+              }
+              aria-pressed={indicator.enabled}
+              className="grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-surface text-muted shadow-[var(--shadow-raised)] transition-colors hover:text-ink focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)] disabled:cursor-wait"
+            >
+              {indicator.enabled ? (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
+          )
+        }
+      />
 
       {busy === "stopping" && (
         <p className="mt-3 px-1 text-sm text-muted" role="status">
@@ -206,57 +194,6 @@ export const RecorderCard: React.FC<RecorderCardProps> = ({
           />
         </div>
       </section>
-    </div>
-  );
-};
-
-/**
- * "You" and "Others", each lit while that side is audible.
- *
- * Its own component so the ~15 level events a second re-render two chips
- * rather than the whole recorder and the transcript under it. Levels stop
- * arriving the instant capture stops, which would leave a light frozen on, so
- * they decay to zero when nothing has arrived for a moment.
- */
-const SideLights: React.FC<{ paused: boolean; systemCaptured: boolean }> = ({
-  paused,
-  systemCaptured,
-}) => {
-  const { t } = useTranslation();
-  const [levels, setLevels] = useState<MeetingLevels>({ mic: 0, system: 0 });
-
-  useEffect(() => {
-    const unlisten = listen<MeetingLevels>(MEETING_LEVEL_EVENT, (event) => {
-      setLevels(event.payload);
-    });
-    const decay = window.setInterval(() => {
-      setLevels((current) =>
-        current.mic === 0 && current.system === 0
-          ? current
-          : { mic: current.mic * 0.6, system: current.system * 0.6 },
-      );
-    }, 400);
-    return () => {
-      window.clearInterval(decay);
-      void unlisten.then((off) => off());
-    };
-  }, []);
-
-  const side = (label: string, level: number, captured: boolean) => (
-    <span
-      className="rec-side"
-      data-captured={String(captured)}
-      data-active={String(!paused && captured && level >= SILENT_LEVEL)}
-    >
-      <span className="rec-side-light" aria-hidden="true" />
-      {label}
-    </span>
-  );
-
-  return (
-    <div className="mt-5 flex flex-wrap items-center gap-2" aria-hidden="true">
-      {side(t("meetings.speakers.me"), levels.mic, true)}
-      {side(t("meetings.speakers.others"), levels.system, systemCaptured)}
     </div>
   );
 };
