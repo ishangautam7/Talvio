@@ -30,7 +30,10 @@ enum WatchPhase {
 /// fake time.
 abstract final class WatchTimeouts {
   /// For the first reply, restarted by every `progress` before the offer.
-  static const reply = Duration(seconds: 20);
+  /// PROTOCOL.md says 20 s, but before its offer the computer may wait for
+  /// this phone's previous view to end and then ask the account server for
+  /// TURN credentials, which alone can take as long.
+  static const reply = Duration(seconds: 30);
 
   /// While the computer's user is asked to allow this phone.
   static const approval = Duration(minutes: 3);

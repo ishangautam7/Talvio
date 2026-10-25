@@ -35,6 +35,11 @@ abstract final class CommandStatus {
 /// a recording adds its own length (PROTOCOL.md).
 const commandTimeout = Duration(seconds: 45);
 
+/// The wait once the computer is `working`: it plans and runs the tools,
+/// and may hand the command to its screen agent, without a word until the
+/// result. Giving up sooner only told the user it failed while it went on.
+const commandWorkingTimeout = Duration(minutes: 10);
+
 /// Commands are at most 2 000 characters (PROTOCOL.md).
 const maxCommandChars = 2000;
 
@@ -119,8 +124,16 @@ class CommandOutcome {
 
 enum CommandPhase { idle, recording, sending }
 
-/// Errors a resend of the same command cannot fix.
-const _final = {'bad_audio', 'no_speech', 'unsupported'};
+/// Errors a resend of the same command cannot fix, or must not try to: after
+/// a timeout or a lost connection the computer may have done it already, and
+/// a second "send the email" would send two.
+const _final = {
+  'bad_audio',
+  'no_speech',
+  'unsupported',
+  'timeout',
+  'interrupted',
+};
 
 /// Commands for the computer the Send page has chosen ([DictateController]
 /// owns that choice): spoken or typed, then the confirmation or answer a
@@ -158,6 +171,9 @@ class CommandController extends ChangeNotifier {
 
   CommandPhase get phase => _phase;
   bool get paused => _voice.paused;
+
+  /// Another page is recording, so this one cannot start.
+  bool get micBlocked => VoiceRecorder.heldByOther(_voice);
   ValueListenable<double> get level => _voice.level;
   ValueListenable<Duration> get elapsed => _voice.elapsed;
 
@@ -387,6 +403,7 @@ class CommandController extends ChangeNotifier {
       computer.id,
       body,
       timeout: timeout,
+      stageTimeouts: const {'working': commandWorkingTimeout},
       onRequest: (request) => _request = request,
       onStage: (stage) {
         _stage = stage;

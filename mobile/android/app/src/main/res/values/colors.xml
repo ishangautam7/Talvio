@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Talvio's canvas (docs/talvio-brand.md): the window behind the app
+         while it starts, so the first frame does not flash white. -->
+    <color name="talvio_canvas">#FBF7F3</color>
+</resources>

@@ -1,9 +1,12 @@
 abstract final class AccountStrings {
-  static const tab = 'Account';
   static const title = 'Account';
   static const devices = 'Devices';
   static const connecting = 'Connecting to the server…';
   static const thisPhone = 'This phone';
+  static const thisPhoneShort = 'You';
+  static const serverNote = 'Found automatically. Talvio keeps it up to date.';
+  static const licences = 'Licences';
+  static String version(String version) => 'Version $version';
   static const online = 'Online';
   static const server = 'Server';
   static const signOut = 'Sign out';

@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talvio_mobile/src/features/command/command_controller.dart';
 
-import '../../app_test.dart' show finish, goTo, progress, pumpApp;
+import '../../app_test.dart'
+    show enabled, finish, goTo, progress, pumpApp, tabs;
 import '../../helpers.dart';
 
 final commandPc = deviceJson(capabilities: ['dictate', 'text', 'command']);
@@ -32,20 +33,19 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await tester.pump();
 }
 
-/// Types [text] into the command field and presses Go; the request's id.
+/// Types [text] into the command field and sends it; the request's id.
 Future<Object?> typeCommand(
   WidgetTester tester,
   FakeServer server,
   String text,
 ) async {
   await tester.enterText(
-    find.widgetWithText(TextField, 'Or type a command'),
+    find.widgetWithText(TextField, 'Tell it what to do'),
     text,
   );
   await tester.pump();
-  await tester.tap(find.text('Go'));
+  await tester.tap(find.byTooltip('Send the command'));
   await tester.pump();
-  // The keyboard closes, and the mic comes back.
   await tester.pump(const Duration(milliseconds: 300));
   return lastBody(server)['requestId'];
 }
@@ -63,22 +63,12 @@ Future<void> scrollTo(WidgetTester tester, Finder finder) =>
           .first,
     );
 
-List<String?> menuLabels(WidgetTester tester) => [
-  for (final d in tester.widgetList<NavigationDrawerDestination>(
-    find.byType(NavigationDrawerDestination),
-  ))
-    (d.label as Text).data,
-];
-
 void main() {
   testWidgets('Do shows only for a computer that takes commands', (
     tester,
   ) async {
     final (server, relay) = await pumpApp(tester, [deviceJson()], page: null);
-    await tester.tap(find.byTooltip('Open menu'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(menuLabels(tester), ['Screen', 'Send', 'History', 'Account']);
+    expect(tabs(tester), ['Dictate', 'Screen']);
 
     server.send({
       'type': 'devices',
@@ -89,7 +79,7 @@ void main() {
     });
     await tester.pump();
     await tester.pump();
-    expect(menuLabels(tester), ['Screen', 'Do', 'Send', 'History', 'Account']);
+    expect(tabs(tester), ['Do', 'Dictate', 'Screen']);
     await finish(tester, relay);
   });
 
@@ -104,6 +94,7 @@ void main() {
       'text': 'open youtube',
       'requestId': id,
     });
+    expect(find.text('open youtube'), findsNothing, reason: 'field cleared');
     expect(find.text('Sending to ISHAN-PC…'), findsOneWidget);
     await progress(tester, server, id! as String, 'working');
     expect(find.text('ISHAN-PC is on it…'), findsOneWidget);
@@ -116,14 +107,15 @@ void main() {
     });
     expect(find.text('Done'), findsOneWidget);
     expect(find.text('“open youtube”'), findsOneWidget);
-    expect(find.text('Opened YouTube.'), findsOneWidget);
+    expect(find.text('Opened YouTube.'), findsWidgets);
     await scrollTo(tester, find.byTooltip('Run "open youtube" again'));
     expect(find.text('Recent'), findsOneWidget);
     expect(find.text('Opened YouTube.'), findsWidgets, reason: 'in Recent');
     expect(tester.takeException(), isNull);
 
-    // An example is one tap.
-    await tapVisible(tester, find.text('Pause the music'));
+    // Once dismissed, an example is one tap.
+    await tapVisible(tester, find.byTooltip('Dismiss', skipOffstage: false));
+    await tapVisible(tester, find.text('Pause the music', skipOffstage: false));
     expect(lastBody(server)['text'], 'Pause the music');
     await finish(tester, relay);
   });
@@ -157,7 +149,7 @@ void main() {
     });
     expect(find.text('Done'), findsOneWidget);
     expect(find.text('“email Ron”'), findsOneWidget, reason: 'kept');
-    expect(find.text('Sent the email to Ron.'), findsOneWidget);
+    expect(find.text('Sent the email to Ron.'), findsWidgets);
     await scrollTo(tester, find.byTooltip('Run "email Ron" again'));
     expect(
       find.descendant(
@@ -178,13 +170,7 @@ void main() {
       'id': 8,
       'pending': 'Send it',
     });
-    await tapVisible(
-      tester,
-      find.descendant(
-        of: find.byType(Card),
-        matching: find.widgetWithText(TextButton, 'Cancel'),
-      ),
-    );
+    await tapVisible(tester, find.widgetWithText(OutlinedButton, 'Cancel'));
     expect(lastBody(server)['kind'], 'command.confirm');
     expect(lastBody(server)['id'], 8);
     expect(lastBody(server)['accept'], isFalse);
@@ -229,7 +215,7 @@ void main() {
     await finish(tester, relay);
   });
 
-  testWidgets('failed and needs_computer_use still say what happened', (
+  testWidgets('failed and needs_computer_use say what happened', (
     tester,
   ) async {
     final (server, relay) = await pumpApp(tester, [commandPc], page: 'Do');
@@ -241,28 +227,30 @@ void main() {
     });
     expect(find.text("Couldn't do that"), findsOneWidget);
     expect(find.text("I couldn't find an app called Spotfy."), findsWidgets);
-    final card = tester.widget<Card>(find.byType(Card).first);
-    expect(
-      card.color,
-      Theme.of(
-        tester.element(find.byType(Card).first),
-      ).colorScheme.errorContainer,
-    );
+    expect(find.byIcon(Icons.error_outline_rounded), findsWidgets);
 
+    // The computer's own reason, and nothing that contradicts it.
     id = await typeCommand(tester, server, 'click the blue button');
     await answer(tester, server, id, {
       'ok': true,
       'status': 'needs_computer_use',
-      'feedback': 'No tool does that.',
+      'feedback':
+          'Turn on Control the screen when needed on the Commands page.',
     });
-    expect(find.text('Not from a phone yet'), findsOneWidget);
+    expect(find.text('Needs the screen'), findsOneWidget);
     expect(
-      find.text(
-        "That needs Talvio to work the screen itself, which isn't on for "
-        'phones yet.',
-      ),
-      findsOneWidget,
+      find.text('Turn on Control the screen when needed on the Commands page.'),
+      findsWidgets,
     );
+    expect(find.textContaining("isn't on for phones"), findsNothing);
+
+    // Without a reason, a generic one.
+    id = await typeCommand(tester, server, 'click it');
+    await answer(tester, server, id, {
+      'ok': true,
+      'status': 'needs_computer_use',
+    });
+    expect(find.textContaining('Control the screen when needed'), findsOne);
     await finish(tester, relay);
   });
 
@@ -296,21 +284,35 @@ void main() {
     await finish(tester, relay);
   });
 
-  testWidgets('no answer in 20 s is a timeout, and cancels', (tester) async {
+  testWidgets('no reply in 45 s is a timeout, and cancels', (tester) async {
     final (server, relay) = await pumpApp(tester, [commandPc], page: 'Do');
     final id = await typeCommand(tester, server, 'open youtube');
     await tester.pump(commandTimeout - const Duration(seconds: 1));
-    expect(
-      find.text("ISHAN-PC didn't answer in time. Try again."),
-      findsNothing,
-    );
+    expect(find.textContaining("didn't answer in time"), findsNothing);
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
     expect(lastBody(server), {'kind': 'cancel', 'requestId': id});
-    expect(
-      find.text("ISHAN-PC didn't answer in time. Try again."),
-      findsOneWidget,
-    );
+    expect(find.textContaining("didn't answer in time"), findsOneWidget);
+    // The computer may have done it: no one-tap resend.
+    expect(find.text('Try again'), findsNothing);
+    await finish(tester, relay);
+  });
+
+  testWidgets('once at work, a command gets minutes, not seconds', (
+    tester,
+  ) async {
+    final (server, relay) = await pumpApp(tester, [commandPc], page: 'Do');
+    final id = await typeCommand(tester, server, 'tidy my desktop');
+    await progress(tester, server, id! as String, 'working');
+    expect(find.textContaining('Some commands take a while'), findsOneWidget);
+    await tester.pump(const Duration(minutes: 9));
+    expect(find.textContaining("didn't answer in time"), findsNothing);
+    await answer(tester, server, id, {
+      'ok': true,
+      'status': 'done',
+      'feedback': 'Tidied.',
+    });
+    expect(find.text('Tidied.'), findsWidgets);
     await finish(tester, relay);
   });
 
@@ -325,14 +327,13 @@ void main() {
       recordEvents: (_) {},
       recording: file.path,
     );
-    final mic = find.bySemanticsLabel('Say a command');
     final handle = tester.ensureSemantics();
-    expect(mic, findsOneWidget);
-    await tester.tap(find.widgetWithIcon(FilledButton, Icons.mic));
+    expect(find.bySemanticsLabel('Say a command'), findsOneWidget);
+    await tester.tap(find.byTooltip('Say a command'));
     await tester.pump();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     expect(find.bySemanticsLabel('Stop and send the command'), findsOneWidget);
-    await tester.tap(find.widgetWithIcon(FilledButton, Icons.stop_rounded));
+    await tester.tap(find.byTooltip('Stop and send the command'));
     // The audio is encoded on another isolate.
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
@@ -379,13 +380,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(
-      tester
-          .widget<FilledButton>(find.widgetWithIcon(FilledButton, Icons.mic))
-          .onPressed,
-      isNull,
-    );
-    await goTo(tester, 'Send');
+    expect(enabled(tester, find.byIcon(Icons.mic_rounded)), isFalse);
+    await goTo(tester, 'Dictate');
     await finish(tester, relay);
   });
 }

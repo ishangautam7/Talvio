@@ -1,18 +1,27 @@
 abstract final class DictateStrings {
-  static const tab = 'Send';
-  static const title = 'Send';
-  static const chooseComputer = 'Send to';
+  static const tab = 'Dictate';
+  static const title = 'Dictate';
+  static const chooseComputer = 'Choose computer';
   static const pickComputerTitle = 'Choose a computer';
   static const pickComputerBody =
       'What you dictate or type goes to the computer you pick.';
   static const online = 'Online';
   static const offline = 'Offline';
+  static String onlineOn(String platform) => switch (platform) {
+    'windows' => 'Online · Windows',
+    'macos' => 'Online · Mac',
+    'linux' => 'Online · Linux',
+    _ => 'Online',
+  };
   static const connecting = 'Connecting to the server…';
+  static const connectingShort = 'Connecting…';
+  static const connectingTitle = 'Connecting';
 
   static const noComputerTitle = 'Add your computer';
   static String noComputerBody(String email) =>
       'Open Talvio on your computer and sign in with $email. '
       'It shows up here once it is signed in.';
+  static String offlineTitle(String name) => '$name is offline';
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to dictate from your phone.';
   static String updateNote(String name) =>
@@ -21,8 +30,11 @@ abstract final class DictateStrings {
       'Tap the mic and speak. The text goes wherever the cursor is on $name.';
   static const hintKeep =
       'Tap the mic and speak. The text comes back to this phone.';
+  static const goesTo = 'Text goes to';
+  static const showKeys = 'Keys';
+  static const hideKeys = 'Hide keys';
 
-  static const pasteOnComputer = 'Paste on computer';
+  static const pasteOnComputer = 'Paste there';
   static const keepOnPhone = 'Keep on phone';
   static const startRecording = 'Start dictating';
   static const stopAndSend = 'Stop and send';
@@ -42,6 +54,10 @@ abstract final class DictateStrings {
   static const cancel = 'Cancel';
   static String pasted(String name) => 'Pasted on $name';
   static String typedPasted(String name) => 'Sent to $name and pasted.';
+  static String returned(String name) => 'Transcribed on $name';
+  static String pasteOffNote(String name) =>
+      "Pasting is turned off on $name, so the text came back here. Turn it "
+      "on in Talvio's Settings, under Dictation, Paste method.";
   static const result = 'Your text';
   static const copy = 'Copy';
   static const copied = 'Copied';
@@ -56,7 +72,7 @@ abstract final class DictateStrings {
   static const historyEmptyBody =
       'What you dictate shows here, newest first, so you can copy it again. '
       'It stays on this phone.';
-  static const historyNote = 'Your last 20 dictations, on this phone only.';
+  static const historyNote = 'On this phone';
   static const dictateNow = 'Dictate';
   static String sendAgain(String name) => 'Paste on $name';
 
@@ -146,6 +162,8 @@ abstract final class DictateStrings {
       'Talvio needs the microphone to hear you. Allow it for Talvio in '
           "your phone's Settings, then try again.",
     'mic_failed' => "Couldn't use the microphone. Try again.",
+    'mic_busy' =>
+      'Another page is recording. Send or discard that recording first.',
     _ => 'Something went wrong. Try again.',
   };
 }

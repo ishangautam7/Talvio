@@ -84,9 +84,25 @@ the server before shipping this app against it.
 ```
 lib/src/
   core/       server URL and discovery, HTTP client, session storage, the relay socket
-  features/   auth/, dictate/, account/: one folder per feature, its strings included
-  shell/      the tabbed home screen; features.dart is where features register
+  design/     the design system: tokens (colour, type, spacing, motion), the theme,
+              the Talvio mark, and the shared pieces (surfaces, notices, the mic,
+              the composer)
+  features/   assistant/ (Ask), command/ (Do), dictate/ (Dictate), screen/ (Screen
+              and the live view), auth/, account/: one folder per feature, its
+              strings included
+  shell/      the navigation bar, the top bar and the live view's place under it;
+              features.dart is where features register
 ```
+
+The pages are Ask, Do, Dictate and Screen, in a navigation bar (a rail on wide
+screens); Account opens from the avatar in the top bar. Screens use only the
+theme and `context.talvio` for colour, never colours of their own, so light
+and dark stay one system. The type is Inter and Plus Jakarta Sans, bundled
+under `assets/fonts/` with their OFL licences.
+
+`flutter test test_screens --dart-define=OUT=<folder>` renders every page,
+light and dark, to PNG with the real fonts, for design review. It is not part
+of `flutter test`.
 
 `RelayClient` (`core/relay_client.dart`) is the one WebSocket. It is open only
 while signed in and either the app is on screen or a request still waits for
@@ -104,7 +120,8 @@ all start with `agent.`) goes in its own folder under `lib/src/features/` and
 registers in `lib/src/shell/features.dart`:
 
 - a `FeatureTab` in `featureTabs`, with `requires:` set to the capability a
-  computer must advertise for the tab to show;
+  computer must advertise for the tab to show, and `actions:` for buttons of
+  its own in the top bar;
 - if computers send this phone requests of its own, a handler in
   `relayHandlers`. Its kind is then also advertised in `hello`.
 
