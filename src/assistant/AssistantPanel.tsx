@@ -1276,8 +1276,7 @@ const AssistantPanel: React.FC = () => {
   const listeningRef = useRef(listening);
   listeningRef.current = listening;
   const orbLevel = useCallback(
-    () =>
-      listeningRef.current ? micLevelRef.current : speechLevelRef.current,
+    () => (listeningRef.current ? micLevelRef.current : speechLevelRef.current),
     [],
   );
   const answerReady = !busy && !!finishedAnswer.trim();

@@ -905,15 +905,13 @@
 }
 
 /* =========================================================================
- * The quick ask — one surface in three shapes
+ * The quick ask — the orb, and a bar for typing
  *
  * The window is a fixed, transparent frame placed at the dock zone the user
  * chose (see `ask_placement` in assistant.rs), and it does not change size while
- * an ask runs. The surface inside it is one element that is a pill while it
- * waits, a bar while you type, and a card once there is something to read; it
- * widens and unfolds in place rather than being swapped for another element.
- * `hitRegion.ts` measures it so the empty part of the frame passes clicks
- * through.
+ * an ask runs. The surface inside it is a bar while you type and the voice orb
+ * for everything else (`QuickAsk.tsx`). `hitRegion.ts` measures it so the empty
+ * part of the frame passes clicks through.
  * ========================================================================= */
 
 /* The frame: empty space, pinned to whichever edge of the screen the surface is
