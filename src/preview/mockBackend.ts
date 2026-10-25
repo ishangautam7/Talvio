@@ -1636,6 +1636,21 @@ const accountStatus = (): Json => ({
 const handlers: Record<string, (args: Json) => unknown> = {
   account_get_status: () => accountStatus(),
   get_app_settings: () => structuredClone(settings),
+  // The floating windows preview (windows.html).
+  list_waiting_reminders: () => [
+    {
+      id: "r1",
+      text: "Send the invoice to Sara",
+      note: "Before the call on Friday",
+      due_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 20 * 60_000).toISOString(),
+      snoozes: 0,
+      fired: true,
+    },
+  ],
+  account_pending_approvals: () => [
+    { id: "p1", name: "Ishan's Pixel 9", platform: "android" },
+  ],
   get_default_settings: () => structuredClone(settings),
   get_available_models: () => structuredClone(models),
   get_current_model: () => settings.selected_model,
