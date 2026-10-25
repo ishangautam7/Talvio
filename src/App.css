@@ -30,11 +30,12 @@
  * Type is Geist throughout (Geist Mono for keys, clocks and figures); the
  * wordmark alone keeps Plus Jakarta Sans, the logo's face.
  *
- * Every text pairing below was checked for WCAG AA: ink on the canvas 16.6:1,
- * muted on the canvas 5.5:1 and on a card 6.1:1, accent on a card 5.4:1,
- * white on accent 5.4:1; dark: muted on a card 6.9:1, accent on a card
- * 6.4:1, graphite on accent 7.0:1. A switch's off track is 3.2:1 against a
- * card (3:1 is the bar for a control's edge).
+ * Every text pairing below was checked for WCAG AA: ink on the canvas 15.9:1,
+ * muted on the canvas 5.3:1, on a card 6.1:1 and on a fill 5.1:1, accent on a
+ * card 5.5:1, white on accent 5.5:1; dark: ink on a card 16.5:1, muted on a
+ * card 6.9:1, accent on a card 6.4:1, graphite on accent 6.8:1. A switch's
+ * off track is 3.4:1 against a card on both themes (3:1 is the bar for a
+ * control's edge).
  */
 @theme {
   /* === Surfaces === */
@@ -298,13 +299,7 @@
 /* Geist covers Latin and Cyrillic. Scripts it does not cover set display
  * text in the system face at a heavy weight instead of mixing two faces
  * inside one title. */
-:root:is(
-    [lang|="ar"],
-    [lang|="he"],
-    [lang|="ja"],
-    [lang|="ko"],
-    [lang|="zh"]
-  )
+:root:is([lang|="ar"], [lang|="he"], [lang|="ja"], [lang|="ko"], [lang|="zh"])
   :is(.font-display, .hero-title, .page-title) {
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -348,7 +343,7 @@
   --color-on-ink: #0f0f13;
 
   --color-toggle-track-on: var(--color-accent-fill);
-  --color-toggle-track-off: #5f5c6a;
+  --color-toggle-track-off: #6c6978;
   --color-toggle-knob-on: #ffffff;
 
   --color-background: var(--color-canvas);

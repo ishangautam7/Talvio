@@ -63,22 +63,22 @@ const IDS: Record<ProviderKind, string[]> = {
   search: ["serper", "brave", "tavily", "exa", "serpapi", "tinyfish"],
 };
 
-/** Ids with no brand of their own, rendered with a lucide glyph on purpose:
+/** Ids with no brand of their own, rendered with a Talvio glyph on purpose:
  *  our own engine, user-defined endpoints, the open-source local voice, and
  *  search backends with no open-source monochrome mark — each with its own
  *  glyph, so a grid of search backends never shows three identical tiles. */
-const LUCIDE: Record<string, string> = {
-  builtin: "lucide-cpu",
-  custom: "lucide-plug",
-  kokoro: "lucide-audio-lines",
-  kitten: "lucide-cat",
-  pocket: "lucide-speech",
-  supertonic: "lucide-waves",
-  cartesia: "lucide-audio-waveform",
-  inworld: "lucide-earth",
-  serper: "lucide-search",
-  serpapi: "lucide-search-code",
-  tinyfish: "lucide-fish",
+const GLYPHS: Record<string, string> = {
+  builtin: "glyph-cpu",
+  custom: "glyph-plug",
+  kokoro: "glyph-audio-lines",
+  kitten: "glyph-cat",
+  pocket: "glyph-speech",
+  supertonic: "glyph-waves",
+  cartesia: "glyph-audio-waveform",
+  inworld: "glyph-globe",
+  serper: "glyph-search",
+  serpapi: "glyph-search-code",
+  tinyfish: "glyph-fish",
 };
 
 const FALLBACK_TILE = "bg-surface-strong text-muted";
@@ -94,16 +94,16 @@ describe("provider brands", () => {
         const html = markup(id, kind);
         expect(brand.tileClass.trim().length).toBeGreaterThan(0);
         expect(brand.tileClass).not.toBe(FALLBACK_TILE);
-        expect(html).not.toContain("lucide-sparkles");
+        expect(html).not.toContain("glyph-sparkles");
         expect(html).toMatch(/ d="[^"]+"/);
         expect(html).toContain('aria-hidden="true"');
         const expected =
-          kind === "stt" && id === "custom" ? "lucide-mic" : LUCIDE[id];
+          kind === "stt" && id === "custom" ? "glyph-mic" : GLYPHS[id];
         if (expected) {
           expect(html).toContain(expected);
         } else {
-          // A brand mark, not an icon-library glyph.
-          expect(html).not.toContain("lucide");
+          // A brand mark, not one of our glyphs.
+          expect(html).not.toContain("glyph");
           expect(html).toContain('fill="currentColor"');
           expect(html).toContain('viewBox="0 0 24 24"');
         }
@@ -113,8 +113,8 @@ describe("provider brands", () => {
 
   test("kind disambiguates shared ids", () => {
     expect(markup("azure", "tts")).not.toBe(markup("azure_openai", "llm"));
-    expect(markup("custom", "stt")).toContain("lucide-mic");
-    expect(markup("custom", "llm")).toContain("lucide-plug");
+    expect(markup("custom", "stt")).toContain("glyph-mic");
+    expect(markup("custom", "llm")).toContain("glyph-plug");
     expect(markup("openai", "tts")).toBe(markup("openai", "llm"));
     // Google the voice engine is Google Cloud, not the Gemini chat models.
     expect(markup("google", "tts")).not.toBe(markup("gemini", "llm"));
@@ -139,7 +139,7 @@ describe("provider brands", () => {
   test("unknown ids fall back to the neutral tile", () => {
     const brand = getProviderBrand("definitely-not-a-provider", "llm");
     expect(brand.tileClass).toBe(FALLBACK_TILE);
-    expect(markup("definitely-not-a-provider")).toContain("lucide-sparkles");
+    expect(markup("definitely-not-a-provider")).toContain("glyph-sparkles");
   });
 
   test("size reaches the glyph", () => {

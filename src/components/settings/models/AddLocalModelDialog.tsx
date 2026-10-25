@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
-import { FilePlus2, FolderOpen, Loader2, RefreshCw, X } from "@/components/icons/glyphs";
+import {
+  FilePlus2,
+  FolderOpen,
+  Loader2,
+  RefreshCw,
+  X,
+} from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useModelStore } from "@/stores/modelStore";

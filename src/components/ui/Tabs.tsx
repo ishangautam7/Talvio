@@ -76,7 +76,9 @@ export function Tabs<T extends string>({
               onClick={() => onChange(item.id)}
               onKeyDown={(event) => onKeyDown(event, index)}
               className={`tab-pill relative inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[0.875rem] whitespace-nowrap ${
-                selected ? "font-semibold text-ink" : "font-medium text-muted hover:text-ink"
+                selected
+                  ? "font-semibold text-ink"
+                  : "font-medium text-muted hover:text-ink"
               }`}
             >
               {Icon && (

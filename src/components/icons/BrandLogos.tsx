@@ -85,7 +85,9 @@ export const OpenAILogo: React.FC<LogoProps> = ({ size = 20, className }) => (
  * the 36-40px the cards draw it; it is rendered from
  * `Logo/Final Transparent Logo speakoflow mini .png`.
  */
-export const SpeakoFlowMiniLogo: React.FC<{ className?: string }> = ({ className }) => (
+export const SpeakoFlowMiniLogo: React.FC<{ className?: string }> = ({
+  className,
+}) => (
   <img
     src={speakoFlowMiniMark}
     alt=""

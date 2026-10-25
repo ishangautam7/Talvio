@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "@/hooks/useSettings";
 import { Keycaps } from "@/components/ui/Keycaps";
 import { LevelBars, restingVoice, Stage } from "@/components/ui/Stage";
-import { ArrowRight, Clock, DictateGlyph, Flame } from "@/components/icons/glyphs";
+import {
+  ArrowRight,
+  Clock,
+  DictateGlyph,
+  Flame,
+} from "@/components/icons/glyphs";
 import { useNavigation } from "@/components/shell/navigation";
 import {
   TONE_DOT,
@@ -98,7 +103,10 @@ export const StatusHero: React.FC = () => {
           )
         }
         picture={
-          <div className="voice-line flex w-full items-center px-5 py-6" data-live={live}>
+          <div
+            className="voice-line flex w-full items-center px-5 py-6"
+            data-live={live}
+          >
             <LevelBars
               levels={live ? voice : voice.map((level) => level * 0.18 + 0.04)}
               idle={live}

@@ -538,7 +538,7 @@ export const InsightsPage: React.FC = () => {
   const header = (
     <PageHeader
       title={t("nav.insights")}
-        feature="insights"
+      feature="insights"
       description={t("insights.about")}
       actions={
         <Button

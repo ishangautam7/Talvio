@@ -174,7 +174,9 @@ export const Sidebar: React.FC = () => {
               <span className="grid h-[1.625rem] w-[1.625rem] shrink-0 place-items-center">
                 <SettingsGlyph className="h-[1.125rem] w-[1.125rem] transition-transform duration-500 group-hover:rotate-90 motion-reduce:transition-none" />
               </span>
-              <span className="truncate max-lg:hidden">{t("nav.settings")}</span>
+              <span className="truncate max-lg:hidden">
+                {t("nav.settings")}
+              </span>
             </button>
             <button
               type="button"
