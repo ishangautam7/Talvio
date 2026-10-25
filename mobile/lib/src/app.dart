@@ -82,6 +82,7 @@ class _TalvioAppState extends State<TalvioApp> {
       prefs: widget.prefs,
       child: MaterialApp(
         navigatorKey: _navigator,
+        debugShowCheckedModeBanner: false,
         title: 'Talvio',
         theme: buildTheme(Brightness.light),
         darkTheme: buildTheme(Brightness.dark),

@@ -1,34 +1,37 @@
 import '../dictate/strings.dart';
 
 abstract final class ScreenStrings {
-  // Home: the computer's screen and windows.
+  // The Screen page: the computer's screens and windows.
   static const homeTab = 'Screen';
+  static String heroTitle(String name) => "See $name's screen";
+  static const heroBody =
+      'A small live view that stays at the top while you talk to your '
+      'computer. Watch only: nothing is clicked from here.';
   static const viewScreen = 'View screen';
+  static const watchingNow = 'Showing it above';
   static String viewScreenDetail(String screen, String size) =>
       '$screen · $size';
-  static const openWindows = 'Open windows';
+  static const openWindows = 'Windows';
   static const otherScreens = 'Screens';
   static const loadingWindows = 'Looking for windows and screens…';
   static String noWindows(String name) => 'No windows are open on $name.';
   static const refresh = 'Refresh';
   static const inFront = DictateStrings.inFront;
-  static const dictateOrType = 'Dictate or type';
-  static const sendInstead = 'Dictate or type instead';
   static String turnOnTitle(String name) => "See $name's screen here";
+  static const turnOnSteps = [
+    'Open Talvio on the computer',
+    'Go to Settings, then Account',
+    'Turn on "Let phones see and use windows"',
+  ];
   static const turnOnBody =
       'In Talvio on the computer, open Settings, Account, and turn on '
       '"Let phones see and use windows". Then pull down here to refresh.';
   static String updateBody(String name) =>
       'Update Talvio on $name to see its screen from your phone.';
   static String offlineBody(String name) =>
-      'Open Talvio on $name to see its screen and send to it.';
+      'Open Talvio on $name to see its screen.';
   static String waitingBody(String name) => 'Connecting to $name…';
-  static String online(String platform) => switch (platform) {
-    'windows' => 'Online · Windows',
-    'macos' => 'Online · Mac',
-    'linux' => 'Online · Linux',
-    _ => 'Online',
-  };
+  static String online(String platform) => DictateStrings.onlineOn(platform);
   static const offline = 'Offline';
 
   static const watch = 'Watch';
@@ -38,7 +41,10 @@ abstract final class ScreenStrings {
   static const primary = 'Main';
   static String screenSize(int width, int height) => '$width × $height';
   static const untitledScreen = 'Screen';
+  static const showScreen = 'Show the screen';
+  static const hideScreen = 'Hide the screen';
 
+  // The live view, small and full screen.
   static const stopWatching = 'Stop watching';
   static const starting = 'Starting…';
   static const approval = 'Allow on computer';
@@ -51,6 +57,11 @@ abstract final class ScreenStrings {
   static const stoppedByYou = 'You stopped watching.';
   static const watchAgain = 'Watch again';
   static const close = 'Close';
+  static const fullScreen = 'Full screen';
+  static const exitFullScreen = 'Back to the small view';
+  static const collapse = 'Make it smaller';
+  static const expand = 'Make it bigger';
+  static const inFullScreen = 'Showing full screen';
 
   static const rotate = 'Turn sideways';
   static const unrotate = 'Turn upright';
@@ -78,7 +89,8 @@ abstract final class ScreenStrings {
       "Couldn't connect. On different networks this needs a TURN server — "
           'see the server README.',
     'capture_failed' => "$name couldn't capture that window or screen.",
-    'busy' => 'Someone is already watching this computer.',
+    'busy' => 'Another view of $name is still running. Try again in a moment.',
+    'replaced' => 'This view was replaced by a newer one from this phone.',
     'remote_windows_off' =>
       "$name doesn't let phones see and use windows. Turn on \"Let phones "
           'see and use windows" in Talvio on that computer, under Settings, '

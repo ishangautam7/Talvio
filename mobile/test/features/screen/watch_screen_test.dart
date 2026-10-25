@@ -10,15 +10,17 @@ import 'package:talvio_mobile/src/core/api_client.dart';
 import 'package:talvio_mobile/src/core/app_services.dart';
 import 'package:talvio_mobile/src/features/assistant/assistant_controller.dart';
 import 'package:talvio_mobile/src/features/dictate/dictate_controller.dart';
+import 'package:talvio_mobile/src/design/components.dart';
+import 'package:talvio_mobile/src/features/screen/live_controller.dart';
 import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
+import 'package:talvio_mobile/src/features/screen/watch_controller.dart';
 import 'package:talvio_mobile/src/features/screen/watch_screen.dart';
 
 import '../../helpers.dart';
 import 'fakes.dart';
 
 void main() {
-  /// How many times the viewer asked to open the Assistant page.
-  var openedAssistant = 0;
+  late LiveController live;
 
   /// The viewer of window w1 on a 400×800 phone, already live with its
   /// channel open, with the app's assistant chat when [assistant]. Returns
@@ -28,6 +30,7 @@ void main() {
     bool assistant = false,
     List<String> capabilities = const ['dictate', 'text', 'windows', 'screen'],
   }) async {
+    ambientMotion = false;
     tester.view
       ..physicalSize = const Size(400, 800)
       ..devicePixelRatio = 1;
@@ -39,15 +42,20 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final links = FakeLinks();
     AssistantController? chat;
-    openedAssistant = 0;
+    final dictate = DictateController(relay: relay, prefs: prefs);
+    live = LiveController(
+      relay: relay,
+      dictate: dictate,
+      linkFactory: links.create,
+    );
     if (assistant) {
-      final dictate = DictateController(relay: relay, prefs: prefs);
       chat = AssistantController(relay: relay, prefs: prefs, dictate: dictate);
-      cleanups.add(() {
-        chat!.dispose();
-        dictate.dispose();
-      });
     }
+    cleanups.add(() {
+      chat?.dispose();
+      live.dispose();
+      dictate.dispose();
+    });
     final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(
       AppServices(
@@ -64,14 +72,15 @@ void main() {
         ),
       ),
     );
+    live.start(
+      relay.devices.value!.firstWhere((d) => d.isComputer),
+      const WatchTarget(id: 'w1', label: 'Notepad', screen: false),
+    );
     unawaited(
       navigator.currentState!.push(
-        watchRoute(
-          computer: relay.devices.value!.firstWhere((d) => d.isComputer),
-          target: const WatchTarget(id: 'w1', label: 'Notepad', screen: false),
-          linkFactory: links.create,
-          assistant: chat,
-          onOpenAssistant: () => openedAssistant++,
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              WatchScreen(watch: live.watch!, live: live, assistant: chat),
         ),
       ),
     );
@@ -99,7 +108,7 @@ void main() {
     }
     // The computer has no assistant: no bar, though the chat exists.
     expect(find.byType(TextField), findsNothing);
-    expect(find.byIcon(Icons.mic), findsNothing);
+    expect(find.byIcon(Icons.mic_rounded), findsNothing);
     expect(find.byTooltip('Keys'), findsOneWidget);
     expect(find.byTooltip('Turn sound on'), findsOneWidget);
     expect(find.text('Stop'), findsOneWidget);
@@ -128,8 +137,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(sentOf(server, 'cancel').single['requestId'], id);
     expect(links.last.closed, isTrue);
+    expect(live.watch, isNull, reason: 'the small view goes too');
     expect(find.text('Home page'), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsNothing);
+  });
+
+  screenTest('Back returns to the small view, still watching', (tester) async {
+    final (server, links, _) = await pumpViewer(tester);
+    await tester.tap(find.byTooltip('Back to the small view'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Home page'), findsOneWidget);
+    expect(sentOf(server, 'cancel'), isEmpty);
+    expect(links.last.closed, isFalse);
+    expect(live.watch?.phase, WatchPhase.live);
   });
 
   screenTest('the caret is followed until a pan', (tester) async {
@@ -225,7 +246,12 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(links.last.closed, isTrue);
-    expect(find.text('Someone is already watching this computer.'), findsOne);
+    expect(
+      find.text(
+        'Another view of ISHAN-PC is still running. Try again in a moment.',
+      ),
+      findsOne,
+    );
     await tester.tap(find.text('Watch again'));
     await tester.pump();
     expect(sentOf(server, 'screen.watch'), hasLength(2));
@@ -355,17 +381,13 @@ void main() {
     await tester.pump();
     expect(sentOf(server, 'assistant.ask').last['conversation'], 'c1');
 
-    // Hidden, then shown again; the card opens the Assistant page.
+    // Hidden, then shown again.
     await tester.tap(find.byTooltip('Hide the answer'));
     await tester.pump();
     expect(find.text('Talvio on ISHAN-PC'), findsNothing);
     await tester.tap(find.text('Show the answer'));
     await tester.pump();
-    await tester.tap(find.byTooltip('Open in Assistant'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    expect(openedAssistant, 1);
-    expect(find.text('Home page'), findsOneWidget, reason: 'viewer closed');
+    expect(find.text('Talvio on ISHAN-PC'), findsOneWidget);
   });
 
   screenTest('on its side the keys and the assistant open beside it', (

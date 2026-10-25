@@ -2,97 +2,47 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../core/app_services.dart';
 import '../../core/models.dart';
 import '../../core/relay_client.dart';
-import '../../shell/shell_scope.dart';
-import '../../theme.dart';
+import '../../design/components.dart';
+import '../../design/theme.dart';
+import '../../design/tokens.dart';
 import '../assistant/assistant_controller.dart';
-import '../assistant/assistant_scope.dart';
 import '../assistant/assistant_widgets.dart';
 import '../assistant/strings.dart';
-import '../dictate/dictate_controller.dart';
 import '../dictate/key_pad.dart';
-import '../dictate/remote_windows.dart';
 import '../dictate/strings.dart';
+import 'live_controller.dart';
+import 'live_dock.dart' show watchStatus;
 import 'live_protocol.dart';
-import 'rtc_link.dart';
 import 'strings.dart';
 import 'view_geometry.dart';
 import 'watch_controller.dart';
-import 'webrtc_link.dart';
 
 /// A screen as the picker and the viewer name it.
 String screenLabel(RemoteScreen screen) =>
     screen.name.isEmpty ? ScreenStrings.untitledScreen : screen.name;
 
-/// The route of live view: a window or screen of [computer], to watch.
-/// With [assistant], the viewer has the assistant bar, in the same chat as
-/// the Assistant page, which [onOpenAssistant] shows.
-Route<void> watchRoute({
-  required Device computer,
-  required WatchTarget target,
-  RtcLinkFactory? linkFactory,
-  AssistantController? assistant,
-  VoidCallback? onOpenAssistant,
-}) => MaterialPageRoute(
-  builder: (_) => WatchScreen(
-    computer: computer,
-    target: target,
-    linkFactory: linkFactory ?? WebRtcLink.create,
-    assistant: assistant,
-    onOpenAssistant: onOpenAssistant,
-  ),
-);
-
-/// Opens live view of [target] on [dictate]'s computer. The watched window
-/// is also where the Send page's dictation and typing go next: [window], or
-/// for a screen wherever the keyboard is. Completes when the viewer closes.
-Future<void> openWatch(
-  BuildContext context,
-  DictateController dictate,
-  WatchTarget target, {
-  RemoteWindow? window,
-}) async {
-  final computer = dictate.computer;
-  if (computer == null) return;
-  dictate.chooseWindow(window);
-  final select = ShellScope.maybeOf(context)?.select;
-  await Navigator.of(context).push(
-    watchRoute(
-      computer: computer,
-      target: target,
-      assistant: AssistantScope.maybeOf(context),
-      onOpenAssistant: select == null ? null : () => select('assistant'),
-    ),
-  );
-}
-
-/// Live view: pinch and drag move around the picture, and nothing on the
-/// computer is clicked or scrolled from here. Under the picture (beside it
-/// on its side) are the keys, pressed in the watched window, and the
-/// assistant bar.
+/// The live view, full screen: the same watch as the small view, bigger.
+/// Pinch and drag move around the picture; nothing on the computer is
+/// clicked or scrolled from here. Under the picture (beside it on its side)
+/// are the assistant bar and, on demand, the keys. Back returns to the small
+/// view; Stop ends the watch.
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
     super.key,
-    required this.computer,
-    required this.target,
-    required this.linkFactory,
+    required this.watch,
+    required this.live,
     this.assistant,
-    this.onOpenAssistant,
   });
 
-  final Device computer;
-  final WatchTarget target;
-  final RtcLinkFactory linkFactory;
+  final WatchController watch;
+  final LiveController live;
 
   /// The app's assistant chat; null leaves the assistant bar out.
   final AssistantController? assistant;
-
-  /// Shows the Assistant page (after the viewer closes).
-  final VoidCallback? onOpenAssistant;
 
   @override
   State<WatchScreen> createState() => _WatchScreenState();
@@ -100,8 +50,7 @@ class WatchScreen extends StatefulWidget {
 
 class _WatchScreenState extends State<WatchScreen>
     with SingleTickerProviderStateMixin {
-  late final WatchController _watch;
-  late final AppLifecycleListener _lifecycle;
+  WatchController get _watch => widget.watch;
   final _transform = TransformationController();
   late final AnimationController _move = AnimationController(
     vsync: this,
@@ -140,24 +89,13 @@ class _WatchScreenState extends State<WatchScreen>
   @override
   void initState() {
     super.initState();
-    _watch = WatchController(
-      relay: AppServices.of(context).relay,
-      computer: widget.computer,
-      target: widget.target,
-      linkFactory: widget.linkFactory,
-    )..addListener(_onWatch);
+    _watch.addListener(_onWatch);
     _move.addListener(() {
       if (_moveTo case final to?) _transform.value = to.value;
     });
-    _lifecycle = AppLifecycleListener(
-      onResume: () => _watch.setForeground(true),
-      onPause: () => _watch.setForeground(false),
-    );
-    _keepAwake(true);
     _keyErrors = _watch.keyErrors.listen(_onKeyError);
     widget.assistant?.addListener(_onAssistant);
     _turnAtOpen = _answerTurn = widget.assistant?.turns.lastOrNull;
-    _watch.start();
   }
 
   void _onKeyError(String code) {
@@ -168,7 +106,7 @@ class _WatchScreenState extends State<WatchScreen>
   }
 
   void _pressKeys(List<String> keys) {
-    unawaited(HapticFeedback.selectionClick());
+    Haptic.tick();
     _watch.pressKeys(keys);
   }
 
@@ -190,47 +128,28 @@ class _WatchScreenState extends State<WatchScreen>
   /// The watched computer, as the relay knows it now.
   Device get _computer =>
       AppServices.of(context).relay.devices.value
-          ?.where((d) => d.id == widget.computer.id)
+          ?.where((d) => d.id == _watch.computer.id)
           .firstOrNull ??
-      widget.computer;
+      _watch.computer;
 
   /// The assistant bar is offered.
   bool get _canAsk => widget.assistant != null && hasAssistant(_computer);
 
-  /// Closes the viewer and shows the Assistant page.
-  void _openAssistant() {
-    final open = widget.onOpenAssistant;
-    unawaited(Navigator.maybePop(context));
-    open?.call();
-  }
-
   @override
   void dispose() {
-    _keepAwake(false);
     unawaited(_keyErrors?.cancel());
     widget.assistant?.removeListener(_onAssistant);
     if (_held != null) _hold(null);
-    _lifecycle.dispose();
-    _watch
-      ..removeListener(_onWatch)
-      ..dispose();
+    _watch.removeListener(_onWatch);
     _move.dispose();
     _transform.dispose();
     super.dispose();
   }
 
-  /// The screen stays on while watching. Best effort: without the plugin
-  /// (tests) it simply does not.
-  static void _keepAwake(bool on) => unawaited(
-    Future.sync(
-      () => on ? WakelockPlus.enable() : WakelockPlus.disable(),
-    ).catchError((Object _) {}),
-  );
-
-  String get _name => widget.computer.name;
+  String get _name => _watch.computer.name;
 
   /// Holds the viewer sideways or upright; null lets the phone decide again.
-  /// Best effort, like the wake lock.
+  /// Best effort: without the platform (tests) it simply does not.
   static void _hold(Orientation? orientation) => unawaited(
     Future.sync(
       () => SystemChrome.setPreferredOrientations(switch (orientation) {
@@ -333,6 +252,14 @@ class _WatchScreenState extends State<WatchScreen>
     if (_filled && zoomed) setState(() => _filled = false);
   }
 
+  void _back() => unawaited(Navigator.maybePop(context));
+
+  void _stop() {
+    Haptic.firm();
+    widget.live.close();
+    _back();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -430,11 +357,11 @@ class _WatchScreenState extends State<WatchScreen>
           child: _TopBar(
             title: w.title,
             computerName: _name,
-            status: _statusText(),
+            status: watchStatus(w),
             live: w.phase == WatchPhase.live && !w.reconnecting,
             follow: _follow,
             onFollow: w.caret == null ? null : () => _setFollow(!_follow),
-            onClose: () => Navigator.maybePop(context),
+            onBack: _back,
             filled: _filled,
             // Only a picture that leaves bars can fill the view.
             onFill:
@@ -462,21 +389,9 @@ class _WatchScreenState extends State<WatchScreen>
     );
   }
 
-  String _statusText() {
-    final w = _watch;
-    return switch (w.phase) {
-      WatchPhase.starting => ScreenStrings.starting,
-      WatchPhase.approval => ScreenStrings.approval,
-      WatchPhase.connecting => ScreenStrings.connecting,
-      WatchPhase.live when w.reconnecting => ScreenStrings.reconnecting,
-      WatchPhase.live => ScreenStrings.live,
-      WatchPhase.ended => ScreenStrings.ended,
-    };
-  }
-
   Widget _waiting(BuildContext context) {
-    final theme = Theme.of(context);
     final approval = _watch.phase == WatchPhase.approval;
+    final t = context.talvio;
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Semantics(
@@ -485,19 +400,17 @@ class _WatchScreenState extends State<WatchScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(),
-            const SizedBox(height: 16),
+            const SizedBox(height: Space.lg),
             Text(
-              approval ? DictateStrings.approval(_name) : _statusText(),
+              approval ? DictateStrings.approval(_name) : watchStatus(_watch),
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium,
+              style: context.text.titleMedium,
             ),
             if (approval)
               Text(
                 ScreenStrings.approvalDetail,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: context.text.bodyMedium?.copyWith(color: t.muted),
               ),
           ],
         ),
@@ -506,43 +419,22 @@ class _WatchScreenState extends State<WatchScreen>
   }
 
   Widget _endedCard(BuildContext context) {
-    final theme = Theme.of(context);
     final error = _watch.endError;
     return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Card.filled(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  error == null
-                      ? ScreenStrings.stoppedByYou
-                      : ScreenStrings.error(error, _name),
-                  style: theme.textTheme.bodyLarge,
-                ),
-              ),
-              OverflowBar(
-                alignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.maybePop(context),
-                    child: const Text(ScreenStrings.close),
-                  ),
-                  if (error != 'target_gone')
-                    TextButton(
-                      onPressed: _watch.start,
-                      child: const Text(ScreenStrings.watchAgain),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
+      padding: const EdgeInsets.all(Space.xxl),
+      child: Notice(
+        tone: error == null ? Tone.info : Tone.warning,
+        message: error == null
+            ? ScreenStrings.stoppedByYou
+            : ScreenStrings.error(error, _name),
+        actions: [
+          TextButton(onPressed: _stop, child: const Text(ScreenStrings.close)),
+          if (error != 'target_gone')
+            FilledButton(
+              onPressed: _watch.start,
+              child: const Text(ScreenStrings.watchAgain),
+            ),
+        ],
       ),
     );
   }
@@ -556,12 +448,10 @@ class _WatchScreenState extends State<WatchScreen>
       onPressed: w.phase == WatchPhase.ended
           ? null
           : () => w.setSound(!w.soundOn),
-      icon: const Icon(Icons.volume_off_outlined),
-      selectedIcon: const Icon(Icons.volume_up),
+      icon: const Icon(Icons.volume_off_rounded),
+      selectedIcon: const Icon(Icons.volume_up_rounded),
     );
   }
-
-  void _close() => unawaited(Navigator.maybePop(context));
 
   /// Keys open or closed.
   Widget _keysToggle() => IconButton(
@@ -571,11 +461,22 @@ class _WatchScreenState extends State<WatchScreen>
         ? null
         : () => setState(() => _keysOpen = !_keysOpen),
     icon: const Icon(Icons.keyboard_outlined),
-    selectedIcon: const Icon(Icons.keyboard),
+    selectedIcon: const Icon(Icons.keyboard_rounded),
+  );
+
+  Widget _stopButton(BuildContext context) => FilledButton.tonalIcon(
+    onPressed: _stop,
+    style: FilledButton.styleFrom(
+      backgroundColor: context.talvio.raised,
+      foregroundColor: context.talvio.ink,
+      minimumSize: const Size(64, 44),
+    ),
+    icon: const Icon(Icons.stop_rounded),
+    label: const Text(ScreenStrings.stop),
   );
 
   Widget _keyPad() => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.only(bottom: Space.sm),
     child: KeyPad(
       platform: _computer.platform,
       onPress: _watch.channelOpen ? _pressKeys : null,
@@ -600,26 +501,25 @@ class _WatchScreenState extends State<WatchScreen>
     if (!_canAsk || turn == null) return null;
     if (!_answerOpen) {
       return Positioned(
-        right: 8,
-        bottom: 8,
+        right: Space.sm,
+        bottom: Space.sm,
         child: FilledButton.tonalIcon(
           onPressed: () => setState(() => _answerOpen = true),
-          icon: const Icon(Icons.chat_bubble_outline, size: 18),
+          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
           label: const Text(AssistantStrings.showAnswer),
         ),
       );
     }
     return Positioned(
-      left: 8,
-      right: 8,
-      bottom: 8,
+      left: Space.sm,
+      right: Space.sm,
+      bottom: Space.sm,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: constraints.maxHeight * 0.35),
         child: _AnswerCard(
           turn: turn,
           controller: widget.assistant!,
           onHide: () => setState(() => _answerOpen = false),
-          onOpen: widget.onOpenAssistant == null ? null : _openAssistant,
         ),
       ),
     );
@@ -629,26 +529,30 @@ class _WatchScreenState extends State<WatchScreen>
   /// Stop.
   Widget _buildBar(BuildContext context) {
     return Material(
-      color: Theme.of(context).colorScheme.surface,
+      color: context.talvio.canvas,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+          padding: const EdgeInsets.fromLTRB(
+            Space.md,
+            Space.sm,
+            Space.md,
+            Space.sm,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (_keysOpen) _keyPad(),
-              if (_canAsk) _assistantInput(),
+              if (_canAsk) ...[
+                _assistantInput(),
+                const SizedBox(height: Space.xs),
+              ],
               Row(
                 children: [
                   _sound(),
                   _keysToggle(),
                   const Spacer(),
-                  FilledButton.tonalIcon(
-                    onPressed: _close,
-                    icon: const Icon(Icons.stop_rounded),
-                    label: const Text(ScreenStrings.stop),
-                  ),
+                  _stopButton(context),
                 ],
               ),
             ],
@@ -666,7 +570,7 @@ class _WatchScreenState extends State<WatchScreen>
     final turn = asking ? _shownTurn : null;
     final width = MediaQuery.sizeOf(context).width;
     return Material(
-      color: Theme.of(context).colorScheme.surface,
+      color: context.talvio.canvas,
       child: SafeArea(
         left: false,
         child: Row(
@@ -675,7 +579,12 @@ class _WatchScreenState extends State<WatchScreen>
               SizedBox(
                 width: (width * 0.45).clamp(KeyPad.minWidth + 16, 400),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.sm,
+                    Space.sm,
+                    0,
+                    Space.sm,
+                  ),
                   child: Column(
                     children: [
                       if (turn != null)
@@ -684,14 +593,11 @@ class _WatchScreenState extends State<WatchScreen>
                             turn: turn,
                             controller: widget.assistant!,
                             onHide: null,
-                            onOpen: widget.onOpenAssistant == null
-                                ? null
-                                : _openAssistant,
                           ),
                         )
                       else
                         const Spacer(),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Space.sm),
                       if (_keysOpen) _keyPad(),
                       if (asking) _assistantInput(),
                     ],
@@ -701,14 +607,14 @@ class _WatchScreenState extends State<WatchScreen>
             SizedBox(
               width: 64,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(Space.sm),
                 child: Column(
                   children: [
                     _sound(),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Space.sm),
                     _keysToggle(),
                     if (_canAsk) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Space.sm),
                       IconButton(
                         tooltip: _assistantOpen
                             ? AssistantStrings.hideAssistant
@@ -716,14 +622,14 @@ class _WatchScreenState extends State<WatchScreen>
                         isSelected: _assistantOpen,
                         onPressed: () =>
                             setState(() => _assistantOpen = !_assistantOpen),
-                        icon: const Icon(Icons.chat_bubble_outline),
-                        selectedIcon: const Icon(Icons.chat_bubble),
+                        icon: const Icon(Icons.chat_bubble_outline_rounded),
+                        selectedIcon: const Icon(Icons.chat_bubble_rounded),
                       ),
                     ],
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Space.sm),
                     IconButton.filledTonal(
                       tooltip: ScreenStrings.stop,
-                      onPressed: _close,
+                      onPressed: _stop,
                       icon: const Icon(Icons.stop_rounded),
                     ),
                   ],
@@ -738,80 +644,73 @@ class _WatchScreenState extends State<WatchScreen>
 }
 
 /// The latest answer in live view: the question, the answer as it streams
-/// in, what was done and anything waiting for Do it. Tapping it opens the
-/// Assistant page.
+/// in, what was done and anything waiting for Do it.
 class _AnswerCard extends StatelessWidget {
   const _AnswerCard({
     required this.turn,
     required this.controller,
     required this.onHide,
-    required this.onOpen,
   });
 
   final AssistantTurn turn;
   final AssistantController controller;
   final VoidCallback? onHide;
-  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
+    final t = context.talvio;
+    return Material(
+      color: t.card.withValues(alpha: 0.97),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Radii.lg),
+        side: BorderSide(color: t.hairline),
+      ),
       clipBehavior: Clip.antiAlias,
-      color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.96),
-      child: InkWell(
-        onTap: onOpen,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.chat_bubble_outline,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    AssistantStrings.assistantOn(turn.computerName),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge,
-                  ),
-                ),
-                if (onOpen != null)
-                  IconButton(
-                    tooltip: AssistantStrings.openAssistant,
-                    visualDensity: VisualDensity.compact,
-                    onPressed: onOpen,
-                    icon: const Icon(Icons.open_in_full, size: 18),
-                  ),
-                if (onHide != null)
-                  IconButton(
-                    tooltip: AssistantStrings.hideAnswer,
-                    visualDensity: VisualDensity.compact,
-                    onPressed: onHide,
-                    icon: const Icon(Icons.expand_more),
-                  ),
-              ],
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                reverse: true,
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: TurnView(
-                  turn: turn,
-                  controller: controller,
-                  compact: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const SizedBox(width: Space.md),
+              Icon(Icons.auto_awesome_rounded, size: 16, color: t.accent),
+              const SizedBox(width: Space.sm),
+              Expanded(
+                child: Text(
+                  AssistantStrings.assistantOn(turn.computerName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.labelLarge,
                 ),
               ),
+              if (onHide != null)
+                IconButton(
+                  tooltip: AssistantStrings.hideAnswer,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onHide,
+                  icon: const Icon(Icons.expand_more_rounded),
+                )
+              else
+                const SizedBox(height: 40),
+            ],
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              reverse: true,
+              padding: const EdgeInsets.fromLTRB(
+                Space.md,
+                0,
+                Space.md,
+                Space.md,
+              ),
+              child: TurnView(
+                turn: turn,
+                controller: controller,
+                compact: true,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -825,7 +724,7 @@ class _TopBar extends StatelessWidget {
     required this.live,
     required this.follow,
     required this.onFollow,
-    required this.onClose,
+    required this.onBack,
     required this.notice,
     required this.filled,
     required this.onFill,
@@ -841,7 +740,7 @@ class _TopBar extends StatelessWidget {
 
   /// Null while there is no text cursor to follow.
   final VoidCallback? onFollow;
-  final VoidCallback onClose;
+  final VoidCallback onBack;
   final String? notice;
 
   /// The picture fills the view; [onFill] toggles it, null while there are
@@ -855,7 +754,7 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = context.talvio;
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -875,9 +774,9 @@ class _TopBar extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    tooltip: ScreenStrings.stopWatching,
-                    onPressed: onClose,
-                    icon: const Icon(Icons.close),
+                    tooltip: ScreenStrings.exitFullScreen,
+                    onPressed: onBack,
+                    icon: const Icon(Icons.close_fullscreen_rounded),
                   ),
                   Expanded(
                     child: Column(
@@ -888,26 +787,21 @@ class _TopBar extends StatelessWidget {
                           title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall,
+                          style: context.text.titleSmall,
                         ),
                         Row(
                           children: [
-                            Icon(
-                              Icons.circle,
-                              size: 8,
-                              color: live
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurfaceVariant,
+                            StatusDot(
+                              color: live ? t.live : t.muted,
+                              pulse: live,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Semantics(
                               liveRegion: true,
                               child: Text(
                                 status,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: live
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.onSurfaceVariant,
+                                style: context.text.bodySmall?.copyWith(
+                                  color: live ? Colors.white : t.muted,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -917,8 +811,8 @@ class _TopBar extends StatelessWidget {
                                 ' · $computerName',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                style: context.text.bodySmall?.copyWith(
+                                  color: t.muted,
                                 ),
                               ),
                             ),
@@ -942,8 +836,8 @@ class _TopBar extends StatelessWidget {
                     onPressed: onRotate,
                     icon: Icon(
                       sideways
-                          ? Icons.stay_current_portrait
-                          : Icons.stay_current_landscape,
+                          ? Icons.stay_current_portrait_rounded
+                          : Icons.stay_current_landscape_rounded,
                     ),
                   ),
                   if (onFollow != null)
@@ -961,7 +855,7 @@ class _TopBar extends StatelessWidget {
               if (notice case final notice?)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                  child: Text(notice, style: theme.textTheme.bodySmall),
+                  child: Text(notice, style: context.text.bodySmall),
                 ),
             ],
           ),
