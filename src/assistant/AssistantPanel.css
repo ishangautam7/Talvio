@@ -32,30 +32,38 @@
   /* Talvio's dark card (#17192F) and ink (#F2F1F7), from docs/talvio-brand.md
    * §5. A deep blue-violet rather than the graphite it replaced, so the floating
    * windows read as the same product as the main window's dark theme. */
-  --as-surface: rgba(23, 25, 47, var(--as-alpha, 1));
+  --as-surface: rgba(18, 20, 40, var(--as-alpha, 1));
   --as-panel-surface: var(--as-surface);
-  --as-chip-surface: rgba(23, 25, 47, calc(0.96 * var(--as-alpha, 1)));
-  --as-menu-surface: #1f2240;
+  --as-chip-surface: rgba(18, 20, 40, calc(0.96 * var(--as-alpha, 1)));
+  --as-menu-surface: #1c1f3c;
   --as-ink: #f2f1f7;
   --as-body: #d6d5e2;
   --as-muted: #a3a5bf;
   --as-faint: #8083a2;
   --as-placeholder: #8c8ea9;
-  --as-hairline: rgba(255, 255, 255, 0.08);
-  --as-hairline-strong: rgba(255, 255, 255, 0.14);
-  /* Lit from above: a faint sheen along the top of every surface and a
+  --as-hairline: rgba(255, 255, 255, 0.09);
+  --as-hairline-strong: rgba(255, 255, 255, 0.15);
+  /* The ink tile's indigo glowing from the top corner (the brand's dark
+     icon, docs/talvio-brand.md §4), under a faint sheen along the top of
+     every surface and a
      brighter hairline on its top edge, so a floating object reads as a
      material rather than a flat fill. The windows are transparent and cannot
      carry an outer shadow (it renders as a milky band on Windows), so this is
      where their depth comes from. */
-  --as-sheen: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.012) 42%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  --as-sheen:
+    radial-gradient(
+      120% 100% at 0% 0%,
+      rgba(78, 84, 200, 0.2),
+      rgba(78, 84, 200, 0) 62%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.016) 46%,
+      rgba(255, 255, 255, 0) 100%
+    );
   --as-inner:
-    inset 0 1px 0 rgba(255, 255, 255, 0.085),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
     inset 0 0 0 0.5px rgba(0, 0, 0, 0.5);
   --as-raise: rgba(255, 255, 255, 0.06);
   --as-raise-strong: rgba(255, 255, 255, 0.11);
@@ -953,7 +961,7 @@
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border: 1px solid var(--as-hairline);
-  border-radius: 18px;
+  border-radius: 22px;
   box-shadow: var(--as-inner);
   transform-origin: top center;
   animation: qa-arrive 180ms var(--as-ease) both;
@@ -1169,9 +1177,9 @@
   align-items: center;
   gap: 6px;
   height: 30px;
-  padding: 0 12px;
+  padding: 0 14px;
   border: 1px solid var(--as-hairline-strong);
-  border-radius: 9px;
+  border-radius: 999px;
   background: var(--as-raise);
   color: var(--as-body);
   font-family: inherit;
@@ -1333,7 +1341,7 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 22px;
   background: var(--as-sheen, none), var(--as-surface);
   backdrop-filter: blur(24px) saturate(1.3);
   -webkit-backdrop-filter: blur(24px) saturate(1.3);
@@ -1351,9 +1359,16 @@
   cursor: grab;
 }
 
+/* The card's glyph (a reminder's bell, a phone, a command's bolt) sits in a
+   small tile of its own, the same on every card of the family. */
 .ask-head-icon {
   flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: 8px;
   color: var(--as-accent);
+  background: var(--as-raise);
+  box-shadow: inset 0 0 0 1px var(--as-hairline);
 }
 
 .ask-question-text {
@@ -1384,7 +1399,7 @@
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 9px;
+  border-radius: 999px;
   background: transparent;
   color: var(--as-muted);
   cursor: pointer;
