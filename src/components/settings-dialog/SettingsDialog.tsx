@@ -109,72 +109,63 @@ export const SettingsDialog: React.FC = () => {
     <Dialog
       open={settingsTab !== null}
       onClose={closeSettings}
-      size="settings"
+      size="drawer"
       bare
       labelledBy={titleId}
       bodyClassName=""
     >
-      <nav
-        aria-label={t("settingsDialog.title")}
-        className="flex w-[13.5rem] shrink-0 flex-col gap-px overflow-y-auto bg-canvas-soft px-2.5 pt-6 pb-3"
-      >
-        <h2
-          id={titleId}
-          className="mb-4 px-2.5 font-display text-[1.1875rem] text-ink"
-        >
-          {t("settingsDialog.title")}
-        </h2>
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const selected = tab.id === active.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              aria-current={selected ? "page" : undefined}
-              data-autofocus={selected ? "" : undefined}
-              onClick={() => openSettings(tab.id)}
-              className={`flex h-[2.125rem] w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-start text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-                selected
-                  ? "settings-tab-active font-medium text-ink"
-                  : "text-body hover:bg-ink/[0.045] hover:text-ink"
-              }`}
-            >
-              <Icon
-                size={16}
-                strokeWidth={selected ? 2.1 : 1.8}
-                className={selected ? "text-accent-fill" : "text-muted"}
-              />
-              <span className="truncate">
-                {t(`settingsDialog.tabs.${tab.id}`)}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-
-      <section className="flex min-w-0 flex-1 flex-col bg-canvas">
-        <header className="flex shrink-0 items-center justify-between gap-4 px-8 pt-6 pb-5">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <h3 className="font-display text-[1.3125rem] text-ink">
-              {t(`settingsDialog.tabs.${active.id}`)}
-            </h3>
-            {active.intro && (
-              <InfoTip text={t(active.intro)} size="md" className="mt-1" />
-            )}
-          </div>
+      <header className="shrink-0 border-b border-hairline bg-surface px-7 pt-6 pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <h2 id={titleId} className="page-title text-[1.625rem] text-ink">
+            {t("settingsDialog.title")}
+          </h2>
           <DialogCloseButton
             onClick={closeSettings}
             label={t("common.close")}
           />
-        </header>
-        <div
-          ref={bodyRef}
-          className="settings-scroll min-h-0 flex-1 space-y-7 overflow-y-auto bg-canvas px-8 pt-1 pb-10"
-        >
-          <ActiveTab key={active.id} />
         </div>
-      </section>
+        {/* Every tab in view at once, as chips: the one you are in is ink. */}
+        <nav
+          aria-label={t("settingsDialog.title")}
+          className="mt-4 flex flex-wrap gap-1.5"
+        >
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const selected = tab.id === active.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                aria-current={selected ? "page" : undefined}
+                data-autofocus={selected ? "" : undefined}
+                onClick={() => openSettings(tab.id)}
+                className="settings-chip inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium focus-visible:outline-none"
+                data-selected={selected}
+              >
+                <Icon size={14} strokeWidth={selected ? 2.2 : 1.9} />
+                <span className="whitespace-nowrap">
+                  {t(`settingsDialog.tabs.${tab.id}`)}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      </header>
+
+      <div
+        ref={bodyRef}
+        className="settings-scroll min-h-0 flex-1 space-y-7 overflow-y-auto bg-canvas px-7 pt-6 pb-10"
+      >
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="font-display text-[1.25rem] text-ink">
+            {t(`settingsDialog.tabs.${active.id}`)}
+          </h3>
+          {active.intro && (
+            <InfoTip text={t(active.intro)} size="md" className="mt-1" />
+          )}
+        </div>
+        <ActiveTab key={active.id} />
+      </div>
     </Dialog>
   );
 };

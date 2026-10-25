@@ -1887,6 +1887,64 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   text-transform: uppercase;
 }
 
+/* ---------- Settings: a drawer from the end edge ----------
+ * It slides in over the page rather than popping up in the middle, keeps the
+ * ink title bar above it, and lists every tab as a chip; the tab you are in
+ * is ink, the colour of the frame it hangs from. */
+.dialog-drawer {
+  border-radius: 1.25rem;
+  animation: drawer-in 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes drawer-in {
+  from {
+    opacity: 0.4;
+    translate: 2.5rem 0;
+  }
+}
+[dir="rtl"] .dialog-drawer {
+  animation-name: drawer-in-rtl;
+}
+@keyframes drawer-in-rtl {
+  from {
+    opacity: 0.4;
+    translate: -2.5rem 0;
+  }
+}
+.settings-chip {
+  color: var(--color-body);
+  background: var(--color-surface-strong);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+.settings-chip:hover {
+  color: var(--color-ink);
+  background: color-mix(
+    in srgb,
+    var(--color-ink) 9%,
+    var(--color-surface-strong)
+  );
+}
+.settings-chip[data-selected="true"] {
+  color: var(--color-frame-ink);
+  background: var(--color-frame);
+  box-shadow: 0 4px 12px -6px rgba(21, 23, 47, 0.6);
+}
+:root[data-theme="dark"] .settings-chip[data-selected="true"] {
+  color: #101122;
+  background: #f1f1f8;
+}
+.settings-chip[data-selected="true"] svg {
+  color: #ff6a52;
+}
+:root[data-theme="dark"] .settings-chip[data-selected="true"] svg {
+  color: #c2402a;
+}
+.settings-chip:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
 /* ---------- Home's status card ----------
  * A faint coral light in its corner, and an orb that is the logo's tile: the
  * coral gradient with the waveform's five bars, moving like a voice while the
@@ -1968,6 +2026,7 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dialog-drawer,
   .rail-item[data-active="true"] .rail-tile,
   .palette-panel,
   .anim-rise,
