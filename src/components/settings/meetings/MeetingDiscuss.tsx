@@ -172,7 +172,7 @@ export const EarlierDiscussions: React.FC<{
       <h3 className="px-1 text-[0.8125rem] font-semibold text-muted">
         {t("meetings.discuss.earlier")}
       </h3>
-      <ul className="divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
+      <ul className="rows overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
         {model.discussions.map((entry) => (
           <li key={entry.id}>
             <button

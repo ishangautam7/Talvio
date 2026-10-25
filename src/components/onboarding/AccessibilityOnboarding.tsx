@@ -420,7 +420,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
           title={t("onboarding.permissions.title")}
           body={t("onboarding.permissions.description")}
         />
-        <ul className="mt-8 divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+        <ul className="mt-8 rows rounded-2xl border border-hairline bg-surface elev-card">
           {showMicrophonePermission && (
             <li className="px-5 py-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">

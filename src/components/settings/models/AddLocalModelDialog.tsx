@@ -238,7 +238,7 @@ export const AddLocalModelDialog: React.FC<AddLocalModelDialogProps> = ({
               {t("settings.models.localModel.foldersEmptyShort")}
             </p>
           ) : (
-            <ul className="divide-y divide-hairline overflow-hidden rounded-xl border border-hairline">
+            <ul className="rows overflow-hidden rounded-xl border border-hairline">
               {folders.map((folder) => (
                 <li
                   key={folder}

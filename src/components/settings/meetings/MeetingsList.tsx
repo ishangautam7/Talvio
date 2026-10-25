@@ -109,7 +109,7 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
             <h3 className="sticky top-0 z-10 -mx-1 mb-2 bg-canvas/95 px-1 py-1.5 text-sm font-semibold text-muted backdrop-blur-[2px]">
               {group.label}
             </h3>
-            <ul className="divide-y divide-hairline overflow-hidden rounded-xl border border-hairline bg-surface elev-card">
+            <ul className="rows overflow-hidden rounded-xl border border-hairline bg-surface elev-card">
               {group.items.map((meeting) => (
                 <MeetingRow
                   key={meeting.id}

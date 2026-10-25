@@ -711,7 +711,7 @@ export const HistorySettings: React.FC = () => {
               <h2 className="sticky top-0 z-10 -mx-1 mb-2 bg-canvas/95 px-1 py-1.5 text-sm font-semibold text-muted backdrop-blur-[2px]">
                 {group.label}
               </h2>
-              <div className="divide-y divide-hairline overflow-visible rounded-xl border border-hairline bg-surface elev-card">
+              <div className="rows overflow-visible rounded-xl border border-hairline bg-surface elev-card">
                 {group.items.map((item) =>
                   item.kind === "transcription" ? (
                     <HistoryEntryComponent

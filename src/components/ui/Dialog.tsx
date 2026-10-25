@@ -171,7 +171,7 @@ export const Dialog: React.FC<DialogProps> = ({
     >
       <div
         aria-hidden="true"
-        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(16_17_34/0.42)] backdrop-blur-[3px]"
+        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(16_17_34/0.34)] backdrop-blur-[6px] backdrop-saturate-[1.1]"
       />
       <div
         ref={panelRef}
@@ -180,7 +180,7 @@ export const Dialog: React.FC<DialogProps> = ({
         aria-labelledby={bare ? labelledBy : title ? titleId : undefined}
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className={`dialog-panel relative flex max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[1.25rem] border border-hairline bg-surface text-ink shadow-[0_32px_80px_-28px_rgba(27,29,51,0.5),0_2px_8px_rgba(27,29,51,0.08)] outline-none ${SIZE_CLASSES[size]} ${className}`}
+        className={`dialog-panel relative flex max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[1.125rem] bg-surface text-ink shadow-[0_0_0_1px_rgba(27,29,51,0.06),0_32px_80px_-24px_rgba(27,29,51,0.45),0_4px_12px_rgba(27,29,51,0.06)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
       >
         {!bare && (
           <div className="flex shrink-0 items-start gap-4 px-6 pt-6 pb-4">
@@ -188,7 +188,7 @@ export const Dialog: React.FC<DialogProps> = ({
               {title && (
                 <h2
                   id={titleId}
-                  className="font-display text-[1.375rem] text-ink"
+                  className="font-display text-[1.25rem] text-ink"
                 >
                   {title}
                 </h2>
@@ -208,7 +208,7 @@ export const Dialog: React.FC<DialogProps> = ({
           {children}
         </div>
         {footer && (
-          <div className="flex shrink-0 items-center gap-2 border-t border-hairline bg-canvas/60 px-6 py-3">
+          <div className="flex shrink-0 items-center gap-2 border-t border-hairline bg-canvas/70 px-6 py-3">
             {footer}
           </div>
         )}
@@ -228,7 +228,7 @@ export const DialogCloseButton: React.FC<{
     onClick={onClick}
     aria-label={label}
     title={label}
-    className={`-me-2 -mt-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/6 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${className}`}
+    className={`-me-2 -mt-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition-colors hover:bg-ink/[0.07] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${className}`}
   >
     <X className="h-4 w-4" aria-hidden="true" />
   </button>

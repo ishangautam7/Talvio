@@ -81,7 +81,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
 
   if (layout === "stacked") {
     return (
-      <div className={`px-5 py-4 ${frame}`}>
+      <div className={`setting-row px-5 py-4 ${frame}`}>
         <div className="mb-3 min-w-0">
           {titleRow}
           {captionLine}
@@ -95,7 +95,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
   // share a line, the control moves under the label instead of crushing it.
   const line = (
     <div
-      className={`flex flex-wrap items-center gap-x-4 gap-y-2.5 ${details ? "min-h-8" : "min-h-[3.5rem] px-5 py-3"} ${details ? "" : frame}`}
+      className={`flex flex-wrap items-center gap-x-4 gap-y-2.5 ${details ? "min-h-8" : `setting-row min-h-[3.375rem] px-5 py-2.5 ${frame}`}`}
     >
       <div className="min-w-[9rem] flex-1">
         {titleRow}
@@ -108,7 +108,7 @@ export const SettingContainer: React.FC<SettingContainerProps> = ({
   if (!details) return line;
 
   return (
-    <div className={`px-5 py-3 ${frame}`}>
+    <div className={`setting-row px-5 py-3 ${frame}`}>
       {line}
       <div className="mt-3">{details}</div>
     </div>
