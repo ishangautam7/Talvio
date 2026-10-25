@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { commands, type CommandModelInUse, type ModelChoice } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
+import { OffNotice } from "@/components/ui/OffNotice";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Switch } from "@/components/ui/Switch";
 import { Input } from "@/components/ui/Input";
@@ -327,9 +328,7 @@ export const CommandsPage: React.FC = () => {
 
       {!enabled ? (
         <>
-          <p className="rounded-2xl border border-hairline bg-surface-muted px-5 py-4 text-sm text-body">
-            {t("commandsPage.offNotice")}
-          </p>
+          <OffNotice>{t("commandsPage.offNotice")}</OffNotice>
           <div className="mt-8">
             <Examples />
           </div>

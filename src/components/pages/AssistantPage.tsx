@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { commands } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { useSettingCommand } from "@/hooks/useSettingCommand";
+import { OffNotice } from "@/components/ui/OffNotice";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Switch } from "@/components/ui/Switch";
 import { Dialog } from "@/components/ui/Dialog";
@@ -73,9 +74,7 @@ export const AssistantPage: React.FC = () => {
       />
 
       {!enabled ? (
-        <p className="rounded-2xl border border-hairline bg-surface-muted px-5 py-4 text-sm text-body">
-          {t("assistantPage.offNotice")}
-        </p>
+        <OffNotice>{t("assistantPage.offNotice")}</OffNotice>
       ) : (
         <>
           <Stage

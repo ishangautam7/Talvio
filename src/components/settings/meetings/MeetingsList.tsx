@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  AudioLines,
+  MeetingsGlyph,
   ChevronRight,
   MoreHorizontal,
   Trash2,
@@ -90,7 +90,7 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
   if (meetings.length === 0) {
     return (
       <EmptyState
-        icon={AudioLines}
+        icon={MeetingsGlyph}
         title={t("meetings.list.emptyTitle")}
         hint={t("meetings.list.emptyHint")}
       />

@@ -43,6 +43,14 @@ suppressBrowserContextMenu();
 if (previewParams.get("update") === "1") {
   void useUpdateStore.getState().check();
 }
+// `?palette=1` opens the command palette (Ctrl+K) once the shell is up.
+if (previewParams.get("palette") === "1") {
+  window.setTimeout(() => {
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }),
+    );
+  }, 1200);
+}
 if (previewParams.get("feedback") === "1") {
   useFeedbackDialog.getState().show();
 }
