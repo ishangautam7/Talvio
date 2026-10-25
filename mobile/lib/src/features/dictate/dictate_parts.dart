@@ -626,32 +626,37 @@ class KeysRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        FilterChip(
-          selected: open,
-          showCheckmark: false,
-          avatar: Icon(
-            open ? Icons.keyboard_hide_rounded : Icons.keyboard_rounded,
-            size: 18,
+    return SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          FilterChip(
+            selected: open,
+            showCheckmark: false,
+            avatar: Icon(
+              open ? Icons.keyboard_hide_rounded : Icons.keyboard_rounded,
+              size: 18,
+            ),
+            label: Text(
+              open ? DictateStrings.hideKeys : DictateStrings.showKeys,
+            ),
+            onSelected: (_) {
+              Haptic.tick();
+              onToggle();
+            },
           ),
-          label: Text(open ? DictateStrings.hideKeys : DictateStrings.showKeys),
-          onSelected: (_) {
-            Haptic.tick();
-            onToggle();
-          },
-        ),
-        Tooltip(
-          message: DictateStrings.keyEnter,
-          child: ActionChip(
-            avatar: const Icon(Icons.keyboard_return_rounded, size: 18),
-            label: const Text(DictateStrings.keyEnter),
-            onPressed: onEnter,
+          Tooltip(
+            message: DictateStrings.keyEnter,
+            child: ActionChip(
+              avatar: const Icon(Icons.keyboard_return_rounded, size: 18),
+              label: const Text(DictateStrings.keyEnter),
+              onPressed: onEnter,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

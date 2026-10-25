@@ -124,80 +124,87 @@ class _CommandScreenState extends State<CommandScreen> {
     return Column(
       children: [
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              Space.lg,
-              Space.xs,
-              Space.lg,
-              Space.lg,
-            ),
-            children: [
-              if (note != null && c.phase != CommandPhase.sending)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Space.md),
-                  child: Notice(
-                    tone: computer.online ? Tone.warning : Tone.neutral,
-                    icon: computer.online
-                        ? Icons.system_update_alt_rounded
-                        : Icons.power_settings_new_rounded,
-                    message: note,
+          child: FadeBottom(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                Space.lg,
+                Space.xs,
+                Space.lg,
+                Space.lg,
+              ),
+              children: [
+                if (note != null && c.phase != CommandPhase.sending)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: Space.md),
+                    child: Notice(
+                      tone: computer.online ? Tone.warning : Tone.neutral,
+                      icon: computer.online
+                          ? Icons.system_update_alt_rounded
+                          : Icons.power_settings_new_rounded,
+                      message: note,
+                    ),
                   ),
-                ),
-              if (c.phase == CommandPhase.sending)
-                _Sending(controller: c, name: name)
-              else if (outcome != null)
-                _ResultCard(
-                  outcome: outcome,
-                  computerName: outcome.computer.isEmpty
-                      ? name
-                      : outcome.computer,
-                  enabled: ready && idle,
-                  answer: _answer,
-                  onConfirm: (accept) {
-                    accept ? Haptic.firm() : Haptic.tick();
-                    unawaited(c.confirm(accept: accept));
-                  },
-                  onAnswer: _sendAnswer,
-                  onRetry: c.canRetry && ready ? c.retry : null,
-                  onDismiss: c.dismissOutcome,
-                )
-              else if (note == null && c.phase == CommandPhase.idle)
-                _Prompt(name),
-              if (c.phase == CommandPhase.idle && outcome == null) ...[
-                const SectionHeader(CommandStrings.examples),
-                _Examples(
-                  onTap: ready && idle
-                      ? (text) => unawaited(_send(text))
-                      : null,
-                ),
-              ],
-              if (recents.isNotEmpty) ...[
-                SectionHeader(
-                  CommandStrings.recent,
-                  trailing: Text(
-                    CommandStrings.recentShort,
-                    style: context.text.bodySmall,
+                if (c.phase == CommandPhase.sending)
+                  _Sending(controller: c, name: name)
+                else if (outcome != null)
+                  Appear(
+                    key: ObjectKey(outcome),
+                    child: _ResultCard(
+                      outcome: outcome,
+                      computerName: outcome.computer.isEmpty
+                          ? name
+                          : outcome.computer,
+                      enabled: ready && idle,
+                      answer: _answer,
+                      onConfirm: (accept) {
+                        accept ? Haptic.firm() : Haptic.tick();
+                        unawaited(c.confirm(accept: accept));
+                      },
+                      onAnswer: _sendAnswer,
+                      onRetry: c.canRetry && ready ? c.retry : null,
+                      onDismiss: c.dismissOutcome,
+                    ),
+                  )
+                else if (note == null && c.phase == CommandPhase.idle)
+                  _Prompt(name),
+                if (c.phase == CommandPhase.idle &&
+                    outcome == null &&
+                    ready) ...[
+                  const SectionHeader(CommandStrings.examples),
+                  _Examples(
+                    onTap: ready && idle
+                        ? (text) => unawaited(_send(text))
+                        : null,
                   ),
-                ),
-                Surface(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      for (final (i, item) in recents.indexed) ...[
-                        if (i > 0)
-                          Divider(indent: 60, color: context.talvio.hairline),
-                        _RecentTile(
-                          item,
-                          onRunAgain: ready && idle
-                              ? () => unawaited(_send(item.said))
-                              : null,
-                        ),
+                ],
+                if (recents.isNotEmpty) ...[
+                  SectionHeader(
+                    CommandStrings.recent,
+                    trailing: Text(
+                      CommandStrings.recentShort,
+                      style: context.text.bodySmall,
+                    ),
+                  ),
+                  Surface(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        for (final (i, item) in recents.indexed) ...[
+                          if (i > 0)
+                            Divider(indent: 60, color: context.talvio.hairline),
+                          _RecentTile(
+                            item,
+                            onRunAgain: ready && idle
+                                ? () => unawaited(_send(item.said))
+                                : null,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
         Padding(

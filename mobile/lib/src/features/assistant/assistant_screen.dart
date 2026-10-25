@@ -11,6 +11,7 @@ import '../../shell/feature_tab.dart';
 import '../dictate/computer_widgets.dart';
 import '../dictate/dictate_controller.dart';
 import '../dictate/dictate_scope.dart';
+import '../dictate/strings.dart';
 import 'assistant_controller.dart';
 import 'assistant_scope.dart';
 import 'assistant_widgets.dart';
@@ -134,55 +135,70 @@ class _AssistantScreenState extends State<AssistantScreen> {
 
     return Column(
       children: [
-        Expanded(
-          child: ListView(
-            controller: _scroll,
-            padding: const EdgeInsets.fromLTRB(
-              Space.lg,
-              Space.xs,
-              Space.lg,
-              Space.lg,
+        if (!computer.online && turns.isEmpty)
+          Expanded(
+            child: EmptyState(
+              icon: Icons.power_settings_new_rounded,
+              tone: Tone.neutral,
+              title: DictateStrings.offlineTitle(name),
+              body: AssistantStrings.offlineBody(name),
             ),
-            children: [
-              if (note != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Space.md),
-                  child: Notice(
-                    tone: computer.online ? Tone.warning : Tone.neutral,
-                    icon: computer.online
-                        ? Icons.system_update_alt_rounded
-                        : Icons.power_settings_new_rounded,
-                    message: note,
-                  ),
+          )
+        else
+          Expanded(
+            child: FadeBottom(
+              child: ListView(
+                controller: _scroll,
+                padding: const EdgeInsets.fromLTRB(
+                  Space.lg,
+                  Space.xs,
+                  Space.lg,
+                  Space.lg,
                 ),
-              if (turns.isEmpty) ...[
-                if (note == null) _Prompt(name),
-                const SectionHeader(AssistantStrings.examples),
-                for (final (i, example)
-                    in AssistantStrings.exampleQuestions.indexed)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: Space.sm),
-                    child: _Suggestion(
-                      icon: _exampleIcons[i % _exampleIcons.length],
-                      text: example,
-                      detail: AssistantStrings.exampleDetails[i],
-                      onTap: ready && c.idle
-                          ? () {
-                              Haptic.tap();
-                              unawaited(c.ask(example));
-                            }
-                          : null,
+                children: [
+                  if (note != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: Space.md),
+                      child: Notice(
+                        tone: computer.online ? Tone.warning : Tone.neutral,
+                        icon: computer.online
+                            ? Icons.system_update_alt_rounded
+                            : Icons.power_settings_new_rounded,
+                        message: note,
+                      ),
                     ),
-                  ),
-              ],
-              for (final turn in turns)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Space.xxl),
-                  child: TurnView(turn: turn, controller: c),
-                ),
-            ],
+                  if (turns.isEmpty) ...[
+                    if (note == null) _Prompt(name),
+                    const SectionHeader(AssistantStrings.examples),
+                    for (final (i, example)
+                        in AssistantStrings.exampleQuestions.indexed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: Space.sm),
+                        child: _Suggestion(
+                          icon: _exampleIcons[i % _exampleIcons.length],
+                          text: example,
+                          detail: AssistantStrings.exampleDetails[i],
+                          onTap: ready && c.idle
+                              ? () {
+                                  Haptic.tap();
+                                  unawaited(c.ask(example));
+                                }
+                              : null,
+                        ),
+                      ),
+                  ],
+                  for (final turn in turns)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: Space.xxl),
+                      child: Appear(
+                        key: ObjectKey(turn),
+                        child: TurnView(turn: turn, controller: c),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.md),
           child: AssistantInput(controller: c, enabled: ready),

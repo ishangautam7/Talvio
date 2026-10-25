@@ -92,7 +92,9 @@ class _HomeShellState extends State<HomeShell> {
               _Header(actions: current.actions?.call(context) ?? const []),
               const _ConnectionStrip(),
               const LiveDock(),
-              Expanded(child: pages),
+              Expanded(
+                child: _PageFade(page: current.id, child: pages),
+              ),
             ],
           ),
         );
@@ -129,6 +131,55 @@ class _HomeShellState extends State<HomeShell> {
       },
     );
   }
+}
+
+/// Fades the page in, lifting it a little, each time [page] changes. Not
+/// by re-keying: that would throw away every page's state.
+class _PageFade extends StatefulWidget {
+  const _PageFade({required this.page, required this.child});
+
+  final String page;
+  final Widget child;
+
+  @override
+  State<_PageFade> createState() => _PageFadeState();
+}
+
+class _PageFadeState extends State<_PageFade>
+    with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(
+    vsync: this,
+    duration: Motion.medium,
+    value: 1,
+  );
+
+  @override
+  void didUpdateWidget(_PageFade old) {
+    super.didUpdateWidget(old);
+    if (old.page != widget.page) _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _c,
+    builder: (context, child) {
+      final t = Motion.emphasized.transform(_c.value);
+      return Opacity(
+        opacity: 0.4 + 0.6 * t,
+        child: Transform.translate(
+          offset: Offset(0, 8 * (1 - t)),
+          child: child,
+        ),
+      );
+    },
+    child: widget.child,
+  );
 }
 
 class _BottomBar extends StatelessWidget {
@@ -261,7 +312,7 @@ class _Header extends StatelessWidget {
                           ),
                   ),
                 ),
-                ...actions,
+                if (computer != null) ...actions,
                 if (computer != null && connected && canWatch(computer))
                   const _ScreenButton(),
                 const _AccountButton(),

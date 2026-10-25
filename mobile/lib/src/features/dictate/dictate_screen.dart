@@ -192,64 +192,69 @@ class _DictateScreenState extends State<DictateScreen> {
         return Column(
           children: [
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.lg,
-                  Space.xs,
-                  Space.lg,
-                  Space.lg,
-                ),
-                children: [
-                  if (note != null && c.phase != DictatePhase.sending)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: Space.md),
-                      child: Notice(
-                        tone: computer.online ? Tone.warning : Tone.neutral,
-                        icon: computer.online
-                            ? Icons.system_update_alt_rounded
-                            : Icons.power_settings_new_rounded,
-                        message: note,
+              child: FadeBottom(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.lg,
+                    Space.xs,
+                    Space.lg,
+                    Space.lg,
+                  ),
+                  children: [
+                    if (note != null && c.phase != DictatePhase.sending)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: Space.md),
+                        child: Notice(
+                          tone: computer.online ? Tone.warning : Tone.neutral,
+                          icon: computer.online
+                              ? Icons.system_update_alt_rounded
+                              : Icons.power_settings_new_rounded,
+                          message: note,
+                        ),
                       ),
-                    ),
-                  if (c.phase == DictatePhase.sending)
-                    SendingCard(
-                      stage: c.stage,
-                      cancelling: c.cancelling,
+                    if (c.phase == DictatePhase.sending)
+                      SendingCard(
+                        stage: c.stage,
+                        cancelling: c.cancelling,
+                        computerName: computer.name,
+                        onCancel: c.cancelling ? null : c.cancelRequest,
+                      )
+                    else if (outcome != null)
+                      Appear(
+                        key: ObjectKey(outcome),
+                        child: OutcomeCard(
+                          outcome: outcome,
+                          computerName: outcome.computer ?? computer.name,
+                          onCopy: _copy,
+                          onRetry: c.canRetry && canDictate ? c.retry : null,
+                          onChooseWindow: c.windowLost && hasWindows && idle
+                              ? _chooseWindow
+                              : null,
+                          onPressEnter: c.offersEnter && hasWindows
+                              ? _pressEnter
+                              : null,
+                          onDismiss: c.dismissOutcome,
+                        ),
+                      ),
+                    // What happened comes first; where the next text goes, under it.
+                    if (c.phase == DictatePhase.sending || outcome != null)
+                      const SizedBox(height: Space.md),
+                    TargetCard(
+                      window: c.window,
                       computerName: computer.name,
-                      onCancel: c.cancelling ? null : c.cancelRequest,
-                    )
-                  else if (outcome != null)
-                    OutcomeCard(
-                      outcome: outcome,
-                      computerName: outcome.computer ?? computer.name,
-                      onCopy: _copy,
-                      onRetry: c.canRetry && canDictate ? c.retry : null,
-                      onChooseWindow: c.windowLost && hasWindows && idle
-                          ? _chooseWindow
-                          : null,
-                      onPressEnter: c.offersEnter && hasWindows
-                          ? _pressEnter
-                          : null,
-                      onDismiss: c.dismissOutcome,
+                      hasWindows: hasWindows,
+                      deliver: c.deliver,
+                      // A recording or request keeps its window and delivery.
+                      onChooseWindow: canAim && idle ? _chooseWindow : null,
+                      onDeliver: idle ? (value) => c.deliver = value : null,
                     ),
-                  // What happened comes first; where the next text goes, under it.
-                  if (c.phase == DictatePhase.sending || outcome != null)
-                    const SizedBox(height: Space.md),
-                  TargetCard(
-                    window: c.window,
-                    computerName: computer.name,
-                    hasWindows: hasWindows,
-                    deliver: c.deliver,
-                    // A recording or request keeps its window and delivery.
-                    onChooseWindow: canAim && idle ? _chooseWindow : null,
-                    onDeliver: idle ? (value) => c.deliver = value : null,
-                  ),
-                  RecentDictationsList(
-                    items: recents,
-                    onCopy: _copy,
-                    onOpen: (item) => openDictation(context, c, item),
-                  ),
-                ],
+                    RecentDictationsList(
+                      items: recents,
+                      onCopy: _copy,
+                      onOpen: (item) => openDictation(context, c, item),
+                    ),
+                  ],
+                ),
               ),
             ),
             // Short screens (landscape, large text) scroll the controls instead
