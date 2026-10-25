@@ -66,7 +66,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         ref={listRef}
         tabIndex={-1}
         aria-label={t("settings.account.devices.title")}
-        className="divide-y divide-hairline focus:outline-none"
+        className="rows focus:outline-none"
       >
         {devices.map((device) => {
           const Icon = isPhone(device) ? Smartphone : Monitor;

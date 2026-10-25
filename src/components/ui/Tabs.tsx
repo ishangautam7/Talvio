@@ -10,7 +10,9 @@ export interface TabItem<T extends string> {
 }
 
 /**
- * Underlined text tabs: the lightest way to split one page into views. Used
+ * Pill tabs on a quiet track: the view you are in is a raised chip, the same
+ * object as the sidebar's current page. The lightest way to split one page
+ * into views. Used
  * where the old design drilled into a sub-page and needed a Back button to get
  * out again — a tab is always one click from its siblings.
  *
@@ -50,9 +52,13 @@ export function Tabs<T extends string>({
 
   return (
     <div
-      className={`flex items-end justify-between gap-4 border-b border-hairline ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-2 ${className}`}
     >
-      <div role="tablist" aria-label={label} className="-mb-px flex gap-7">
+      <div
+        role="tablist"
+        aria-label={label}
+        className="inline-flex max-w-full gap-0.5 overflow-x-auto rounded-[0.6875rem] bg-ink/[0.045] p-[3px]"
+      >
         {items.map((item, index) => {
           const selected = item.id === value;
           const Icon = item.icon;
@@ -69,15 +75,13 @@ export function Tabs<T extends string>({
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(item.id)}
               onKeyDown={(event) => onKeyDown(event, index)}
-              className={`relative inline-flex cursor-pointer items-center gap-1.5 pb-3 text-[0.9375rem] transition-colors focus-visible:outline-none focus-visible:after:bg-accent ${
-                selected
-                  ? "font-medium text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:rounded-full after:bg-accent"
-                  : "text-muted hover:text-ink"
+              className={`tab-pill relative inline-flex h-[1.875rem] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-medium whitespace-nowrap ${
+                selected ? "text-ink" : "text-muted hover:text-ink"
               }`}
             >
               {Icon && (
                 <Icon
-                  className={`h-4 w-4 shrink-0 ${selected ? "text-accent" : "text-muted-soft"}`}
+                  className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-accent-fill" : "text-muted"}`}
                 />
               )}
               {item.label}
@@ -87,7 +91,7 @@ export function Tabs<T extends string>({
         })}
       </div>
       {trailing && (
-        <div className="flex shrink-0 items-center gap-1 pb-2">{trailing}</div>
+        <div className="flex shrink-0 items-center gap-1">{trailing}</div>
       )}
     </div>
   );

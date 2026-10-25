@@ -9,6 +9,7 @@ import {
 } from "tauri-plugin-macos-permissions-api";
 import { ModelStateEvent, RecordingErrorEvent } from "./lib/types/events";
 import "./App.css";
+import { TOAST_OPTIONS } from "./lib/toaster";
 import {
   AccessibilityOnboarding,
   SetupStep,
@@ -358,18 +359,7 @@ function App() {
       dir={direction}
       className="h-screen flex flex-col select-none cursor-default overflow-hidden"
     >
-      <Toaster
-        theme="system"
-        toastOptions={{
-          unstyled: true,
-          classNames: {
-            toast:
-              "bg-surface border border-hairline rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 text-sm",
-            title: "font-medium",
-            description: "text-muted",
-          },
-        }}
-      />
+      <Toaster theme="system" toastOptions={TOAST_OPTIONS} />
       <TitleBar />
       {body}
       {/* Outlives the setup screens: the voice keeps loading after them. */}

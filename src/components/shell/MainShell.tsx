@@ -39,12 +39,14 @@ export const MainShell: React.FC<{ initialNavigation?: NavigationState }> = ({
   return (
     <NavigationProvider state={navigation} setState={setNavigation}>
       <ShellEffects />
-      {/* The row carries the chrome colour; the content column is a sheet
-          inset into it, so title bar + sidebar read as one frame and the page
-          floats on top of it. */}
+      {/* The row carries the frame colour; the content column is a sheet
+          floating in it, inset on every side, so title bar + sidebar + margin
+          read as one frame and the page sits on top of it. */}
       <div className="flex flex-1 overflow-hidden bg-canvas-soft">
         <Sidebar />
-        <main className="relative flex flex-1 flex-col overflow-hidden rounded-ss-[1.25rem] border-s border-t border-hairline bg-canvas elev-pane">
+        <main className="relative isolate mb-2 me-2 flex flex-1 flex-col overflow-hidden rounded-2xl bg-canvas elev-pane">
+          {/* Dawn: a faint warm light along the top of the sheet. */}
+          <div aria-hidden="true" className="sheet-glow" />
           <div className="mx-auto w-full max-w-5xl px-6 pt-5 empty:hidden sm:px-10">
             <AccessibilityPermissions />
           </div>

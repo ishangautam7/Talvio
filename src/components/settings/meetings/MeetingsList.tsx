@@ -7,6 +7,8 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { StickyHeading } from "@/components/ui/StickyHeading";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { MenuButton, type MenuItem } from "@/components/ui/Menu";
@@ -87,17 +89,11 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
 
   if (meetings.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-dashed border-hairline-strong px-6 py-12 text-center">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface-strong text-muted">
-          <AudioLines className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <p className="mt-4 text-[0.9375rem] font-medium text-ink">
-          {t("meetings.list.emptyTitle")}
-        </p>
-        <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted text-pretty">
-          {t("meetings.list.emptyHint")}
-        </p>
-      </div>
+      <EmptyState
+        icon={AudioLines}
+        title={t("meetings.list.emptyTitle")}
+        hint={t("meetings.list.emptyHint")}
+      />
     );
   }
 
@@ -106,10 +102,13 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
       <div className="space-y-6">
         {groups.map((group) => (
           <section key={group.key} aria-label={group.label}>
-            <h3 className="sticky top-0 z-10 -mx-1 mb-2 bg-canvas/95 px-1 py-1.5 text-sm font-semibold text-muted backdrop-blur-[2px]">
+            <StickyHeading
+              as="h3"
+              className="-mx-1 mb-2 text-sm font-semibold text-muted"
+            >
               {group.label}
-            </h3>
-            <ul className="divide-y divide-hairline overflow-hidden rounded-xl border border-hairline bg-surface elev-card">
+            </StickyHeading>
+            <ul className="rows overflow-hidden rounded-xl border border-hairline bg-surface elev-card">
               {group.items.map((meeting) => (
                 <MeetingRow
                   key={meeting.id}

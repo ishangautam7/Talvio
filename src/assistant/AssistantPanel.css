@@ -43,8 +43,19 @@
   --as-placeholder: #8c8ea9;
   --as-hairline: rgba(255, 255, 255, 0.08);
   --as-hairline-strong: rgba(255, 255, 255, 0.14);
+  /* Lit from above: a faint sheen along the top of every surface and a
+     brighter hairline on its top edge, so a floating object reads as a
+     material rather than a flat fill. The windows are transparent and cannot
+     carry an outer shadow (it renders as a milky band on Windows), so this is
+     where their depth comes from. */
+  --as-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.012) 42%,
+    rgba(255, 255, 255, 0) 100%
+  );
   --as-inner:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.085),
     inset 0 0 0 0.5px rgba(0, 0, 0, 0.5);
   --as-raise: rgba(255, 255, 255, 0.06);
   --as-raise-strong: rgba(255, 255, 255, 0.11);
@@ -641,7 +652,7 @@
   height: 22px;
   border: 1px solid var(--as-hairline);
   border-radius: 6px;
-  background: var(--as-panel-surface);
+  background: var(--as-sheen, none), var(--as-panel-surface);
   color: var(--as-muted);
   cursor: pointer;
   opacity: 0;
@@ -785,7 +796,7 @@
   padding: 4px;
   border: 1px solid var(--as-hairline);
   border-radius: 10px;
-  background: var(--as-panel-surface);
+  background: var(--as-sheen, none), var(--as-panel-surface);
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
   cursor: zoom-out;
 }
@@ -831,7 +842,7 @@
   height: 24px;
   border: 1px solid var(--as-hairline);
   border-radius: 7px;
-  background: var(--as-panel-surface);
+  background: var(--as-sheen, none), var(--as-panel-surface);
   color: var(--as-muted);
   cursor: pointer;
   opacity: 0;
@@ -855,7 +866,7 @@
   height: 24px;
   border: 1px solid var(--as-hairline);
   border-radius: 7px;
-  background: var(--as-panel-surface);
+  background: var(--as-sheen, none), var(--as-panel-surface);
   color: var(--as-muted);
   cursor: pointer;
   opacity: 0;
@@ -938,7 +949,7 @@
   box-sizing: border-box;
   overflow: hidden;
   color: var(--as-ink);
-  background: var(--as-surface);
+  background: var(--as-sheen, none), var(--as-surface);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border: 1px solid var(--as-hairline);
@@ -961,7 +972,7 @@
 /* Waiting: the call's status bubble, to the pixel — chip surface, faint
    hairline that firms up under the pointer, 13px muted words. */
 .qa-surface[data-shape="pill"] {
-  background: var(--as-chip-surface);
+  background: var(--as-sheen, none), var(--as-chip-surface);
 }
 
 .qa-surface[data-shape="pill"]:hover {
@@ -1323,7 +1334,7 @@
   min-height: 0;
   overflow: hidden;
   border-radius: 18px;
-  background: var(--as-surface);
+  background: var(--as-sheen, none), var(--as-surface);
   backdrop-filter: blur(24px) saturate(1.3);
   -webkit-backdrop-filter: blur(24px) saturate(1.3);
   border: 1px solid var(--as-hairline-strong);
