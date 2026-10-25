@@ -16,7 +16,7 @@ import {
   Search,
   Trash2,
   X,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import {
   commands,
   type MemoryDetail,

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
-import { Play, Square } from "lucide-react";
+import { Play, Square } from "@/components/icons/glyphs";
 import { commands, type CommandReport } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/Button";

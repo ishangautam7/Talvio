@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
-import { Download, Users } from "lucide-react";
+import { Download, Users } from "@/components/icons/glyphs";
 import { Button } from "@/components/ui/Button";
 import {
   diarizeMeeting,

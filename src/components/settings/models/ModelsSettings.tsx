@@ -21,7 +21,7 @@ import {
   Trash2,
   X,
   type LucideIcon,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import type { ModelCardStatus } from "@/components/onboarding";
 import { useModelStore } from "@/stores/modelStore";
 import { useSettings } from "@/hooks/useSettings";

@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search } from "@/components/icons/glyphs";
 import { usePortalTarget } from "./portal";
 
 /**

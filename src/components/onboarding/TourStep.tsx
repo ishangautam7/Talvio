@@ -7,7 +7,7 @@ import {
   Mic,
   PhoneCall,
   Wand2,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { Button } from "@/components/ui/Button";
 import { Keycaps } from "@/components/ui/Keycaps";
 import { Tabs } from "@/components/ui/Tabs";

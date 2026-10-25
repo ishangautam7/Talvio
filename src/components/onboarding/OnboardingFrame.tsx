@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons/glyphs";
 import "./onboarding.css";
 
 export type FlowStep = "setup" | "tour";

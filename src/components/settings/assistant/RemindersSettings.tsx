@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { BellRing, Trash2 } from "lucide-react";
+import { BellRing, Trash2 } from "@/components/icons/glyphs";
 import { SettingContainer, SettingsGroup } from "@/components/ui";
 
 /** Mirrors the Rust `Reminder`. Timestamps are RFC 3339 UTC strings. */

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, PlugZap } from "lucide-react";
+import { Loader2, PlugZap } from "@/components/icons/glyphs";
 import { commands } from "@/bindings";
 import { SettingContainer } from "@/components/ui";
 import { useSettingsStore } from "@/stores/settingsStore";

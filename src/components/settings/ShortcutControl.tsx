@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil } from "lucide-react";
+import { Pencil } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { Keycaps } from "../ui/Keycaps";
 import { formatKeyCombination } from "../../lib/utils/keyboard";

@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Upload,
   Download,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { commands } from "@/bindings";
 import type { Capitalization, Replacement } from "@/bindings";
 import { useSettings } from "../../hooks/useSettings";

@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Trash2 } from "@/components/icons/glyphs";
 import { commands, type CustomPostProcessTone } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/Button";

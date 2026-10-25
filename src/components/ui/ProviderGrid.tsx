@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "@/components/icons/glyphs";
 import {
   ProviderTile,
   type ProviderKind,

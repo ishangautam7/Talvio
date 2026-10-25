@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons/glyphs";
 import { SectionTitle, TextLink } from "@/components/ui/Page";
 import { MODEL_SLOTS, useNavigation } from "@/components/shell/navigation";
 import {

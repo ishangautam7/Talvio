@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons/glyphs";
 import Logo from "@/components/Logo";
 import Wordmark from "@/components/Wordmark";
 import { Button } from "@/components/ui/Button";

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons/glyphs";
 
 export interface LogoChoiceOption {
   value: string;

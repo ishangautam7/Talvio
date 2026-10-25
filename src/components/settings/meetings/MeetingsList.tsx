@@ -6,7 +6,7 @@ import {
   MoreHorizontal,
   Trash2,
   Users,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StickyHeading } from "@/components/ui/StickyHeading";
 import { Button } from "@/components/ui/Button";

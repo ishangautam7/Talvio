@@ -2,7 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
-import { ArrowUpRight, Loader2, RefreshCw } from "lucide-react";
+import { ArrowUpRight, Loader2, RefreshCw } from "@/components/icons/glyphs";
 import {
   commands,
   type ModelChoice,

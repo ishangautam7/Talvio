@@ -9,7 +9,7 @@ import {
   LoaderCircle,
   MessageCircleQuestionMark,
   X,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { Dialog } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { InfoTip } from "../ui/InfoTip";

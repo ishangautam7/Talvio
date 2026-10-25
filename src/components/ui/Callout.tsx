@@ -1,5 +1,5 @@
 import React from "react";
-import { Info, TriangleAlert } from "lucide-react";
+import { Info, TriangleAlert } from "@/components/icons/glyphs";
 import type { SettingIcon } from "./tones";
 
 type CalloutTone = "info" | "warning" | "neutral";

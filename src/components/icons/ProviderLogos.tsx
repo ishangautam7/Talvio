@@ -13,7 +13,7 @@ import {
   Sparkles,
   Speech,
   Waves,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { OpenAILogo } from "./BrandLogos";
 
 /**

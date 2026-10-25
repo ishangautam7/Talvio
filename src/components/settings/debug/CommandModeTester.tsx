@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { FileText } from "lucide-react";
+import { FileText } from "@/components/icons/glyphs";
 import { commands } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/Button";

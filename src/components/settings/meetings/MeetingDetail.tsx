@@ -22,7 +22,7 @@ import {
   Sparkles,
   Users,
   X,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { Button } from "@/components/ui/Button";
 import { MenuButton, type MenuItem } from "@/components/ui/Menu";
 import { BackLink } from "@/components/ui/Page";

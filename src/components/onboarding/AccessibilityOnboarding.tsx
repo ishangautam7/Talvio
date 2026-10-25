@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { Keyboard, Mic, Check, Loader2 } from "lucide-react";
+import { Keyboard, Mic, Check, Loader2 } from "@/components/icons/glyphs";
 import { Button } from "@/components/ui/Button";
 import { StepHeading } from "./OnboardingFrame";
 import "./onboarding.css";

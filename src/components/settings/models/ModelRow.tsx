@@ -6,7 +6,7 @@ import {
   FileQuestion,
   Loader2,
   MoreHorizontal,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import type { ModelInfo } from "@/bindings";
 import { Button } from "@/components/ui/Button";
 import { MenuButton, type MenuItem } from "@/components/ui/Menu";

@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Smartphone } from "lucide-react";
+import { Smartphone } from "@/components/icons/glyphs";
 import {
   commands,
   type AccountConnection,

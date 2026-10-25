@@ -10,7 +10,7 @@ import {
   MoreHorizontal,
   Plus,
   Square,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import {
   commands,
   type AssistantCharacter,

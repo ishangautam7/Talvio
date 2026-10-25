@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Globe } from "lucide-react";
+import { Globe } from "@/components/icons/glyphs";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { uniqueLanguages } from "@/lib/languageCodes";
 import { languageNames } from "@/components/onboarding/recommend";
