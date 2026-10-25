@@ -207,11 +207,11 @@ export const Slider: React.FC<SliderProps> = ({
             onKeyUp={commit}
             onBlur={commit}
             disabled={disabled}
-            className="flex-grow h-2 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ink/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="range-input flex-grow h-1.5 rounded-full appearance-none cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: `linear-gradient(to right, var(--color-background-ui) ${
+              background: `linear-gradient(to right, var(--color-accent-fill) ${
                 ((shown - min) / (max - min)) * 100
-              }%, var(--color-hairline) ${
+              }%, var(--color-hairline-strong) ${
                 ((shown - min) / (max - min)) * 100
               }%)`,
             }}

@@ -25,7 +25,8 @@ export const OnboardingFrame: React.FC<{
   const column = width === "wide" ? "max-w-7xl" : "max-w-3xl";
   return (
     <div className="flex h-full min-h-0 flex-col bg-canvas-soft">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[1.25rem] border-t border-hairline bg-canvas elev-pane">
+      <div className="relative isolate mx-2 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-canvas elev-pane">
+        <div aria-hidden="true" className="sheet-glow" />
         <header className="ob-header shrink-0 px-6 sm:px-10">
           <ol
             className={`mx-auto flex w-full ${column} items-center gap-2`}

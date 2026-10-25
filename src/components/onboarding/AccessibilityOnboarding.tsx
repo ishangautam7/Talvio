@@ -537,7 +537,7 @@ const PermissionsSheet: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
   <div className="flex h-full min-h-0 flex-col bg-canvas-soft">
-    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-t-[1.25rem] border-t border-hairline bg-canvas px-6 elev-pane sm:px-10">
+    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto mx-2 mb-2 rounded-2xl bg-canvas px-6 elev-pane sm:px-10">
       {children}
     </main>
   </div>
