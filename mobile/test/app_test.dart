@@ -11,6 +11,9 @@ import 'package:talvio_mobile/src/core/api_client.dart';
 import 'package:talvio_mobile/src/core/relay_client.dart';
 import 'package:talvio_mobile/src/design/components.dart';
 
+import 'package:talvio_mobile/src/features/screen/live_controller.dart';
+
+import 'features/screen/fakes.dart' show FakeLinks, offerFields, progressOf;
 import 'helpers.dart';
 
 /// Shows [page] through the navigation bar (or the rail, on a wide window).
@@ -1206,6 +1209,53 @@ void main() {
       await tester.pump();
       await finish(tester, relay);
       handle.dispose();
+    });
+
+    testWidgets('the small view shrinks, goes full screen and comes back', (
+      tester,
+    ) async {
+      final links = FakeLinks();
+      debugLinkFactory = links.create;
+      addTearDown(() => debugLinkFactory = null);
+      final (server, relay) = await pumpApp(tester, [screenPc], page: 'Screen');
+      await answerList(tester, server);
+      await tester.tap(find.text('View screen'));
+      await tester.pump();
+      final watch = lastBody(server)['requestId']! as String;
+      await progressOf(tester, server, watch, 'rtc.offer', offerFields);
+      await progressOf(tester, server, watch, 'live');
+      // The view opens out at the top of the page.
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('LIVE'), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: 'fits a small phone');
+
+      await tester.tap(find.byTooltip('Make it smaller'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byTooltip('Make it bigger'), findsOneWidget);
+      await tester.tap(find.byTooltip('Make it bigger'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      await tester.tap(find.byTooltip('Full screen'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+      await tester.tap(find.byTooltip('Back to the small view'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(InteractiveViewer), findsNothing);
+      expect(find.text('LIVE'), findsOneWidget, reason: 'still watching');
+      expect(links.last.closed, isFalse);
+      expect(
+        server.relays.where((r) => (r['body']! as Map)['kind'] == 'cancel'),
+        isEmpty,
+      );
+
+      await tester.tap(find.byTooltip('Stop watching'));
+      await tester.pump();
+      expect(links.last.closed, isTrue);
+      await finish(tester, relay);
     });
 
     testWidgets('the top bar shows the screen with one tap', (tester) async {

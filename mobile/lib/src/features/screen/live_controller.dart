@@ -30,15 +30,29 @@ class LiveController extends ChangeNotifier {
   }) : _linkFactory = linkFactory ?? debugLinkFactory ?? WebRtcLink.create {
     _dictate.addListener(_onDictate);
     _lifecycle = AppLifecycleListener(
-      onResume: () => _watch?.setForeground(true),
-      onPause: () => _watch?.setForeground(false),
+      onResume: () {
+        _background?.cancel();
+        _background = null;
+        _watch?.setForeground(true);
+      },
+      onPause: () {
+        _watch?.setForeground(false);
+        // A quick look at another app keeps the view; a phone put away
+        // stops paying for a picture nobody sees.
+        _background?.cancel();
+        _background = Timer(backgroundLimit, stop);
+      },
     );
   }
+
+  /// How long a view keeps running while the app is in the background.
+  static const backgroundLimit = Duration(minutes: 2);
 
   final RelayClient _relay;
   final DictateController _dictate;
   final RtcLinkFactory _linkFactory;
   late final AppLifecycleListener _lifecycle;
+  Timer? _background;
 
   WatchController? _watch;
   var _expanded = true;
@@ -133,6 +147,7 @@ class LiveController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _background?.cancel();
     _dictate.removeListener(_onDictate);
     _lifecycle.dispose();
     _drop();

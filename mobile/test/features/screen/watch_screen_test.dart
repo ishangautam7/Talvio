@@ -16,6 +16,7 @@ import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
 import 'package:talvio_mobile/src/features/screen/watch_controller.dart';
 import 'package:talvio_mobile/src/features/screen/watch_screen.dart';
 
+import '../../app_test.dart' show lock;
 import '../../helpers.dart';
 import 'fakes.dart';
 
@@ -140,6 +141,24 @@ void main() {
     expect(live.watch, isNull, reason: 'the small view goes too');
     expect(find.text('Home page'), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsNothing);
+  });
+
+  screenTest('a view left in the background stops after two minutes', (
+    tester,
+  ) async {
+    final (server, links, id) = await pumpViewer(tester);
+    lock(tester);
+    await tester.pump(const Duration(minutes: 1));
+    expect(sentOf(server, 'cancel'), isEmpty, reason: 'a quick look away');
+    lock(tester, locked: false);
+    await tester.pump();
+    lock(tester);
+    await tester.pump(LiveController.backgroundLimit);
+    await tester.pump();
+    expect(sentOf(server, 'cancel').single['requestId'], id);
+    expect(links.last.closed, isTrue);
+    lock(tester, locked: false);
+    await tester.pump();
   });
 
   screenTest('Back returns to the small view, still watching', (tester) async {
