@@ -29,7 +29,9 @@ import {
   TextSelect,
   Trash2,
   Users,
+  History,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { toast } from "sonner";
@@ -695,11 +697,7 @@ export const HistorySettings: React.FC = () => {
       </div>
     );
   } else if (filteredFeed.length === 0) {
-    content = (
-      <div className="rounded-xl border border-dashed border-hairline-strong px-6 py-12 text-center">
-        <p className="text-sm text-muted">{t(EMPTY_KEYS[filter])}</p>
-      </div>
-    );
+    content = <EmptyState icon={History} title={t(EMPTY_KEYS[filter])} />;
   } else {
     content = (
       <>
