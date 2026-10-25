@@ -131,7 +131,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 34px;
+  height: 36px;
   /* Never taller than the window: if a content zoom the backend didn't size for
      (e.g. a text-size change mid-recording) exceeds the frame, the pill shrinks
      instead of being clipped. 6px = the root's 3px padding on each side. */
@@ -148,6 +148,7 @@
     padding 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .pill-wave {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,16 +157,94 @@
 .pill-wave.compact {
   width: 40px;
 }
-/* The hands-free key's hint (`handsFreeHint.ts`) takes the waveform's slot for
-   a few seconds, so the pill neither grows nor moves: the bars fade down and
-   a keycap with a lock fades up in their place. */
-.pill-wave {
-  position: relative;
+
+/* ── The oval: bars and one word ────────────────────────────────────────────
+ * The assistant's listening oval, for dictation: a dark lozenge with a few full
+ * level bars and one word for the state ("Listening…", "Transcribing…").
+ * Fixed width, so listening → transcribing → cleanup changes only what is
+ * inside it and the window, sized for it (`OVERLAY_WIDTH`), never resizes.
+ *
+ * Under the bars sits a soft coral-to-indigo light, the orb's colours, that
+ * rises with the voice (`--ov-energy`, written from the level store) and
+ * settles to a faint ember while the words are being worked on. It is the one
+ * colour on the overlay, and it is light, not a fill. */
+.overlay-pill.is-compact {
+  width: 100%;
+  max-width: 164px;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 0 14px 0 13px;
+  overflow: hidden;
+  isolation: isolate;
 }
-.pill-wave > :first-child {
+.overlay-pill.is-compact .pill-wave {
+  flex: 0 0 35px;
+  width: 35px;
+}
+.overlay-pill.is-compact::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -6px;
+  top: 50%;
+  width: 74px;
+  height: 52px;
+  margin-top: -26px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 128, 92, 0.5),
+    rgba(238, 58, 92, 0.22) 55%,
+    rgba(238, 58, 92, 0) 100%
+  );
+  opacity: calc(var(--ov-energy, 0) * 0.85);
+  transform: scale(calc(0.75 + var(--ov-energy, 0) * 0.4));
+  transition:
+    opacity 140ms ease-out,
+    transform 140ms ease-out;
+  pointer-events: none;
+}
+.overlay-pill.is-compact:not(.is-live)::before {
+  opacity: 0;
+  transform: scale(0.8);
+  transition-duration: 400ms;
+}
+.overlay-pill.is-compact.transcribing::before,
+.overlay-pill.is-compact.processing::before {
+  animation: ov-ember 2.4s ease-in-out infinite;
+}
+@keyframes ov-ember {
+  50% {
+    opacity: 0.2;
+  }
+}
+.pill-state {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 20px;
+}
+.pill-state-word {
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--ov-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: card-label-in 200ms ease-out both;
   transition: opacity 180ms ease-out;
 }
-.pill-wave.is-hinting > :first-child {
+.overlay-pill.is-live .pill-state-word {
+  color: var(--ov-text);
+}
+/* The hands-free key's hint (`handsFreeHint.ts`) takes the word's place for a
+   few seconds: the word fades down and a keycap with a lock fades up. */
+.pill-state.is-hinting .pill-state-word {
   opacity: 0;
 }
 .pill-hint-key {
@@ -173,7 +252,7 @@
   inset: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 3px;
   color: var(--ov-muted);
   animation: ov-hint-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
@@ -400,7 +479,7 @@
  * nothing moves under the pointer and the window never resizes (the stretch
  * stays inside the compact frame). Monochrome like the rest: ✓ is the one
  * filled thing, ✕ a quiet disc. */
-.overlay-pill.hands-free:not(.has-text) {
+.overlay-pill.hands-free:not(.has-text):not(.is-compact) {
   padding-inline: 17px;
 }
 .overlay-pill.hands-free::after,
@@ -436,35 +515,11 @@
   }
 }
 
-/* The waveform keeps its natural size and the window onto it narrows, rather
-   than the bars being squeezed: squeezed, fourteen bars ran into one blob. The
-   padding grows by exactly what the window loses, so the pill's width holds. */
-.overlay-pill.hands-free .pill-wave {
-  overflow: hidden;
-  transition: width 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-.overlay-pill.hands-free .pill-wave .overlay-wave {
-  flex: 0 0 54px;
-}
-.overlay-pill.has-controls:hover {
-  padding-inline: 27px;
-}
-.overlay-pill.has-controls:hover .pill-wave {
-  width: 34px;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 5px,
-    #000 calc(100% - 5px),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 5px,
-    #000 calc(100% - 5px),
-    transparent
-  );
+/* On the oval the bars never move: when the pointer comes over a hands-free
+   dictation, its word fades and ✕ and ✓ come in where the word was, at the
+   far end, so nothing moves under the pointer and the window never resizes. */
+.overlay-pill.has-controls:hover .pill-state-word {
+  opacity: 0;
 }
 .pill-control {
   position: absolute;
@@ -472,10 +527,10 @@
   margin-top: -10px;
 }
 .pill-control.is-cancel {
-  inset-inline-start: 5px;
+  inset-inline-end: 33px;
 }
 .pill-control.is-finish {
-  inset-inline-end: 5px;
+  inset-inline-end: 7px;
 }
 .hands-free-control {
   display: flex;
@@ -977,7 +1032,7 @@
   .silence-countdown {
     animation: none;
   }
-  .overlay-pill.hands-free .pill-wave,
+  .pill-state-word,
   .pill-wave > :first-child,
   .hands-free-control,
   .card-controls {
@@ -985,5 +1040,31 @@
   }
   .pill-ring-fill {
     transition: none;
+  }
+}
+
+/* ── A spoken command at work ───────────────────────────────────────────────
+ * The assistant's orb, small and thinking, where the other labelled states
+ * have their ripple. Its canvas is twice the sphere for the halo; the box is
+ * pulled back to the sphere so the pill lays out around it. */
+.pill-orb {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pill-orb .luminous-orb {
+  margin: -9px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-pill.is-compact::before {
+    transition: none;
+    animation: none;
+  }
+  .pill-state-word {
+    animation: none;
   }
 }

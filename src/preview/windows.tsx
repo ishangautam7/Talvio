@@ -44,7 +44,10 @@ Anyone else on the branch needs to fetch and reset their upstream.`;
 /** A voice that rises and falls like speech: syllables on a slower phrase. */
 const speechLike = () => {
   const t = performance.now() / 1000;
-  const syllable = Math.max(0, Math.sin(t * 11) * 0.6 + Math.sin(t * 7.3) * 0.4);
+  const syllable = Math.max(
+    0,
+    Math.sin(t * 11) * 0.6 + Math.sin(t * 7.3) * 0.4,
+  );
   const phrase = 0.55 + 0.45 * Math.sin(t * 1.3);
   return Math.min(1, syllable * phrase * 1.15);
 };
@@ -141,12 +144,38 @@ const OrbLab: React.FC = () => {
   );
 };
 
-/** The overlay window's own sizes (overlay.rs): the pill, the live card, and
- *  the labelled working pill. */
+/** The overlay window's own sizes (overlay.rs): the oval, the live card, the
+ *  labelled pill and the recovery pill. */
 const OVERLAY_SIZE: Record<string, [number, number]> = {
-  overlay: [96, 44],
+  overlay: [172, 44],
   "overlay-live": [400, 120],
-  "overlay-working": [300, 60],
+  "overlay-command": [300, 60],
+  "overlay-downloading": [300, 60],
+  "overlay-dismissed": [184, 40],
+};
+
+/** What each overlay preview shows: its state, and whether the mic is live. */
+const OVERLAY_SHOW: Record<
+  string,
+  { state: string; levels: boolean; handsFree?: boolean; extra?: object }
+> = {
+  overlay: { state: "recording", levels: true },
+  "overlay-preparing": { state: "recording", levels: false },
+  "overlay-handsfree": { state: "recording", levels: true, handsFree: true },
+  "overlay-live": { state: "recording", levels: true },
+  "overlay-working": {
+    state: "transcribing",
+    levels: false,
+    extra: { cleanupNext: true },
+  },
+  "overlay-processing": { state: "processing", levels: false },
+  "overlay-command": { state: "command", levels: false },
+  "overlay-downloading": {
+    state: "downloading",
+    levels: false,
+    extra: { download: "parakeet" },
+  },
+  "overlay-dismissed": { state: "dismissed", levels: false },
 };
 
 /** The overlay fills its window, so it is drawn in a frame of that size. */
@@ -180,14 +209,16 @@ const OverlayFrame: React.FC<{ mode: string }> = ({ mode }) => {
 const Overlay: React.FC<{ mode: string }> = ({ mode }) => {
   useEffect(() => {
     let interval = 0;
+    const show = OVERLAY_SHOW[mode] ?? OVERLAY_SHOW.overlay;
     const timer = window.setTimeout(() => {
-      const state = mode === "overlay-working" ? "transcribing" : "recording";
       void emit("show-overlay", {
-        state,
+        state: show.state,
         streamingWindow: mode === "overlay-live",
         interactive: true,
+        handsFree: !!show.handsFree,
         justify: "center",
         epoch: 1,
+        ...show.extra,
       });
       if (mode === "overlay-live") {
         void emit("stream-text", {
@@ -195,6 +226,7 @@ const Overlay: React.FC<{ mode: string }> = ({ mode }) => {
           tentative: "results before we switch",
         });
       }
+      if (!show.levels) return;
       let tick = 0;
       interval = window.setInterval(() => {
         tick += 1;
