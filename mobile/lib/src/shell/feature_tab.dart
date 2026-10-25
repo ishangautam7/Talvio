@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/models.dart';
 
-/// One page of the home shell, as its menu lists it. The first is home.
+/// One page of the home shell, as its navigation lists it. The first
+/// available one is home.
 class FeatureTab {
   const FeatureTab({
     required this.id,
@@ -11,7 +12,7 @@ class FeatureTab {
     required this.selectedIcon,
     required this.builder,
     this.requires,
-    this.secondary = false,
+    this.actions,
   });
 
   final String id;
@@ -24,9 +25,8 @@ class FeatureTab {
   /// a tab that is always there.
   final String? requires;
 
-  /// Listed below a divider in the menu, away from the things you do (the
-  /// account, settings).
-  final bool secondary;
+  /// Buttons for the top bar while this page is on screen (New chat).
+  final List<Widget> Function(BuildContext context)? actions;
 
   /// Hidden only when computers are online and none of them advertises
   /// [requires]. A computer that advertises nothing is unknown, not lacking:

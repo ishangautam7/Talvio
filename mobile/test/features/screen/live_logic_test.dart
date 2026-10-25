@@ -156,7 +156,11 @@ void main() {
     String text(String code) => ScreenStrings.error(code, 'ISHAN-PC');
     expect(text('stopped'), 'Stopped on the computer.');
     expect(text('connect_failed'), contains('TURN server'));
-    expect(text('busy'), 'Someone is already watching this computer.');
+    expect(
+      text('busy'),
+      'Another view of ISHAN-PC is still running. Try again in a moment.',
+    );
+    expect(text('replaced'), contains('replaced by a newer one'));
     for (final code in [
       'target_gone',
       'idle',

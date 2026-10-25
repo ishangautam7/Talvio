@@ -5,25 +5,27 @@ import 'package:flutter/material.dart';
 import '../../core/app_services.dart';
 import '../../core/models.dart';
 import '../../core/relay_client.dart';
-import '../../core/widgets.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
 import '../../shell/feature_tab.dart';
-import '../../shell/shell_scope.dart';
 import '../dictate/computer_widgets.dart';
 import '../dictate/dictate_controller.dart';
 import '../dictate/dictate_scope.dart';
-import '../dictate/dictate_screen.dart' show sendTabId;
 import '../dictate/remote_windows.dart';
+import 'live_controller.dart';
+import 'live_dock.dart';
 import 'live_protocol.dart';
 import 'strings.dart';
-import 'watch_screen.dart';
+import 'watch_controller.dart';
+import 'watch_screen.dart' show screenLabel;
 
-/// Home: the chosen computer, a button to see its screen, and its open
-/// windows, each a tap away from live view.
+/// The computer's screens and open windows, each a tap away from the live
+/// view at the top of the app.
 final screenTab = FeatureTab(
   id: 'screen',
   label: ScreenStrings.homeTab,
-  icon: Icons.desktop_windows_outlined,
-  selectedIcon: Icons.desktop_windows,
+  icon: Icons.cast_outlined,
+  selectedIcon: Icons.cast_rounded,
   builder: (_) => const ScreenHome(),
 );
 
@@ -52,6 +54,19 @@ WatchTarget? viewScreenTarget(
     label: windowLabel(window).$1,
     screen: false,
   );
+}
+
+/// Lists the computer's screens and starts watching the main one in the
+/// small view. Null when it started, else an error code.
+Future<String?> watchMainScreen(BuildContext context) async {
+  final dictate = DictateScope.of(context);
+  final listed = await dictate.listWindows();
+  if (listed.error case final error?) return error;
+  final target = viewScreenTarget(listed.screens, listed.windows);
+  if (target == null) return 'target_gone';
+  if (!context.mounted) return null;
+  openWatch(context, dictate, target);
+  return null;
 }
 
 class ScreenHome extends StatefulWidget {
@@ -97,79 +112,35 @@ class _ScreenHomeState extends State<ScreenHome> {
     });
   }
 
-  Future<void> _watch(WatchTarget target, {RemoteWindow? window}) async {
-    await openWatch(context, _controller, target, window: window);
-    // Windows open and close while watching; ids may have moved on too.
-    if (mounted) unawaited(_load());
-  }
+  void _watch(WatchTarget target, {RemoteWindow? window}) =>
+      openWatch(context, _controller, target, window: window);
 
   @override
   Widget build(BuildContext context) {
     final relay = _services.relay;
+    final live = LiveScope.maybeOf(context);
     return ListenableBuilder(
-      listenable: Listenable.merge([_controller, relay.devices, relay.status]),
+      listenable: Listenable.merge([
+        _controller,
+        relay.devices,
+        relay.status,
+        ?live,
+      ]),
       builder: (context, _) {
         final computer = _controller.computer;
         final connected = relay.status.value == RelayStatus.connected;
         if (computer != null) _listWhenReady(computer, connected);
-        final shell = ShellScope.maybeOf(context);
-        final hasSend = shell?.available.contains(sendTabId) ?? false;
-        final watchable = computer != null && connected && canWatch(computer);
-        return Scaffold(
-          appBar: AppBar(
-            leading: shellLeading(context),
-            // The card below names the computer; the bar only switches
-            // between several.
-            title: computer == null || _controller.computers.length < 2
-                ? const Text(ScreenStrings.homeTab)
-                : ComputerTitle(
-                    computer,
-                    onTap: canChooseComputer(_controller)
-                        ? () => chooseComputer(context, _controller)
-                        : null,
-                  ),
-            actions: [
-              if (watchable)
-                _loading
-                    ? const Padding(
-                        padding: EdgeInsets.all(14),
-                        child: ButtonSpinner(),
-                      )
-                    : IconButton(
-                        tooltip: ScreenStrings.refresh,
-                        onPressed: _load,
-                        icon: const Icon(Icons.refresh),
-                      ),
-            ],
-          ),
-          floatingActionButton: hasSend && computer != null && computer.online
-              ? FloatingActionButton.extended(
-                  onPressed: () => shell!.select(sendTabId),
-                  icon: const Icon(Icons.mic),
-                  label: const Text(ScreenStrings.dictateOrType),
-                )
-              : null,
-          body: ComputerGate(
-            controller: _controller,
-            builder: (context, computer, connected) => _buildBody(
-              context,
-              computer,
-              watchable,
-              onSend: hasSend ? () => shell!.select(sendTabId) : null,
-            ),
-          ),
+        return ComputerGate(
+          controller: _controller,
+          builder: (context, computer, connected) =>
+              _buildBody(context, computer, connected && canWatch(computer)),
         );
       },
     );
   }
 
-  Widget _buildBody(
-    BuildContext context,
-    Device computer,
-    bool watchable, {
-    required VoidCallback? onSend,
-  }) {
-    final theme = Theme.of(context);
+  Widget _buildBody(BuildContext context, Device computer, bool watchable) {
+    final t = context.talvio;
     final listing = _controller.listing;
     final error = _error;
     final name = computer.name;
@@ -178,166 +149,134 @@ class _ScreenHomeState extends State<ScreenHome> {
     final target = viewScreenTarget(screens, windows);
     final mainScreen =
         screens.where((s) => s.primary).firstOrNull ?? screens.firstOrNull;
+    final watching = LiveScope.maybeOf(context)?.watch;
+    final watchedId = watching != null && watching.phase != WatchPhase.ended
+        ? watching.target.id
+        : null;
 
-    final Widget state;
+    final Widget? state;
     if (!computer.online) {
-      state = _CardText(ScreenStrings.offlineBody(name));
+      state = Notice(
+        tone: Tone.neutral,
+        icon: Icons.power_settings_new_rounded,
+        message: ScreenStrings.offlineBody(name),
+      );
     } else if (computer.capabilities.isEmpty) {
       // Online but not past its `hello` yet.
-      state = Row(
-        children: [
-          const ButtonSpinner(),
-          const SizedBox(width: 12),
-          Expanded(child: _CardText(ScreenStrings.waitingBody(name))),
-        ],
-      );
+      state = Notice(busy: true, message: ScreenStrings.waitingBody(name));
     } else if (!canWatch(computer)) {
-      state = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            ScreenStrings.turnOnTitle(name),
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          _CardText(
-            computer.capabilities.contains(DictateKind.dictate)
-                ? ScreenStrings.turnOnBody
-                : ScreenStrings.updateBody(name),
-          ),
-          if (onSend != null) ...[
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: onSend,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-              icon: const Icon(Icons.mic),
-              label: const Text(ScreenStrings.sendInstead),
-            ),
-          ],
-        ],
-      );
+      state = computer.capabilities.contains(DictateKind.dictate)
+          ? _TurnOn(name: name)
+          : Notice(
+              tone: Tone.warning,
+              icon: Icons.system_update_alt_rounded,
+              message: ScreenStrings.updateBody(name),
+            );
+    } else if (watchedId != null) {
+      // The view is already at the top of the page.
+      state = null;
     } else {
-      state = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          FilledButton.icon(
-            onPressed: watchable && target != null
-                ? () => _watch(target)
-                : null,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(56),
-              textStyle: theme.textTheme.titleMedium,
-            ),
-            icon: const Icon(Icons.visibility_outlined),
-            label: const Text(ScreenStrings.viewScreen),
-          ),
-          if (mainScreen != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              ScreenStrings.viewScreenDetail(
+      state = _Hero(
+        name: name,
+        detail: mainScreen == null
+            ? null
+            : ScreenStrings.viewScreenDetail(
                 screenLabel(mainScreen),
                 ScreenStrings.screenSize(mainScreen.width, mainScreen.height),
               ),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
+        onView: watchable && target != null ? () => _watch(target) : null,
       );
     }
 
     final children = <Widget>[
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: _ComputerCard(computer: computer, child: state),
-      ),
+      ?state,
       if (canWatch(computer)) ...[
-        if (error != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-            child: Semantics(
-              liveRegion: true,
-              child: Text(
-                ScreenStrings.error(error, name),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.error,
+        SectionHeader(
+          ScreenStrings.openWindows,
+          trailing: _loading
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: ButtonSpinner(),
+                )
+              : IconButton(
+                  tooltip: ScreenStrings.refresh,
+                  onPressed: watchable ? _load : null,
+                  icon: Icon(Icons.refresh_rounded, color: t.muted),
                 ),
-              ),
-            ),
-          )
+        ),
+        if (error != null)
+          Notice(tone: Tone.danger, message: ScreenStrings.error(error, name))
         else if (listing == null)
           Padding(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(Space.xxl),
             child: Column(
               children: [
                 const CircularProgressIndicator(),
-                const SizedBox(height: 12),
+                const SizedBox(height: Space.md),
                 Text(ScreenStrings.loadingWindows, style: mutedText(context)),
               ],
             ),
           )
-        else ...[
-          const SectionTitle(ScreenStrings.openWindows),
-          if (windows.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                ScreenStrings.noWindows(name),
-                style: mutedText(context),
-              ),
-            ),
-          for (final window in windows)
-            _TargetTile(
-              icon: Icons.web_asset,
-              title: windowLabel(window).$1,
-              subtitle: windowLabel(window).$2,
-              front: window.front,
-              onTap: watchable
-                  ? () => _watch(
-                      WatchTarget(
-                        id: window.id,
-                        label: windowLabel(window).$1,
-                        screen: false,
-                      ),
-                      window: window,
-                    )
-                  : null,
-            ),
-          if (screens.length > 1) ...[
-            const SectionTitle(ScreenStrings.otherScreens),
-            for (final screen in screens)
-              _TargetTile(
-                icon: Icons.desktop_windows_outlined,
-                title: screenLabel(screen),
-                subtitle: screen.primary
-                    ? '${ScreenStrings.screenSize(screen.width, screen.height)}'
-                          ' · ${ScreenStrings.primary}'
-                    : ScreenStrings.screenSize(screen.width, screen.height),
-                front: false,
-                onTap: watchable
-                    ? () => _watch(
-                        WatchTarget(
-                          id: screen.id,
-                          label: screenLabel(screen),
-                          screen: true,
-                        ),
-                      )
-                    : null,
-              ),
-          ],
+        else if (windows.isEmpty)
+          Notice(tone: Tone.neutral, message: ScreenStrings.noWindows(name))
+        else
+          _Group(
+            children: [
+              for (final window in windows)
+                _TargetRow(
+                  leading: _AppMonogram(windowLabel(window).$1),
+                  title: windowLabel(window).$1,
+                  subtitle: windowLabel(window).$2,
+                  front: window.front,
+                  watching: watchedId == window.id,
+                  onTap: watchable
+                      ? () => _watch(
+                          WatchTarget(
+                            id: window.id,
+                            label: windowLabel(window).$1,
+                            screen: false,
+                          ),
+                          window: window,
+                        )
+                      : null,
+                ),
+            ],
+          ),
+        if (screens.length > 1) ...[
+          const SectionHeader(ScreenStrings.otherScreens),
+          _Group(
+            children: [
+              for (final screen in screens)
+                _TargetRow(
+                  leading: const IconTile(Icons.monitor_rounded, size: 40),
+                  title: screenLabel(screen),
+                  subtitle: screen.primary
+                      ? '${ScreenStrings.screenSize(screen.width, screen.height)}'
+                            ' · ${ScreenStrings.primary}'
+                      : ScreenStrings.screenSize(screen.width, screen.height),
+                  front: false,
+                  watching: watchedId == screen.id,
+                  onTap: watchable
+                      ? () => _watch(
+                          WatchTarget(
+                            id: screen.id,
+                            label: screenLabel(screen),
+                            screen: true,
+                          ),
+                        )
+                      : null,
+                ),
+            ],
+          ),
         ],
       ],
-      // Room for the floating button over the last row.
-      const SizedBox(height: 96),
+      const SizedBox(height: Space.xxl),
     ];
 
     return RefreshIndicator(
       onRefresh: watchable ? _load : () async {},
       child: ListView(
+        padding: const EdgeInsets.fromLTRB(Space.lg, Space.xs, Space.lg, 0),
         physics: const AlwaysScrollableScrollPhysics(),
         children: children,
       ),
@@ -345,96 +284,247 @@ class _ScreenHomeState extends State<ScreenHome> {
   }
 }
 
-class _CardText extends StatelessWidget {
-  const _CardText(this.text);
+/// The dark card at the top: see the screen.
+class _Hero extends StatelessWidget {
+  const _Hero({required this.name, required this.detail, required this.onView});
 
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Text(text, style: mutedText(context));
-}
-
-/// The computer, large, with what can be done with it now.
-class _ComputerCard extends StatelessWidget {
-  const _ComputerCard({required this.computer, required this.child});
-
-  final Device computer;
-  final Widget child;
+  final String name;
+  final String? detail;
+  final VoidCallback? onView;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Card.filled(
-      color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: SizedBox.square(
-                    dimension: 56,
-                    child: Icon(
-                      switch (computer.platform) {
-                        'macos' => Icons.laptop_mac,
-                        'linux' => Icons.computer,
-                        _ => Icons.desktop_windows,
-                      },
-                      size: 28,
-                      color: scheme.onPrimaryContainer,
-                    ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: TalvioColors.inkTile,
+        borderRadius: BorderRadius.circular(Radii.xl),
+      ),
+      padding: const EdgeInsets.all(Space.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  ScreenStrings.heroTitle(name),
+                  style: context.text.headlineSmall?.copyWith(
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        computer.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.circle,
-                            size: 10,
-                            color: computer.online
-                                ? scheme.primary
-                                : scheme.outline,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              computer.online
-                                  ? ScreenStrings.online(computer.platform)
-                                  : ScreenStrings.offline,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
+              const SizedBox(width: Space.md),
+              const _MonitorArt(),
+            ],
+          ),
+          const SizedBox(height: Space.sm),
+          Text(
+            ScreenStrings.heroBody,
+            style: context.text.bodyMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.72),
             ),
-            const SizedBox(height: 20),
-            child,
+          ),
+          const SizedBox(height: Space.xl),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onView,
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF1B1D33),
+                disabledBackgroundColor: Colors.white.withValues(alpha: 0.18),
+                disabledForegroundColor: Colors.white.withValues(alpha: 0.5),
+                minimumSize: const Size.fromHeight(52),
+              ),
+              icon: const Icon(Icons.cast_rounded),
+              label: const Text(ScreenStrings.viewScreen),
+            ),
+          ),
+          if (detail case final detail?) ...[
+            const SizedBox(height: Space.sm),
+            Center(
+              child: Text(
+                detail,
+                style: context.text.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A small monitor with the brand's waveform on it.
+class _MonitorArt extends StatelessWidget {
+  const _MonitorArt();
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: SizedBox(
+      width: 64,
+      height: 52,
+      child: CustomPaint(painter: _MonitorPainter()),
+    ),
+  );
+}
+
+class _MonitorPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final screen = Rect.fromLTWH(0, 0, size.width, size.height * 0.74);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(screen, const Radius.circular(8)),
+      Paint()..shader = TalvioColors.gradient.createShader(screen),
+    );
+    final stand = Paint()..color = Colors.white.withValues(alpha: 0.5);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.44,
+          screen.bottom,
+          size.width * 0.12,
+          size.height * 0.14,
+        ),
+        const Radius.circular(2),
+      ),
+      stand,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.3,
+          size.height * 0.88,
+          size.width * 0.4,
+          size.height * 0.08,
+        ),
+        const Radius.circular(3),
+      ),
+      stand,
+    );
+    final bar = Paint()..color = Colors.white;
+    const heights = [0.22, 0.4, 0.62, 0.4, 0.22];
+    final w = size.width * 0.07;
+    for (var i = 0; i < 5; i++) {
+      final h = screen.height * heights[i];
+      final x = size.width * (0.24 + i * 0.13);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x - w / 2, screen.center.dy - h / 2, w, h),
+          Radius.circular(w / 2),
+        ),
+        bar,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MonitorPainter oldDelegate) => false;
+}
+
+/// How to turn on seeing the screen, as numbered steps.
+class _TurnOn extends StatelessWidget {
+  const _TurnOn({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.talvio;
+    return Surface(
+      padding: const EdgeInsets.all(Space.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const IconTile(
+            Icons.visibility_off_outlined,
+            tone: Tone.accent,
+            size: 44,
+          ),
+          const SizedBox(height: Space.lg),
+          Text(ScreenStrings.turnOnTitle(name), style: context.text.titleLarge),
+          const SizedBox(height: Space.md),
+          for (final (i, step) in ScreenStrings.turnOnSteps.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Space.sm),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: t.sunken,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text('${i + 1}', style: context.text.labelSmall),
+                  ),
+                  const SizedBox(width: Space.md),
+                  Expanded(child: Text(step, style: context.text.bodyMedium)),
+                ],
+              ),
+            ),
+          Text(ScreenStrings.turnOnBody, style: context.text.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+/// Rows in one card, with hairlines between them.
+class _Group extends StatelessWidget {
+  const _Group({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Surface(
+    padding: EdgeInsets.zero,
+    child: Column(
+      children: [
+        for (final (i, child) in children.indexed) ...[
+          if (i > 0) Divider(indent: 68, color: context.talvio.hairline),
+          child,
+        ],
+      ],
+    ),
+  );
+}
+
+/// An app's first letter on a tile, in a colour of its own.
+class _AppMonogram extends StatelessWidget {
+  const _AppMonogram(this.app);
+
+  final String app;
+
+  static const _hues = [14.0, 32.0, 200.0, 255.0, 160.0, 330.0, 280.0];
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final hue = _hues[app.hashCode.abs() % _hues.length];
+    final bg = HSLColor.fromAHSL(1, hue, 0.55, dark ? 0.24 : 0.92).toColor();
+    final fg = HSLColor.fromAHSL(1, hue, 0.6, dark ? 0.8 : 0.36).toColor();
+    final letter = app.trim().isEmpty
+        ? '?'
+        : app.trim().characters.first.toUpperCase();
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        letter,
+        style: context.text.titleMedium?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -442,42 +532,38 @@ class _ComputerCard extends StatelessWidget {
 }
 
 /// A window or screen; tapping it watches it.
-class _TargetTile extends StatelessWidget {
-  const _TargetTile({
-    required this.icon,
+class _TargetRow extends StatelessWidget {
+  const _TargetRow({
+    required this.leading,
     required this.title,
     required this.subtitle,
     required this.front,
+    required this.watching,
     required this.onTap,
   });
 
-  final IconData icon;
+  final Widget leading;
   final String title;
   final String? subtitle;
   final bool front;
+  final bool watching;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final t = context.talvio;
     return ListTile(
       enabled: onTap != null,
-      leading: DecoratedBox(
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: SizedBox.square(
-          dimension: 40,
-          child: Icon(icon, color: scheme.onSurfaceVariant),
-        ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: Space.lg,
+        vertical: 2,
       ),
+      leading: leading,
       title: Text(
         title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w600),
+        style: context.text.titleSmall,
       ),
       subtitle: subtitle == null
           ? null
@@ -485,27 +571,20 @@ class _TargetTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (front)
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: Text(
-                  ScreenStrings.inFront,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onSecondaryContainer,
-                  ),
-                ),
-              ),
-            ),
-          const SizedBox(width: 4),
-          const Icon(Icons.chevron_right),
+          if (watching)
+            Pill(ScreenStrings.live, tone: Tone.danger, dot: t.live)
+          else if (front)
+            const Pill(ScreenStrings.inFront),
+          const SizedBox(width: Space.xs),
+          Icon(Icons.chevron_right_rounded, color: t.faint),
         ],
       ),
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              Haptic.tick();
+              onTap!();
+            },
     );
   }
 }

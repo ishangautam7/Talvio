@@ -37,6 +37,7 @@ class DictateOutcome {
     required this.pasted,
     required this.typed,
     this.window,
+    this.askedToPaste = false,
   }) : error = null;
 
   const DictateOutcome.failed(
@@ -45,7 +46,8 @@ class DictateOutcome {
     this.typed = false,
   }) : text = null,
        pasted = false,
-       window = null;
+       window = null,
+       askedToPaste = false;
 
   final String? computer;
   final String? text;
@@ -57,18 +59,33 @@ class DictateOutcome {
 
   /// The window the text went to; null for wherever the cursor was.
   final RemoteWindow? window;
+
+  /// A dictation sent to be pasted. Answered with `pasted: false`, the
+  /// computer's paste method is None: the text came back instead.
+  final bool askedToPaste;
+
+  /// Asked to paste, and the computer only sent the text back.
+  bool get pasteOff => askedToPaste && !pasted && error == null && !typed;
 }
 
-/// The wait for a result beyond the recording's own length (PROTOCOL.md).
-const _resultTimeout = Duration(seconds: 60);
+/// The wait for a result beyond the recording's own length. PROTOCOL.md
+/// says 60 s, but the computer sends `transcribing` once and then nothing
+/// until the text is ready, which on a cold speech model (a load may take up
+/// to 3 minutes there) or behind a dictation made on the computer is longer.
+const _resultTimeout = Duration(seconds: 120);
+
+/// The wait for typed text: nothing to transcribe.
+const _textTimeout = Duration(seconds: 60);
 
 /// The wait for a `windows.list` or `windows.keys` result: nothing to
 /// transcribe, so it is quick unless the computer asks to allow this phone.
 const _windowsTimeout = Duration(seconds: 20);
 
-/// Key presses waiting for their result at most; taps beyond it are ignored
-/// rather than queued, so a stuck computer is not sent a burst of keys later.
-const maxPendingKeys = 3;
+/// Keys waiting to be pressed at most (a `windows.keys` takes up to 20).
+/// The computer handles one phone request at a time, so taps made while one
+/// is out wait and go together in the next; taps beyond this are ignored, so
+/// a stuck computer is not sent a burst of keys later.
+const maxQueuedKeys = 20;
 
 /// How long the "Press Enter" chip stays after a paste.
 const enterOfferFor = Duration(seconds: 8);
@@ -134,7 +151,9 @@ class DictateController extends ChangeNotifier {
   /// The last request's window closed or its id expired, so Try again waits
   /// until the user chooses again (it would otherwise go to the cursor).
   var _windowLost = false;
-  var _keysPending = 0;
+  var _keysRunning = false;
+  final _keyQueue = <String>[];
+  final _keyWaiters = <Completer<String?>>[];
   Timer? _enterOffer;
 
   /// The last `windows.list` that succeeded, and the computer it is of.
@@ -146,6 +165,9 @@ class DictateController extends ChangeNotifier {
   /// Recording, but paused by a call or another app's audio; it resumes on
   /// its own when that ends.
   bool get paused => _voice.paused;
+
+  /// Another page is recording, so this one cannot start.
+  bool get micBlocked => VoiceRecorder.heldByOther(_voice);
 
   /// The computer's last `progress` stage while sending.
   String? get stage => _stage;
@@ -259,26 +281,51 @@ class DictateController extends ChangeNotifier {
     return (windows: windows, screens: screens, error: null);
   }
 
-  /// Presses [keys] (combos) in the chosen window. Null when they were
-  /// pressed, or the tap was ignored because [maxPendingKeys] still wait;
-  /// otherwise an error code.
-  Future<String?> pressKeys(List<String> keys) async {
-    final computer = this.computer;
-    if (computer == null) return 'offline';
-    if (_keysPending >= maxPendingKeys) return null;
-    final window = this.window;
-    _keysPending++;
-    try {
-      final reply = await _ask(computer, {
-        'kind': WindowsKind.keys,
-        'keys': keys,
-        ..._aim(window),
-      }, timeout: _windowsTimeout);
-      if (reply.error == 'target_gone') _loseWindow(window);
-      return reply.error;
-    } finally {
-      _keysPending--;
+  /// Presses [keys] (combos) in the chosen window. Keys tapped while an
+  /// earlier press is still out wait for it and then go in one request, in
+  /// order. Null when they were pressed, or ignored because [maxQueuedKeys]
+  /// already wait; otherwise an error code.
+  Future<String?> pressKeys(List<String> keys) {
+    if (computer == null) return Future.value('offline');
+    if (_keyQueue.length + keys.length > maxQueuedKeys) return Future.value();
+    _keyQueue.addAll(keys);
+    final done = Completer<String?>();
+    _keyWaiters.add(done);
+    if (!_keysRunning) unawaited(_drainKeys());
+    return done.future;
+  }
+
+  /// Whether keys are being pressed or wait to be.
+  bool get pressingKeys => _keysRunning;
+
+  Future<void> _drainKeys() async {
+    _keysRunning = true;
+    _notify();
+    while (_keyQueue.isNotEmpty && !_disposed) {
+      final keys = [..._keyQueue];
+      final waiters = [..._keyWaiters];
+      _keyQueue.clear();
+      _keyWaiters.clear();
+      final computer = this.computer;
+      final window = this.window;
+      String? error;
+      if (computer == null) {
+        error = 'offline';
+      } else {
+        final reply = await _ask(computer, {
+          'kind': WindowsKind.keys,
+          'keys': keys,
+          ..._aim(window),
+        }, timeout: _windowsTimeout);
+        error = reply.error;
+        if (error == 'target_gone') _loseWindow(window);
+      }
+      for (final waiter in waiters) {
+        waiter.complete(error);
+      }
     }
+    _keysRunning = false;
+    _notify();
   }
 
   /// Presses Enter where the last paste went.
@@ -371,6 +418,7 @@ class DictateController extends ChangeNotifier {
       },
       timeout: _resultTimeout + kept.length,
       window: window,
+      askedToPaste: (deliverAs ?? deliver) == Deliver.paste,
     );
 
     if (outcome.error == null || _final.contains(outcome.error)) {
@@ -396,7 +444,7 @@ class DictateController extends ChangeNotifier {
     final outcome = await _send(
       computer,
       {'kind': DictateKind.text, 'text': text, ..._aim(window)},
-      timeout: _resultTimeout,
+      timeout: _textTimeout,
       typed: true,
       window: window,
     );
@@ -427,6 +475,7 @@ class DictateController extends ChangeNotifier {
     required Duration timeout,
     bool typed = false,
     RemoteWindow? window,
+    bool askedToPaste = false,
   }) async {
     final reply = await _ask(
       computer,
@@ -448,6 +497,7 @@ class DictateController extends ChangeNotifier {
         pasted: result['pasted'] == true,
         typed: typed,
         window: window,
+        askedToPaste: askedToPaste,
       ),
       (:final error, result: _, message: _) => DictateOutcome.failed(
         error ?? 'unknown',
@@ -521,6 +571,10 @@ class DictateController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    for (final waiter in _keyWaiters) {
+      waiter.complete('cancelled');
+    }
+    _keyWaiters.clear();
     _clearEnterOffer();
     _voice.dispose();
     unawaited(_dropKept());
