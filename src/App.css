@@ -658,6 +658,9 @@
     color 200ms ease,
     box-shadow 200ms ease;
 }
+.nav-item:hover:not([data-active="true"]) .nav-tile {
+  background-color: color-mix(in srgb, var(--hue) 13%, transparent);
+}
 .nav-item[data-active="true"] .nav-tile {
   color: #ffffff;
   background-image: linear-gradient(

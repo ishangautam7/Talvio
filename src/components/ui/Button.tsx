@@ -15,10 +15,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * One button vocabulary for the whole window.
  *
- * `primary` is Talvio's coral, lit from above (`.btn-primary` in App.css):
- * the text-safe coral with white text on the light theme, `#FF6A52` with
- * ink-navy text on the dark, so the one action a view asks for reads as the
- * brand. Keep it to one per view; everything else is `secondary` or `ghost`.
+ * `primary` is Talvio's ember, round and lit from above (`.btn-primary` in
+ * App.css): the text-safe ember with white text on the light theme, `#FF6A52`
+ * with graphite text on the dark, so the one action a view asks for reads as
+ * the brand. Keep it to one per view; everything else is `secondary` or `ghost`.
  * `accent` is the same fill, kept for older call sites, and `primary-soft` a
  * quiet filled button.
  */
@@ -33,9 +33,9 @@ const VARIANT_CLASSES: Record<NonNullable<ButtonProps["variant"]>, string> = {
 };
 
 const SIZE_CLASSES = {
-  sm: "h-[1.875rem] px-3 text-[0.8125rem] rounded-lg",
-  md: "h-[2.125rem] px-3.5 text-sm rounded-lg",
-  lg: "h-10 px-5 text-[0.9375rem] rounded-[0.625rem]",
+  sm: "h-[1.875rem] px-3.5 text-[0.8125rem] rounded-full",
+  md: "h-[2.125rem] px-4 text-sm rounded-full",
+  lg: "h-10 px-5 text-[0.9375rem] rounded-full",
 };
 
 export const Button: React.FC<ButtonProps> = ({

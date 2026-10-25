@@ -123,12 +123,12 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={label}
       aria-disabled={disabled || undefined}
-      className={`relative isolate ${fill ? "flex w-full" : "inline-flex"} rounded-[0.6875rem] p-[3px] ${track} ${disabled ? "opacity-50" : ""} ${className}`}
+      className={`relative isolate ${fill ? "flex w-full" : "inline-flex"} rounded-full p-[3px] ${track} ${disabled ? "opacity-50" : ""} ${className}`}
     >
       {thumb && (
         <span
           aria-hidden="true"
-          className={`absolute top-[3px] bottom-[3px] -z-10 rounded-lg ${
+          className={`absolute top-[3px] bottom-[3px] -z-10 rounded-full ${
             glass
               ? "bg-white/95 shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
               : "segmented-pill"
@@ -165,7 +165,7 @@ export function Segmented<T extends string>({
               if (!selected) onChange(option.value);
             }}
             onKeyDown={onKeyDown}
-            className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed ${
+            className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed ${
               glass
                 ? "focus-visible:ring-white/60"
                 : "focus-visible:ring-accent/40"

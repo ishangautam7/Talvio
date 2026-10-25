@@ -10,7 +10,7 @@ export const TOAST_OPTIONS: ToasterProps["toastOptions"] = {
   unstyled: true,
   classNames: {
     toast:
-      "elev-float flex w-[var(--width)] items-center gap-3 rounded-xl bg-surface px-4 py-3 text-sm text-ink",
+      "elev-float flex w-[var(--width)] items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 text-sm text-ink",
     title: "font-medium leading-snug",
     description: "mt-0.5 text-[0.8125rem] leading-snug text-muted",
     icon: "shrink-0 [&_svg]:h-4 [&_svg]:w-4",
@@ -19,8 +19,8 @@ export const TOAST_OPTIONS: ToasterProps["toastOptions"] = {
     warning: "[&_[data-icon]]:text-warning",
     info: "[&_[data-icon]]:text-muted",
     actionButton:
-      "btn btn-secondary ms-auto h-7 shrink-0 cursor-pointer rounded-lg px-2.5 text-[0.8125rem] font-medium",
+      "btn btn-secondary ms-auto h-7 shrink-0 cursor-pointer rounded-full px-3 text-[0.8125rem] font-medium",
     cancelButton:
-      "btn btn-ghost h-7 shrink-0 cursor-pointer rounded-lg px-2.5 text-[0.8125rem] font-medium text-muted",
+      "btn btn-ghost h-7 shrink-0 cursor-pointer rounded-full px-3 text-[0.8125rem] font-medium text-muted",
   },
 };

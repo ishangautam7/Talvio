@@ -29,7 +29,7 @@ import {
   TextSelect,
   Trash2,
   Users,
-  History,
+  HistoryGlyph,
 } from "@/components/icons/glyphs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StickyHeading } from "@/components/ui/StickyHeading";
@@ -698,7 +698,7 @@ export const HistorySettings: React.FC = () => {
       </div>
     );
   } else if (filteredFeed.length === 0) {
-    content = <EmptyState icon={History} title={t(EMPTY_KEYS[filter])} />;
+    content = <EmptyState icon={HistoryGlyph} title={t(EMPTY_KEYS[filter])} />;
   } else {
     content = (
       <>
