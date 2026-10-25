@@ -2,23 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
 import '../../core/app_services.dart';
-import '../../core/device_icon.dart';
+import '../../core/config.dart';
 import '../../core/models.dart';
 import '../../core/strings.dart';
-import '../../core/widgets.dart';
-import '../../shell/feature_tab.dart';
-import '../../shell/shell_scope.dart';
+import '../../design/brand.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
+import '../dictate/computer_widgets.dart' show ComputerAvatar;
 import 'strings.dart';
 
-final accountTab = FeatureTab(
-  id: 'account',
-  label: AccountStrings.tab,
-  icon: Icons.person_outline,
-  selectedIcon: Icons.person,
-  secondary: true,
-  builder: (_) => const AccountScreen(),
-);
-
+/// Who is signed in, the account's devices, the server, signing out and
+/// deleting the account. Opened from the avatar in the top bar.
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
@@ -52,14 +46,13 @@ class _AccountScreenState extends State<AccountScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(foregroundColor: context.talvio.muted),
             child: const Text(AccountStrings.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: destructive
-                ? TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                  )
+                ? TextButton.styleFrom(foregroundColor: context.talvio.danger)
                 : null,
             child: Text(action),
           ),
@@ -90,6 +83,7 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _signOut() async {
+    Haptic.tick();
     setState(() => _signingOut = true);
     try {
       await _services.api.logOut();
@@ -123,16 +117,13 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = context.talvio;
     final session = _services.session;
     final relay = _services.relay;
     final busy = _signingOut || _deleting;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: shellLeading(context),
-        title: const Text(AccountStrings.title),
-      ),
+      appBar: AppBar(title: const Text(AccountStrings.title)),
       body: ListenableBuilder(
         listenable: Listenable.merge([session, relay.devices]),
         builder: (context, _) {
@@ -140,81 +131,135 @@ class _AccountScreenState extends State<AccountScreen> {
           final devices = relay.devices.value;
           final now = DateTime.now();
           return ListView(
+            padding: const EdgeInsets.fromLTRB(
+              Space.lg,
+              Space.sm,
+              Space.lg,
+              Space.xxxl,
+            ),
             children: [
-              if (user != null)
-                ListTile(
-                  leading: CircleAvatar(
-                    child: Text(
-                      (user.name ?? user.email).characters.first.toUpperCase(),
-                    ),
-                  ),
-                  title: Text(user.name ?? user.email),
-                  subtitle: user.name == null ? null : Text(user.email),
-                ),
-              SectionTitle(AccountStrings.devices),
+              if (user != null) _Profile(user: user),
+              const SectionHeader(AccountStrings.devices),
               if (devices == null)
-                const ListTile(
-                  leading: SizedBox.square(
-                    dimension: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  title: Text(AccountStrings.connecting),
+                const Notice(
+                  busy: true,
+                  tone: Tone.neutral,
+                  message: AccountStrings.connecting,
                 )
               else
-                for (final device in devices)
-                  ListTile(
-                    leading: DeviceIcon(device),
-                    title: Text(device.name),
-                    subtitle: Text(
-                      device.current
-                          ? AccountStrings.thisPhone
-                          : device.online
-                          ? AccountStrings.online
-                          : AccountStrings.lastSeen(device.lastSeenAt, now),
-                    ),
-                    trailing: device.current
-                        ? null
-                        : _removing.contains(device.id)
-                        ? const SizedBox.square(
-                            dimension: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : IconButton(
-                            tooltip: AccountStrings.removeTooltip(device.name),
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: busy ? null : () => _remove(device),
+                Surface(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      for (final (i, device) in devices.indexed) ...[
+                        if (i > 0) Divider(indent: 72, color: t.hairline),
+                        ListTile(
+                          minVerticalPadding: 10,
+                          contentPadding: const EdgeInsets.only(
+                            left: Space.lg,
+                            right: Space.xs,
                           ),
+                          leading: ComputerAvatar(device, size: 40),
+                          title: Text(
+                            device.name,
+                            style: context.text.titleSmall,
+                          ),
+                          subtitle: Text(
+                            device.current
+                                ? AccountStrings.thisPhone
+                                : device.online
+                                ? AccountStrings.online
+                                : AccountStrings.lastSeen(
+                                    device.lastSeenAt,
+                                    now,
+                                  ),
+                          ),
+                          trailing: device.current
+                              ? const Pill(
+                                  AccountStrings.thisPhoneShort,
+                                  tone: Tone.accent,
+                                )
+                              : _removing.contains(device.id)
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: ButtonSpinner(),
+                                )
+                              : IconButton(
+                                  tooltip: AccountStrings.removeTooltip(
+                                    device.name,
+                                  ),
+                                  icon: Icon(
+                                    Icons.remove_circle_outline_rounded,
+                                    color: t.muted,
+                                  ),
+                                  onPressed: busy
+                                      ? null
+                                      : () => _remove(device),
+                                ),
+                        ),
+                      ],
+                    ],
                   ),
-              SectionTitle(AccountStrings.server),
-              if (session.session?.serverUrl case final url?)
-                ListTile(
-                  leading: const Icon(Icons.dns_outlined),
-                  title: Text(serverText(session.serverChoice, url)),
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    OutlinedButton(
-                      onPressed: busy ? null : _signOut,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
-                      ),
-                      child: _signingOut
-                          ? const ButtonSpinner()
-                          : const Text(AccountStrings.signOut),
+              const SectionHeader(AccountStrings.server),
+              if (session.session?.serverUrl case final url?)
+                Surface(
+                  padding: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const IconTile(Icons.dns_outlined, size: 36),
+                    title: Text(
+                      serverText(session.serverChoice, url),
+                      style: context.text.bodyMedium,
                     ),
-                    const SizedBox(height: 8),
+                    subtitle: const Text(AccountStrings.serverNote),
+                  ),
+                ),
+              const SizedBox(height: Space.xxl),
+              OutlinedButton.icon(
+                onPressed: busy ? null : _signOut,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                icon: _signingOut
+                    ? const SizedBox.shrink()
+                    : const Icon(Icons.logout_rounded),
+                label: _signingOut
+                    ? const ButtonSpinner()
+                    : const Text(AccountStrings.signOut),
+              ),
+              const SizedBox(height: Space.sm),
+              TextButton(
+                onPressed: busy ? null : _deleteAccount,
+                style: TextButton.styleFrom(
+                  foregroundColor: t.danger,
+                  minimumSize: const Size.fromHeight(48),
+                ),
+                child: _deleting
+                    ? const ButtonSpinner()
+                    : const Text(AccountStrings.deleteAccount),
+              ),
+              const SizedBox(height: Space.xxl),
+              Center(
+                child: Column(
+                  children: [
+                    const LogoLockup(size: 22),
+                    const SizedBox(height: Space.sm),
+                    Text(
+                      AccountStrings.version(appVersion),
+                      style: context.text.bodySmall?.copyWith(color: t.faint),
+                    ),
                     TextButton(
-                      onPressed: busy ? null : _deleteAccount,
-                      style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.error,
-                        minimumSize: const Size.fromHeight(48),
+                      onPressed: () => showLicensePage(
+                        context: context,
+                        applicationName: 'Talvio',
+                        applicationVersion: appVersion,
+                        applicationIcon: const Padding(
+                          padding: EdgeInsets.all(Space.md),
+                          child: TalvioMark(size: 48),
+                        ),
                       ),
-                      child: _deleting
-                          ? const ButtonSpinner()
-                          : const Text(AccountStrings.deleteAccount),
+                      style: TextButton.styleFrom(foregroundColor: t.muted),
+                      child: const Text(AccountStrings.licences),
                     ),
                   ],
                 ),
@@ -222,6 +267,60 @@ class _AccountScreenState extends State<AccountScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _Profile extends StatelessWidget {
+  const _Profile({required this.user});
+
+  final User user;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.talvio;
+    final name = user.name?.trim();
+    final shown = name == null || name.isEmpty ? user.email : name;
+    return Surface(
+      padding: const EdgeInsets.all(Space.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              gradient: TalvioColors.gradient,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              shown.characters.first.toUpperCase(),
+              style: context.text.headlineSmall?.copyWith(color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: Space.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  shown,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.titleLarge,
+                ),
+                if (shown != user.email)
+                  Text(
+                    user.email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.bodyMedium?.copyWith(color: t.muted),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
