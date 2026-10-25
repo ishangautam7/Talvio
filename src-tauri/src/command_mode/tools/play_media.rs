@@ -223,8 +223,16 @@ fn spotify(ctx: &ToolCtx, query: &str) -> ToolOutcome {
     )
 }
 
-/// Open `url` and report `success`, or the failure to open it.
+/// Open `url` and report `success`, or the failure to open it. Whatever is
+/// already playing (Spotify, another tab) is paused first, so the new song
+/// does not play over it; where the system cannot tell what plays, nothing
+/// is touched, since the toggle key could start something instead.
 fn open(ctx: &ToolCtx, url: &str, success: ToolOutcome) -> ToolOutcome {
+    if ctx.effects.media_playing() == Some(true) {
+        if let Err(e) = ctx.effects.pause_media() {
+            log::debug!("command mode: play_media could not pause what was playing: {e}");
+        }
+    }
     match ctx.effects.open_url(url) {
         Ok(()) => success,
         Err(e) => {
@@ -452,6 +460,25 @@ mod tests {
                 title: Some("Imagine Dragons - Believer (Official Music Video)".into()),
             })
         );
+    }
+
+    /// What already plays is paused before the new song opens, so two never
+    /// play at once; where the system cannot tell, nothing is touched.
+    #[test]
+    fn what_already_plays_is_paused_first() {
+        let fake = fake_with(Ok(RESULTS_PAGE));
+        *fake.playing.lock().unwrap() = Some(true);
+        run(&ctx(fake.clone()), json!({"query": "Believer"}));
+        let actions = fake.actions();
+        assert_eq!(actions.first().map(String::as_str), Some("pause_media"));
+        assert!(actions[1].starts_with("open_url https://www.youtube.com/watch"));
+
+        for playing in [Some(false), None] {
+            let fake = fake_with(Ok(RESULTS_PAGE));
+            *fake.playing.lock().unwrap() = playing;
+            run(&ctx(fake.clone()), json!({"query": "Believer"}));
+            assert_eq!(fake.actions().len(), 1, "{playing:?}");
+        }
     }
 
     /// A page without a `videoRenderer` still yields the first valid id.
