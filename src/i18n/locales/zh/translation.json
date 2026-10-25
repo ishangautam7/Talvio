@@ -2539,7 +2539,7 @@
     "cancel": "取消",
     "working": "正在处理…",
     "dryRun": "试运行：未执行任何操作。",
-    "sayAgain": "请重新说一遍命令，并在其中包含答案。"
+    "sayAgain": "按住命令键说出你的回答。"
   },
   "assistant": {
     "conversation": {
@@ -3834,6 +3834,11 @@
       "failed": "{{reason}}",
       "mediaNext": "已跳到下一首。",
       "mediaPlayPause": "已按下播放/暂停。",
+      "mediaPaused": "已暂停。",
+      "mediaNothingPlaying": "当前没有在播放。",
+      "mediaResumed": "已继续播放。",
+      "mediaAlreadyPlaying": "已经在播放了。",
+      "windowNotReady": "应用没能及时打开，所以我没有输入任何内容。",
       "mediaPlaying": "正在 {{service}} 上播放“{{title}}”。",
       "mediaPrevious": "已回到上一首。",
       "mediaResultsOpened": "已在 {{service}} 上打开“{{query}}”的搜索结果。",

@@ -2553,7 +2553,7 @@
     "cancel": "Отказ",
     "working": "Работя по въпроса…",
     "dryRun": "Пробно изпълнение: нищо не беше направено.",
-    "sayAgain": "Кажете командата отново, като включите отговора в нея."
+    "sayAgain": "Кажете отговора си с клавишите за команди."
   },
   "assistant": {
     "conversation": {
@@ -3888,6 +3888,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Преминах към следващата песен.",
       "mediaPlayPause": "Натиснах пускане/пауза.",
+      "mediaPaused": "На пауза.",
+      "mediaNothingPlaying": "Нищо не се възпроизвежда.",
+      "mediaResumed": "Продължено.",
+      "mediaAlreadyPlaying": "Вече се възпроизвежда.",
+      "windowNotReady": "Приложението не се отвори навреме, затова не написах нищо.",
       "mediaPlaying": "Пускам „{{title}}“ в {{service}}.",
       "mediaPrevious": "Върнах към предишната песен.",
       "mediaResultsOpened": "Отворих резултатите в {{service}} за „{{query}}“.",

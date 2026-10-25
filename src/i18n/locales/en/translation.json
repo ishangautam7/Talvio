@@ -2553,7 +2553,7 @@
     "cancel": "Cancel",
     "working": "Working on it…",
     "dryRun": "Dry run: nothing was done.",
-    "sayAgain": "Say the command again with the answer in it."
+    "sayAgain": "Say your answer with the command keys."
   },
   "assistant": {
     "conversation": {
@@ -3888,6 +3888,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Skipped to the next track.",
       "mediaPlayPause": "Play/pause pressed.",
+      "mediaPaused": "Paused.",
+      "mediaNothingPlaying": "Nothing is playing.",
+      "mediaResumed": "Resumed.",
+      "mediaAlreadyPlaying": "It's already playing.",
+      "windowNotReady": "The app didn't come up in time, so I didn't type anything.",
       "mediaPlaying": "Playing “{{title}}” on {{service}}.",
       "mediaPrevious": "Back to the previous track.",
       "mediaResultsOpened": "Opened {{service}}'s results for “{{query}}”.",

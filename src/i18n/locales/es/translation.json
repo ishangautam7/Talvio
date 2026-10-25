@@ -2567,7 +2567,7 @@
     "cancel": "Cancelar",
     "working": "En ello…",
     "dryRun": "Simulación: no se hizo nada.",
-    "sayAgain": "Repite el comando incluyendo la respuesta."
+    "sayAgain": "Di tu respuesta con las teclas de comando."
   },
   "assistant": {
     "conversation": {
@@ -3942,6 +3942,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Pasé a la siguiente pista.",
       "mediaPlayPause": "Reproducir/pausa pulsado.",
+      "mediaPaused": "En pausa.",
+      "mediaNothingPlaying": "No se está reproduciendo nada.",
+      "mediaResumed": "Reanudado.",
+      "mediaAlreadyPlaying": "Ya se está reproduciendo.",
+      "windowNotReady": "La app no apareció a tiempo, así que no escribí nada.",
       "mediaPlaying": "Reproduciendo «{{title}}» en {{service}}.",
       "mediaPrevious": "Volví a la pista anterior.",
       "mediaResultsOpened": "Abrí los resultados de {{service}} para «{{query}}».",

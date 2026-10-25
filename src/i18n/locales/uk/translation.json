@@ -2581,7 +2581,7 @@
     "cancel": "Скасувати",
     "working": "Виконую…",
     "dryRun": "Пробний запуск: нічого не зроблено.",
-    "sayAgain": "Повторіть команду, додавши до неї відповідь."
+    "sayAgain": "Скажіть відповідь за допомогою клавіш команд."
   },
   "assistant": {
     "conversation": {
@@ -3996,6 +3996,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Перейшов до наступного треку.",
       "mediaPlayPause": "Натиснуто відтворення/паузу.",
+      "mediaPaused": "Призупинено.",
+      "mediaNothingPlaying": "Зараз нічого не грає.",
+      "mediaResumed": "Відтворення продовжено.",
+      "mediaAlreadyPlaying": "Уже грає.",
+      "windowNotReady": "Застосунок не відкрився вчасно, тому я нічого не надрукував.",
       "mediaPlaying": "Вмикаю «{{title}}» у {{service}}.",
       "mediaPrevious": "Повернувся до попереднього треку.",
       "mediaResultsOpened": "Відкрито результати {{service}} за запитом «{{query}}».",

@@ -2553,7 +2553,7 @@
     "cancel": "İptal",
     "working": "Üzerinde çalışılıyor…",
     "dryRun": "Deneme çalıştırması: hiçbir şey yapılmadı.",
-    "sayAgain": "Komutu, yanıtı da içerecek şekilde yeniden söyleyin."
+    "sayAgain": "Cevabınızı komut tuşlarıyla söyleyin."
   },
   "assistant": {
     "conversation": {
@@ -3888,6 +3888,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Sonraki parçaya geçildi.",
       "mediaPlayPause": "Oynat/duraklat tuşuna basıldı.",
+      "mediaPaused": "Duraklatıldı.",
+      "mediaNothingPlaying": "Hiçbir şey çalmıyor.",
+      "mediaResumed": "Devam ettirildi.",
+      "mediaAlreadyPlaying": "Zaten çalıyor.",
+      "windowNotReady": "Uygulama zamanında açılmadı, bu yüzden hiçbir şey yazmadım.",
       "mediaPlaying": "“{{title}}” {{service}} üzerinde çalınıyor.",
       "mediaPrevious": "Önceki parçaya dönüldü.",
       "mediaResultsOpened": "{{service}} üzerinde “{{query}}” sonuçları açıldı.",

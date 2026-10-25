@@ -2539,7 +2539,7 @@
     "cancel": "キャンセル",
     "working": "実行中…",
     "dryRun": "ドライラン：何も実行していません。",
-    "sayAgain": "答えを含めて、もう一度コマンドを話してください。"
+    "sayAgain": "コマンドキーを押して答えを話してください。"
   },
   "assistant": {
     "conversation": {
@@ -3834,6 +3834,11 @@
       "failed": "{{reason}}",
       "mediaNext": "次の曲にスキップしました。",
       "mediaPlayPause": "再生/一時停止を押しました。",
+      "mediaPaused": "一時停止しました。",
+      "mediaNothingPlaying": "何も再生されていません。",
+      "mediaResumed": "再開しました。",
+      "mediaAlreadyPlaying": "すでに再生中です。",
+      "windowNotReady": "アプリが時間内に開かなかったので、何も入力しませんでした。",
       "mediaPlaying": "{{service}} で「{{title}}」を再生しています。",
       "mediaPrevious": "前の曲に戻りました。",
       "mediaResultsOpened": "{{service}} で「{{query}}」の検索結果を開きました。",

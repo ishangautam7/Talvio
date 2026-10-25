@@ -2581,7 +2581,7 @@
     "cancel": "Отмена",
     "working": "Выполняю…",
     "dryRun": "Пробный запуск: ничего не сделано.",
-    "sayAgain": "Повторите команду, добавив в неё ответ."
+    "sayAgain": "Скажите ответ с помощью клавиш команд."
   },
   "assistant": {
     "conversation": {
@@ -3996,6 +3996,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Следующий трек.",
       "mediaPlayPause": "Нажата кнопка воспроизведения/паузы.",
+      "mediaPaused": "Пауза.",
+      "mediaNothingPlaying": "Сейчас ничего не играет.",
+      "mediaResumed": "Воспроизведение продолжено.",
+      "mediaAlreadyPlaying": "Уже играет.",
+      "windowNotReady": "Приложение не открылось вовремя, поэтому я ничего не напечатал.",
       "mediaPlaying": "Включаю «{{title}}» в {{service}}.",
       "mediaPrevious": "Предыдущий трек.",
       "mediaResultsOpened": "Открыты результаты {{service}} по запросу «{{query}}».",

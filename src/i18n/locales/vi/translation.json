@@ -2539,7 +2539,7 @@
     "cancel": "Hủy",
     "working": "Đang xử lý…",
     "dryRun": "Chạy thử: chưa làm gì cả.",
-    "sayAgain": "Nói lại lệnh kèm theo câu trả lời."
+    "sayAgain": "Hãy nói câu trả lời bằng phím lệnh."
   },
   "assistant": {
     "conversation": {
@@ -3834,6 +3834,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Đã chuyển sang bài tiếp theo.",
       "mediaPlayPause": "Đã nhấn phát/tạm dừng.",
+      "mediaPaused": "Đã tạm dừng.",
+      "mediaNothingPlaying": "Không có gì đang phát.",
+      "mediaResumed": "Đã phát tiếp.",
+      "mediaAlreadyPlaying": "Đang phát rồi.",
+      "windowNotReady": "Ứng dụng không mở kịp, nên tôi không gõ gì cả.",
       "mediaPlaying": "Đang phát “{{title}}” trên {{service}}.",
       "mediaPrevious": "Đã quay lại bài trước.",
       "mediaResultsOpened": "Đã mở kết quả của {{service}} cho “{{query}}”.",

@@ -2581,7 +2581,7 @@
     "cancel": "Zrušit",
     "working": "Pracuji na tom…",
     "dryRun": "Zkušební běh: nic se neprovedlo.",
-    "sayAgain": "Řekněte příkaz znovu i s odpovědí."
+    "sayAgain": "Řekněte odpověď pomocí kláves pro příkazy."
   },
   "assistant": {
     "conversation": {
@@ -3996,6 +3996,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Přeskočeno na další skladbu.",
       "mediaPlayPause": "Stisknuto přehrát/pozastavit.",
+      "mediaPaused": "Pozastaveno.",
+      "mediaNothingPlaying": "Nic nehraje.",
+      "mediaResumed": "Pokračuje.",
+      "mediaAlreadyPlaying": "Už hraje.",
+      "windowNotReady": "Aplikace se neotevřela včas, takže jsem nic nenapsal.",
       "mediaPlaying": "Přehrávám „{{title}}“ na {{service}}.",
       "mediaPrevious": "Zpět na předchozí skladbu.",
       "mediaResultsOpened": "Otevřeny výsledky {{service}} pro „{{query}}“.",

@@ -2581,7 +2581,7 @@
     "cancel": "Anuluj",
     "working": "Pracuję nad tym…",
     "dryRun": "Przebieg próbny: nic nie zostało zrobione.",
-    "sayAgain": "Powtórz polecenie, dodając do niego odpowiedź."
+    "sayAgain": "Powiedz odpowiedź, używając klawiszy poleceń."
   },
   "assistant": {
     "conversation": {
@@ -3996,6 +3996,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Przełączono na następny utwór.",
       "mediaPlayPause": "Naciśnięto odtwórz/wstrzymaj.",
+      "mediaPaused": "Wstrzymano.",
+      "mediaNothingPlaying": "Nic nie jest odtwarzane.",
+      "mediaResumed": "Wznowiono.",
+      "mediaAlreadyPlaying": "Już jest odtwarzane.",
+      "windowNotReady": "Aplikacja nie otworzyła się na czas, więc nic nie wpisałem.",
       "mediaPlaying": "Odtwarzam „{{title}}” w {{service}}.",
       "mediaPrevious": "Powrót do poprzedniego utworu.",
       "mediaResultsOpened": "Otwarto wyniki {{service}} dla „{{query}}”.",
