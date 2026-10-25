@@ -30,11 +30,7 @@ export const SettingsGroup: React.FC<SettingsGroupProps> = ({
       {(title || action) && (
         <div className="flex items-end justify-between gap-3 px-1">
           <div className="flex min-w-0 items-center gap-1">
-            {title && (
-              <h2 className="text-[0.8125rem] font-semibold tracking-[0.005em] text-muted">
-                {title}
-              </h2>
-            )}
+            {title && <h2 className="eyebrow text-muted">{title}</h2>}
             {description && <InfoTip text={description} />}
           </div>
           {action && <div className="shrink-0">{action}</div>}

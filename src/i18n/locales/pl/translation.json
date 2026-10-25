@@ -4035,5 +4035,22 @@
       "waitingForAnswer": "To polecenie czeka na odpowiedź, a nie na potwierdzenie.",
       "waitingForConfirmation": "To polecenie czeka na Twoje potwierdzenie, a nie na odpowiedź."
     }
+  },
+  "palette": {
+    "trigger": "Szukaj lub przejdź do…",
+    "placeholder": "Szukaj stron, modeli i ustawień",
+    "label": "Paleta poleceń",
+    "empty": "Nic nie pasuje do „{{query}}”",
+    "groups": {
+      "pages": "Strony",
+      "models": "Modele",
+      "settings": "Ustawienia",
+      "actions": "Akcje"
+    },
+    "hints": {
+      "move": "Przesuń",
+      "open": "Otwórz",
+      "close": "Zamknij"
+    }
   }
 }

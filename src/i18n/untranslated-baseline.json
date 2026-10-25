@@ -594,6 +594,8 @@
       "onboarding.tour.mail.toValue",
       "onboarding.tour.tabs.ask",
       "onboarding.tour.tabs.call",
+      "palette.groups.actions",
+      "palette.groups.pages",
       "pickers.groups.cloud",
       "reminders.snoozeFor_many",
       "reminders.snoozeFor_one",

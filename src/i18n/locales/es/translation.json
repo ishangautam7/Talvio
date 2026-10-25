@@ -3981,5 +3981,22 @@
       "waitingForAnswer": "Ese comando espera una respuesta, no una confirmación.",
       "waitingForConfirmation": "Ese comando espera que lo confirmes, no una respuesta."
     }
+  },
+  "palette": {
+    "trigger": "Buscar o ir a…",
+    "placeholder": "Busca páginas, modelos y ajustes",
+    "label": "Paleta de comandos",
+    "empty": "Nada coincide con «{{query}}»",
+    "groups": {
+      "pages": "Páginas",
+      "models": "Modelos",
+      "settings": "Ajustes",
+      "actions": "Acciones"
+    },
+    "hints": {
+      "move": "Mover",
+      "open": "Abrir",
+      "close": "Cerrar"
+    }
   }
 }

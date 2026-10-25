@@ -3873,5 +3873,22 @@
       "waitingForAnswer": "该命令正在等待回答，而不是确认。",
       "waitingForConfirmation": "该命令正在等待您确认，而不是回答。"
     }
+  },
+  "palette": {
+    "trigger": "搜索或跳转到…",
+    "placeholder": "搜索页面、模型和设置",
+    "label": "命令面板",
+    "empty": "没有与“{{query}}”匹配的内容",
+    "groups": {
+      "pages": "页面",
+      "models": "模型",
+      "settings": "设置",
+      "actions": "操作"
+    },
+    "hints": {
+      "move": "移动",
+      "open": "打开",
+      "close": "关闭"
+    }
   }
 }

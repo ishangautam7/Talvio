@@ -3927,5 +3927,22 @@
       "waitingForAnswer": "Bu komut onay değil, yanıt bekliyor.",
       "waitingForConfirmation": "Bu komut yanıt değil, onaylamanızı bekliyor."
     }
+  },
+  "palette": {
+    "trigger": "Ara veya şuraya git…",
+    "placeholder": "Sayfalarda, modellerde ve ayarlarda ara",
+    "label": "Komut paleti",
+    "empty": "“{{query}}” ile eşleşen bir şey yok",
+    "groups": {
+      "pages": "Sayfalar",
+      "models": "Modeller",
+      "settings": "Ayarlar",
+      "actions": "Eylemler"
+    },
+    "hints": {
+      "move": "Gezin",
+      "open": "Aç",
+      "close": "Kapat"
+    }
   }
 }

@@ -11,6 +11,7 @@ import {
   type NavigationState,
 } from "./navigation";
 import { PageStack } from "./PageStack";
+import { CommandPalette } from "./CommandPalette";
 import { useSlotDataSync } from "./slotData";
 import { useSpeechUpdateRequests } from "./speechUpdate";
 import { useAutoSelectDownloadedModel } from "./useSttStatus";
@@ -39,12 +40,11 @@ export const MainShell: React.FC<{ initialNavigation?: NavigationState }> = ({
   return (
     <NavigationProvider state={navigation} setState={setNavigation}>
       <ShellEffects />
-      {/* The row carries the frame colour; the content column is a sheet
-          floating in it, inset on every side, so title bar + sidebar + margin
-          read as one frame and the page sits on top of it. */}
-      <div className="flex flex-1 overflow-hidden bg-canvas-soft">
+      {/* The title bar and the rail are one ink frame, an L round the page;
+          the page is a sheet tucked into its corner. */}
+      <div className="flex flex-1 overflow-hidden bg-frame">
         <Sidebar />
-        <main className="relative isolate mb-2 me-2 flex flex-1 flex-col overflow-hidden rounded-2xl bg-canvas elev-pane">
+        <main className="app-sheet relative isolate flex flex-1 flex-col overflow-hidden rounded-ss-[1.25rem] bg-canvas">
           {/* Dawn: a faint warm light along the top of the sheet. */}
           <div aria-hidden="true" className="sheet-glow" />
           <div className="mx-auto w-full max-w-5xl px-6 pt-5 empty:hidden sm:px-10">
@@ -53,6 +53,7 @@ export const MainShell: React.FC<{ initialNavigation?: NavigationState }> = ({
           <PageStack />
         </main>
       </div>
+      <CommandPalette />
       <SettingsDialog />
       <FeedbackHost />
       {/* After an update that retired the selected speech model. */}

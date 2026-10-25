@@ -3927,5 +3927,22 @@
       "waitingForAnswer": "That command is waiting for an answer, not a confirmation.",
       "waitingForConfirmation": "That command is waiting for you to confirm, not for an answer."
     }
+  },
+  "palette": {
+    "trigger": "Search or jump to…",
+    "placeholder": "Search pages, models and settings",
+    "label": "Command palette",
+    "empty": "Nothing matches “{{query}}”",
+    "groups": {
+      "pages": "Pages",
+      "models": "Models",
+      "settings": "Settings",
+      "actions": "Actions"
+    },
+    "hints": {
+      "move": "Move",
+      "open": "Open",
+      "close": "Close"
+    }
   }
 }

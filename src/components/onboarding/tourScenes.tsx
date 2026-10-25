@@ -496,7 +496,13 @@ const EXAMPLES: Example[] = [
 ];
 
 type AskBeat =
-  "select" | "listen" | "think" | "answer" | "read" | "click" | "applied";
+  | "select"
+  | "listen"
+  | "think"
+  | "answer"
+  | "read"
+  | "click"
+  | "applied";
 const ASK_BEAT_MS: Record<AskBeat, number> = {
   select: 1300,
   listen: 1800,
