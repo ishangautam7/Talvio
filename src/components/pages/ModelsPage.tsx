@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Page, PageHeader } from "@/components/ui/Page";
-import { Tabs } from "@/components/ui/Tabs";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { Freeze } from "@/components/shell/Freeze";
 import {
@@ -10,6 +9,7 @@ import {
   type ModelSlot,
 } from "@/components/shell/navigation";
 import { useModelSlots } from "@/components/shell/useModelSlots";
+import { SlotLogo, useSlotStatusText } from "@/components/shell/SlotVisuals";
 import { MODEL_TABS } from "./models/ModelTabs";
 import { USED_BY_KEYS } from "./models/usedBy";
 import { RetiredSelectionPrompt } from "@/components/settings/models/RetiredSelectionPrompt";
@@ -29,6 +29,85 @@ const UsedByTip: React.FC<{ slot: ModelSlot }> = ({ slot }) => {
 };
 
 /**
+ * The four jobs as cards across the top of Models: what each is called and
+ * what is doing it right now. They are the page's tabs (WAI-ARIA tabs, arrow
+ * keys move between them), so the switcher doubles as an overview.
+ */
+const JobSwitcher: React.FC<{
+  value: ModelSlot;
+  onChange: (slot: ModelSlot) => void;
+}> = ({ value, onChange }) => {
+  const { t } = useTranslation();
+  const slots = useModelSlots();
+  const statusText = useSlotStatusText();
+  const refs = useRef<Partial<Record<ModelSlot, HTMLButtonElement | null>>>({});
+
+  const onKeyDown = (event: React.KeyboardEvent, index: number) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+    event.preventDefault();
+    const rtl = document.documentElement.dir === "rtl";
+    const forward = (event.key === "ArrowRight") !== rtl;
+    const next =
+      MODEL_SLOTS[
+        (index + (forward ? 1 : MODEL_SLOTS.length - 1)) % MODEL_SLOTS.length
+      ];
+    onChange(next);
+    refs.current[next]?.focus();
+  };
+
+  return (
+    <div
+      role="tablist"
+      aria-label={t("nav.models")}
+      className="grid grid-cols-2 gap-2.5 @3xl:grid-cols-4"
+    >
+      {MODEL_SLOTS.map((slot, index) => {
+        const summary = slots[slot];
+        const selected = slot === value;
+        const attention = summary.active && !summary.ready;
+        const model =
+          summary.active && summary.ready && summary.modelLabel
+            ? summary.modelLabel
+            : statusText(summary);
+        return (
+          <button
+            key={slot}
+            ref={(element) => {
+              refs.current[slot] = element;
+            }}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(slot)}
+            onKeyDown={(event) => onKeyDown(event, index)}
+            className="job-card flex min-w-0 cursor-pointer flex-col items-start gap-3 rounded-2xl border p-3.5 text-start focus-visible:outline-none"
+          >
+            <span className="flex w-full items-center justify-between gap-2">
+              <SlotLogo summary={summary} size="md" />
+              {attention && (
+                <span
+                  className="h-2 w-2 shrink-0 rounded-full bg-warning"
+                  aria-label={t("modelsHub.needsSetup")}
+                />
+              )}
+            </span>
+            <span className="w-full min-w-0">
+              <span className="job-card-name eyebrow block truncate">
+                {t(`modelsHub.slots.${slot}.name`)}
+              </span>
+              <span className="job-card-model mt-0.5 block truncate text-sm font-medium">
+                {model}
+              </span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+/**
  * Models: one tab per job — speech to text, AI cleanup, assistant, voice.
  *
  * Tabs keep every job one click from the others, and arriving here from
@@ -42,7 +121,6 @@ const UsedByTip: React.FC<{ slot: ModelSlot }> = ({ slot }) => {
 export const ModelsPage: React.FC = () => {
   const { t } = useTranslation();
   const { modelSlot, setModelTab } = useNavigation();
-  const slots = useModelSlots();
   const tab: ModelSlot = modelSlot ?? "stt";
   const [visited, setVisited] = useState<ModelSlot[]>([tab]);
   const topRef = useRef<HTMLDivElement>(null);
@@ -67,22 +145,7 @@ export const ModelsPage: React.FC = () => {
         description={t("modelsHub.privacyNote")}
       />
 
-      <Tabs
-        label={t("nav.models")}
-        value={tab}
-        onChange={setModelTab}
-        items={MODEL_SLOTS.map((slot) => ({
-          id: slot,
-          label: t(`modelsHub.slots.${slot}.name`),
-          badge:
-            slots[slot].active && !slots[slot].ready ? (
-              <span
-                className="h-1.5 w-1.5 rounded-full bg-warning"
-                aria-label={t("modelsHub.needsSetup")}
-              />
-            ) : undefined,
-        }))}
-      />
+      <JobSwitcher value={tab} onChange={setModelTab} />
 
       <div className="mt-6">
         {visited.map((slot) => {
