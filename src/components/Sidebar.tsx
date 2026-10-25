@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BookA,
@@ -65,34 +65,77 @@ const NavButton: React.FC<{
   active: boolean;
   collapsed: boolean;
   onClick: () => void;
-}> = ({ item, active, collapsed, onClick }) => {
+  buttonRef?: (element: HTMLButtonElement | null) => void;
+}> = ({ item, active, collapsed, onClick, buttonRef }) => {
   const { t } = useTranslation();
   const Icon = item.icon;
   const label = t(item.labelKey);
   return (
     <button
+      ref={buttonRef}
       type="button"
       aria-current={active ? "page" : undefined}
       title={collapsed ? label : undefined}
       onClick={onClick}
-      className={`group flex h-9 w-full cursor-pointer items-center gap-3 rounded-lg text-start transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+      className={`group relative z-10 flex h-[2.125rem] w-full cursor-pointer items-center gap-2.5 rounded-lg text-start transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
         collapsed ? "justify-center px-0" : "px-2.5"
       } ${
         active
-          ? "bg-accent/10 font-medium text-accent-strong"
+          ? "font-medium text-ink"
           : "text-body hover:bg-ink/[0.045] hover:text-ink"
       }`}
     >
       <Icon
-        size={17}
-        strokeWidth={active ? 2 : 1.75}
+        size={16}
+        strokeWidth={active ? 2.1 : 1.8}
         className={`shrink-0 transition-colors ${
-          active ? "text-accent" : "text-muted group-hover:text-ink"
+          active ? "text-accent-fill" : "text-muted group-hover:text-ink"
         }`}
       />
-      {!collapsed && <span className="truncate text-[0.9375rem]">{label}</span>}
+      {!collapsed && <span className="truncate text-[0.875rem]">{label}</span>}
     </button>
   );
+};
+
+/**
+ * The raised chip under the page you are on. One element for the whole list,
+ * moved rather than redrawn, so changing page slides it to the new item the
+ * way a segmented control's thumb slides.
+ */
+const useNavIndicator = (activeId: PageId, collapsed: boolean) => {
+  const buttons = useRef<Partial<Record<PageId, HTMLButtonElement | null>>>({});
+  const [box, setBox] = useState<{ top: number; height: number } | null>(null);
+  const [animated, setAnimated] = useState(false);
+
+  useLayoutEffect(() => {
+    const element = buttons.current[activeId];
+    if (!element) {
+      setBox(null);
+      return;
+    }
+    setBox({ top: element.offsetTop, height: element.offsetHeight });
+  }, [activeId, collapsed]);
+
+  // The first placement is instant; only later moves slide.
+  useLayoutEffect(() => {
+    if (!box || animated) return;
+    const frame = window.requestAnimationFrame(() => setAnimated(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [box, animated]);
+
+  const refFor = (id: PageId) => (element: HTMLButtonElement | null) => {
+    buttons.current[id] = element;
+  };
+
+  const indicator = box ? (
+    <span
+      aria-hidden="true"
+      className={`nav-indicator ${animated ? "is-animated" : ""}`}
+      style={{ top: box.top, height: box.height }}
+    />
+  ) : null;
+
+  return { refFor, indicator };
 };
 
 /** Speech-model status line: which model is listening, and whether it is up. */
@@ -137,8 +180,10 @@ const ListeningStatus: React.FC<{ collapsed: boolean }> = ({ collapsed }) => {
       onClick={() => openModelSlot("stt")}
       title={label}
       aria-label={label}
-      className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg text-start transition-colors hover:bg-ink/[0.045] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-        collapsed ? "h-9 justify-center" : "px-2.5 py-2"
+      className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+        collapsed
+          ? "h-9 justify-center hover:bg-ink/[0.045]"
+          : "border border-hairline-strong/60 bg-surface/55 px-2.5 py-2 hover:bg-surface"
       }`}
     >
       <span className="relative grid h-4 w-4 shrink-0 place-items-center">
@@ -169,14 +214,19 @@ export const Sidebar: React.FC = () => {
   // Opens expanded every launch; collapsing is a per-session choice.
   const [collapsed, setCollapsed] = useState(false);
   const toggleLabel = collapsed ? t("sidebar.expand") : t("sidebar.collapse");
+  const { refFor, indicator } = useNavIndicator(page, collapsed);
 
   return (
     <aside
-      className={`relative z-20 flex h-full shrink-0 flex-col bg-canvas-soft pt-3 pb-3 transition-[width] duration-200 ease-out motion-reduce:transition-none ${
-        collapsed ? "w-16 px-2" : "w-[14.5rem] px-3"
+      className={`relative z-20 flex h-full shrink-0 flex-col pt-2 pb-3 transition-[width] duration-200 ease-out motion-reduce:transition-none ${
+        collapsed ? "w-16 px-2" : "w-[14.25rem] px-2.5"
       }`}
     >
-      <nav className="flex flex-col gap-0.5" aria-label={t("nav.label")}>
+      <nav
+        className="relative flex flex-col gap-px"
+        aria-label={t("nav.label")}
+      >
+        {indicator}
         {NAV_ITEMS.map((item) => (
           <NavButton
             key={item.id}
@@ -184,24 +234,25 @@ export const Sidebar: React.FC = () => {
             active={page === item.id}
             collapsed={collapsed}
             onClick={() => navigateRoot(item.id)}
+            buttonRef={refFor(item.id)}
           />
         ))}
-        <div className="mx-2.5 my-2 h-px bg-hairline-strong/70" />
+        <div className="mx-2.5 my-2 h-px bg-hairline-strong/80" />
         <NavButton
           item={MODELS_ITEM}
           active={page === "models"}
           collapsed={collapsed}
           onClick={() => navigateRoot("models")}
+          buttonRef={refFor("models")}
         />
       </nav>
 
-      <div className="mt-auto flex flex-col gap-1">
+      <div className="mt-auto flex flex-col gap-1.5">
         <UpdatePill collapsed={collapsed} />
         <div className={collapsed ? "flex justify-center pb-1" : "px-1 pb-1"}>
           <DownloadIndicator placement="start" compact={collapsed} />
         </div>
         <ListeningStatus collapsed={collapsed} />
-        <div className="mx-2.5 my-1 h-px bg-hairline-strong/70" />
         <div
           className={`flex gap-1 ${collapsed ? "flex-col" : "items-center"}`}
         >
@@ -211,17 +262,17 @@ export const Sidebar: React.FC = () => {
             aria-haspopup="dialog"
             aria-expanded={settingsTab !== null}
             title={collapsed ? t("nav.settings") : undefined}
-            className={`group flex h-9 cursor-pointer items-center gap-3 rounded-lg text-body transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+            className={`group flex h-[2.125rem] cursor-pointer items-center gap-2.5 rounded-lg text-body transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
               collapsed ? "w-full justify-center" : "min-w-0 flex-1 px-2.5"
             }`}
           >
             <Settings
-              size={17}
+              size={16}
               strokeWidth={1.8}
               className="shrink-0 text-muted transition-transform duration-300 group-hover:rotate-45 group-hover:text-ink motion-reduce:transition-none"
             />
             {!collapsed && (
-              <span className="truncate text-[0.9375rem]">
+              <span className="truncate text-[0.875rem]">
                 {t("nav.settings")}
               </span>
             )}
@@ -234,8 +285,8 @@ export const Sidebar: React.FC = () => {
             aria-haspopup="dialog"
             aria-label={t("feedback.button")}
             title={t("feedback.button")}
-            className={`grid h-9 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-soft transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-              collapsed ? "w-full" : "w-9"
+            className={`grid h-[2.125rem] shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+              collapsed ? "w-full" : "w-[2.125rem]"
             }`}
           >
             <CircleQuestionMark className="h-4 w-4" />
@@ -246,8 +297,8 @@ export const Sidebar: React.FC = () => {
             aria-label={toggleLabel}
             aria-expanded={!collapsed}
             title={toggleLabel}
-            className={`grid h-9 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-soft transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-              collapsed ? "w-full" : "w-9"
+            className={`grid h-[2.125rem] shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+              collapsed ? "w-full" : "w-[2.125rem]"
             }`}
           >
             {collapsed ? (
