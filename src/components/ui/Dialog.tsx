@@ -16,7 +16,7 @@ import { usePortalTarget } from "./portal";
  * inside another one closes first.
  */
 
-type DialogSize = "sm" | "md" | "lg" | "xl" | "settings";
+type DialogSize = "sm" | "md" | "lg" | "xl" | "settings" | "drawer";
 
 const SIZE_CLASSES: Record<DialogSize, string> = {
   sm: "w-[min(26rem,calc(100vw-2rem))]",
@@ -25,6 +25,8 @@ const SIZE_CLASSES: Record<DialogSize, string> = {
   xl: "w-[min(56rem,calc(100vw-2rem))]",
   settings:
     "w-[min(60rem,calc(100vw-2.5rem))] h-[min(44rem,calc(100vh-4.5rem))]",
+  // A sheet that slides in from the window's end edge, full height.
+  drawer: "dialog-drawer w-[min(50rem,calc(100vw-6rem))] h-full max-h-none",
 };
 
 /** Stack of open dialog ids; the last one owns Escape. */
@@ -151,10 +153,15 @@ export const Dialog: React.FC<DialogProps> = ({
   };
 
   const isSettings = size === "settings";
+  const isDrawer = size === "drawer";
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      className={`fixed inset-0 z-[60] flex p-4 ${
+        isDrawer
+          ? "items-stretch justify-end p-2 pt-[calc(2.75rem+0.5rem)]"
+          : "items-center justify-center"
+      }`}
       onMouseDown={(event) => {
         pressStartedOnScrim.current = event.target === event.currentTarget;
       }}
@@ -180,7 +187,7 @@ export const Dialog: React.FC<DialogProps> = ({
         aria-labelledby={bare ? labelledBy : title ? titleId : undefined}
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className={`dialog-panel relative flex max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[1.125rem] bg-surface text-ink shadow-[0_0_0_1px_rgba(27,29,51,0.06),0_32px_80px_-24px_rgba(27,29,51,0.45),0_4px_12px_rgba(27,29,51,0.06)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
+        className={`${isDrawer ? "" : "dialog-panel max-h-[calc(100vh-3rem)]"} relative flex flex-col overflow-hidden rounded-[1.125rem] bg-surface text-ink shadow-[0_0_0_1px_rgba(27,29,51,0.06),0_32px_80px_-24px_rgba(27,29,51,0.45),0_4px_12px_rgba(27,29,51,0.06)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
       >
         {!bare && (
           <div className="flex shrink-0 items-start gap-4 px-6 pt-6 pb-4">
@@ -203,7 +210,7 @@ export const Dialog: React.FC<DialogProps> = ({
           </div>
         )}
         <div
-          className={`min-h-0 flex-1 ${isSettings ? "flex" : "overflow-y-auto"} ${bodyClassName}`}
+          className={`min-h-0 flex-1 ${isSettings ? "flex" : isDrawer ? "flex flex-col" : "overflow-y-auto"} ${bodyClassName}`}
         >
           {children}
         </div>
