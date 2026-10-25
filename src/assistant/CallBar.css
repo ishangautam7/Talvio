@@ -61,7 +61,7 @@
   height: calc(var(--call-icon) + 8px);
   padding: 0 4px;
   border-radius: 999px;
-  background: var(--as-chip-surface);
+  background: var(--as-sheen, none), var(--as-chip-surface);
   border: 1px solid var(--as-hairline-strong);
   box-shadow: var(--as-inner);
   backdrop-filter: blur(20px) saturate(1.4);
@@ -295,7 +295,7 @@
   flex-shrink: 0;
   max-width: min(400px, calc(100vw - 32px));
   border-radius: 16px;
-  background: var(--as-chip-surface);
+  background: var(--as-sheen, none), var(--as-chip-surface);
   border: 1px solid var(--as-hairline);
   box-shadow: var(--as-inner);
   backdrop-filter: blur(20px) saturate(1.4);
@@ -546,7 +546,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: var(--as-panel-surface);
+  background: var(--as-sheen, none), var(--as-panel-surface);
   border: 1px solid var(--as-hairline);
   border-radius: 18px;
   box-shadow: var(--as-inner);
