@@ -285,6 +285,10 @@ Every body has a `kind`. A request carries a `requestId` (uuid) chosen by the
 sender, and **any number** of replies may carry the same `requestId`: zero or
 more `progress` messages, then exactly one `result`, which ends the request.
 This is what lets a long-running request (an agent task) stream updates.
+While a step runs long (a transcription, a command, an answer), the computer
+repeats its latest `progress` unchanged about every 5 seconds, so a request
+that is still working never reads as lost; a phone treats a repeat as nothing
+new, apart from restarting its timeout.
 
 The set of kinds is open. Rules every implementation follows so new kinds can
 be added without touching the others:
