@@ -1164,6 +1164,31 @@
 input[type="range"] {
   accent-color: var(--color-accent);
 }
+/* A drawn range (its track painted by the component): a white knob with a
+ * hairline and a soft shadow, which swells a little while it is held. */
+input[type="range"].range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 0.5px rgba(27, 29, 51, 0.2),
+    0 1px 3px rgba(27, 29, 51, 0.28);
+  transition:
+    scale 140ms ease,
+    box-shadow 140ms ease;
+}
+input[type="range"].range-input:active::-webkit-slider-thumb {
+  scale: 1.15;
+}
+input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 0.5px rgba(27, 29, 51, 0.2),
+    0 1px 3px rgba(27, 29, 51, 0.28),
+    var(--focus-ring);
+}
 
 /* ============================================================================
  * Components — the shared controls, so every one of them is drawn once
@@ -1208,6 +1233,7 @@ input[type="range"] {
   position: absolute;
   inset-inline: 0;
   top: 0;
+  z-index: -1;
   height: 26rem;
   pointer-events: none;
   background:
@@ -1224,6 +1250,28 @@ input[type="range"] {
 }
 [dir="rtl"] .sheet-glow {
   scale: -1 1;
+}
+/* The welcome screen: the light rises behind the mark, in the middle. */
+.sheet-glow.sheet-glow-center {
+  height: 100%;
+  background: radial-gradient(
+    42% 46% at 50% 40%,
+    rgba(242, 84, 61, 0.09),
+    transparent 72%
+  );
+}
+:root[data-theme="dark"] .sheet-glow.sheet-glow-center {
+  background:
+    radial-gradient(
+      34% 40% at 50% 40%,
+      rgba(255, 106, 82, 0.1),
+      transparent 72%
+    ),
+    radial-gradient(
+      60% 60% at 50% 30%,
+      rgba(78, 84, 200, 0.14),
+      transparent 72%
+    );
 }
 :root[data-theme="dark"] .sheet-glow {
   background:
@@ -1572,6 +1620,20 @@ input[type="range"] {
 .tab-pill:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+/* ---------- Empty states ----------
+ * The glyph sits in a small raised tile with the faintest coral light behind
+ * it, the only warmth in an otherwise empty place. */
+.empty-state-tile {
+  background:
+    radial-gradient(
+      120% 120% at 30% 0%,
+      color-mix(in srgb, var(--color-accent-fill) 10%, transparent),
+      transparent 70%
+    ),
+    var(--color-surface);
+  box-shadow: var(--shadow-raised);
 }
 
 /* ---------- Badges ---------- */

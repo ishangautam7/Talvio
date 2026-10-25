@@ -10,8 +10,9 @@ export function WelcomeStep({ onContinue }: { onContinue: () => void }) {
   const { t } = useTranslation();
   return (
     <div className="flex h-full min-h-0 flex-col bg-canvas-soft">
-      <main className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden rounded-t-[1.25rem] border-t border-hairline bg-canvas px-6 text-center elev-pane">
-        <div className="ob-welcome">
+      <main className="relative isolate flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden mx-2 mb-2 rounded-2xl bg-canvas px-6 text-center elev-pane">
+        <div aria-hidden="true" className="sheet-glow sheet-glow-center" />
+        <div className="ob-welcome relative">
           <Logo className="ob-welcome-mark mx-auto mb-5 h-[4.5rem] w-[4.5rem]" />
           <h1 className="ob-welcome-mark m-0 text-[3.5rem] sm:text-[4.25rem]">
             <Wordmark />

@@ -98,8 +98,8 @@ export const LogoChoice: React.FC<{
             onKeyDown={(event) => onKeyDown(event, option.value)}
             className={`group relative flex min-w-0 cursor-pointer items-center gap-2.5 rounded-xl border px-2.5 py-2 text-start transition-[border-color,background-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed ${
               selected
-                ? "border-accent/55 bg-accent/[0.06] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_28%,transparent)]"
-                : "border-hairline bg-surface hover:border-hairline-strong hover:bg-surface-muted"
+                ? "border-accent-fill bg-surface shadow-[0_0_0_1px_var(--color-accent-fill),0_4px_14px_-6px_color-mix(in_srgb,var(--color-accent-fill)_45%,transparent)]"
+                : "border-hairline bg-surface shadow-[var(--shadow-card)] hover:border-hairline-strong hover:bg-surface-muted"
             }`}
           >
             <span className="shrink-0">{option.icon}</span>

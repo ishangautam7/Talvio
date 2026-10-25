@@ -44,7 +44,7 @@ export const MainShell: React.FC<{ initialNavigation?: NavigationState }> = ({
           read as one frame and the page sits on top of it. */}
       <div className="flex flex-1 overflow-hidden bg-canvas-soft">
         <Sidebar />
-        <main className="relative mb-2 me-2 flex flex-1 flex-col overflow-hidden rounded-2xl bg-canvas elev-pane">
+        <main className="relative isolate mb-2 me-2 flex flex-1 flex-col overflow-hidden rounded-2xl bg-canvas elev-pane">
           {/* Dawn: a faint warm light along the top of the sheet. */}
           <div aria-hidden="true" className="sheet-glow" />
           <div className="mx-auto w-full max-w-5xl px-6 pt-5 empty:hidden sm:px-10">
