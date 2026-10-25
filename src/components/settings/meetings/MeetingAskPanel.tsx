@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowUp, Eraser, MessageSquareText, Square, X } from "lucide-react";
+import { ArrowUp, Eraser, MessageSquareText, Square, X } from "@/components/icons/glyphs";
 import { useMeetingChat } from "./useMeetingChat";
 
 interface MeetingAskPanelProps {

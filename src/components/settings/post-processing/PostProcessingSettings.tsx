@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, RotateCcw } from "lucide-react";
+import { Pencil, RotateCcw } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 

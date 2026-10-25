@@ -10,7 +10,7 @@ import {
   Search,
   Trash2,
   Wand2,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { commands, type ModelInfo, type Result } from "@/bindings";
 import { formatModelSize } from "@/lib/utils/format";
 import { getModelCategory } from "@/lib/utils/modelCategory";

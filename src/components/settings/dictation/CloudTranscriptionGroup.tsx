@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Cloud, ExternalLink, Globe, Languages, Loader2 } from "lucide-react";
+import { Cloud, ExternalLink, Globe, Languages, Loader2 } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { SettingsGroup } from "@/components/ui/SettingsGroup";

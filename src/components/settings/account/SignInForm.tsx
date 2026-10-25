@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, Smartphone } from "lucide-react";
+import { Loader2, Smartphone } from "@/components/icons/glyphs";
 import { commands, type AccountStatus, type Result } from "@/bindings";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";

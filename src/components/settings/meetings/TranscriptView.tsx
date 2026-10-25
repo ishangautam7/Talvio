@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, HelpCircle, Pencil, X } from "lucide-react";
+import { Check, HelpCircle, Pencil, X } from "@/components/icons/glyphs";
 import type { SettingTone } from "@/components/ui/tones";
 import type { MeetingSpeaker } from "./api";
 import {

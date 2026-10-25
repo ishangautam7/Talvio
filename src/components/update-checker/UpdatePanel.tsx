@@ -12,7 +12,7 @@ import {
   FolderOpen,
   LoaderCircle,
   RotateCw,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
 import { useUpdateStore } from "./updateStore";

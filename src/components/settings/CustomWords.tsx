@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, X } from "lucide-react";
+import { Plus, X } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { useSettings } from "../../hooks/useSettings";
 import { Button } from "../ui/Button";

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Check, GraduationCap, X } from "lucide-react";
+import { Check, GraduationCap, X } from "@/components/icons/glyphs";
 import { ToggleSwitch } from "../ui/ToggleSwitch";
 
 /** Mirrors `AutoLearnStatus`. */

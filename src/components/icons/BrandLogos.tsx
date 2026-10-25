@@ -1,5 +1,5 @@
 import React from "react";
-import { AudioLines, Mic, Moon, Sparkles } from "lucide-react";
+import { AudioLines, Mic, Moon, Sparkles } from "@/components/icons/glyphs";
 import type { ModelInfo } from "@/bindings";
 import { getModelCategory } from "@/lib/utils/modelCategory";
 import speakoFlowMiniMark from "@/assets/speakoflow-mini.png";

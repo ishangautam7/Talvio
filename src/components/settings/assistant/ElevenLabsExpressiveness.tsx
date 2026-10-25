@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw } from "@/components/icons/glyphs";
 import { SettingContainer } from "@/components/ui/SettingContainer";
 
 /** The slider moves in 5% steps; finer than that is not audible. */

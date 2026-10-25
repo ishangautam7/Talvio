@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronUp, Loader2 } from "lucide-react";
+import { ChevronUp, Loader2 } from "@/components/icons/glyphs";
 import type { ModelInfo } from "@/bindings";
 import { useModelStore } from "../../stores/modelStore";
 import { getTranslatedModelName } from "../../lib/utils/modelTranslation";

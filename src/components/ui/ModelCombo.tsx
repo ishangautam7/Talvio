@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw } from "@/components/icons/glyphs";
 import { Input } from "./Input";
 
 export type ModelComboOption = { value: string; label: string };

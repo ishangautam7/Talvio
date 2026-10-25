@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Check, Download } from "lucide-react";
+import { ArrowRight, Check, Download } from "@/components/icons/glyphs";
 import type { ModelInfo } from "@/bindings";
 import { Button } from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";

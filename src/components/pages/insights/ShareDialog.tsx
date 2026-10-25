@@ -21,7 +21,7 @@ import {
   RectangleHorizontal,
   RectangleVertical,
   Square,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { commands, type Insights } from "@/bindings";
 import { SocialMark, type SocialSite } from "@/components/icons/SocialLogos";
 import { Button } from "@/components/ui/Button";

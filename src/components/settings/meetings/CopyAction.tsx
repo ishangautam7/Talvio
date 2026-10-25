@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy } from "@/components/icons/glyphs";
 import { copyText } from "./api";
 
 /** A quiet text button in a meeting toolbar (template, regenerate, copy). */

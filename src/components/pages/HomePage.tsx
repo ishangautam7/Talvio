@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons/glyphs";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Button } from "@/components/ui/Button";
 import { useNavigation } from "@/components/shell/navigation";

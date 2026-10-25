@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Download, RotateCw } from "lucide-react";
+import { ArrowRight, Download, RotateCw } from "@/components/icons/glyphs";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { useNavigation } from "@/components/shell/navigation";

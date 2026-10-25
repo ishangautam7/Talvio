@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Search,
   X,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import {
   commands,

@@ -13,7 +13,7 @@ import {
   Scale,
   SunMoon,
   Type as TypeIcon,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { commands } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { SettingsGroup } from "@/components/ui/SettingsGroup";

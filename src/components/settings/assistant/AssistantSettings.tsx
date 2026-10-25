@@ -15,7 +15,7 @@ import {
   PanelTop,
   Power,
   PlugZap,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import {
   commands,
   type TtsVoice,

@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons/glyphs";
 import { usePortalTarget } from "./portal";
 
 export interface MenuItem {
