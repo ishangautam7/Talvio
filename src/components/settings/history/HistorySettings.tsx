@@ -704,7 +704,11 @@ export const HistorySettings: React.FC = () => {
       <>
         <div className="space-y-6">
           {dayGroups.map((group) => (
-            <section key={group.key} aria-label={group.label}>
+            <section
+              key={group.key}
+              aria-label={group.label}
+              className="history-day"
+            >
               {/* Sticky so a long day keeps its heading in view, under the
                   page's compact title. It is frosted only while stuck, so at
                   rest it never draws a band across the sheet's light. */}
