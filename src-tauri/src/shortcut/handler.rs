@@ -62,6 +62,12 @@ pub fn handle_shortcut_event(
         // a call, because its first two keys are the ask's. Dictation does not
         // end a call at all: it holds the call's microphone while it records
         // (see `voice_conversation::DictationTracker`).
+        // The ask key pressed while the orb is answering (writing or speaking)
+        // stops the answer and puts the orb away, the way a second press stops
+        // a recording. It does not start a question over the one being answered.
+        if base_id == "assistant" && is_pressed && crate::assistant::stop_spoken_ask(app) {
+            return;
+        }
         if let Some(coordinator) = app.try_state::<TranscriptionCoordinator>() {
             // Dictation (with or without cleanup) and the ask are each held or
             // tapped on their own setting (`settings::holds_to_record`):
@@ -89,9 +95,11 @@ pub fn handle_shortcut_event(
     // long-running voice operation after recording ends. Only on key-press.
     if base_id == "cancel" {
         let audio_manager = app.state::<Arc<AudioRecordingManager>>();
+        // A quick ask's answer still being spoken counts: Esc stops it.
         let assistant_busy = app
             .try_state::<crate::assistant::AssistantConversation>()
-            .map_or(false, |c| c.is_busy());
+            .map_or(false, |c| c.is_busy())
+            || crate::assistant::spoken_ask_active();
         let flow_busy = crate::flow::is_generation_active();
         // A spoken command being transcribed or carried out: Esc stops it.
         let command_busy = crate::command_mode::voice::is_busy();
