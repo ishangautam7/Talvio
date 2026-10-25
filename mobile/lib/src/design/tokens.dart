@@ -117,6 +117,10 @@ class TalvioColors extends ThemeExtension<TalvioColors> {
   final Color userBubble;
   final Color onUserBubble;
 
+  /// The fill of a round button that cannot be pressed now: a well on
+  /// light, a step up on dark (a well there reads as a hole).
+  Color get disabledFill => ink.computeLuminance() > 0.5 ? raised : sunken;
+
   /// The brand gradient: the icon's tile, the mic.
   static const gradient = LinearGradient(
     begin: Alignment.topLeft,

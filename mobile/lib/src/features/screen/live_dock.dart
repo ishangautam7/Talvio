@@ -232,7 +232,12 @@ class _Overlay extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(Space.md, Space.xs, 0, Space.lg),
+            padding: const EdgeInsets.fromLTRB(
+              Space.md,
+              Space.xs,
+              Space.xs,
+              Space.lg,
+            ),
             child: Row(
               children: [
                 _LiveBadge(text: watchStatus(w), live: isLive),
@@ -247,21 +252,23 @@ class _Overlay extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(
+                _GlassButton(
                   tooltip: ScreenStrings.collapse,
-                  visualDensity: VisualDensity.compact,
+                  icon: Icons.expand_less_rounded,
                   onPressed: () => live.setExpanded(false),
-                  icon: const Icon(Icons.expand_less_rounded),
+                  small: true,
                 ),
-                IconButton(
+                const SizedBox(width: Space.xs),
+                _GlassButton(
                   tooltip: ScreenStrings.stopWatching,
-                  visualDensity: VisualDensity.compact,
+                  icon: Icons.close_rounded,
                   onPressed: () {
                     Haptic.tick();
                     live.close();
                   },
-                  icon: const Icon(Icons.close_rounded),
+                  small: true,
                 ),
+                const SizedBox(width: Space.xs),
               ],
             ),
           ),
@@ -301,11 +308,13 @@ class _GlassButton extends StatelessWidget {
     required this.tooltip,
     required this.icon,
     required this.onPressed,
+    this.small = false,
   });
 
   final String tooltip;
   final IconData icon;
   final VoidCallback onPressed;
+  final bool small;
 
   @override
   Widget build(BuildContext context) => IconButton(
@@ -314,10 +323,11 @@ class _GlassButton extends StatelessWidget {
     style: IconButton.styleFrom(
       backgroundColor: Colors.black.withValues(alpha: 0.45),
       foregroundColor: Colors.white,
-      minimumSize: const Size.square(40),
-      fixedSize: const Size.square(40),
+      minimumSize: Size.square(small ? 34 : 40),
+      fixedSize: Size.square(small ? 34 : 40),
+      tapTargetSize: MaterialTapTargetSize.padded,
     ),
-    iconSize: 20,
+    iconSize: small ? 18 : 20,
     icon: Icon(icon),
   );
 }

@@ -71,6 +71,8 @@ abstract final class AssistantStrings {
   static const confirmedFailed = "Couldn't do that";
   static const confirmedAsks = 'It has a question';
 
+  static String offlineBody(String name) =>
+      'Open Talvio on $name to ask its assistant. Your chat stays here.';
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to ask its assistant.';
   static String updateNote(String name) =>

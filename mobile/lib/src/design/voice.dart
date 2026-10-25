@@ -214,7 +214,7 @@ class MicOrb extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: enabled || busy ? TalvioColors.gradient : null,
-                color: enabled || busy ? null : t.sunken,
+                color: enabled || busy ? null : t.disabledFill,
                 boxShadow: enabled
                     ? [
                         BoxShadow(
@@ -560,7 +560,7 @@ class _RoundButton extends StatelessWidget {
             ? t.ink
             : enabled
             ? null
-            : t.sunken,
+            : t.disabledFill,
       ),
       child: Material(
         type: MaterialType.transparency,

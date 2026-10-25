@@ -154,7 +154,7 @@ class _ScreenHomeState extends State<ScreenHome> {
         ? watching.target.id
         : null;
 
-    final Widget state;
+    final Widget? state;
     if (!computer.online) {
       state = Notice(
         tone: Tone.neutral,
@@ -172,6 +172,9 @@ class _ScreenHomeState extends State<ScreenHome> {
               icon: Icons.system_update_alt_rounded,
               message: ScreenStrings.updateBody(name),
             );
+    } else if (watchedId != null) {
+      // The view is already at the top of the page.
+      state = null;
     } else {
       state = _Hero(
         name: name,
@@ -182,12 +185,11 @@ class _ScreenHomeState extends State<ScreenHome> {
                 ScreenStrings.screenSize(mainScreen.width, mainScreen.height),
               ),
         onView: watchable && target != null ? () => _watch(target) : null,
-        watching: watchedId != null && watchedId == target?.id,
       );
     }
 
     final children = <Widget>[
-      state,
+      ?state,
       if (canWatch(computer)) ...[
         SectionHeader(
           ScreenStrings.openWindows,
@@ -284,17 +286,11 @@ class _ScreenHomeState extends State<ScreenHome> {
 
 /// The dark card at the top: see the screen.
 class _Hero extends StatelessWidget {
-  const _Hero({
-    required this.name,
-    required this.detail,
-    required this.onView,
-    required this.watching,
-  });
+  const _Hero({required this.name, required this.detail, required this.onView});
 
   final String name;
   final String? detail;
   final VoidCallback? onView;
-  final bool watching;
 
   @override
   Widget build(BuildContext context) {
@@ -341,12 +337,8 @@ class _Hero extends StatelessWidget {
                 disabledForegroundColor: Colors.white.withValues(alpha: 0.5),
                 minimumSize: const Size.fromHeight(52),
               ),
-              icon: Icon(
-                watching ? Icons.cast_connected_rounded : Icons.cast_rounded,
-              ),
-              label: Text(
-                watching ? ScreenStrings.watchingNow : ScreenStrings.viewScreen,
-              ),
+              icon: const Icon(Icons.cast_rounded),
+              label: const Text(ScreenStrings.viewScreen),
             ),
           ),
           if (detail case final detail?) ...[

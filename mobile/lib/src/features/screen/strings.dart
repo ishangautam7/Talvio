@@ -8,7 +8,6 @@ abstract final class ScreenStrings {
       'A small live view that stays at the top while you talk to your '
       'computer. Watch only: nothing is clicked from here.';
   static const viewScreen = 'View screen';
-  static const watchingNow = 'Showing it above';
   static String viewScreenDetail(String screen, String size) =>
       '$screen · $size';
   static const openWindows = 'Windows';

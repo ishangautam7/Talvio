@@ -97,7 +97,7 @@ ThemeData buildTheme(Brightness brightness) {
       style: FilledButton.styleFrom(
         backgroundColor: t.accent,
         foregroundColor: t.onAccent,
-        disabledBackgroundColor: t.sunken,
+        disabledBackgroundColor: light ? t.sunken : t.raised,
         disabledForegroundColor: t.faint,
         minimumSize: const Size(64, 48),
         padding: const EdgeInsets.symmetric(horizontal: 20),

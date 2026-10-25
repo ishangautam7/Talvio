@@ -21,6 +21,7 @@ abstract final class DictateStrings {
   static String noComputerBody(String email) =>
       'Open Talvio on your computer and sign in with $email. '
       'It shows up here once it is signed in.';
+  static String offlineTitle(String name) => '$name is offline';
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to dictate from your phone.';
   static String updateNote(String name) =>

@@ -31,12 +31,12 @@ enum Tone { neutral, accent, success, warning, danger, info }
 
 extension ToneColors on Tone {
   (Color fg, Color bg) colors(TalvioColors t) => switch (this) {
-    Tone.neutral => (t.muted, t.sunken),
+    Tone.neutral => (t.muted, t.disabledFill),
     Tone.accent => (t.accent, t.accentSoft),
     Tone.success => (t.success, t.successSoft),
     Tone.warning => (t.warning, t.warningSoft),
     Tone.danger => (t.danger, t.dangerSoft),
-    Tone.info => (t.ink, t.sunken),
+    Tone.info => (t.ink, t.disabledFill),
   };
 }
 
@@ -808,4 +808,51 @@ class SegmentedPill<T> extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A scrolling list whose bottom edge fades out into the controls under it,
+/// so content scrolls away rather than being cut.
+class FadeBottom extends StatelessWidget {
+  const FadeBottom({super.key, required this.child, this.size = 24});
+
+  final Widget child;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => ShaderMask(
+    blendMode: BlendMode.dstIn,
+    shaderCallback: (rect) => LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: const [Colors.black, Colors.black, Colors.transparent],
+      stops: [0, rect.height <= size ? 0 : 1 - size / rect.height, 1],
+    ).createShader(rect),
+    child: child,
+  );
+}
+
+/// Fades and lifts its child in once, when it first appears: a new answer,
+/// a result, a page.
+class Appear extends StatelessWidget {
+  const Appear({super.key, required this.child, this.offset = 10});
+
+  final Widget child;
+
+  /// How far below its place it starts.
+  final double offset;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: Motion.medium,
+    curve: Motion.emphasized,
+    builder: (context, t, child) => Opacity(
+      opacity: t,
+      child: Transform.translate(
+        offset: Offset(0, offset * (1 - t)),
+        child: child,
+      ),
+    ),
+    child: child,
+  );
 }
