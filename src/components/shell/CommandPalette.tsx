@@ -154,17 +154,30 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     [t, navigateRoot, openModelSlot, openSettings, showFeedback, debugMode],
   );
 
-  // Matches, best first within each group; groups keep their order.
-  const results = useMemo(() => {
+  // Matches, best first within each group, and the group holding the best
+  // match first, so the top entry is always the best one ("sh" opens
+  // Shortcuts, not a page that happens to contain an s and an h).
+  const { results, groups } = useMemo(() => {
     const scored = entries
       .map((entry) => ({ entry, score: matchScore(entry.label, query) }))
       .filter((item) => item.score > 0);
-    return GROUP_ORDER.flatMap((group) =>
-      scored
-        .filter((item) => item.entry.group === group)
-        .sort((a, b) => b.score - a.score)
-        .map((item) => item.entry),
-    );
+    const best = (group: PaletteEntry["group"]) =>
+      Math.max(
+        0,
+        ...scored
+          .filter((item) => item.entry.group === group)
+          .map((item) => item.score),
+      );
+    const order = [...GROUP_ORDER].sort((a, b) => best(b) - best(a));
+    return {
+      groups: order,
+      results: order.flatMap((group) =>
+        scored
+          .filter((item) => item.entry.group === group)
+          .sort((a, b) => b.score - a.score)
+          .map((item) => item.entry),
+      ),
+    };
   }, [entries, query]);
 
   useEffect(() => setActive(0), [query]);
@@ -223,7 +236,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex justify-center px-4 pt-[11vh]"
+      className="fixed inset-0 z-[80] flex items-start justify-center px-4 pt-[11vh]"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -264,7 +277,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           id={listId}
           role="listbox"
           aria-label={t("palette.label")}
-          className="min-h-0 flex-1 overflow-y-auto p-2"
+          className="min-h-0 shrink overflow-y-auto p-2"
         >
           {results.length === 0 && (
             <li
@@ -274,7 +287,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               {t("palette.empty", { query })}
             </li>
           )}
-          {GROUP_ORDER.map((group) => {
+          {groups.map((group) => {
             const inGroup = results.filter((entry) => entry.group === group);
             if (inGroup.length === 0) return null;
             return (

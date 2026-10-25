@@ -7,38 +7,38 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * Design system — Talvio "Frame & Sheet" (docs/talvio-brand.md §5–6).
+ * Design system — Talvio "Ink & Porcelain" (docs/talvio-brand.md §5–6).
  *
- * The window is a frame with a sheet floating in it. The frame (title bar,
- * sidebar, and a thin margin round the content) is one tinted surface; the
- * page is a rounded sheet inset into it on every side, lifted by a hairline
- * and a soft shadow, the way Arc and Things hold their content. Cards sit on
- * the sheet, white on the light theme and a step lighter than the sheet on
- * the dark one, so depth always reads frame → sheet → card → fill.
+ * The window is an ink-navy frame — the title bar and the rail, an L round
+ * the page — in both themes, and the page is a porcelain sheet tucked into
+ * its corner (the brand's ink tile and its coral mark, as a window). The
+ * title bar carries the command palette's search button; the rail carries
+ * every page as a glyph with its name, the current one in the logo's coral
+ * gradient. Cards sit on the sheet, white on the light theme and a step
+ * lighter than the sheet on the dark one, so depth reads sheet → card → fill.
  *
- * Neutrals are warm but quiet on the light theme (stone, not beige) and lean
- * toward the brand's ink navy on the dark one.
+ * Neutrals are cool and lean toward the ink on both themes.
  *
  * Type: Inter for everything you read and operate; Plus Jakarta Sans (the
- * logo's own face) for display — page titles, section titles, banner
- * headlines, the wordmark and the Insights figures.
+ * logo's own face) for display — page titles (large, 800, tightly tracked),
+ * section titles, banner headlines, the wordmark and the Insights figures.
+ * Labels over groups are small capitals (`.eyebrow`).
  *
  * Colour: coral is used with restraint, for state and for the one primary
- * action — a primary button, a switch that is on, the icon of the page you
- * are on, a link, a focus ring. Never a coral flood: the page you are on is a
- * raised white chip in the sidebar, not a coral wash. Brand coral `#F2543D`
+ * action — a primary button, a switch that is on, the current page on the
+ * rail, a link, a focus ring. What you have chosen among peers (a Settings
+ * tab, a model job) is ink, the colour of the frame. Brand coral `#F2543D`
  * is only 3.4:1 on white, so on the light theme it is a graphics colour
- * (`--color-accent-fill`: switches, dots, bars, icons, focus rings); text,
- * links and filled buttons use `#C2402A` (`--color-accent`), which holds
- * white text. On the dark theme one coral, `#FF6A52`, does both, with
- * ink-navy text on a fill.
+ * (`--color-accent-fill`); text, links and filled buttons use `#C2402A`
+ * (`--color-accent`), which holds white text. On the dark theme one coral,
+ * `#FF6A52`, does both, with ink-navy text on a fill.
  *
- * Every text pairing below was checked for WCAG AA: ink on the sheet 15.6:1,
- * muted on the sheet 6.0:1, on the frame 5.3:1, accent on a card 5.2:1 (on
- * the sheet 4.9:1), white on accent 5.2:1; dark: muted on a card 7.1:1, on
- * the frame 8.1:1, accent on a card 6.1:1, ink navy on accent 6.6:1. A
- * switch's off track is 3.5:1 against a card (3:1 is the bar for a control's
- * edge).
+ * Every text pairing below was checked for WCAG AA: ink on the sheet 15.9:1,
+ * muted on the sheet 5.7:1 and on a fill 5.4:1, accent on the sheet 4.7:1,
+ * white on accent 5.2:1, the frame's text 14.6:1 and its quiet text 7.3:1 on
+ * the frame; dark: muted on a card 7.1:1, on the sheet 7.8:1, accent on a
+ * card 6.1:1, ink navy on accent 6.6:1. A switch's off track is 3.6:1
+ * against a card (3:1 is the bar for a control's edge).
  */
 @theme {
   /* === The frame ===
