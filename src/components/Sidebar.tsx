@@ -113,7 +113,20 @@ const useNavIndicator = (activeId: PageId, collapsed: boolean) => {
       setBox(null);
       return;
     }
-    setBox({ top: element.offsetTop, height: element.offsetHeight });
+    const measure = () =>
+      setBox((current) =>
+        current &&
+        current.top === element.offsetTop &&
+        current.height === element.offsetHeight
+          ? current
+          : { top: element.offsetTop, height: element.offsetHeight },
+      );
+    measure();
+    // The UI scales with the display (rem), which moves every item.
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
   }, [activeId, collapsed]);
 
   // The first placement is instant; only later moves slide.
