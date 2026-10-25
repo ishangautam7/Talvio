@@ -224,8 +224,7 @@
 }
 
 .call-orb .luminous-orb-fallback {
-  margin: calc(var(--call-orb, 26px) / -2) 0 0
-    calc(var(--call-orb, 26px) / -2);
+  margin: calc(var(--call-orb, 26px) / -2) 0 0 calc(var(--call-orb, 26px) / -2);
 }
 
 .call-orb-end {
@@ -1183,7 +1182,6 @@
   outline: 2px solid var(--as-ink);
   outline-offset: 2px;
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   .call-bar,

@@ -175,9 +175,7 @@ export const LuminousOrb: React.FC<LuminousOrbProps> = ({
       const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
       last = now;
       const time = (now - start) / 1000;
-      const input = sourceRef.current
-        ? sourceRef.current()
-        : levelRef.current;
+      const input = sourceRef.current ? sourceRef.current() : levelRef.current;
       smoothed = followLevel(smoothed, input, dt);
       weights = approachWeights(weights, targetWeights(modeRef.current), dt);
       flow += dt * flowSpeed(weights, smoothed, reduced);

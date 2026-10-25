@@ -274,7 +274,11 @@ const QuickAsk: React.FC<QuickAskProps> = ({
               {inserted ? (
                 <Check size={13} strokeWidth={2.4} aria-hidden="true" />
               ) : (
-                <CornerDownLeft size={13} strokeWidth={2.2} aria-hidden="true" />
+                <CornerDownLeft
+                  size={13}
+                  strokeWidth={2.2}
+                  aria-hidden="true"
+                />
               )}
               <span>{t("assistant.insertReplaceShort")}</span>
             </button>

@@ -118,9 +118,9 @@ test("only tools worth naming get a line", () => {
   expect(toolCaption({ name: "capture_screen", detail: "" })).toEqual({
     key: "assistant.tool.screen",
   });
-  expect(toolCaption({ name: "do_on_computer", detail: "open youtube." })).toEqual(
-    { key: "assistant.orb.doing", values: { action: "Open youtube" } },
-  );
+  expect(
+    toolCaption({ name: "do_on_computer", detail: "open youtube." }),
+  ).toEqual({ key: "assistant.orb.doing", values: { action: "Open youtube" } });
   expect(toolCaption({ name: "do_on_computer", detail: "" })).toEqual({
     key: "assistant.tool.computer",
   });
@@ -251,7 +251,11 @@ test("the orb is the only control while it works, and it stops", () => {
 
 test("a tool at work is the one line of words", () => {
   render(
-    <QuickAsk {...base} phase="working" caption="Open YouTube in the browser…" />,
+    <QuickAsk
+      {...base}
+      phase="working"
+      caption="Open YouTube in the browser…"
+    />,
   );
   expect(visibleText()).toContain("Open YouTube in the browser…");
 });
@@ -275,14 +279,26 @@ test("an answer about a selection offers Insert once it is ready", () => {
 
 test("an answer that was not about a selection offers nothing to click", () => {
   render(
-    <QuickAsk {...base} phase="done" answer="Paris." answerReady question="q" />,
+    <QuickAsk
+      {...base}
+      phase="done"
+      answer="Paris."
+      answerReady
+      question="q"
+    />,
   );
   expect(labels()).toEqual(["common.close"]);
 });
 
 test("an answer nobody heard is offered to copy", () => {
   render(
-    <QuickAsk {...base} phase="done" answer="```rm -rf```" answerReady offerCopy />,
+    <QuickAsk
+      {...base}
+      phase="done"
+      answer="```rm -rf```"
+      answerReady
+      offerCopy
+    />,
   );
   expect(labels()).toEqual(["common.close", "assistant.copy"]);
 });
