@@ -219,8 +219,7 @@ async fn transcribe(router: &Router, reply: &Reply, audio: &str) -> Result<Strin
         "bad_audio"
     })?;
     reply.progress("transcribing");
-    let text = host
-        .transcribe(samples)
+    let text = super::with_heartbeat(reply, host.transcribe(samples), || {})
         .await
         .ok_or("transcription_failed")?;
     let text = text.trim().to_string();

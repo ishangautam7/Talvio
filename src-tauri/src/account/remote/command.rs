@@ -9,7 +9,7 @@ use futures_util::future::BoxFuture;
 use log::{debug, info};
 use serde_json::{json, Map, Value};
 
-use super::{dictate, Reply, Router};
+use super::{dictate, with_heartbeat, Reply, Router};
 
 const MAX_TEXT_CHARS: usize = 2_000;
 
@@ -108,7 +108,9 @@ async fn perform(router: &Router, mut reply: Reply, ask: Ask) {
         return reply.fail("cancelled");
     }
     reply.progress("working");
-    let outcome = host.command(ask).await;
+    // Command mode takes its stop from Esc's flag; a phone's cancel raises it
+    // too, and the command then reports itself cancelled.
+    let outcome = with_heartbeat(&reply, host.command(ask), || host.cancel_command()).await;
     if outcome.not_configured {
         return reply.fail("not_configured");
     }
@@ -132,8 +134,7 @@ async fn transcribe(router: &Router, reply: &Reply, audio: &str) -> Result<Strin
         "bad_audio"
     })?;
     reply.progress("transcribing");
-    let text = host
-        .transcribe(samples)
+    let text = with_heartbeat(reply, host.transcribe(samples), || {})
         .await
         .ok_or("transcription_failed")?;
     let text = text.trim().to_string();
@@ -228,6 +229,28 @@ mod tests {
                     "feedback": "Did: open youtube" })
         );
         assert_eq!(*host.commands.lock().unwrap(), ["run open youtube"]);
+    }
+
+    /// A long command repeats "working" so the phone never takes it for lost,
+    /// and a cancel from the phone reaches command mode once.
+    #[tokio::test]
+    async fn a_long_command_keeps_saying_working_and_hears_a_cancel() {
+        let host = FakeHost::default();
+        let (release, gate) = tokio::sync::oneshot::channel();
+        *host.command_gate.lock().unwrap() = Some(gate);
+        let (router, host, mut frames) = router(host);
+        router.handle(
+            "phone",
+            json!({ "kind": "command", "requestId": "c1", "text": "open notepad" }),
+        );
+        assert_eq!(next(&mut frames).await["stage"], "working");
+        assert_eq!(next(&mut frames).await["stage"], "working");
+        assert_eq!(next(&mut frames).await["stage"], "working");
+        router.handle("phone", json!({ "kind": "cancel", "requestId": "c1" }));
+        tokio::time::sleep(super::super::HEARTBEAT * 3).await;
+        assert_eq!(*host.command_cancels.lock().unwrap(), 1);
+        release.send(()).unwrap();
+        assert_eq!(next(&mut frames).await["kind"], "result");
     }
 
     #[tokio::test]

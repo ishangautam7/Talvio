@@ -123,6 +123,8 @@ pub trait Host: Send + Sync + 'static {
     fn command_enabled(&self) -> bool;
     /// Run, confirm or answer a command through command mode.
     fn command(&self, ask: Ask) -> CommandFuture;
+    /// Stop the command running now, as Esc does (between its steps).
+    fn cancel_command(&self);
 
     // ── The assistant (`assistant.rs`) ─────────────────────────────────────
 
@@ -364,6 +366,10 @@ impl Host for AppHost {
             };
             super::outcome_of(&report)
         })
+    }
+
+    fn cancel_command(&self) {
+        crate::command_mode::cancel_running();
     }
 
     fn assistant_enabled(&self) -> bool {

@@ -174,6 +174,9 @@ fn server_api(app: &AppHandle) -> Result<Api, String> {
 /// The ICE servers for a live view: the account server's (STUN, and TURN when
 /// it has one), or public STUN alone when it cannot be asked, which still
 /// connects a phone on the same network or behind most home routers.
+/// How long a live view waits for the account server's ICE servers.
+const ICE_SERVERS_WAIT: std::time::Duration = std::time::Duration::from_secs(4);
+
 pub(crate) async fn ice_servers(app: &AppHandle) -> Vec<api::IceServer> {
     let fallback = || {
         vec![api::IceServer {
@@ -188,7 +191,10 @@ pub(crate) async fn ice_servers(app: &AppHandle) -> Vec<api::IceServer> {
     let Ok(api) = server_api(app) else {
         return fallback();
     };
-    match api.ice_servers(&session.token).await {
+    // A live view waits on this before it offers, so a slow server costs a
+    // few seconds of public STUN at most, never the 20 s request timeout.
+    let asked = tokio::time::timeout(ICE_SERVERS_WAIT, api.ice_servers(&session.token)).await;
+    match asked.unwrap_or_else(|_| Err("timeout".into())) {
         Ok(servers) if !servers.is_empty() => servers,
         Ok(_) => fallback(),
         Err(code) => {

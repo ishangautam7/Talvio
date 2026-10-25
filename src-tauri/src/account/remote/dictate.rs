@@ -73,7 +73,7 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
     );
     reply.progress("transcribing");
     let started = Instant::now();
-    let Some(text) = host.transcribe(samples).await else {
+    let Some(text) = super::with_heartbeat(&reply, host.transcribe(samples), || {}).await else {
         return reply.fail("transcription_failed");
     };
     debug!("Phone dictation transcribed in {:?}", started.elapsed());

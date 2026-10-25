@@ -159,6 +159,8 @@ struct InFlight {
     /// Its phone lost access while it ran: it stops as a cancel does, and
     /// answers `not_approved`.
     revoked: AtomicBool,
+    /// The latest progress sent for it, which a heartbeat repeats.
+    last_progress: Mutex<Option<Map<String, Value>>>,
 }
 
 /// Turns relayed bodies into handled requests and their replies into frames
@@ -274,6 +276,7 @@ impl Router {
             from: from.to_string(),
             cancelled: AtomicBool::new(false),
             revoked: AtomicBool::new(false),
+            last_progress: Mutex::new(None),
         });
         let mut requests = self.requests.lock().unwrap_or_else(|e| e.into_inner());
         if requests.contains_key(request_id) {
@@ -678,7 +681,29 @@ impl Reply {
     }
 
     /// Send a reply body to the requester, under this request's id.
+    /// Say again what it is doing, so a long step reads as busy rather than
+    /// lost (the phone gives up on a request that goes quiet). It repeats the
+    /// latest progress exactly, which changes nothing on the phone.
+    pub fn heartbeat(&self) {
+        let last = self
+            .state
+            .last_progress
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
+        if let Some(body) = last {
+            self.send(body);
+        }
+    }
+
     fn send(&self, mut body: Map<String, Value>) {
+        if body.get("kind").and_then(Value::as_str) == Some("progress") {
+            *self
+                .state
+                .last_progress
+                .lock()
+                .unwrap_or_else(|e| e.into_inner()) = Some(body.clone());
+        }
         body.insert("requestId".into(), self.request_id.clone().into());
         let frame = json!({ "type": "relay", "to": self.to, "body": body }).to_string();
         if self.router.outbox.try_send(frame).is_err() {
@@ -690,6 +715,41 @@ impl Reply {
 impl Drop for Reply {
     fn drop(&mut self) {
         self.release();
+    }
+}
+
+/// How often a long step repeats its progress to the phone.
+#[cfg(not(test))]
+pub(super) const HEARTBEAT: Duration = Duration::from_secs(5);
+#[cfg(test)]
+pub(super) const HEARTBEAT: Duration = Duration::from_millis(50);
+
+/// Await `work`, repeating the latest progress every [`HEARTBEAT`] so a slow
+/// step (a transcription, a command that opens apps and waits for windows) is
+/// never taken for a lost one. If the phone cancels meanwhile, `on_cancel`
+/// runs once and the work is still awaited, since it reports how it ended.
+pub(super) async fn with_heartbeat<T>(
+    reply: &Reply,
+    work: impl std::future::Future<Output = T>,
+    mut on_cancel: impl FnMut(),
+) -> T {
+    tokio::pin!(work);
+    let mut tick = tokio::time::interval_at(tokio::time::Instant::now() + HEARTBEAT, HEARTBEAT);
+    let mut cancelled = false;
+    loop {
+        tokio::select! {
+            out = &mut work => return out,
+            _ = tick.tick() => {
+                if reply.is_cancelled() {
+                    if !cancelled {
+                        cancelled = true;
+                        on_cancel();
+                    }
+                } else {
+                    reply.heartbeat();
+                }
+            }
+        }
     }
 }
 
@@ -772,6 +832,9 @@ pub(crate) mod testing {
         pub command_on: Mutex<bool>,
         pub commands: Mutex<Vec<String>>,
         pub command_waits: Mutex<bool>,
+        /// Holds the next command until it is sent.
+        pub command_gate: Mutex<Option<tokio::sync::oneshot::Receiver<()>>>,
+        pub command_cancels: Mutex<u32>,
         pub command_unconfigured: Mutex<bool>,
         /// The assistant: the switch, every question as `phone: text (conversation)`,
         /// a gate that holds the answer until released, an error to answer
@@ -847,6 +910,8 @@ pub(crate) mod testing {
                 command_on: Mutex::new(true),
                 commands: Mutex::default(),
                 command_waits: Mutex::default(),
+                command_gate: Mutex::default(),
+                command_cancels: Mutex::default(),
                 command_unconfigured: Mutex::default(),
                 assistant_on: Mutex::new(true),
                 asks: Mutex::default(),
@@ -1035,7 +1100,16 @@ pub(crate) mod testing {
                 choices: Vec::new(),
                 not_configured: *self.command_unconfigured.lock().unwrap(),
             };
-            Box::pin(async move { outcome })
+            let gate = self.command_gate.lock().unwrap().take();
+            Box::pin(async move {
+                if let Some(gate) = gate {
+                    let _ = gate.await;
+                }
+                outcome
+            })
+        }
+        fn cancel_command(&self) {
+            *self.command_cancels.lock().unwrap() += 1;
         }
         fn assistant_enabled(&self) -> bool {
             *self.assistant_on.lock().unwrap()
