@@ -201,6 +201,14 @@ impl Feedback {
     pub fn render_en(&self) -> &str {
         &self.text
     }
+
+    /// Whether this is the message made from template `key` (the name given
+    /// to [`Feedback::new`], without the namespace it is stored under).
+    pub fn is(&self, key: &str) -> bool {
+        self.key
+            .strip_prefix("commandMode.feedback.")
+            .is_some_and(|own| own == key)
+    }
 }
 
 /// The irreversible half of a tool, waiting for the user.

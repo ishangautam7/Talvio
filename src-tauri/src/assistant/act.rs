@@ -52,7 +52,7 @@ pub fn tool_definition() -> Value {
 
 /// When to use it, for the Tools section of the system prompt. Fixed text, so
 /// the prompt prefix stays cache-stable.
-pub const GUIDANCE: &str = "• do_on_computer(request): do something on the user's computer. When the user asks for an action (\"play X\", \"open Y\", \"turn it down\", \"pause\", \"skip this song\", \"email Ron about the meeting\"), call it in this same reply instead of explaining how they could do it, and pass the whole request with every detail they gave. Questions, writing, explanations and advice are still answered normally, without it. Anything that sends, buys or deletes is only prepared: the user confirms it with Do it on a card, so never say it was sent or done. Afterwards tell the user in one short sentence what happened, from the tool's result; on a call, one short spoken sentence.\n";
+pub const GUIDANCE: &str = "• do_on_computer(request): do something on the user's computer. When the user asks for an action (\"play X\", \"open Y\", \"turn it down\", \"pause\", \"skip this song\", \"email Ron about the meeting\"), call it in this same reply instead of explaining how they could do it, and pass the whole request with every detail they gave. Questions, writing, explanations and advice are still answered normally, without it. Anything that sends, buys or deletes is only prepared: the user confirms it with Do it on a card, so never say it was sent or done. Afterwards tell the user in one short sentence what happened, from the tool's result; on a call, one short spoken sentence. Write the request in English, but keep names, titles and any words to be typed or sent exactly as the user said them. Reply in the language and script the user wrote in: Nepali written in Latin letters (\"gaana bajau\", \"gmail khola\") is Nepali, so answer in Nepali, never in Hindi.\n";
 
 /// The `request` argument, tolerating the other names models use for it.
 pub fn parse_request(arguments: &str) -> String {
@@ -78,8 +78,7 @@ pub fn status_code(status: CommandStatus) -> &'static str {
 
 /// Command mode is on but has no model it can use.
 pub fn not_configured(report: &CommandReport) -> bool {
-    report.status == CommandStatus::Failed
-        && report.feedback.iter().any(|f| f.key == "notConfigured")
+    report.status == CommandStatus::Failed && report.feedback.iter().any(|f| f.is("notConfigured"))
 }
 
 /// What the model is told about a command it ran: what happened, and how to
@@ -255,7 +254,12 @@ mod tests {
         let text = result_for_model(&report(CommandStatus::Failed, "No app called Spotfy."));
         assert!(text.starts_with("It did not work"));
         let mut setup = report(CommandStatus::Failed, "Command mode isn't set up: no key");
-        setup.feedback[0].key = "notConfigured".into();
+        // Built the way the executor builds it, namespace and all.
+        setup.feedback = vec![Feedback::new(
+            "notConfigured",
+            "Command mode isn't set up: no key",
+            &[],
+        )];
         assert!(not_configured(&setup));
         assert!(result_for_model(&setup).contains("not set up"));
 

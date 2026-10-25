@@ -188,8 +188,7 @@ pub fn outcome_of(report: &crate::command_mode::CommandReport) -> CommandOutcome
         pending: report.pending_summary.clone(),
         question: report.question.clone(),
         choices: report.choices.clone(),
-        not_configured: report.status == CommandStatus::Failed
-            && report.feedback.iter().any(|f| f.key == "notConfigured"),
+        not_configured: crate::assistant::act::not_configured(report),
     }
 }
 
@@ -316,6 +315,35 @@ mod tests {
             assert_eq!(next(&mut frames).await["error"], "unsupported", "{id}");
         }
         assert!(host.commands.lock().unwrap().is_empty());
+    }
+
+    /// The executor's own "not set up" report, namespaced key and all, is the
+    /// phone's `not_configured`; any other failure is not.
+    #[test]
+    fn a_report_with_no_model_reads_as_not_configured() {
+        use crate::command_mode::registry::Feedback;
+        use crate::command_mode::{CommandOrigin, CommandReport, CommandStatus};
+        let report = |key: &str| CommandReport {
+            id: 1,
+            origin: CommandOrigin::Phone,
+            transcript: "open youtube".into(),
+            status: CommandStatus::Failed,
+            feedback: vec![Feedback::new(key, "Command mode isn't set up: no key", &[])],
+            steps: Vec::new(),
+            pending_summary: None,
+            question: None,
+            choices: Vec::new(),
+            escalation: None,
+            dry_run: false,
+            dry_run_actions: Vec::new(),
+            model: String::new(),
+            llm_calls: 0,
+            usage: Default::default(),
+            latency_ms: 0,
+            error: None,
+        };
+        assert!(outcome_of(&report("notConfigured")).not_configured);
+        assert!(!outcome_of(&report("routeFailed")).not_configured);
     }
 
     #[tokio::test]
