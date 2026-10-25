@@ -40,13 +40,16 @@ export const MainShell: React.FC<{ initialNavigation?: NavigationState }> = ({
   return (
     <NavigationProvider state={navigation} setState={setNavigation}>
       <ShellEffects />
-      {/* The title bar and the rail are one ink frame, an L round the page;
-          the page is a sheet tucked into its corner. */}
-      <div className="flex flex-1 overflow-hidden bg-frame">
+      {/* One open canvas: the navigation floats on it as a card, and the
+          page is the canvas itself. Its light takes the current page's
+          colour and reaches up behind the (transparent) title bar. */}
+      <div
+        className="app-canvas flex flex-1 overflow-hidden"
+        data-hue={navigation.page}
+      >
+        <div aria-hidden="true" className="canvas-aurora fixed" />
         <Sidebar />
-        <main className="app-sheet relative isolate flex flex-1 flex-col overflow-hidden rounded-ss-[1.25rem] bg-canvas">
-          {/* Dawn: a faint warm light along the top of the sheet. */}
-          <div aria-hidden="true" className="sheet-glow" />
+        <main className="relative isolate flex flex-1 flex-col overflow-hidden">
           <div className="mx-auto w-full max-w-5xl px-6 pt-5 empty:hidden sm:px-10">
             <AccessibilityPermissions />
           </div>

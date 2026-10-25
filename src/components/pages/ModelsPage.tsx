@@ -9,7 +9,7 @@ import {
   type ModelSlot,
 } from "@/components/shell/navigation";
 import { useModelSlots } from "@/components/shell/useModelSlots";
-import { SlotLogo, useSlotStatusText } from "@/components/shell/SlotVisuals";
+import { SLOT_HUES, SlotGlyph, SlotLogo, useSlotStatusText } from "@/components/shell/SlotVisuals";
 import { MODEL_TABS } from "./models/ModelTabs";
 import { USED_BY_KEYS } from "./models/usedBy";
 import { RetiredSelectionPrompt } from "@/components/settings/models/RetiredSelectionPrompt";
@@ -81,10 +81,11 @@ const JobSwitcher: React.FC<{
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(slot)}
             onKeyDown={(event) => onKeyDown(event, index)}
-            className="job-card flex min-w-0 cursor-pointer flex-col items-start gap-3 rounded-2xl border p-3.5 text-start focus-visible:outline-none"
+            data-hue={SLOT_HUES[slot]}
+            className="job-card flex min-w-0 cursor-pointer flex-col items-start gap-3 rounded-2xl border border-hairline p-3.5 text-start"
           >
             <span className="flex w-full items-center justify-between gap-2">
-              <SlotLogo summary={summary} size="md" />
+              <SlotGlyph slot={slot} size="md" />
               {attention && (
                 <span
                   className="h-2 w-2 shrink-0 rounded-full bg-warning"
@@ -96,8 +97,11 @@ const JobSwitcher: React.FC<{
               <span className="job-card-name eyebrow block truncate">
                 {t(`modelsHub.slots.${slot}.name`)}
               </span>
-              <span className="job-card-model mt-0.5 block truncate text-sm font-medium">
-                {model}
+              <span className="mt-1 flex min-w-0 items-center gap-1.5">
+                <SlotLogo summary={summary} size="sm" />
+                <span className="job-card-model block truncate text-sm font-medium">
+                  {model}
+                </span>
               </span>
             </span>
           </button>
@@ -142,6 +146,7 @@ export const ModelsPage: React.FC = () => {
       <div ref={topRef} />
       <PageHeader
         title={t("nav.models")}
+        feature="models"
         description={t("modelsHub.privacyNote")}
       />
 

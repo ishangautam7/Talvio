@@ -7,100 +7,87 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * Design system — Talvio "Ink & Porcelain" (docs/talvio-brand.md §5–6).
+ * Design system — Talvio "Studio" (docs/talvio-brand.md §5–6).
  *
- * The window is an ink-navy frame — the title bar and the rail, an L round
- * the page — in both themes, and the page is a porcelain sheet tucked into
- * its corner (the brand's ink tile and its coral mark, as a window). The
- * title bar carries the command palette's search button; the rail carries
- * every page as a glyph with its name, the current one in the logo's coral
- * gradient. Cards sit on the sheet, white on the light theme and a step
- * lighter than the sheet on the dark one, so depth reads sheet → card → fill.
+ * One open canvas, warm stone on the light theme and graphite on the dark,
+ * with the navigation floating on it as a card. Nothing frames the page: the
+ * page is the window, and a faint light at its top takes the colour of the
+ * page you are on.
  *
- * Neutrals are cool and lean toward the ink on both themes.
+ * Every feature has a colour (`--hue-*`): ember for Home and dictation, blue
+ * for History, violet for the assistant, amber for Commands, teal for
+ * Meetings, magenta for AI cleanup, sky for the Dictionary, green for
+ * Insights, indigo for Models. A page sets `--hue` for everything inside it
+ * (`[data-page]` below), so its title tile, its stage and its light all agree
+ * without a prop. Hues are for graphics and tiles only, never for body text.
  *
- * Type: Inter for everything you read and operate; Plus Jakarta Sans (the
- * logo's own face) for display — page titles (large, 800, tightly tracked),
- * section titles, banner headlines, the wordmark and the Insights figures.
- * Labels over groups are small capitals (`.eyebrow`).
+ * Ember (the logo's coral) is the brand: the one primary action in a view, a
+ * switch that is on, a focus ring, a link. Brand coral `#F2543D` is only
+ * 3.4:1 on white, so on the light theme text, links and filled buttons use
+ * `#C1381F` (`--color-accent`), which holds white text; on the dark theme
+ * `#FF6A52` does both, with graphite text on a fill.
  *
- * Colour: coral is used with restraint, for state and for the one primary
- * action — a primary button, a switch that is on, the current page on the
- * rail, a link, a focus ring. What you have chosen among peers (a Settings
- * tab, a model job) is ink, the colour of the frame. Brand coral `#F2543D`
- * is only 3.4:1 on white, so on the light theme it is a graphics colour
- * (`--color-accent-fill`); text, links and filled buttons use `#C2402A`
- * (`--color-accent`), which holds white text. On the dark theme one coral,
- * `#FF6A52`, does both, with ink-navy text on a fill.
+ * Type is Geist throughout (Geist Mono for keys, clocks and figures); the
+ * wordmark alone keeps Plus Jakarta Sans, the logo's face.
  *
- * Every text pairing below was checked for WCAG AA: ink on the sheet 15.9:1,
- * muted on the sheet 5.7:1 and on a fill 5.4:1, accent on the sheet 4.7:1,
- * white on accent 5.2:1, the frame's text 14.6:1 and its quiet text 7.3:1 on
- * the frame; dark: muted on a card 7.1:1, on the sheet 7.8:1, accent on a
- * card 6.1:1, ink navy on accent 6.6:1. A switch's off track is 3.6:1
- * against a card (3:1 is the bar for a control's edge).
+ * Every text pairing below was checked for WCAG AA: ink on the canvas 16.6:1,
+ * muted on the canvas 5.5:1 and on a card 6.1:1, accent on a card 5.4:1,
+ * white on accent 5.4:1; dark: muted on a card 6.9:1, accent on a card
+ * 6.4:1, graphite on accent 7.0:1. A switch's off track is 3.2:1 against a
+ * card (3:1 is the bar for a control's edge).
  */
 @theme {
-  /* === The frame ===
-   * Title bar and rail: the brand's ink navy in both themes, an L around the
-   * page. Text on it is near-white; its quiet text is 7:1. */
-  --color-frame: #15172f;
-  --color-frame-raise: #1f2242; /* hover on the frame */
-  --color-frame-ink: #f1f1f8;
-  --color-frame-muted: #a3a5c4;
-
   /* === Surfaces === */
-  --color-canvas: #f4f4f8; /* the page: cool porcelain */
-  --color-canvas-soft: #eeeef4; /* a quieter panel on the page */
+  --color-canvas: #f2f0ec; /* the window: warm stone */
+  --color-canvas-soft: #ebe8e3; /* a quieter panel on the canvas */
   --color-surface: #ffffff; /* cards */
-  --color-surface-strong: #ececf3; /* fills, hover, badges */
-  --color-surface-muted: #f8f8fb; /* quiet wells inside a card */
+  --color-surface-strong: #efece7; /* fills, hover, badges */
+  --color-surface-muted: #f7f6f3; /* quiet wells inside a card */
 
   /* === Ink / text === */
-  --color-ink: #16182e;
-  --color-ink-soft: #262944;
-  --color-body: #383b55;
-  --color-muted: #5c5f78; /* ≥5.4:1 on every surface above */
-  --color-muted-soft: #a2a4b8; /* decorative + disabled only */
+  --color-ink: #16151b;
+  --color-ink-soft: #29272f;
+  --color-body: #3c3a43;
+  --color-muted: #64616c; /* ≥5.5:1 on every surface above */
+  --color-muted-soft: #a8a4ad; /* decorative + disabled only */
 
   /* === Hairlines === */
-  --color-hairline: #e4e4ee;
-  --color-hairline-strong: #d3d4e1;
+  --color-hairline: #e8e4de;
+  --color-hairline-strong: #d8d3cc;
 
-  /* === Feature banners ===
-   * The dark stage: the brand's ink navy. It is also the default for
-   * anything drawn with the hero tokens outside a banner (the onboarding
-   * tour's keys, on its dark faux desktop); the light theme overrides them on
-   * `.hero-stage` only. `--color-hero-surface` must match `STAGE_DARK` in
-   * scripts/hero-art.py. */
-  --color-hero-surface: #13153a; /* the art is rendered on exactly this */
-  --color-hero-ink: #f2f1f7; /* 15.6:1 on the stage */
-  --color-hero-muted: #aeb0cc; /* 8.3:1 on the stage */
-  --color-hero-accent: #ff6a52; /* the headline's emphasis, 6.2:1 */
+  /* === The stage (a feature's live banner) ===
+   * Kept as tokens because controls drawn on a stage (a shortcut being
+   * recorded, an InfoTip, the onboarding tour's keys on its faux desktop)
+   * read them. On the main window a stage is an ordinary card lit with the
+   * page's hue, so these follow the theme. */
+  --color-hero-surface: #15141b;
+  --color-hero-ink: #f4f3f6;
+  --color-hero-muted: #b2afbb;
+  --color-hero-accent: #ff6a52;
   --color-hero-border: #ffffff26;
-  --color-hero-control: #23265a;
+  --color-hero-control: #24232c;
   --color-hero-hover: #ffffff17;
 
-  /* === Brand coral === */
+  /* === Brand ember === */
   /* Text, links and filled buttons (white text on it). */
-  --color-accent: #c2402a;
-  --color-accent-strong: #a3331f;
+  --color-accent: #c1381f;
+  --color-accent-strong: #a32d16;
   /* Brand coral itself, for fills that carry no text (switches, dots, bars,
    * icon tiles, focus rings). */
   --color-accent-fill: #f2543d;
 
   /* === Semantic === */
-  --color-success: #1e7a3c;
+  --color-success: #1d7a45;
   --color-error: #b3261e;
-  --color-warning: #a44a06;
+  --color-warning: #9a4a05;
 
   /* === On-colour text === */
-  --color-on-primary: #ffffff; /* text on accent fills */
-  --color-on-ink: #f4f4f8; /* text on ink buttons */
+  --color-on-primary: #ffffff;
+  --color-on-ink: #f4f3f6;
 
   /* === Toggle switch === */
   --color-toggle-track-on: var(--color-accent-fill);
-  --color-toggle-track-off: #878699;
+  --color-toggle-track-off: #8e8a94;
   --color-toggle-knob-on: #ffffff;
 
   /* === Back-compat aliases (leaf components still use these names) === */
@@ -108,49 +95,137 @@
   --color-text: var(--color-ink);
   --color-background-ui: var(--color-accent);
   --color-logo-primary: var(--color-accent-fill);
-  --color-logo-stroke: #16182e;
+  --color-logo-stroke: #16151b;
   --color-text-stroke: #ffffff;
-  --color-mid-gray: #7f8196;
+  --color-mid-gray: #7d7a85;
+  /* The frame is gone; these keep the few things that still say "frame"
+   * (onboarding's window) on the canvas. */
+  --color-frame: var(--color-canvas);
+  --color-frame-raise: var(--color-surface-strong);
+  --color-frame-ink: var(--color-ink);
+  --color-frame-muted: var(--color-muted);
 
   /* === Radii ===
-   * A touch tighter than Tailwind's defaults: precise rather than bubbly. A
-   * card is 14px, a control 9px, a chip 6px. */
+   * Softer than before: a card 18px, a control 11px, a chip 8px; buttons and
+   * pills are round. */
   --radius-md: 0.5rem;
-  --radius-lg: 0.625rem;
+  --radius-lg: 0.6875rem;
   --radius-xl: 0.875rem;
   --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
 
   /* === Type families === */
   --font-sans:
-    "Inter Variable", -apple-system, BlinkMacSystemFont,
+    "Geist Variable", "Inter Variable", -apple-system, BlinkMacSystemFont,
     "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  /* Display: page and section titles, banner headlines, the wordmark. */
   --font-display:
-    "Plus Jakarta Sans Variable", "Inter Variable", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-brand: var(--font-display);
+    "Geist Variable", "Inter Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, "Cascadia Mono", "SF Mono", Menlo,
+    Consolas, monospace;
+  /* The wordmark keeps the logo's own face. */
+  --font-brand:
+    "Plus Jakarta Sans Variable", "Geist Variable", system-ui, sans-serif;
   --font-hero: var(--font-display);
 }
 
+/* The page's hue as utilities (`bg-hue`, `text-hue`, `border-hue`), resolved
+ * where they are used, so a utility inside the Meetings page is teal. */
+@theme inline {
+  --color-hue: var(--hue);
+}
+
+/* The light at the top of the canvas fades from one page's colour to the
+ * next instead of jumping. */
+@property --aurora {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f2543d;
+}
+
+/* Feature hues: one per page, tuned to the same lightness so none shouts. */
+:root {
+  --hue-home: #ee5530;
+  --hue-history: #3b74e8;
+  --hue-assistant: #7a55ee;
+  --hue-commands: #d6780c;
+  --hue-meetings: #0b9a88;
+  --hue-cleanup: #d83c82;
+  --hue-dictionary: #1b88d0;
+  --hue-insights: #2e9853;
+  --hue-models: #5a62d6;
+  --hue: var(--hue-home);
+}
+:root[data-theme="dark"] {
+  --hue-home: #ff7452;
+  --hue-history: #6e9bff;
+  --hue-assistant: #a088ff;
+  --hue-commands: #f5a43a;
+  --hue-meetings: #34d1ba;
+  --hue-cleanup: #ff70ae;
+  --hue-dictionary: #52b5f5;
+  --hue-insights: #54cc80;
+  --hue-models: #8e94ff;
+}
+[data-hue="home"],
+[data-page="home"] {
+  --hue: var(--hue-home);
+}
+[data-hue="history"],
+[data-page="history"] {
+  --hue: var(--hue-history);
+}
+[data-hue="assistant"],
+[data-page="assistant"] {
+  --hue: var(--hue-assistant);
+}
+[data-hue="commands"],
+[data-page="commands"] {
+  --hue: var(--hue-commands);
+}
+[data-hue="meetings"],
+[data-page="meetings"] {
+  --hue: var(--hue-meetings);
+}
+[data-hue="cleanup"],
+[data-page="cleanup"] {
+  --hue: var(--hue-cleanup);
+}
+[data-hue="dictionary"],
+[data-page="dictionary"] {
+  --hue: var(--hue-dictionary);
+}
+[data-hue="insights"],
+[data-page="insights"] {
+  --hue: var(--hue-insights);
+}
+[data-hue="models"],
+[data-page="models"] {
+  --hue: var(--hue-models);
+}
+/* Something that belongs to no page (a Settings tab in the palette). */
+[data-hue="neutral"] {
+  --hue: var(--color-muted);
+}
+
 /* Depth, as tokens, so a component can say "a card" or "a raised chip"
- * without knowing which theme it is on. Shadows are tinted with the ink
- * rather than black, which keeps them from going grey on warm paper. */
+ * without knowing which theme it is on. Shadows are tinted with the ink and
+ * kept very soft: the canvas is light enough that a card needs only a hint. */
 :root {
   --shadow-card:
-    0 1px 2px rgba(27, 29, 51, 0.04), 0 2px 8px -4px rgba(27, 29, 51, 0.06);
+    0 1px 2px rgba(22, 21, 27, 0.04), 0 10px 28px -18px rgba(22, 21, 27, 0.14);
   --shadow-raised:
-    0 1px 2px rgba(27, 29, 51, 0.08), 0 0 0 1px rgba(27, 29, 51, 0.05),
-    0 4px 12px -6px rgba(27, 29, 51, 0.12);
+    0 0 0 1px rgba(22, 21, 27, 0.06), 0 1px 2px rgba(22, 21, 27, 0.07),
+    0 6px 14px -8px rgba(22, 21, 27, 0.14);
   --shadow-float:
-    0 0 0 1px rgba(27, 29, 51, 0.06), 0 12px 32px -12px rgba(27, 29, 51, 0.28),
-    0 2px 6px rgba(27, 29, 51, 0.06);
-  --shadow-sheet:
-    0 0 0 1px rgba(27, 29, 51, 0.055), 0 1px 3px rgba(27, 29, 51, 0.05),
-    0 12px 32px -18px rgba(27, 29, 51, 0.16);
-  /* The light along the top edge of a raised control. */
+    0 0 0 1px rgba(22, 21, 27, 0.07), 0 24px 48px -20px rgba(22, 21, 27, 0.3),
+    0 4px 10px -2px rgba(22, 21, 27, 0.06);
+  --shadow-sheet: var(--shadow-card);
   --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --focus-ring: 0 0 0 3px
-    color-mix(in srgb, var(--color-accent-fill) 28%, transparent);
+    color-mix(in srgb, var(--color-accent-fill) 30%, transparent);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root[data-theme="light"] {
@@ -165,10 +240,10 @@
   font-size: 16px;
   line-height: 1.5;
   font-weight: 400;
-  letter-spacing: 0;
+  letter-spacing: -0.006em;
   font-feature-settings:
-    "cv11" 1,
-    "ss01" 1;
+    "ss01" 1,
+    "cv11" 1;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -184,7 +259,7 @@
   );
 
   color: var(--color-text);
-  background-color: var(--color-frame);
+  background-color: var(--color-canvas);
 }
 
 :root[data-screen="compact"] {
@@ -197,12 +272,11 @@
   font-size: 18px;
 }
 
-/* Headings, in the logo's face: bold and tightly tracked, so a title reads
- * as Talvio's voice while the labels and controls under it stay Inter. */
+/* Headings: Geist at a firm weight, tracked in tight. */
 .font-display {
   font-family: var(--font-display);
-  font-weight: 720;
-  letter-spacing: -0.024em;
+  font-weight: 620;
+  letter-spacing: -0.03em;
   line-height: 1.15;
   text-wrap: balance;
 }
@@ -214,106 +288,100 @@
   letter-spacing: -0.02em;
 }
 
-/* Plus Jakarta Sans covers Latin, Latin Extended and Vietnamese only. Other
- * scripts would mix two faces inside one title, so they set display text in
- * the UI face at a heavy weight instead. */
+/* Figures, clocks and keys: Geist Mono, with tabular digits. */
+.font-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+/* Geist covers Latin and Cyrillic. Scripts it does not cover set display
+ * text in the system face at a heavy weight instead of mixing two faces
+ * inside one title. */
 :root:is(
     [lang|="ar"],
-    [lang|="bg"],
     [lang|="he"],
     [lang|="ja"],
     [lang|="ko"],
-    [lang|="ru"],
-    [lang|="uk"],
     [lang|="zh"]
   )
   :is(.font-display, .hero-title, .page-title) {
-  font-family: var(--font-sans);
   font-weight: 650;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 /* === Dark ===
- * The brand's ink navy, with each step lighter than the one under it
- * (frame → sheet → card → fill), because in the dark depth comes from
- * lightness, not shadow.
+ * Graphite rather than navy: a near-black with the faintest violet in it,
+ * each step lighter than the one under it (canvas → card → fill), because in
+ * the dark depth comes from lightness, not shadow.
  *
- * Text is a step softer than white: light glyphs on a dark ground bloom and
- * look heavier than the same weight on paper, which is also why the weights
- * ease off a notch below. Every pairing stays above AA — muted on a card
- * 7.1:1, coral on a card 6.1:1, ink navy on a coral fill 6.6:1. */
+ * Text is a step softer than white, and the weights ease off a notch: light
+ * glyphs on a dark ground bloom and look heavier than the same weight on
+ * paper. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-frame: #07081a;
-  --color-frame-raise: #15172f;
-  --color-canvas: #0f1024;
-  --color-canvas-soft: #13152c;
-  --color-surface: #171933;
-  --color-surface-strong: #23264a;
+  --color-canvas: #0c0c10;
+  --color-canvas-soft: #111116;
+  --color-surface: #15151b;
+  --color-surface-strong: #22222b;
   /* Lighter than a card, so a hovered row lifts instead of sinking. */
-  --color-surface-muted: #1c1e3c;
+  --color-surface-muted: #1a1a21;
 
-  --color-ink: #f2f1f7;
-  --color-ink-soft: #e2e1ec;
-  --color-body: #cfd0de;
-  --color-muted: #a3a5bf;
-  --color-muted-soft: #5e6180;
+  --color-ink: #f4f3f6;
+  --color-ink-soft: #e4e2e8;
+  --color-body: #cfcdd6;
+  --color-muted: #a19eab;
+  --color-muted-soft: #5e5b67;
 
-  --color-hairline: #24274a;
-  --color-hairline-strong: #353a63;
+  --color-hairline: #24232c;
+  --color-hairline-strong: #34333e;
 
   --color-accent: #ff6a52;
   --color-accent-strong: #ff8c78;
   --color-accent-fill: #ff6a52;
 
-  --color-success: #5edb8e;
+  --color-success: #5ed98f;
   --color-error: #ff8095;
   --color-warning: #f5a14a;
 
-  --color-on-primary: #101122;
-  --color-on-ink: #101122;
+  --color-on-primary: #0f0f13;
+  --color-on-ink: #0f0f13;
 
   --color-toggle-track-on: var(--color-accent-fill);
-  --color-toggle-track-off: #63668a;
+  --color-toggle-track-off: #5f5c6a;
   --color-toggle-knob-on: #ffffff;
 
   --color-background: var(--color-canvas);
   --color-text: var(--color-ink);
   --color-background-ui: var(--color-accent);
   --color-logo-primary: var(--color-accent);
-  --color-logo-stroke: #e2e1ec;
-  --color-mid-gray: #a3a5bf;
+  --color-logo-stroke: #e4e2e8;
+  --color-mid-gray: #a19eab;
 
   /* In the dark a surface is lit from above: a hairline of light along its
    * top edge does what a drop shadow does on paper. */
   --shadow-card:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 1px 2px rgba(0, 0, 0, 0.35);
+    inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-raised:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.45);
+    0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 6px rgba(0, 0, 0, 0.45);
   --shadow-float:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 0 0 1px rgba(255, 255, 255, 0.07), 0 20px 48px -16px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 56px -16px rgba(0, 0, 0, 0.8),
     0 2px 6px rgba(0, 0, 0, 0.4);
-  --shadow-sheet:
-    0 0 0 1px rgba(255, 255, 255, 0.055),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 16px 40px -20px rgba(0, 0, 0, 0.8);
   --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --focus-ring: 0 0 0 3px
-    color-mix(in srgb, var(--color-accent-fill) 34%, transparent);
+    color-mix(in srgb, var(--color-accent-fill) 36%, transparent);
 
-  /* Light-on-dark reads heavier, so every weight eases off a notch (Inter is
-   * variable, so these are real weights, not synthesized). */
   --font-weight-medium: 470;
   --font-weight-semibold: 570;
   --font-weight-bold: 660;
   font-weight: 380;
 
-  background-color: var(--color-frame);
+  background-color: var(--color-canvas);
 }
 :root[data-theme="dark"] .font-display {
-  font-weight: 680;
+  font-weight: 580;
 }
 
 /* Pre-JS fallback: honour the OS preference only until data-theme is set (it is
@@ -321,27 +389,26 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --color-frame: #07081a;
-    --color-canvas: #0f1024;
-    --color-canvas-soft: #13152c;
-    --color-surface: #171933;
-    --color-surface-strong: #23264a;
-    --color-surface-muted: #1c1e3c;
-    --color-ink: #f2f1f7;
-    --color-ink-soft: #e2e1ec;
-    --color-body: #cfd0de;
-    --color-muted: #a3a5bf;
-    --color-muted-soft: #5e6180;
-    --color-hairline: #24274a;
-    --color-hairline-strong: #353a63;
+    --color-canvas: #0c0c10;
+    --color-canvas-soft: #111116;
+    --color-surface: #15151b;
+    --color-surface-strong: #22222b;
+    --color-surface-muted: #1a1a21;
+    --color-ink: #f4f3f6;
+    --color-ink-soft: #e4e2e8;
+    --color-body: #cfcdd6;
+    --color-muted: #a19eab;
+    --color-muted-soft: #5e5b67;
+    --color-hairline: #24232c;
+    --color-hairline-strong: #34333e;
     --color-accent: #ff6a52;
     --color-accent-strong: #ff8c78;
     --color-accent-fill: #ff6a52;
-    --color-on-primary: #101122;
-    --color-on-ink: #101122;
+    --color-on-primary: #0f0f13;
+    --color-on-ink: #0f0f13;
     --color-background: var(--color-canvas);
     --color-text: var(--color-ink);
-    background-color: #07081a;
+    background-color: #0c0c10;
   }
 }
 
@@ -392,21 +459,19 @@
 }
 
 /* ============================================================================
- * Depth — hairlines first, shadow second
+ * Depth — one soft shadow that carries its own hairline
  * ==========================================================================*/
 @layer components {
-  /* Cards carry their edge with a hairline; the shadow only lifts them a hair
-   * off the sheet. */
   .elev-card {
     box-shadow: var(--shadow-card);
   }
 
   .elev-hover {
     transition:
-      box-shadow 160ms cubic-bezier(0.25, 1, 0.5, 1),
-      border-color 160ms cubic-bezier(0.25, 1, 0.5, 1),
-      background-color 160ms cubic-bezier(0.25, 1, 0.5, 1),
-      translate 160ms cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow 180ms var(--ease-out),
+      border-color 180ms var(--ease-out),
+      background-color 180ms var(--ease-out),
+      translate 180ms var(--ease-out);
   }
   .elev-hover:hover {
     box-shadow: var(--shadow-raised);
@@ -416,7 +481,6 @@
     box-shadow: var(--shadow-raised);
   }
 
-  /* The content sheet, floating in the frame. */
   .elev-pane {
     box-shadow: var(--shadow-sheet);
   }
@@ -426,7 +490,6 @@
     background-color: var(--color-surface);
   }
 
-  /* Popover / menu shadow, shared by every floating surface. */
   .elev-float {
     box-shadow: var(--shadow-float);
   }
@@ -446,410 +509,529 @@
     background: var(--color-hairline);
     pointer-events: none;
   }
-  /* A row that is itself a card-wide control (a hovered link row) brings its
-   * divider to the edge, so the hover fill never shows a gap above it. */
   .rows > [data-row-flush]::before {
     inset-inline: 0;
   }
 }
 
 /* ============================================================================
- * Feature banners — a stage with one picture on it
- * ----------------------------------------------------------------------------
- * Layers, back to front: the stage colour, the art (masked away toward the
- * text so it never sits under a word), film grain (dark only), then the
- * content. The art is rendered on the stage colour itself, one file per
- * theme, so the mask has no seam to hide.
+ * The shell — canvas, light, title bar and the floating navigation
  * ==========================================================================*/
-.hero-stage {
+
+/* The window is one canvas. The light along its top takes the colour of the
+ * page you are on (`--aurora`, set from `data-hue` on the shell), and fades
+ * between pages. Under 9% on paper, a little more on graphite. */
+.app-canvas {
+  --aurora: var(--hue);
+  transition: --aurora 700ms ease;
+  background-color: var(--color-canvas);
+}
+.canvas-aurora {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 30rem;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      50% 85% at 82% -8%,
+      color-mix(in srgb, var(--aurora) 11%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 60% at 40% -14%,
+      color-mix(in srgb, var(--aurora) 6%, transparent),
+      transparent 70%
+    );
+}
+:root[data-theme="dark"] .canvas-aurora {
+  background:
+    radial-gradient(
+      50% 85% at 82% -8%,
+      color-mix(in srgb, var(--aurora) 15%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 60% at 40% -14%,
+      color-mix(in srgb, var(--aurora) 8%, transparent),
+      transparent 70%
+    );
+}
+[dir="rtl"] .canvas-aurora {
+  scale: -1 1;
+}
+
+/* The welcome screen: the light rises behind the mark, in the middle. Kept
+ * under its old name because onboarding draws it. */
+.sheet-glow {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: -1;
+  height: 26rem;
+  pointer-events: none;
+  background: radial-gradient(
+    55% 90% at 85% -10%,
+    rgba(242, 84, 61, 0.09),
+    transparent 72%
+  );
+}
+.sheet-glow.sheet-glow-center {
+  height: 100%;
+  background:
+    radial-gradient(
+      36% 42% at 50% 42%,
+      rgba(242, 84, 61, 0.12),
+      transparent 72%
+    ),
+    radial-gradient(
+      60% 60% at 50% 30%,
+      rgba(122, 85, 238, 0.07),
+      transparent 72%
+    );
+}
+:root[data-theme="dark"] .sheet-glow {
+  background: radial-gradient(
+    55% 90% at 85% -10%,
+    rgba(255, 106, 82, 0.13),
+    transparent 72%
+  );
+}
+:root[data-theme="dark"] .sheet-glow.sheet-glow-center {
+  background:
+    radial-gradient(
+      34% 40% at 50% 42%,
+      rgba(255, 106, 82, 0.14),
+      transparent 72%
+    ),
+    radial-gradient(
+      60% 60% at 50% 30%,
+      rgba(160, 136, 255, 0.12),
+      transparent 72%
+    );
+}
+[dir="rtl"] .sheet-glow {
+  scale: -1 1;
+}
+
+/* ---------- The navigation: a card floating on the canvas ---------- */
+.nav-card {
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: var(--shadow-card);
+}
+:root[data-theme="dark"] .nav-card {
+  background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+}
+
+/* A page in the navigation: its glyph in a small tile of its own colour, and
+ * its name. The page you are on is a soft wash of that colour with the tile
+ * filled solid, so where you are reads by colour and by weight at once. */
+.nav-item {
+  color: var(--color-body);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+.nav-item:hover {
+  color: var(--color-ink);
+  background-color: color-mix(in srgb, var(--color-ink) 4.5%, transparent);
+}
+.nav-item[data-active="true"] {
+  color: var(--color-ink);
+  font-weight: 600;
+  background-color: color-mix(in srgb, var(--hue) 11%, transparent);
+}
+:root[data-theme="dark"] .nav-item[data-active="true"] {
+  background-color: color-mix(in srgb, var(--hue) 16%, transparent);
+}
+.nav-item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.nav-tile {
+  color: var(--hue);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease;
+}
+.nav-item[data-active="true"] .nav-tile {
+  color: #ffffff;
+  background-image: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--hue) 78%, #ffffff) 0%,
+    var(--hue) 70%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 4px 10px -4px color-mix(in srgb, var(--hue) 70%, transparent);
+  animation: tile-pop 380ms cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+/* The tile's soft body would vanish in white; on a solid tile it is a
+ * brighter wash instead. */
+.nav-item[data-active="true"] .nav-tile .glyph [fill-opacity] {
+  fill-opacity: 0.28;
+}
+@keyframes tile-pop {
+  from {
+    scale: 0.8;
+  }
+}
+.nav-section {
+  color: var(--color-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+/* The quiet buttons at the foot of the navigation (help, settings). */
+.nav-plain {
+  color: var(--color-muted);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.nav-plain:hover {
+  color: var(--color-ink);
+  background-color: color-mix(in srgb, var(--color-ink) 5%, transparent);
+}
+.nav-plain:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* What the app is listening with, at the foot of the navigation. */
+.listen-card {
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 0 0 1px var(--color-hairline);
+  transition: box-shadow 150ms ease;
+}
+.listen-card:hover {
+  box-shadow: inset 0 0 0 1px var(--color-hairline-strong);
+}
+.listen-card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* A list that scrolls when the window is short, without a bar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- The command palette's button, in the title bar ---------- */
+.palette-trigger {
+  color: var(--color-muted);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-hairline);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+.palette-trigger:hover {
+  color: var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-hairline-strong);
+}
+.palette-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.palette-trigger .keycap {
+  color: var(--color-muted);
+  background: var(--color-surface-strong);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* ---------- The palette ---------- */
+.palette-panel {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
+  animation: palette-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
+.palette-option {
+  transition: background-color 100ms ease;
+}
+.palette-option[aria-selected="true"] {
+  background: var(--color-surface-strong);
+}
+.palette-glyph {
+  color: var(--hue);
+  background: color-mix(in srgb, var(--hue) 12%, var(--color-surface));
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+.palette-option[aria-selected="true"] .palette-glyph {
+  color: #ffffff;
+  background: var(--hue);
+}
+
+/* ============================================================================
+ * Type
+ * ==========================================================================*/
+
+/* Page titles: large, firm and tight. */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 640;
+  font-size: 1.875rem;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+:root[data-theme="dark"] .page-title {
+  font-weight: 600;
+}
+/* The label over a group: sentence case, small and firm. */
+.eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* A page's own mark: its glyph on a tile of its colour, beside the title. */
+.hue-tile {
+  color: var(--hue);
+  background: color-mix(in srgb, var(--hue) 12%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue) 16%, transparent);
+}
+.hue-tile-solid {
+  color: #ffffff;
+  background-image: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--hue) 72%, #ffffff) 0%,
+    var(--hue) 62%,
+    color-mix(in srgb, var(--hue) 86%, #000000) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 8px 18px -10px color-mix(in srgb, var(--hue) 80%, transparent);
+}
+.hue-tile-solid .glyph [fill-opacity] {
+  fill-opacity: 0.28;
+}
+
+/* A small tag beside a title (Beta). Drawn in the page's colour so it reads
+ * as part of the title, not as a stray pill. */
+.title-tag {
+  color: color-mix(in srgb, var(--hue) 82%, var(--color-ink));
+  background: color-mix(in srgb, var(--hue) 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue) 22%, transparent);
+}
+
+/* ============================================================================
+ * The stage — a feature's live banner
+ * ----------------------------------------------------------------------------
+ * A card lit by its page's colour from one corner, with a live picture on
+ * its end side that is part of the layout (a column of its own, framed in a
+ * panel), not art floating behind the text.
+ * ==========================================================================*/
+.stage {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  color: var(--color-hero-ink);
-  background-color: var(--color-hero-surface);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  /* Controls drawn on a stage read the hero tokens; on the main window a
+   * stage is an ordinary themed card. */
+  --color-hero-surface: var(--color-surface);
+  --color-hero-ink: var(--color-ink);
+  --color-hero-muted: var(--color-muted);
+  --color-hero-accent: var(--color-accent);
+  --color-hero-border: var(--color-hairline-strong);
+  --color-hero-control: var(--color-surface);
+  --color-hero-hover: color-mix(in srgb, var(--color-ink) 5%, transparent);
 }
-/* On the dark pane the stage is the brand's ink navy, a step bluer than the
- * pane, edged by a hairline of light instead of a shadow that would not show. */
-:root[data-theme="dark"] .hero-stage {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
-    0 1px 2px rgba(0, 0, 0, 0.4);
-}
-/* Film grain, so the dark reads as a material rather than a flat fill. */
-:root[data-theme="dark"] .hero-stage::after {
+.stage::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.1;
-  mix-blend-mode: soft-light;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-/* The light stage: a pale, warm peach surface a step deeper than the pane,
- * edged by a hairline, with the art drawn as ink on it. It was near-black in
- * both themes until it proved to be the most distracting thing in the light
- * window. Every hero token is redefined here, so the utilities and controls
- * on the stage (`text-hero-muted`, a shortcut being recorded, the switch's
- * `onHero` tone) follow without a light variant of their own. Scoped to the
- * stage rather than :root because the onboarding tour draws hero keys on a
- * faux desktop that stays dark. `--color-hero-surface` must match
- * `STAGE_LIGHT` in scripts/hero-art.py. */
-:root:not([data-theme="dark"]) .hero-stage {
-  --color-hero-surface: #f7ebe2;
-  --color-hero-ink: var(--color-ink);
-  --color-hero-muted: #63554c; /* 6.1:1 on the stage */
-  --color-hero-accent: var(--color-accent); /* 4.4:1, display size only */
-  --color-hero-border: rgba(43, 28, 20, 0.14);
-  --color-hero-control: #ffffff;
-  --color-hero-hover: rgba(43, 28, 20, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(43, 28, 20, 0.06);
-}
-
-/* Narrow pages: the art fills the stage behind the text, faded well down. */
-.hero-art {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  z-index: -2;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: right center;
-  pointer-events: none;
-  user-select: none;
-  transform-origin: right center;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 22%,
-    rgba(0, 0, 0, 0.3) 62%,
-    #000 96%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 22%,
-    rgba(0, 0, 0, 0.3) 62%,
-    #000 96%
-  );
-}
-/* Wide pages (Tailwind's @3xl): the art takes the right two thirds and
- * fades out before the text column. */
-@container (min-width: 48rem) {
-  .hero-art {
-    width: 72%;
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(0, 0, 0, 0.55) 22%,
-      #000 40%
+  background:
+    radial-gradient(
+      70% 120% at 100% 0%,
+      color-mix(in srgb, var(--hue) 13%, transparent),
+      transparent 65%
+    ),
+    radial-gradient(
+      50% 90% at 0% 100%,
+      color-mix(in srgb, var(--hue) 5%, transparent),
+      transparent 70%
     );
-    mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(0, 0, 0, 0.55) 22%,
-      #000 40%
+}
+:root[data-theme="dark"] .stage::before {
+  background:
+    radial-gradient(
+      70% 120% at 100% 0%,
+      color-mix(in srgb, var(--hue) 20%, transparent),
+      transparent 65%
+    ),
+    radial-gradient(
+      50% 90% at 0% 100%,
+      color-mix(in srgb, var(--hue) 7%, transparent),
+      transparent 70%
     );
-  }
 }
-/* Mirrored for right-to-left text; the mask mirrors with it. */
-[dir="rtl"] .hero-art {
-  transform: scaleX(-1);
-  transform-origin: left center;
+[dir="rtl"] .stage::before {
+  scale: -1 1;
 }
-/* The art's entrance: once per banner per session (see `Hero.tsx`, which
- * removes `.hero-art-enter` when it is done), small, and shaped by what the
- * picture is rather than one sweep for all of them. It used to hang off
- * `.page-layer-active`, and a hidden page is suspended to display:none, so
- * every return to a page restarted it. Individual `scale` / `translate` are
- * used rather than `transform`, which the RTL mirror above already owns.
- *
- * A voice (Meetings): the bars rise from their centre line, as levels do
- * when a recording starts. */
-@keyframes hero-art-levels {
-  from {
-    opacity: 0.4;
-    scale: 1 0.82;
-  }
+/* The picture's panel: a quiet well inside the stage. */
+.stage-panel {
+  background: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--hue) 14%, var(--color-hairline));
 }
-/* The assistant: the orb grows into place. */
-@keyframes hero-art-orb {
-  from {
-    opacity: 0.5;
-    scale: 0.94;
-  }
+:root[data-theme="dark"] .stage-panel {
+  background: color-mix(in srgb, #000000 22%, transparent);
 }
-.hero-art-enter[data-art="meetings"] {
-  animation: hero-art-levels 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Small capitals over a stage's title, in its colour. */
+.stage-kicker {
+  color: color-mix(in srgb, var(--hue) 80%, var(--color-ink));
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
-/* Grow about the orb itself (rendered at 74% across, mid-height), not the
- * image's edge. RTL keeps its mirror's origin: moving it would shift the
- * flipped image while the animation runs. */
-.hero-art-enter[data-art="assistant"] {
-  transform-origin: 74% 50%;
-  animation: hero-art-orb 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-[dir="rtl"] .hero-art-enter[data-art="assistant"] {
-  transform-origin: left center;
+:root[data-theme="dark"] .stage-kicker {
+  color: var(--hue);
 }
 
-/* The headline, in the logo's face. Emphasis (`<em>` in the translation
- * string) is set in the stage's coral rather than in italics: the serif
- * italics of the previous design are retired. Coral at this size is display
- * text, where 3:1 is the bar (4.4:1 on the light stage, 6.2:1 on the dark). */
+/* The stage's headline. `<em>` in the translation string is set in the
+ * page's own colour rather than in italics. */
 .hero-title {
   font-family: var(--font-hero);
-  font-weight: 800;
-  font-size: 2.125rem;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-weight: 650;
+  font-size: 1.75rem;
+  line-height: 1.12;
+  letter-spacing: -0.045em;
   color: var(--color-hero-ink);
   text-wrap: balance;
   font-synthesis: none;
 }
 .hero-title em {
   font-style: normal;
-  color: var(--color-hero-accent);
+  color: color-mix(in srgb, var(--hue) 82%, var(--color-ink));
 }
 :root[data-theme="dark"] .hero-title {
-  font-weight: 760;
+  font-weight: 600;
+}
+:root[data-theme="dark"] .hero-title em {
+  color: var(--hue);
 }
 
-/* The one primary action on a stage: coral, like every primary button, with
- * ink-navy text on it (6.6:1). */
-.hero-button {
-  background: #ff6a52;
-  color: #101122;
-  box-shadow:
-    0 10px 24px -14px rgba(0, 0, 0, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
-  transition:
-    background-color 150ms ease,
-    transform 150ms ease;
+/* ---------- Live levels ----------
+ * A row of bars that a stage feeds: `--l` (0–1) on each bar is its level.
+ * At rest they breathe in a slow wave so the picture never looks dead, and
+ * under reduced motion they simply sit at their resting heights. */
+.level-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 100%;
 }
-.hero-button:hover:not(:disabled) {
-  background: #ff8c78;
-}
-.hero-button:active:not(:disabled) {
-  transform: scale(0.98);
-}
-.hero-ghost {
-  color: var(--color-hero-muted);
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-.hero-ghost:hover {
-  color: var(--color-hero-ink);
-  background: var(--color-hero-hover);
-}
-/* A second action beside the warm white one: glass, so the stage keeps a
- * single primary. */
-.hero-glass {
-  color: var(--color-hero-ink);
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    transform 150ms ease;
-}
-.hero-glass:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.24);
-}
-.hero-glass:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-/* ---------- The live meeting on the stage ----------
- * The banner turns into the recorder while a meeting runs, so starting one
- * does not swap the page's one dark object for an unrelated white card. */
-.rec-dot {
-  width: 8px;
-  height: 8px;
+.level-bars > i {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 5px;
   border-radius: 999px;
-  background: #ff5a52;
-  box-shadow: 0 0 0 4px rgba(255, 90, 82, 0.16);
+  height: calc(8% + var(--l, 0.1) * 92%);
+  background: currentColor;
+  transition: height 140ms ease-out;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .level-bars.is-idle > i {
+    animation: level-idle 2.6s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * -90ms);
+  }
+}
+@keyframes level-idle {
+  50% {
+    height: calc(8% + var(--l, 0.1) * 46%);
+  }
+}
+
+/* The recorder's clock and its dot. */
+.rec-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #ef3e36;
+  box-shadow: 0 0 0 4px rgba(239, 62, 54, 0.16);
 }
 .rec-dot[data-paused="true"] {
-  background: var(--color-hero-muted);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+  background: var(--color-muted-soft);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--color-muted-soft) 20%, transparent);
 }
 @media (prefers-reduced-motion: no-preference) {
   .rec-dot:not([data-paused="true"]) {
-    animation: rec-breathe 2s ease-in-out infinite;
+    animation: rec-breathe 1.8s ease-in-out infinite;
   }
 }
 @keyframes rec-breathe {
   50% {
-    box-shadow: 0 0 0 7px rgba(255, 90, 82, 0.05);
-    opacity: 0.75;
+    box-shadow: 0 0 0 7px rgba(239, 62, 54, 0.04);
+    opacity: 0.7;
   }
 }
 .rec-clock {
-  font-family: var(--font-sans);
-  font-size: 3rem;
+  font-family: var(--font-display);
+  font-size: 2.875rem;
   line-height: 1;
   font-weight: 560;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
-  color: var(--color-hero-ink);
+  color: var(--color-ink);
 }
 .rec-clock[data-paused="true"] {
-  color: var(--color-hero-muted);
-}
-/* "You" / "Others", lit while that side is audible. Struck through and amber
- * when the side is not being captured at all, because quiet and missing must
- * not look alike. */
-.rec-side {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 28px;
-  padding: 0 12px 0 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--color-hero-muted);
-  transition: color 140ms ease;
-}
-.rec-side-light {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  transition:
-    background-color 120ms ease,
-    box-shadow 120ms ease;
-}
-.rec-side[data-active="true"] {
-  color: var(--color-hero-ink);
-}
-.rec-side[data-active="true"] .rec-side-light {
-  background: #5edb8e;
-  box-shadow: 0 0 0 3px rgba(94, 219, 142, 0.22);
-}
-.rec-side[data-captured="false"] {
-  color: #f5c46b;
-  border-color: rgba(245, 196, 107, 0.3);
-  text-decoration: line-through;
-  text-decoration-color: rgba(245, 196, 107, 0.6);
-}
-.rec-side[data-captured="false"] .rec-side-light {
-  background: #f5c46b;
-}
-/* Paused: the light goes grey. A filter rather than opacity, because the
- * page-entry animation holds the art's opacity at its end value. */
-.hero-stage[data-paused="true"] .hero-art {
-  filter: saturate(0) brightness(0.55);
-  transition: filter 400ms ease;
-}
-/* The tips button in the corner. It can sit over the art, so it carries its
- * own dark glass rather than relying on what is behind it. */
-.hero-corner {
-  color: var(--color-hero-muted);
-  background: rgba(16, 17, 34, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-.hero-corner:hover {
-  color: var(--color-hero-ink);
-  background: rgba(255, 255, 255, 0.12);
-}
-/* Tips open: the bulb is lit. */
-.hero-corner[aria-pressed="true"] {
-  color: #ffd79a;
-  background: rgba(255, 190, 110, 0.14);
-  border-color: rgba(255, 200, 130, 0.28);
-}
-/* A corner toggle that is not the tips bulb (the recorder's indicator
- * switch): on is plain light, because the amber glow means "tips are open". */
-.hero-corner.hero-corner-plain[aria-pressed="true"] {
-  color: var(--color-hero-ink);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-.hero-corner.hero-corner-plain[aria-pressed="true"]:hover {
-  background: rgba(255, 255, 255, 0.16);
+  color: var(--color-muted);
 }
 
-/* ---------- The same controls on the light stage ----------
- * The tokens carry most of it; these are the surfaces that were drawn in
- * white-on-dark glass directly. The primary action becomes the app's own:
- * the text-safe coral with white text, like every other primary button on a
- * light page. */
-:root:not([data-theme="dark"]) .hero-stage {
-  & .hero-button {
-    background: var(--color-accent);
-    color: var(--color-on-primary);
-    box-shadow: 0 1px 2px rgba(43, 28, 20, 0.12);
-  }
-  & .hero-button:hover:not(:disabled) {
-    background: var(--color-accent-strong);
-  }
-  & .hero-glass {
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(43, 28, 20, 0.12);
-  }
-  & .hero-glass:hover:not(:disabled) {
-    background: #ffffff;
-    border-color: rgba(43, 28, 20, 0.2);
-  }
-  & .hero-corner {
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(43, 28, 20, 0.1);
-  }
-  & .hero-corner:hover {
-    background: #ffffff;
-  }
-  & .hero-corner[aria-pressed="true"] {
-    color: #8a4b00;
-    background: #fff1dc;
-    border-color: #f0cf9c;
-  }
-  & .hero-corner.hero-corner-plain[aria-pressed="true"],
-  & .hero-corner.hero-corner-plain[aria-pressed="true"]:hover {
-    color: var(--color-ink);
-    background: #ffffff;
-    border-color: rgba(43, 28, 20, 0.18);
-  }
-  & .rec-dot[data-paused="true"] {
-    box-shadow: 0 0 0 4px rgba(43, 28, 20, 0.06);
-  }
-  & .rec-side {
-    border-color: rgba(43, 28, 20, 0.1);
-    background: rgba(255, 255, 255, 0.6);
-  }
-  & .rec-side-light {
-    background: rgba(43, 28, 20, 0.2);
-  }
-  & .rec-side[data-active="true"] .rec-side-light {
-    background: var(--color-success);
-    box-shadow: 0 0 0 3px rgba(30, 122, 60, 0.16);
-  }
-  & .rec-side[data-captured="false"] {
-    color: var(--color-warning);
-    border-color: rgba(180, 83, 9, 0.3);
-    text-decoration-color: rgba(180, 83, 9, 0.55);
-  }
-  & .rec-side[data-captured="false"] .rec-side-light {
-    background: #d97706;
-  }
-  /* Paused fades the art toward the stage. Darkening it, as the dark stage
-   * does, or desaturating it would also shift the image's own background
-   * off the stage colour and show its edge as a faint rectangle. */
-  &[data-paused="true"] .hero-art {
-    filter: opacity(0.4);
-  }
+/* The one primary action on a stage (Start recording, Stop): a large round
+ * button in the brand's ember. */
+.stage-cta {
+  color: var(--color-on-primary);
+  background-image: linear-gradient(180deg, #d4472c 0%, #bd3820 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 1px 2px rgba(163, 45, 22, 0.3),
+    0 10px 24px -12px rgba(193, 56, 31, 0.7);
+  transition:
+    filter 150ms ease,
+    transform 120ms ease,
+    box-shadow 150ms ease;
+}
+.stage-cta:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.stage-cta:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.stage-cta:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    var(--focus-ring);
+}
+:root[data-theme="dark"] .stage-cta {
+  background-image: linear-gradient(180deg, #ff7f66 0%, #ff6248 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 10px 26px -12px rgba(255, 98, 72, 0.7);
 }
 
 /* Tips fold away: rows animate from their height to zero, content keeps its
@@ -859,8 +1041,8 @@
   grid-template-rows: 1fr;
   opacity: 1;
   transition:
-    grid-template-rows 380ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    grid-template-rows 380ms var(--ease-out),
+    opacity 260ms var(--ease-out);
 }
 .hero-fold[data-open="false"] {
   grid-template-rows: 0fr;
@@ -875,29 +1057,30 @@
 /* ============================================================================
  * Keycaps
  * ==========================================================================*/
-/* A key you could press: a pale cap with a deeper lip along its bottom edge,
- * set in the UI face at a small, firm weight. */
+/* A key you could press: a white cap with a deeper lip along its bottom
+ * edge, set firm and small, like the legend printed on a key. */
 .keycap {
+  font-family: var(--font-sans);
   font-weight: 560;
-  letter-spacing: 0.005em;
-  background: linear-gradient(180deg, #ffffff 0%, #f9f7f4 100%);
-  border: 1px solid #ddd6ce;
-  border-bottom-color: #cfc6bc;
-  box-shadow:
-    inset 0 -1px 0 rgba(27, 29, 51, 0.06),
-    0 1px 1px rgba(27, 29, 51, 0.06);
+  letter-spacing: 0;
+  background: #ffffff;
+  border: 1px solid #ddd8d0;
+  border-bottom-width: 2px;
+  border-bottom-color: #cdc6bc;
+  box-shadow: 0 1px 1px rgba(22, 21, 27, 0.05);
 }
 :root[data-theme="dark"] .keycap {
-  background: linear-gradient(180deg, #2b2e4c 0%, #23263f 100%);
-  border-color: #3a3e62;
-  border-bottom-color: #2c2f4c;
-  box-shadow:
-    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 1px 2px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #2a2933 0%, #23222b 100%);
+  border-color: #3b3a46;
+  border-bottom-color: #121117;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-/* On a banner: glass keys with a lit top edge and a dark bottom lip. */
+/* On a stage the keys are the ordinary keycaps, a size up. Kept as its own
+ * class for the onboarding tour, whose faux desktop stays dark. */
 .keycap-hero {
+  font-family: var(--font-sans);
+  font-weight: 560;
+  letter-spacing: 0;
   color: var(--color-hero-ink);
   background: linear-gradient(
     180deg,
@@ -905,30 +1088,29 @@
     rgba(255, 255, 255, 0.05) 100%
   );
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
-    0 8px 18px -12px rgba(0, 0, 0, 0.9);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  border-bottom-width: 2px;
+  border-bottom-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.9);
 }
-/* On the light stage the keys are the app's ordinary keycaps. */
-:root:not([data-theme="dark"]) .hero-stage .keycap-hero {
-  background: linear-gradient(180deg, #ffffff 0%, #f9f7f4 100%);
-  border-color: #ddd6ce;
-  border-bottom-color: #cfc6bc;
-  box-shadow:
-    inset 0 -1px 0 rgba(27, 29, 51, 0.06),
-    0 1px 1px rgba(27, 29, 51, 0.06);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+.stage .keycap-hero {
+  color: var(--color-ink);
+  background: #ffffff;
+  border-color: #ddd8d0;
+  border-bottom-color: #cdc6bc;
+  box-shadow: 0 1px 1px rgba(22, 21, 27, 0.05);
+}
+:root[data-theme="dark"] .stage .keycap-hero {
+  background: linear-gradient(180deg, #2a2933 0%, #23222b 100%);
+  border-color: #3b3a46;
+  border-bottom-color: #121117;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* ============================================================================
  * Motion
  * ==========================================================================*/
 
-/* Onboarding entrances (unchanged). */
+/* Onboarding entrances. */
 @keyframes rise-fade {
   from {
     opacity: 0;
@@ -967,7 +1149,7 @@
 @keyframes dialog-panel-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.985);
+    transform: translateY(10px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -975,10 +1157,10 @@
   }
 }
 .dialog-scrim {
-  animation: dialog-scrim-in 180ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation: dialog-scrim-in 200ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 .dialog-panel {
-  animation: dialog-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: dialog-panel-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Pages are kept alive (see shell/PageStack.tsx), so switching is a reveal of
@@ -998,7 +1180,7 @@
 }
 @keyframes page-rise {
   from {
-    translate: 0 6px;
+    translate: 0 8px;
   }
   to {
     translate: none;
@@ -1006,8 +1188,8 @@
 }
 .page-layer-active > .page-layer-content {
   animation:
-    page-reveal 200ms cubic-bezier(0.22, 1, 0.36, 1) both,
-    page-rise 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    page-reveal 220ms var(--ease-out) both,
+    page-rise 300ms var(--ease-out) both;
 }
 .page-layer-hidden {
   visibility: hidden;
@@ -1027,7 +1209,7 @@
 
 /* Tab panels inside a page get the same short settle. */
 .tab-reveal {
-  animation: page-reveal 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-reveal 180ms var(--ease-out) both;
 }
 
 /* Legacy class some leaf components still apply. */
@@ -1057,7 +1239,7 @@
 @keyframes menu-in {
   from {
     opacity: 0;
-    transform: translateY(-3px) scale(0.985);
+    transform: translateY(-4px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -1065,7 +1247,7 @@
   }
 }
 .menu-in {
-  animation: menu-in 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: menu-in 160ms var(--ease-out) both;
   transform-origin: top right;
 }
 
@@ -1082,62 +1264,30 @@
   }
 }
 .style-swap {
-  animation: style-swap 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: style-swap 260ms var(--ease-out) both;
 }
 
-/* Insights summary: the share cards' flowing ribbon in tones of the brand
- * coral, pale on paper and deep on the dark theme, behind the page's one
- * large figure. The figure is set in the share cards' typeface (the logo's),
- * so the page and the cards it makes read as one thing. */
+/* Insights summary: the share cards' flowing ribbon, in tones of the page's
+ * green on paper and graphite, behind the page's one large figure. */
 .insights-summary {
-  background-color: color-mix(
-    in oklab,
-    var(--color-accent) 5%,
-    var(--color-surface)
-  );
-  --insights-flow-1: color-mix(
-    in oklab,
-    var(--color-accent) 10%,
-    var(--color-surface)
-  );
-  --insights-flow-2: color-mix(
-    in oklab,
-    var(--color-accent) 16%,
-    var(--color-surface)
-  );
-  --insights-flow-3: color-mix(
-    in oklab,
-    var(--color-accent) 23%,
-    var(--color-surface)
-  );
+  background-color: color-mix(in oklab, var(--hue) 5%, var(--color-surface));
+  --insights-flow-1: color-mix(in oklab, var(--hue) 10%, var(--color-surface));
+  --insights-flow-2: color-mix(in oklab, var(--hue) 16%, var(--color-surface));
+  --insights-flow-3: color-mix(in oklab, var(--hue) 23%, var(--color-surface));
 }
 :root[data-theme="dark"] .insights-summary {
-  /* On the dark theme the ground is the ink tile's indigo, with the ribbon
-   * leaning coral: a coral-on-navy wash read as a muddy maroon. */
-  background-color: color-mix(in oklab, #262b6b 42%, var(--color-surface));
-  --insights-flow-1: color-mix(
-    in oklab,
-    var(--color-accent-fill) 9%,
-    color-mix(in oklab, #262b6b 42%, var(--color-surface))
-  );
-  --insights-flow-2: color-mix(
-    in oklab,
-    var(--color-accent-fill) 15%,
-    color-mix(in oklab, #262b6b 42%, var(--color-surface))
-  );
-  --insights-flow-3: color-mix(
-    in oklab,
-    var(--color-accent-fill) 22%,
-    color-mix(in oklab, #262b6b 42%, var(--color-surface))
-  );
+  background-color: color-mix(in oklab, var(--hue) 9%, var(--color-surface));
+  --insights-flow-1: color-mix(in oklab, var(--hue) 14%, var(--color-surface));
+  --insights-flow-2: color-mix(in oklab, var(--hue) 20%, var(--color-surface));
+  --insights-flow-3: color-mix(in oklab, var(--hue) 27%, var(--color-surface));
 }
 .insights-figure {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-weight: 640;
+  letter-spacing: -0.05em;
 }
 :root[data-theme="dark"] .insights-figure {
-  font-weight: 650;
+  font-weight: 600;
 }
 
 /* Insights heatmap: the grid sweeps in left to right when the page opens. It
@@ -1153,22 +1303,22 @@
   }
 }
 .page-layer-active .heat-cell {
-  animation: heat-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: heat-in 420ms var(--ease-out) both;
   animation-delay: calc(var(--col, 0) * 18ms + var(--row, 0) * 12ms);
 }
 
 /* Segmented control: the selected pill slides between options. */
 .segmented-thumb {
   transition:
-    left 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    left 240ms var(--ease-out),
+    width 240ms var(--ease-out);
 }
 .segmented-pill {
   background-color: var(--color-surface);
   box-shadow: var(--shadow-raised);
 }
 :root[data-theme="dark"] .segmented-pill {
-  background-color: #2a2e4b;
+  background-color: #2c2b36;
 }
 
 /* Native range inputs pick up the brand accent. */
@@ -1180,13 +1330,13 @@ input[type="range"] {
 input[type="range"].range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   border-radius: 999px;
   background: #ffffff;
   box-shadow:
-    0 0 0 0.5px rgba(27, 29, 51, 0.2),
-    0 1px 3px rgba(27, 29, 51, 0.28);
+    0 0 0 0.5px rgba(22, 21, 27, 0.2),
+    0 1px 3px rgba(22, 21, 27, 0.28);
   transition:
     scale 140ms ease,
     box-shadow 140ms ease;
@@ -1196,8 +1346,8 @@ input[type="range"].range-input:active::-webkit-slider-thumb {
 }
 input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   box-shadow:
-    0 0 0 0.5px rgba(27, 29, 51, 0.2),
-    0 1px 3px rgba(27, 29, 51, 0.28),
+    0 0 0 0.5px rgba(22, 21, 27, 0.2),
+    0 1px 3px rgba(22, 21, 27, 0.28),
     var(--focus-ring);
 }
 
@@ -1205,102 +1355,47 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
  * Components — the shared controls, so every one of them is drawn once
  * ==========================================================================*/
 
-/* ---------- Sidebar: the page you are on ----------
- * A raised chip under the active item that slides when the page changes. On
- * the frame it is the one white object, which is enough to say "you are
- * here"; the item's icon carries the coral. */
-.nav-indicator {
-  position: absolute;
-  inset-inline: 0;
-  z-index: 0;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-raised);
-  pointer-events: none;
+/* The Settings window's category list: the same wash and tile as the page
+ * navigation, so Settings reads as part of the same app. */
+.settings-tab {
+  color: var(--color-body);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
-/* The Settings window's tab list uses the same chip, without the slide. */
+.settings-tab:hover {
+  color: var(--color-ink);
+  background-color: color-mix(in srgb, var(--color-ink) 4.5%, transparent);
+}
+.settings-tab[data-selected="true"] {
+  color: var(--color-ink);
+  font-weight: 600;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+}
+:root[data-theme="dark"] .settings-tab[data-selected="true"] {
+  background-color: #23222b;
+}
+.settings-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.settings-tab-glyph {
+  color: var(--color-muted);
+  transition: color 150ms ease;
+}
+.settings-tab[data-selected="true"] .settings-tab-glyph {
+  color: var(--color-accent-fill);
+}
+/* Kept for older call sites. */
 .settings-tab-active {
   background: var(--color-surface);
   box-shadow: var(--shadow-raised);
 }
-:root[data-theme="dark"] .settings-tab-active {
-  background: #1d2039;
-}
-.nav-indicator.is-animated {
-  transition:
-    top 300ms cubic-bezier(0.22, 1, 0.36, 1),
-    height 300ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-:root[data-theme="dark"] .nav-indicator {
-  background: #1d2039;
-}
-
-/* ---------- Dawn ----------
- * The sheet's one piece of atmosphere: a faint coral light along its top
- * edge, from the side the art on the feature banners sits. Under 7% so it
- * never competes with the content; on the dark theme it is the ink tile's
- * indigo with a breath of coral in it. */
-.sheet-glow {
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  z-index: -1;
-  height: 26rem;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      55% 90% at 88% 0%,
-      rgba(242, 84, 61, 0.065),
-      transparent 72%
-    ),
-    radial-gradient(
-      45% 70% at 55% 0%,
-      rgba(255, 143, 63, 0.035),
-      transparent 70%
-    );
-}
-[dir="rtl"] .sheet-glow {
-  scale: -1 1;
-}
-/* The welcome screen: the light rises behind the mark, in the middle. */
-.sheet-glow.sheet-glow-center {
-  height: 100%;
-  background: radial-gradient(
-    42% 46% at 50% 40%,
-    rgba(242, 84, 61, 0.09),
-    transparent 72%
-  );
-}
-:root[data-theme="dark"] .sheet-glow.sheet-glow-center {
-  background:
-    radial-gradient(
-      34% 40% at 50% 40%,
-      rgba(255, 106, 82, 0.1),
-      transparent 72%
-    ),
-    radial-gradient(
-      60% 60% at 50% 30%,
-      rgba(78, 84, 200, 0.14),
-      transparent 72%
-    );
-}
-:root[data-theme="dark"] .sheet-glow {
-  background:
-    radial-gradient(
-      60% 95% at 88% 0%,
-      rgba(78, 84, 200, 0.16),
-      transparent 72%
-    ),
-    radial-gradient(
-      40% 70% at 70% 0%,
-      rgba(255, 106, 82, 0.06),
-      transparent 70%
-    );
-}
 
 /* ---------- The page's title, once it has scrolled away ----------
- * A frosted strip along the top of the sheet. It spans the whole sheet (the
- * page layer clips it), whatever the width of the page's own column. */
+ * A frosted strip along the top of the page. It spans the whole content area
+ * (the page layer clips it), whatever the width of the page's own column. */
 .page-titlebar {
   position: absolute;
   top: 0;
@@ -1310,9 +1405,9 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  backdrop-filter: blur(16px) saturate(1.5);
+  background: color-mix(in srgb, var(--color-canvas) 86%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
   border-bottom: 1px solid
     color-mix(in srgb, var(--color-hairline) 80%, transparent);
   opacity: 0;
@@ -1320,7 +1415,7 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   pointer-events: none;
   transition:
     opacity 180ms ease,
-    translate 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    translate 220ms var(--ease-out);
 }
 .page-titlebar[data-shown="true"] {
   opacity: 1;
@@ -1330,7 +1425,7 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 /* ---------- A list's day headings ----------
  * They stick under the compact title while their day scrolls past, and are
  * frosted only while stuck (`ui/StickyHeading.tsx` measures that), so at rest
- * they draw no band across the sheet's light. */
+ * they draw no band across the canvas's light. */
 .sticky-day {
   position: sticky;
   top: 2.75rem;
@@ -1348,19 +1443,19 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 }
 
 /* ---------- Buttons ----------
- * Filled buttons are lit from above: a soft vertical gradient, a hairline of
- * light along the top and a darker rim, so they read as something to press
- * rather than a coloured rectangle. */
+ * Round, and lit from above when filled. The primary is ember with a soft
+ * glow of its own colour under it; the secondary is a white pill with a
+ * hairline; the soft one a quiet fill. */
 .btn {
   position: relative;
   border: 1px solid transparent;
   transition:
     background-color 150ms ease,
-    background-position 150ms ease,
     border-color 150ms ease,
     box-shadow 150ms ease,
     color 150ms ease,
     opacity 150ms ease,
+    filter 150ms ease,
     transform 120ms ease;
 }
 .btn:focus-visible {
@@ -1376,39 +1471,35 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 
 .btn-primary {
   color: var(--color-on-primary);
-  background-image: linear-gradient(180deg, #cc4730 0%, #b93a25 100%);
-  border-color: #a8341f;
+  background-image: linear-gradient(180deg, #d14329 0%, #bd3820 100%);
+  border-color: #a9311b;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 2px rgba(163, 51, 31, 0.28),
-    0 3px 8px -4px rgba(163, 51, 31, 0.35);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 1px 2px rgba(163, 45, 22, 0.25),
+    0 6px 14px -8px rgba(193, 56, 31, 0.6);
 }
 .btn-primary:hover:not(:disabled) {
-  background-image: linear-gradient(180deg, #c2402a 0%, #ab3420 100%);
+  filter: brightness(1.06);
 }
 .btn-primary:focus-visible {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
     var(--focus-ring);
 }
 :root[data-theme="dark"] .btn-primary {
-  background-image: linear-gradient(180deg, #ff7a62 0%, #ff6248 100%);
+  background-image: linear-gradient(180deg, #ff7d63 0%, #ff6248 100%);
   border-color: transparent;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     0 1px 2px rgba(0, 0, 0, 0.4),
-    0 6px 16px -8px rgba(255, 98, 72, 0.55);
+    0 8px 18px -10px rgba(255, 98, 72, 0.6);
 }
 :root[data-theme="dark"] .btn-primary:focus-visible {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     var(--focus-ring);
 }
-:root[data-theme="dark"] .btn-primary:hover:not(:disabled) {
-  background-image: linear-gradient(180deg, #ff8a74 0%, #ff705a 100%);
-}
-/* Disabled, a coral fill read as a washed-out pink (a dim maroon on the dark
- * theme), so it turns neutral instead. */
+/* Disabled, an ember fill read as a washed-out pink, so it turns neutral. */
 .btn-primary:disabled,
 :root[data-theme="dark"] .btn-primary:disabled {
   color: var(--color-muted);
@@ -1416,31 +1507,31 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   background-color: var(--color-surface-strong);
   border-color: transparent;
   box-shadow: none;
+  filter: none;
 }
 
 .btn-secondary {
   color: var(--color-ink);
   background-color: var(--color-surface);
   border-color: var(--color-hairline-strong);
-  box-shadow:
-    0 1px 2px rgba(27, 29, 51, 0.05),
-    var(--edge-light);
+  box-shadow: 0 1px 2px rgba(22, 21, 27, 0.05);
 }
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--color-surface-muted);
   border-color: color-mix(
     in srgb,
-    var(--color-ink) 18%,
+    var(--color-ink) 20%,
     var(--color-hairline-strong)
   );
 }
 :root[data-theme="dark"] .btn-secondary {
-  background-color: #1e2139;
-  border-color: #34385a;
+  background-color: #1d1d25;
+  border-color: #363542;
+  box-shadow: var(--edge-light);
 }
 :root[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
-  background-color: #262a46;
-  border-color: #40456b;
+  background-color: #25242e;
+  border-color: #44434f;
 }
 .btn-secondary:disabled {
   opacity: 0.45;
@@ -1473,14 +1564,14 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 
 .btn-danger {
   color: #ffffff;
-  background-image: linear-gradient(180deg, #c1322a 0%, #a8231c 100%);
+  background-image: linear-gradient(180deg, #c4322a 0%, #a8231c 100%);
   border-color: #921d17;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     0 1px 2px rgba(146, 29, 23, 0.3);
 }
 .btn-danger:hover:not(:disabled) {
-  background-image: linear-gradient(180deg, #b52c24 0%, #9a1f18 100%);
+  filter: brightness(1.06);
 }
 :root[data-theme="dark"] .btn-danger {
   color: #1b0b10;
@@ -1502,13 +1593,12 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 }
 
 /* ---------- Form controls ----------
- * Text fields, selects and pickers share one frame: a card-coloured well
- * with a firm hairline, sunk a hair into the card, and the brand's focus ring
- * when they have the keyboard. */
+ * Text fields, selects and pickers share one frame: a filled well a step
+ * darker than the card, with a hairline that firms up under the pointer and
+ * turns ember with the focus ring. */
 .control {
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-muted);
   border: 1px solid var(--color-hairline-strong);
-  box-shadow: 0 1px 1px rgba(27, 29, 51, 0.035);
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease,
@@ -1517,36 +1607,36 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 .control:hover:not(:disabled):not(:focus-within) {
   border-color: color-mix(
     in srgb,
-    var(--color-ink) 20%,
+    var(--color-ink) 22%,
     var(--color-hairline-strong)
   );
 }
 .control:focus-visible,
 .control:focus-within {
   outline: none;
+  background-color: var(--color-surface);
   border-color: var(--color-accent-fill);
   box-shadow: var(--focus-ring);
 }
 :root[data-theme="dark"] .control {
-  background-color: #13152a;
-  border-color: #33375a;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  background-color: #101015;
+  border-color: #33323d;
 }
 :root[data-theme="dark"] .control:focus-visible,
 :root[data-theme="dark"] .control:focus-within {
+  background-color: #101015;
   border-color: var(--color-accent-fill);
   box-shadow: var(--focus-ring);
 }
 /* A trigger that only opens a menu (a select, a picker) is a raised control
  * rather than a sunk well: it is pressed, not typed into. */
 .control-raised {
-  box-shadow:
-    0 1px 2px rgba(27, 29, 51, 0.05),
-    var(--edge-light);
+  background-color: var(--color-surface);
+  box-shadow: 0 1px 2px rgba(22, 21, 27, 0.05);
 }
 :root[data-theme="dark"] .control-raised {
-  background-color: #1e2139;
-  border-color: #34385a;
+  background-color: #1d1d25;
+  border-color: #363542;
   box-shadow: var(--edge-light);
 }
 .control-raised:focus-visible,
@@ -1556,18 +1646,18 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 }
 
 /* ---------- Switch ----------
- * One drawing for every on/off control. The knob travels on a spring with a
- * little overshoot, and stretches while it is held, so the switch feels like
- * it has weight. Put `.switch` on the element right after the checkbox. */
+ * One drawing for every on/off control: 40×24, the knob travelling on a
+ * spring with a little overshoot and stretching while held. Put `.switch` on
+ * the element right after the checkbox. */
 .switch {
   position: relative;
   display: inline-block;
   flex-shrink: 0;
-  width: 2.375rem;
-  height: 1.375rem;
+  width: 2.5rem;
+  height: 1.5rem;
   border-radius: 999px;
   background-color: var(--color-toggle-track-off);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.14);
   transition:
     background-color 200ms ease,
     box-shadow 200ms ease;
@@ -1575,17 +1665,17 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 .switch::after {
   content: "";
   position: absolute;
-  top: 2px;
-  inset-inline-start: 2px;
-  width: calc(1.375rem - 4px);
-  height: calc(1.375rem - 4px);
+  top: 3px;
+  inset-inline-start: 3px;
+  width: calc(1.5rem - 6px);
+  height: calc(1.5rem - 6px);
   border-radius: 999px;
   background: #ffffff;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.22),
     0 2px 5px -1px rgba(0, 0, 0, 0.16);
   transition:
-    translate 280ms cubic-bezier(0.34, 1.4, 0.64, 1),
+    translate 300ms cubic-bezier(0.34, 1.4, 0.64, 1),
     width 160ms ease;
 }
 :checked + .switch,
@@ -1602,7 +1692,7 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 }
 :active:not(:disabled) + .switch::after,
 :active:not(:disabled) ~ .switch::after {
-  width: calc(1.375rem + 0.125rem);
+  width: calc(1.5rem + 0.125rem - 6px + 0.25rem);
 }
 :checked:active:not(:disabled) + .switch::after,
 :checked:active:not(:disabled) ~ .switch::after {
@@ -1615,44 +1705,48 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 :focus-visible + .switch,
 :focus-visible ~ .switch {
   box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.12),
+    inset 0 1px 2px rgba(0, 0, 0, 0.14),
     var(--focus-ring);
 }
 :disabled + .switch,
 :disabled ~ .switch {
   opacity: 0.45;
 }
-/* On a feature banner's stage. */
+/* Kept for call sites that still pass the stage tone. */
 .switch.switch-hero {
   background-color: var(--color-hero-border);
 }
-.switch.switch-hero::after {
-  background: var(--color-hero-control);
-}
 :checked + .switch.switch-hero,
 :checked ~ .switch.switch-hero {
-  background-color: var(--color-hero-ink);
-}
-:checked + .switch.switch-hero::after,
-:checked ~ .switch.switch-hero::after {
-  background: var(--color-hero-surface);
+  background-color: var(--color-toggle-track-on);
 }
 
 /* ---------- Tabs ----------
- * Pills on a quiet track: the view you are in is a raised chip, the same
- * object as the sidebar's page and the segmented control's choice. */
+ * Words on a hairline, the view you are in underlined in ember. Lighter than
+ * a segmented control, so a page's views never look like a setting. */
+.tab-list {
+  box-shadow: inset 0 -1px 0 var(--color-hairline);
+}
 .tab-pill {
+  transition: color 150ms ease;
+}
+.tab-pill::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.5rem;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--color-accent-fill);
+  opacity: 0;
+  scale: 0.4 1;
   transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
+    opacity 180ms ease,
+    scale 240ms var(--ease-out);
 }
-.tab-pill[aria-selected="true"] {
-  background: var(--color-surface);
-  box-shadow: var(--shadow-raised);
-}
-:root[data-theme="dark"] .tab-pill[aria-selected="true"] {
-  background: #262a46;
+.tab-pill[aria-selected="true"]::after {
+  opacity: 1;
+  scale: 1 1;
 }
 .tab-pill:focus-visible {
   outline: none;
@@ -1660,22 +1754,19 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
 }
 
 /* ---------- Empty states ----------
- * The glyph sits in a small raised tile with the faintest coral light behind
- * it, the only warmth in an otherwise empty place. */
+ * The glyph sits in a tile of the page's colour, the only colour in an
+ * otherwise empty place. */
 .empty-state-tile {
-  background:
-    radial-gradient(
-      120% 120% at 30% 0%,
-      color-mix(in srgb, var(--color-accent-fill) 10%, transparent),
-      transparent 70%
-    ),
-    var(--color-surface);
-  box-shadow: var(--shadow-raised);
+  color: var(--hue);
+  background: color-mix(in srgb, var(--hue) 11%, var(--color-surface));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--hue) 18%, transparent),
+    0 10px 24px -14px color-mix(in srgb, var(--hue) 60%, transparent);
 }
 
 /* ---------- Badges ---------- */
 .badge {
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
 }
 
 /* ---------- Setting rows ----------
@@ -1685,7 +1776,7 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   transition: background-color 150ms ease;
 }
 .rows > .setting-row:hover {
-  background-color: color-mix(in srgb, var(--color-ink) 1.6%, transparent);
+  background-color: color-mix(in srgb, var(--color-ink) 1.8%, transparent);
 }
 .rows > .setting-row:first-child {
   border-start-start-radius: inherit;
@@ -1696,271 +1787,26 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   border-end-end-radius: inherit;
 }
 
-/* ============================================================================
- * The ink frame — title bar and rail
- * ----------------------------------------------------------------------------
- * The frame is the brand's ink navy in both themes. Anything drawn inside it
- * (the update pill, the download ring, their popovers) is drawn with the
- * ordinary tokens, so `.frame-scope` redefines those tokens for the frame
- * rather than every component learning a frame variant.
- * ==========================================================================*/
-.frame-scope {
-  color-scheme: dark;
-  --color-ink: #f1f1f8;
-  --color-ink-soft: #e2e2ee;
-  --color-body: #d3d4e4;
-  --color-muted: #a3a5c4;
-  --color-muted-soft: #6f7296;
-  --color-surface: #1f2242;
-  --color-surface-strong: #292c52;
-  --color-surface-muted: #1a1d3a;
-  --color-hairline: rgba(255, 255, 255, 0.08);
-  --color-hairline-strong: rgba(255, 255, 255, 0.14);
-  --color-accent: #ff6a52;
-  --color-accent-strong: #ff8c78;
-  --color-accent-fill: #ff6a52;
-  --color-on-primary: #101122;
-  --color-text: var(--color-ink);
-  --color-logo-primary: #ff6a52;
-  color: var(--color-ink);
-}
-
-/* ---------- Rail items ----------
- * A glyph in a squircle with the page's name under it. The page you are on
- * wears the brand's coral gradient (the icon tile's own), and pops into it. */
-.rail-tile {
-  color: var(--color-frame-muted);
-  transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 200ms ease;
-}
-.rail-caption {
-  color: var(--color-frame-muted);
-  font-weight: 500;
-  letter-spacing: 0.005em;
-  transition: color 160ms ease;
-}
-.rail-item:hover .rail-tile,
-.rail-plain:hover {
-  color: var(--color-frame-ink);
-  background-color: rgba(255, 255, 255, 0.08);
-}
-.rail-item:hover .rail-caption {
-  color: var(--color-frame-ink);
-}
-.rail-item[data-active="true"] .rail-tile {
-  color: #ffffff;
-  background-image: linear-gradient(
-    145deg,
-    #ff8f3f 0%,
-    #f2543d 55%,
-    #ee3a5c 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    0 6px 16px -6px rgba(242, 84, 61, 0.75);
-  animation: rail-pop 360ms cubic-bezier(0.34, 1.5, 0.64, 1);
-}
-.rail-item[data-active="true"] .rail-caption {
-  color: var(--color-frame-ink);
-  font-weight: 600;
-}
-.rail-item:focus-visible .rail-tile,
-.rail-plain:focus-visible {
-  box-shadow:
-    0 0 0 2px var(--color-frame),
-    0 0 0 4px #ff6a52;
-}
-.rail-plain {
-  color: var(--color-frame-muted);
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-}
-@keyframes rail-pop {
-  from {
-    scale: 0.82;
-  }
-}
-/* The bar on the rail's edge beside the page you are on. It slides. */
-/* A list that scrolls when the window is short, without a bar. */
-.no-scrollbar {
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.rail-indicator {
-  position: absolute;
-  inset-inline-start: -0.5rem;
-  width: 3px;
-  margin-top: 0.75rem;
-  height: 1.5rem;
-  border-start-end-radius: 3px;
-  border-end-end-radius: 3px;
-  background: #ff6a52;
-  pointer-events: none;
-}
-.rail-indicator.is-animated {
-  transition: top 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* ---------- The command palette's button, in the title bar ---------- */
-.palette-trigger {
-  color: var(--color-frame-muted);
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
-}
-.palette-trigger:hover {
-  color: var(--color-frame-ink);
-  background: rgba(255, 255, 255, 0.11);
-}
-.palette-trigger:focus-visible {
-  box-shadow: 0 0 0 2px #ff6a52;
-}
-.palette-trigger .keycap,
-:root[data-theme="dark"] .palette-trigger .keycap {
-  color: var(--color-frame-muted);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: none;
-}
-
-/* ---------- The palette ---------- */
-.palette-panel {
-  background: var(--color-surface);
-  box-shadow: var(--shadow-float);
-  animation: palette-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes palette-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.98);
-  }
-}
-.palette-option {
-  transition: background-color 100ms ease;
-}
-.palette-option[aria-selected="true"] {
-  background: var(--color-surface-strong);
-}
-.palette-glyph {
-  color: var(--color-muted);
-  background: var(--color-surface-strong);
-  transition:
-    background-color 120ms ease,
-    color 120ms ease;
-}
-.palette-option[aria-selected="true"] .palette-glyph {
-  color: #ffffff;
-  background-image: linear-gradient(
-    145deg,
-    #ff8f3f 0%,
-    #f2543d 55%,
-    #ee3a5c 100%
-  );
-}
-
-/* ---------- Type: a louder voice for titles ----------
- * Page titles are large and tightly tracked in the logo's face; the labels
- * above groups are small capitals, so a page reads in two clear steps. */
-.page-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 2rem;
-  line-height: 1.05;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-}
-:root[data-theme="dark"] .page-title {
-  font-weight: 760;
-}
-.eyebrow {
-  font-size: 0.6875rem;
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* ---------- Settings: a drawer from the end edge ----------
- * It slides in over the page rather than popping up in the middle, keeps the
- * ink title bar above it, and lists every tab as a chip; the tab you are in
- * is ink, the colour of the frame it hangs from. */
+/* ---------- Settings: a large panel over the window ---------- */
 .dialog-drawer {
-  border-radius: 1.25rem;
-  animation: drawer-in 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes drawer-in {
-  from {
-    opacity: 0.4;
-    translate: 2.5rem 0;
-  }
-}
-[dir="rtl"] .dialog-drawer {
-  animation-name: drawer-in-rtl;
-}
-@keyframes drawer-in-rtl {
-  from {
-    opacity: 0.4;
-    translate: -2.5rem 0;
-  }
-}
-.settings-chip {
-  color: var(--color-body);
-  background: var(--color-surface-strong);
-  transition:
-    background-color 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
-}
-.settings-chip:hover {
-  color: var(--color-ink);
-  background: color-mix(
-    in srgb,
-    var(--color-ink) 9%,
-    var(--color-surface-strong)
-  );
-}
-.settings-chip[data-selected="true"] {
-  color: var(--color-frame-ink);
-  background: var(--color-frame);
-  box-shadow: 0 4px 12px -6px rgba(21, 23, 47, 0.6);
-}
-:root[data-theme="dark"] .settings-chip[data-selected="true"] {
-  color: #101122;
-  background: #f1f1f8;
-}
-.settings-chip[data-selected="true"] svg {
-  color: #ff6a52;
-}
-:root[data-theme="dark"] .settings-chip[data-selected="true"] svg {
-  color: #c2402a;
-}
-.settings-chip:focus-visible {
-  box-shadow: var(--focus-ring);
+  border-radius: 1.5rem;
+  animation: dialog-panel-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ---------- Models: the four jobs as cards ----------
- * The job you are looking at is ink (light on the dark theme), the same
- * "you are here" as a Settings chip. */
+/* ---------- Models: the four jobs as tiles ----------
+ * Each job wears its own colour: the tile you are looking at is a wash of it
+ * with a ring, the others plain cards. */
 .job-card {
   background: var(--color-surface);
-  border-color: var(--color-hairline);
   box-shadow: var(--shadow-card);
   transition:
     background-color 180ms ease,
-    border-color 180ms ease,
     box-shadow 180ms ease,
-    translate 180ms ease;
+    translate 180ms var(--ease-out);
 }
 .job-card:hover {
-  border-color: var(--color-hairline-strong);
-  translate: 0 -1px;
+  translate: 0 -2px;
+  box-shadow: var(--shadow-raised);
 }
 .job-card-name {
   color: var(--color-muted);
@@ -1969,33 +1815,28 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   color: var(--color-ink);
 }
 .job-card[aria-selected="true"] {
-  background: var(--color-frame);
-  border-color: var(--color-frame);
-  box-shadow: 0 10px 24px -14px rgba(21, 23, 47, 0.8);
-}
-.job-card[aria-selected="true"] .job-card-name {
-  color: var(--color-frame-muted);
-}
-.job-card[aria-selected="true"] .job-card-model {
-  color: var(--color-frame-ink);
+  background: color-mix(in srgb, var(--hue) 9%, var(--color-surface));
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--hue) 70%, transparent),
+    0 12px 26px -16px color-mix(in srgb, var(--hue) 70%, transparent);
 }
 :root[data-theme="dark"] .job-card[aria-selected="true"] {
-  background: #f1f1f8;
-  border-color: #f1f1f8;
+  background: color-mix(in srgb, var(--hue) 14%, var(--color-surface));
+}
+.job-card[aria-selected="true"] .job-card-name {
+  color: color-mix(in srgb, var(--hue) 75%, var(--color-ink));
 }
 :root[data-theme="dark"] .job-card[aria-selected="true"] .job-card-name {
-  color: #5c5f78;
-}
-:root[data-theme="dark"] .job-card[aria-selected="true"] .job-card-model {
-  color: #16182e;
+  color: var(--hue);
 }
 .job-card:focus-visible {
+  outline: none;
   box-shadow: var(--focus-ring);
 }
 
 /* ---------- History: days on a timeline ----------
  * A line runs down the start edge from day to day, each day's heading sits
- * on it as a dot, and today's dot is coral. */
+ * on it as a dot, and today's dot is the page's blue. */
 .history-day {
   position: relative;
   padding-inline-start: 1.5rem;
@@ -2008,7 +1849,11 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   bottom: -1.5rem;
   width: 2px;
   border-radius: 2px;
-  background: var(--color-hairline-strong);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--hue) 40%, var(--color-hairline-strong)),
+    var(--color-hairline-strong) 30%
+  );
 }
 .history-day:last-child::before {
   bottom: 0.75rem;
@@ -2029,54 +1874,30 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   box-shadow: inset 0 0 0 2px var(--color-muted-soft);
 }
 .history-day:first-child .sticky-day-label::before {
-  background: var(--color-accent-fill);
-  box-shadow: 0 0 0 4px
-    color-mix(in srgb, var(--color-accent-fill) 18%, transparent);
+  background: var(--hue);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--hue) 18%, transparent);
 }
 
-/* ---------- Home's status card ----------
- * A faint coral light in its corner, and an orb that is the logo's tile: the
- * coral gradient with the waveform's five bars, moving like a voice while the
- * speech model is ready and resting when it is not. */
-.status-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(
-    60% 120% at 100% 0%,
-    color-mix(in srgb, var(--color-accent-fill) 9%, transparent),
-    transparent 70%
-  );
+/* ---------- Home's console ----------
+ * The top of Home: a stage whose picture is a voice line that moves while
+ * the speech model is ready. */
+.voice-line {
+  color: var(--hue);
 }
-[dir="rtl"] .status-hero::before {
-  scale: -1 1;
+.voice-line[data-live="false"] {
+  color: var(--color-muted-soft);
 }
-.status-orb {
-  color: var(--color-muted);
-  background: var(--color-surface-strong);
-  transition:
-    background-color 300ms ease,
-    box-shadow 300ms ease;
+.status-pip {
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
 }
-.status-orb:has(.is-live) {
-  color: #ffffff;
-  background-image: linear-gradient(
-    145deg,
-    #ff8f3f 0%,
-    #f2543d 55%,
-    #ee3a5c 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 8px 20px -8px rgba(242, 84, 61, 0.7);
-}
+
+/* Five bars that move like a voice, the logo's waveform (the listening
+ * status' small orb). */
 .live-bars {
   display: flex;
   align-items: center;
   gap: 2.5px;
-  height: 1.375rem;
+  height: 1.125rem;
 }
 .live-bars > span {
   width: 3px;
@@ -2114,9 +1935,59 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   }
 }
 
+/* ---------- The assistant's orb ----------
+ * Drawn, not painted: three soft lights turning slowly inside a sphere. */
+.assistant-orb {
+  position: relative;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      60% 60% at 30% 28%,
+      rgba(255, 255, 255, 0.85),
+      transparent 60%
+    ),
+    radial-gradient(
+      80% 80% at 70% 75%,
+      color-mix(in srgb, var(--hue-home) 85%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(100% 100% at 40% 40%, var(--hue), #3b2a9c);
+  box-shadow:
+    inset 0 -8px 18px rgba(20, 10, 60, 0.35),
+    inset 0 2px 6px rgba(255, 255, 255, 0.5),
+    0 18px 40px -16px color-mix(in srgb, var(--hue) 90%, transparent);
+}
+.assistant-orb::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--hue) 30%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .assistant-orb {
+    animation: orb-breathe 5s ease-in-out infinite;
+  }
+  .assistant-orb::after {
+    animation: orb-ring 5s ease-in-out infinite;
+  }
+}
+@keyframes orb-breathe {
+  50% {
+    scale: 1.04;
+    filter: hue-rotate(-8deg) saturate(1.1);
+  }
+}
+@keyframes orb-ring {
+  50% {
+    inset: -16px;
+    opacity: 0.4;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dialog-drawer,
-  .rail-item[data-active="true"] .rail-tile,
+  .nav-item[data-active="true"] .nav-tile,
   .palette-panel,
   .anim-rise,
   .dialog-scrim,
@@ -2126,25 +1997,30 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   .menu-in,
   .style-swap,
   .page-layer-active > .page-layer-content,
-  .page-layer-active .heat-cell,
-  .hero-art-enter {
+  .page-layer-active .heat-cell {
     animation: none;
   }
-  .hero-fold {
+  .hero-fold,
+  .app-canvas,
+  .tab-pill::after,
+  .level-bars > i {
     transition: none;
   }
   .elev-hover,
   .segmented-thumb,
-  .nav-indicator.is-animated,
-  .rail-indicator.is-animated,
-  .rail-tile,
+  .nav-item,
+  .nav-tile,
   .page-titlebar,
   .switch,
   .switch::after,
+  .job-card,
   .btn {
     transition: none;
   }
   .btn:active:not(:disabled) {
     transform: none;
+  }
+  .job-card:hover {
+    translate: none;
   }
 }

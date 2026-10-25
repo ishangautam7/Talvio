@@ -16,9 +16,12 @@ suppressCaretBrowsing();
 // text fields and on selected text (see lib/contextMenu.ts).
 suppressBrowserContextMenu();
 
-// Fonts — Inter (variable) carries every label, control, and sentence; Plus
-// Jakarta Sans, the logo's face, sets display type (titles, banner headlines,
-// the wordmark, the Insights figures).
+// Fonts — Geist carries every title, label, control and sentence, and Geist
+// Mono the keys, clocks and figures; Inter is the fallback for the scripts
+// Geist does not cover (Greek), and Plus Jakarta Sans, the logo's face, sets
+// the wordmark and the share cards.
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/plus-jakarta-sans";
 

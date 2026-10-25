@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Share2 } from "lucide-react";
+import { ArrowRight, Share2 } from "@/components/icons/glyphs";
 import type { Insights } from "@/bindings";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Button } from "@/components/ui/Button";
@@ -48,10 +48,10 @@ const WEEKS = 26;
 
 const LEVEL_CLASSES: Record<HeatLevel, string> = {
   0: "bg-surface-strong",
-  1: "bg-accent-fill/22",
-  2: "bg-accent-fill/45",
-  3: "bg-accent-fill/72",
-  4: "bg-accent-fill",
+  1: "bg-hue/22",
+  2: "bg-hue/45",
+  3: "bg-hue/72",
+  4: "bg-hue",
 };
 
 /** The ribbon behind the summary: the share cards' bands as one wave across
@@ -448,7 +448,7 @@ const ActivityCard: React.FC<{
                         cell.future
                           ? "bg-transparent"
                           : `${LEVEL_CLASSES[cell.level]} hover:shadow-[0_0_0_1.5px_var(--color-ink)]`
-                      } ${cell.isToday ? "shadow-[0_0_0_1.5px_var(--color-accent)]" : ""}`}
+                      } ${cell.isToday ? "shadow-[0_0_0_1.5px_var(--hue)]" : ""}`}
                       style={
                         {
                           gridRow: row + 2,
@@ -538,6 +538,7 @@ export const InsightsPage: React.FC = () => {
   const header = (
     <PageHeader
       title={t("nav.insights")}
+        feature="insights"
       description={t("insights.about")}
       actions={
         <Button

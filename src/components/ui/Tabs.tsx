@@ -10,9 +10,9 @@ export interface TabItem<T extends string> {
 }
 
 /**
- * Pill tabs on a quiet track: the view you are in is a raised chip, the same
- * object as the sidebar's current page. The lightest way to split one page
- * into views. Used
+ * Words on a hairline, the view you are in underlined in ember: the lightest
+ * way to split one page into views, so a page's views never look like a
+ * setting (a segmented control is for choosing a value). Used
  * where the old design drilled into a sub-page and needed a Back button to get
  * out again — a tab is always one click from its siblings.
  *
@@ -57,7 +57,7 @@ export function Tabs<T extends string>({
       <div
         role="tablist"
         aria-label={label}
-        className="inline-flex max-w-full gap-0.5 overflow-x-auto rounded-[0.6875rem] bg-ink/[0.045] p-[3px]"
+        className="tab-list no-scrollbar inline-flex max-w-full gap-1 overflow-x-auto"
       >
         {items.map((item, index) => {
           const selected = item.id === value;
@@ -75,8 +75,8 @@ export function Tabs<T extends string>({
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(item.id)}
               onKeyDown={(event) => onKeyDown(event, index)}
-              className={`tab-pill relative inline-flex h-[1.875rem] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-medium whitespace-nowrap ${
-                selected ? "text-ink" : "text-muted hover:text-ink"
+              className={`tab-pill relative inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[0.875rem] whitespace-nowrap ${
+                selected ? "font-semibold text-ink" : "font-medium text-muted hover:text-ink"
               }`}
             >
               {Icon && (
