@@ -2,7 +2,13 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
-import { Check, ChevronDown, ChevronUp, Loader2, X } from "@/components/icons/glyphs";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  X,
+} from "@/components/icons/glyphs";
 import {
   commands,
   type AssistantCharacter,

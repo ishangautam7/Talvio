@@ -101,7 +101,10 @@ export const AssistantPage: React.FC = () => {
                 </HeroShortcut>
                 <HeroShortcut
                   icon={
-                    <CallGlyph className="h-4 w-4 text-hue" aria-hidden="true" />
+                    <CallGlyph
+                      className="h-4 w-4 text-hue"
+                      aria-hidden="true"
+                    />
                   }
                   label={t("assistantPage.hero.callLabel")}
                   hint={t("assistantPage.hero.callShort")}

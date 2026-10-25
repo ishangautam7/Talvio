@@ -1,5 +1,11 @@
 import React from "react";
-import { AlertCircle, AlertTriangle, Info, CheckCircle, X } from "@/components/icons/glyphs";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  X,
+} from "@/components/icons/glyphs";
 
 type AlertVariant = "error" | "warning" | "info" | "success";
 

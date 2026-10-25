@@ -14,7 +14,8 @@ export const SILENT_LEVEL = 0.02;
 
 /** A level as a bar height: quiet speech is a fraction of full scale, so the
  *  curve lifts the low end where most of a voice lives. */
-const shape = (level: number) => Math.min(1, Math.sqrt(Math.max(0, level)) * 1.6);
+const shape = (level: number) =>
+  Math.min(1, Math.sqrt(Math.max(0, level)) * 1.6);
 
 /**
  * The Meetings picture: two lanes, one per side of a call — you on the
