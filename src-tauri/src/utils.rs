@@ -136,6 +136,7 @@ fn cancel_operation(app: &AppHandle, origin: CancelOrigin) {
             .try_state::<crate::assistant::AssistantConversation>()
             .map(|conversation| conversation.is_busy())
             .unwrap_or(false)
+            || crate::assistant::spoken_ask_active()
             || crate::assistant::is_transcribe_redirected());
 
     // Abort any in-flight assistant turn (streaming LLM answer) and silence a

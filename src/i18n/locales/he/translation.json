@@ -2797,6 +2797,10 @@
       "selection": "בחירה",
       "copied": "הועתק",
       "newConversation": "שיחה חדשה"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "מכין את הקול · {{percent}}%"
     }
   },
   "nav": {

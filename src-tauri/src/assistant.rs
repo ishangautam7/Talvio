@@ -1153,18 +1153,101 @@ pub const SELECTION_REQUEST_PREFIX: &str = "Their request about it: ";
 
 /// Whether a turn should speak its reply aloud.
 ///
-/// Speaking is a property of the surface that asked, not a global preference —
-/// which is why asking for a translation used to get read aloud at you. A quick
-/// text answer is read and dismissed, so it is always silent. A call is the only
-/// surface that speaks, and there the call's speaker switch decides (seeded from
-/// the user's setting when the call starts): off gives a call that shows replies
-/// as text without reading them out, which is a reasonable thing to want in a
-/// shared room.
+/// Speaking is a property of the surface that asked, not a global preference.
+/// The quick ask is voice-first: it has no answer card, only the orb, so its
+/// answer is always spoken, whatever `assistant_tts_enabled` says. A call speaks
+/// unless its own speaker switch is off (seeded from the user's setting when the
+/// call starts): off gives a call that shows replies as text without reading
+/// them out, which is a reasonable thing to want in a shared room.
 ///
 /// Pulled out of [`run_assistant_turn_inner`] so the rule is testable without a
 /// window, a model, or a microphone.
 fn should_speak_reply(is_call: bool, speaker_on: bool) -> bool {
-    is_call && speaker_on
+    !is_call || speaker_on
+}
+
+/// A quick ask's answer is being spoken (or is about to be): from the moment
+/// its turn opens a speech pipeline until the answer stops or the orb is put
+/// away.
+///
+/// The turn ends long before the voice does (speech is synthesized and played
+/// behind it), so the turn's own busy flag cannot say this. While it is up, Esc
+/// stays registered and the ask key stops the reply instead of starting a new
+/// question (`stop_spoken_ask`), the way pressing it again stops a recording.
+static SPOKEN_ASK: AtomicBool = AtomicBool::new(false);
+
+/// Whether a quick ask's answer is being spoken.
+pub fn spoken_ask_active() -> bool {
+    SPOKEN_ASK.load(Ordering::SeqCst)
+}
+
+/// A quick ask's turn is about to speak: keep Esc for it past the end of the
+/// turn, so the reply can be stopped while it plays.
+fn begin_spoken_ask(app: &AppHandle) {
+    SPOKEN_ASK.store(true, Ordering::SeqCst);
+    crate::shortcut::register_cancel_shortcut(app);
+}
+
+/// The quick ask's spoken answer is over (it finished, was stopped, or the orb
+/// went away): silence anything still playing and give Esc back, unless
+/// something else (a dictation, a turn, a spoken command) still needs it.
+pub fn end_spoken_ask(app: &AppHandle) {
+    if !SPOKEN_ASK.swap(false, Ordering::SeqCst) {
+        return;
+    }
+    crate::tts::stop_all(app);
+    release_cancel_after_spoken_ask(app, true);
+}
+
+/// Give Esc back after a spoken answer, unless something else still needs it.
+/// `turn_counts` is false when called from the end of the ask's own turn, which
+/// still reports busy at that moment.
+fn release_cancel_after_spoken_ask(app: &AppHandle, turn_counts: bool) {
+    let recording = app
+        .try_state::<Arc<crate::managers::audio::AudioRecordingManager>>()
+        .is_some_and(|audio| audio.is_recording());
+    let turn = turn_counts
+        && app
+            .try_state::<AssistantConversation>()
+            .is_some_and(|conversation| conversation.is_busy());
+    if !keeps_cancel_after_spoken_ask(recording, turn, crate::command_mode::voice::is_busy()) {
+        crate::shortcut::unregister_cancel_shortcut(app);
+    }
+}
+
+/// Whether Esc is still someone else's once a spoken answer is over. Pure.
+fn keeps_cancel_after_spoken_ask(recording: bool, turn_busy: bool, command_busy: bool) -> bool {
+    recording || turn_busy || command_busy
+}
+
+/// The ask key was pressed while a quick ask is answering: stop it and put the
+/// orb away, rather than starting a second question over the first. Returns
+/// whether there was an answer to stop. A call is left alone; it has its own
+/// keys.
+pub fn stop_spoken_ask(app: &AppHandle) -> bool {
+    if crate::voice_conversation::is_active(app) {
+        return false;
+    }
+    let turn_busy = app
+        .try_state::<AssistantConversation>()
+        .is_some_and(|conversation| conversation.is_busy());
+    let recording = app
+        .try_state::<Arc<crate::managers::audio::AudioRecordingManager>>()
+        .is_some_and(|audio| audio.is_recording());
+    if !ask_press_stops_answer(spoken_ask_active(), turn_busy, recording) {
+        return false;
+    }
+    crate::utils::cancel_current_operation(app);
+    end_spoken_ask(app);
+    hide_assistant_panel(app);
+    true
+}
+
+/// Whether a press of the ask key is a "stop" rather than a new question. Pure:
+/// a reply being spoken, or one still being written, is stopped; a recording in
+/// progress is not (that press is the end of the question).
+fn ask_press_stops_answer(speaking: bool, turn_busy: bool, recording: bool) -> bool {
+    !recording && (speaking || turn_busy)
 }
 
 /// Wrap a captured selection and the user's question into one user message.
@@ -2919,6 +3002,9 @@ fn hide_panel(app: &AppHandle, clear_first: bool) {
     // A hidden window must not keep the microphone. Ending here also runs the
     // call's own teardown, which is what lets a spoken conversation reach memory.
     crate::voice_conversation::end(app);
+    // The orb is the quick ask's voice: once it is gone, so is the answer it
+    // was speaking (Esc, the ask key again, Insert, or the orb finishing).
+    end_spoken_ask(app);
     // Window work on the event loop's own thread: this is reached from the
     // keyboard engine's thread as well as from commands (see
     // `build_assistant_panel` for why that distinction matters).
@@ -3395,6 +3481,9 @@ fn run_cat_turn(
     // Speak the meow when TTS is on — unless a Stop already landed in the gap.
     let mut speaking = false;
     if !app.state::<AssistantConversation>().is_cancelled() && settings.assistant_tts_enabled {
+        if !crate::voice_conversation::is_active(app) {
+            begin_spoken_ask(app);
+        }
         spawn_tts_speak(app, settings, reply);
         speaking = true;
     }
@@ -4026,6 +4115,10 @@ fn web_plan(
 struct PromptPlan<'a> {
     /// A spoken call (the voice prompt, no Markdown guidance).
     call: bool,
+    /// The question is about text the user selected ("rewrite this"). Its
+    /// answer is meant to be inserted over the selection, so it is written as
+    /// the text itself rather than as speech about it, though it is also spoken.
+    selection: bool,
     /// The meeting under discussion, if any.
     meeting_section: Option<&'a str>,
     /// `tools_system_section` for this turn.
@@ -4075,7 +4168,7 @@ fn compose_system_prompt(settings: &AppSettings, plan: &PromptPlan<'_>, user_tex
     // actually going to be spoken by a voice that performs them; every other
     // engine would read "[laughs]" out loud, so it never sees the instruction.
     // Fixed text per intensity, so the prefix stays cache-stable in a call.
-    if settings.assistant_tts_enabled && crate::audio_tags::active(settings) {
+    if settings.assistant_tts_enabled && !plan.selection && crate::audio_tags::active(settings) {
         sections.push(crate::audio_tags::prompt_section(
             settings.assistant_tts_elevenlabs_audio_tag_intensity,
         ));
@@ -4092,7 +4185,7 @@ fn compose_system_prompt(settings: &AppSettings, plan: &PromptPlan<'_>, user_tex
     // 2b. Spoken turns outside a call: the voice can only start once the first
     //     sentence exists, so a reply that opens with one short sentence is
     //     heard sooner.
-    if settings.assistant_tts_enabled && !plan.call {
+    if settings.assistant_tts_enabled && !plan.call && !plan.selection {
         if settings.effective_response_length() == crate::settings::AssistantResponseLength::Default
         {
             sections.push("Keep spoken replies brief by default: one short paragraph. Give more detail when the user asks for it, and avoid padding simple answers.".to_string());
@@ -4521,6 +4614,7 @@ async fn run_assistant_turn_inner(
         &settings,
         &PromptPlan {
             call: voice_ticket.is_some(),
+            selection: selection.is_some(),
             meeting_section: turn_meeting.as_ref().map(|m| m.section.as_str()),
             tools_section: &tools_section,
             web_via_online,
@@ -4716,6 +4810,11 @@ async fn run_assistant_turn_inner(
         // recording started; doing it twice is harmless.)
         crate::tts::stop_remote();
         let epoch = crate::tts::current_epoch();
+        // A quick ask keeps Esc (and the ask key as a stop) for as long as its
+        // answer is being spoken, which outlives this turn.
+        if voice_ticket.is_none() {
+            begin_spoken_ask(&app);
+        }
         Some((
             Arc::new(Mutex::new(
                 crate::speech_stream::SpeechPipeline::start_for_voice(
@@ -5060,6 +5159,12 @@ async fn run_assistant_turn_inner(
     // its idle "Assistant" affordance in the gap before audio begins. The panel
     // flips itself back to idle once playback ends (it owns the local engine).
     emit_state(&app, if speaking { "speaking" } else { "idle" });
+    // Nothing will be heard after all (stopped, failed, or nothing sayable): no
+    // voice to wait for. Esc is the pipeline's to release (`FinishGuard`), or
+    // the orb's when it goes away.
+    if voice_ticket.is_none() && !speaking && SPOKEN_ASK.swap(false, Ordering::SeqCst) {
+        release_cancel_after_spoken_ask(&app, false);
+    }
     // No tool is running any more, whatever happened above.
     let _ = app.emit("assistant-tool", Value::Null);
     // A frame grabbed for this question and never asked for is dropped here, so
@@ -6538,19 +6643,39 @@ mod tests {
         ));
     }
 
-    /// The whole point of the change: a quick text answer never speaks, whatever
-    /// the setting says. Asking "translate this" and being read a paragraph aloud
-    /// was the complaint that started it.
+    /// The quick ask is voice-first: it has no answer card, so its answer is
+    /// always spoken, whatever the call's speaker switch says.
     #[test]
-    fn a_quick_text_answer_is_never_spoken_aloud() {
-        assert!(!should_speak_reply(false, true));
-        assert!(!should_speak_reply(false, false));
+    fn a_quick_ask_is_always_answered_aloud() {
+        assert!(should_speak_reply(false, true));
+        assert!(should_speak_reply(false, false));
     }
 
-    /// A call is the one surface that speaks, and there its speaker switch
-    /// decides — off means a call that shows text without reading it out.
+    /// Pressing the ask key while the orb answers stops the answer; pressing it
+    /// while recording is the end of the question, and with nothing going on it
+    /// asks a new one.
     #[test]
-    fn only_a_call_speaks_and_only_when_its_speaker_is_on() {
+    fn the_ask_key_stops_an_answer_but_not_a_recording() {
+        assert!(ask_press_stops_answer(true, false, false));
+        assert!(ask_press_stops_answer(false, true, false));
+        assert!(!ask_press_stops_answer(true, true, true));
+        assert!(!ask_press_stops_answer(false, false, false));
+    }
+
+    /// Esc goes back once an answer stops being spoken, unless a dictation, a
+    /// turn or a spoken command registered it for itself meanwhile.
+    #[test]
+    fn esc_is_kept_only_for_work_that_still_needs_it() {
+        assert!(!keeps_cancel_after_spoken_ask(false, false, false));
+        assert!(keeps_cancel_after_spoken_ask(true, false, false));
+        assert!(keeps_cancel_after_spoken_ask(false, true, false));
+        assert!(keeps_cancel_after_spoken_ask(false, false, true));
+    }
+
+    /// A call speaks unless its speaker switch is off — off means a call that
+    /// shows text without reading it out.
+    #[test]
+    fn a_call_speaks_only_when_its_speaker_is_on() {
         assert!(should_speak_reply(true, true));
         assert!(
             !should_speak_reply(true, false),
