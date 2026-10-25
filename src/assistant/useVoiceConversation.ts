@@ -1199,12 +1199,20 @@ export function useVoiceConversation(callbacks: VoiceCallbacks) {
     },
   }).current;
 
+  /** How loud the assistant's voice is right now (RMS), read by the orb every
+   *  frame rather than pushed through React. */
+  const speechLevel = useCallback(
+    () => sessionRef.current?.audio.level() ?? 0,
+    [],
+  );
+
   return {
     open,
     phase,
     error,
     clearError,
     level,
+    speechLevel,
     pace,
     setPace,
     sensitivity,

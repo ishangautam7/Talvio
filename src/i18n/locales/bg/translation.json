@@ -2779,6 +2779,10 @@
       "selection": "Селекция",
       "copied": "Копирано",
       "newConversation": "Нов разговор"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Гласът се подготвя · {{percent}}%"
     }
   },
   "nav": {

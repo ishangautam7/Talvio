@@ -2851,6 +2851,10 @@
       "selection": "التحديد",
       "copied": "تم النسخ",
       "newConversation": "محادثة جديدة"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "جارٍ تجهيز الصوت · {{percent}}%"
     }
   },
   "nav": {

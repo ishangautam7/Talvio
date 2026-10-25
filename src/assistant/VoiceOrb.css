@@ -1,0 +1,201 @@
+/* =========================================================================
+ * The orb itself: a softly lit glass sphere in the brand's colours, the one
+ * place the call draws them: warm paper light at the top, the icon's coral
+ * gradient (#FF8F3F → #EE3A5C) through the middle, sinking into the ink tile's
+ * blue-violet (#262B6B → #11122E). The flowing light represents an active
+ * call; movement quickens while the assistant speaks and follows the
+ * microphone while the user does.
+ * ========================================================================= */
+
+.voice-orb {
+  --orb-size: 156px;
+  --orb-speed: 14s;
+  width: var(--orb-size);
+  height: var(--orb-size);
+  flex-shrink: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+.voice-orb-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 34% 23%,
+    #fff5ee 0%,
+    #ffc7a8 18%,
+    #ff8f5c 38%,
+    #e2475e 58%,
+    #4a2f6e 80%,
+    #1d1f4f 100%
+  );
+  box-shadow:
+    inset 0 0 2px 1px #fff1e866,
+    inset -8px -12px 24px #11122e66;
+  transform: scale(calc(1 + var(--voice-energy, 0) * 0.12));
+  transition:
+    transform 120ms ease-out,
+    filter 400ms,
+    opacity 400ms;
+}
+
+.voice-orb-flow {
+  position: absolute;
+  inset: -25%;
+  border-radius: 43%;
+  background: conic-gradient(
+    from 40deg,
+    transparent 8%,
+    #ffe3d3bb 24%,
+    #262b6b55 38%,
+    transparent 47%,
+    #ff8f3fa6 64%,
+    #ffcdbfb3 80%,
+    transparent 94%
+  );
+  filter: blur(13px);
+  animation: voice-orbit var(--orb-speed) linear infinite;
+}
+
+.voice-orb-light {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 30% 19%, #fffaf5b3, transparent 43%),
+    radial-gradient(ellipse at 74% 87%, #ee3a5c55, transparent 37%);
+  box-shadow:
+    inset 1px 1px 5px #fff4ec77,
+    inset -2px -4px 8px #11122e66;
+}
+
+.voice-orb.speaking {
+  --orb-speed: 4s;
+}
+
+.voice-orb.speaking .voice-orb-body {
+  animation: voice-speak 1.4s ease-in-out infinite;
+}
+
+.voice-orb.hearing {
+  --orb-speed: 7s;
+}
+
+.voice-orb.hearing .voice-orb-body {
+  filter: saturate(1.15);
+}
+
+.voice-orb.responding,
+.voice-orb.transcribing {
+  --orb-speed: 5s;
+}
+
+.voice-orb.starting .voice-orb-body {
+  opacity: 0.6;
+  animation: voice-breathe 2s ease-in-out infinite;
+}
+
+.voice-orb.muted .voice-orb-body,
+.voice-orb.held .voice-orb-body,
+.voice-orb.error .voice-orb-body,
+.voice-orb.off .voice-orb-body {
+  filter: grayscale(0.95);
+  opacity: 0.5;
+}
+
+.voice-orb.muted .voice-orb-flow,
+.voice-orb.held .voice-orb-flow,
+.voice-orb.error .voice-orb-flow,
+.voice-orb.off .voice-orb-flow {
+  animation-play-state: paused;
+}
+
+@keyframes voice-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes voice-speak {
+  0%,
+  100% {
+    transform: scale(0.94);
+  }
+  48% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes voice-breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* =========================================================================
+ * The luminous orb (`LuminousOrb.tsx`): the same sphere, drawn live by a
+ * shader. The element is twice the sphere's diameter so the halo has room;
+ * the painted orb above sits in its middle until the canvas lights, and is
+ * what shows wherever WebGL cannot.
+ * ========================================================================= */
+
+.luminous-orb {
+  --orb-d: 72px;
+  position: relative;
+  flex-shrink: 0;
+  width: calc(var(--orb-d) * 2);
+  height: calc(var(--orb-d) * 2);
+  pointer-events: none;
+}
+
+.luminous-orb-fallback {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--orb-d);
+  height: var(--orb-d);
+  margin: calc(var(--orb-d) / -2) 0 0 calc(var(--orb-d) / -2);
+  transition: opacity 260ms ease-out;
+}
+
+.luminous-orb-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+}
+
+.luminous-orb.is-lit .luminous-orb-canvas {
+  opacity: 1;
+}
+
+.luminous-orb.is-lit .luminous-orb-fallback {
+  opacity: 0;
+}
+
+/* The painted orb's own states, for the modes the shader draws. */
+.luminous-orb-fallback.thinking {
+  --orb-speed: 5s;
+}
+.luminous-orb-fallback.listening {
+  --orb-speed: 7s;
+}
+.luminous-orb-fallback.speaking {
+  --orb-speed: 4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-orb *,
+  .voice-orb.speaking .voice-orb-body,
+  .voice-orb.starting .voice-orb-body {
+    animation: none;
+  }
+  .luminous-orb-canvas,
+  .luminous-orb-fallback {
+    transition: none;
+  }
+}

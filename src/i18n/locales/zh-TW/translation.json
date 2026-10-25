@@ -2761,6 +2761,10 @@
       "selection": "選取內容",
       "copied": "已複製",
       "newConversation": "新對話"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "正在準備語音 · {{percent}}%"
     }
   },
   "nav": {

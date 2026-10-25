@@ -2815,6 +2815,10 @@
       "selection": "Выделение",
       "copied": "Скопировано",
       "newConversation": "Новый разговор"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Готовлю голос · {{percent}}%"
     }
   },
   "nav": {

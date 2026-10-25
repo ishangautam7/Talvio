@@ -2815,6 +2815,10 @@
       "selection": "Zaznaczenie",
       "copied": "Skopiowano",
       "newConversation": "Nowa rozmowa"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Przygotowuję głos · {{percent}}%"
     }
   },
   "nav": {

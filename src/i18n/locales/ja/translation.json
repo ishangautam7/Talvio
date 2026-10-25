@@ -2761,6 +2761,10 @@
       "selection": "選択範囲",
       "copied": "コピーしました",
       "newConversation": "新しい会話"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "音声を準備中 · {{percent}}%"
     }
   },
   "nav": {

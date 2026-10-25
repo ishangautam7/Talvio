@@ -7,8 +7,9 @@ import { previewParams } from "./mockBackend";
  * real size over a desktop-ish backdrop, so its transparent edges can be
  * judged.
  *
- * URL knobs: ?w=ask|ask-listening|ask-working|overlay|overlay-live|
- *               overlay-working|reminder|approval
+ * URL knobs: ?w=ask|ask-listening|ask-working|ask-tool|ask-speaking|
+ *               ask-done|ask-insert|ask-error|ask-bottom|overlay|
+ *               overlay-live|overlay-working|reminder|approval
  *            &bg=light|dark|photo
  */
 import React, { useEffect } from "react";
@@ -17,6 +18,8 @@ import { emit } from "@tauri-apps/api/event";
 import "@fontsource-variable/inter";
 import "../i18n";
 import QuickAsk from "@/assistant/QuickAsk";
+import { LuminousOrb } from "@/assistant/LuminousOrb";
+import type { OrbMode } from "@/assistant/orbMotion";
 import "@/assistant/AssistantPanel.css";
 import RecordingOverlay from "@/overlay/RecordingOverlay";
 import ReminderPopup from "@/reminder/ReminderPopup";
@@ -38,33 +41,53 @@ const ANSWER = `**git branch -m** renames the branch you are on:
 
 Anyone else on the branch needs to fetch and reset their upstream.`;
 
-const Ask: React.FC<{ phase: "listening" | "working" | "done" }> = ({
-  phase,
-}) => (
+/** A voice that rises and falls like speech: syllables on a slower phrase. */
+const speechLike = () => {
+  const t = performance.now() / 1000;
+  const syllable = Math.max(0, Math.sin(t * 11) * 0.6 + Math.sin(t * 7.3) * 0.4);
+  const phrase = 0.55 + 0.45 * Math.sin(t * 1.3);
+  return Math.min(1, syllable * phrase * 1.15);
+};
+
+type AskPhase =
+  | "prompt"
+  | "listening"
+  | "working"
+  | "speaking"
+  | "done"
+  | "error";
+
+const Ask: React.FC<{
+  phase: AskPhase;
+  caption?: string | null;
+  selection?: boolean;
+  align?: "top" | "bottom";
+}> = ({ phase, caption = null, selection = false, align = "top" }) => (
   <div
     className="assistant-scope"
     style={
       {
         position: "absolute",
-        insetInline: 0,
-        bottom: 24,
-        display: "flex",
-        justifyContent: "center",
+        inset: 0,
         "--as-msg-font": "15px",
         "--as-alpha": "1",
       } as React.CSSProperties
     }
   >
-    <div style={{ width: 560 }}>
+    <div className="qa-frame" data-align={align} data-justify="center">
       <QuickAsk
         phase={phase}
         status={phase === "listening" ? "Listening" : "Thinking"}
-        levels={[0.3, 0.7, 0.5]}
+        caption={caption}
+        levelSource={
+          phase === "listening" || phase === "speaking" ? speechLike : undefined
+        }
         question="What's the fastest way to rename a git branch?"
-        answer={phase === "done" ? ANSWER : ""}
-        selectionChars={0}
+        answer={phase === "done" || phase === "speaking" ? ANSWER : ""}
+        answerReady
+        selectionChars={selection ? 120 : 0}
         screen={false}
-        error={null}
+        error={phase === "error" ? "Couldn't reach the assistant" : null}
         notice={null}
         canRetry={phase === "done"}
         input=""
@@ -79,6 +102,44 @@ const Ask: React.FC<{ phase: "listening" | "working" | "done" }> = ({
     </div>
   </div>
 );
+
+/** Every mode of the orb side by side, large, for judging the shader. The
+ *  `size` knob sets the sphere's diameter. */
+const OrbLab: React.FC = () => {
+  const size = Number(previewParams.get("size") ?? 120);
+  const modes: OrbMode[] = [
+    "idle",
+    "listening",
+    "thinking",
+    "speaking",
+    "muted",
+    "error",
+  ];
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 0,
+      }}
+    >
+      {modes.map((mode) => (
+        <LuminousOrb
+          key={mode}
+          mode={mode}
+          size={size}
+          levelSource={
+            mode === "listening" || mode === "speaking" ? speechLike : undefined
+          }
+        />
+      ))}
+    </div>
+  );
+};
 
 /** The overlay window's own sizes (overlay.rs): the pill, the live card, and
  *  the labelled working pill. */
@@ -171,9 +232,18 @@ const Harness: React.FC = () => {
         background: BACKDROPS[previewParams.get("bg") ?? "light"],
       }}
     >
-      {w === "ask" && <Ask phase="done" />}
+      {w === "orb-lab" && <OrbLab />}
+      {w === "ask" && <Ask phase="prompt" />}
       {w === "ask-listening" && <Ask phase="listening" />}
       {w === "ask-working" && <Ask phase="working" />}
+      {w === "ask-tool" && (
+        <Ask phase="working" caption="Open YouTube in the browser…" />
+      )}
+      {w === "ask-speaking" && <Ask phase="speaking" />}
+      {w === "ask-done" && <Ask phase="done" />}
+      {w === "ask-insert" && <Ask phase="done" selection />}
+      {w === "ask-error" && <Ask phase="error" />}
+      {w === "ask-bottom" && <Ask phase="speaking" align="bottom" />}
       {w.startsWith("overlay") && <OverlayFrame mode={w} />}
       {w === "reminder" && (
         <Popup>
