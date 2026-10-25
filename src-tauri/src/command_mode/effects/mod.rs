@@ -18,8 +18,11 @@ pub mod http;
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
+mod media_sessions;
 #[cfg(target_os = "windows")]
 mod windows;
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) use windows::live::LiveEffects;
 
 use serde::Serialize;
 use specta::Type;
@@ -206,8 +209,26 @@ pub trait Effects: Send + Sync {
     ) -> Result<String, String> {
         http::fetch_text(url, headers, timeout)
     }
+    /// Whether any app is playing media right now. `None` when this system
+    /// cannot tell (only Windows lists media sessions), and the tools then
+    /// fall back to the play/pause key.
+    fn media_playing(&self) -> Option<bool> {
+        media_sessions::playing()
+    }
 
     // ── Actions: recorded, not run, in dry run ─────────────────────────────
+
+    /// Pause every app that is playing, by its own pause rather than the
+    /// toggle key. `Ok(n)`: how many were paused. `Err` where the system
+    /// has no media sessions.
+    fn pause_media(&self) -> Result<usize, String> {
+        media_sessions::pause_all()
+    }
+    /// Resume the current player by its own play. `Ok(false)`: nothing to
+    /// resume. `Err` where the system has no media sessions.
+    fn resume_media(&self) -> Result<bool, String> {
+        media_sessions::play_current()
+    }
 
     /// Open a URL in the user's default browser.
     fn open_url(&self, url: &str) -> Result<(), String>;
@@ -325,7 +346,19 @@ impl<E: Effects> Effects for DryRunEffects<E> {
     ) -> Result<String, String> {
         self.inner.fetch_text(url, headers, timeout)
     }
+    fn media_playing(&self) -> Option<bool> {
+        self.inner.media_playing()
+    }
 
+    fn pause_media(&self) -> Result<usize, String> {
+        let playing = usize::from(self.inner.media_playing() == Some(true));
+        self.record("pause what is playing".to_string())?;
+        Ok(playing)
+    }
+    fn resume_media(&self) -> Result<bool, String> {
+        self.record("resume the player".to_string())?;
+        Ok(true)
+    }
     fn open_url(&self, url: &str) -> Result<(), String> {
         self.record(format!("open URL {url}"))
     }
@@ -391,6 +424,9 @@ pub mod fake {
         /// Every URL `fetch_text` was asked for, in order. Fetches are reads,
         /// so they are kept apart from `actions`.
         pub fetched: Mutex<Vec<String>>,
+        /// What `media_playing` answers; `None` = a system without media
+        /// sessions, where `pause_media` and `resume_media` fail.
+        pub playing: Mutex<Option<bool>>,
     }
 
     impl FakeEffects {
@@ -442,6 +478,31 @@ pub mod fake {
                 .find(|(prefix, _)| url.starts_with(prefix.as_str()))
                 .map(|(_, page)| page.clone())
                 .unwrap_or_else(|| Err("offline".to_string()))
+        }
+        fn media_playing(&self) -> Option<bool> {
+            *self.playing.lock().unwrap()
+        }
+        fn pause_media(&self) -> Result<usize, String> {
+            let mut playing = self.playing.lock().unwrap();
+            match *playing {
+                None => Err("media sessions are not available".into()),
+                Some(was) => {
+                    self.act("pause_media".into())?;
+                    *playing = Some(false);
+                    Ok(usize::from(was))
+                }
+            }
+        }
+        fn resume_media(&self) -> Result<bool, String> {
+            let mut playing = self.playing.lock().unwrap();
+            match *playing {
+                None => Err("media sessions are not available".into()),
+                Some(_) => {
+                    self.act("resume_media".into())?;
+                    *playing = Some(true);
+                    Ok(true)
+                }
+            }
         }
         fn open_url(&self, url: &str) -> Result<(), String> {
             self.act(format!("open_url {url}"))

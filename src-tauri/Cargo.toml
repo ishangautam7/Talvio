@@ -331,6 +331,10 @@ windows = { version = "0.61.3", features = [
   "Win32_System_WinRT_Direct3D11",
   "Win32_System_WinRT_Graphics_Capture",
   "Win32_Media_MediaFoundation",
+  # Command mode (command_mode/effects/media_sessions.rs): every app's player
+  # as a media session, so "pause" pauses what plays instead of toggling it.
+  "Media",
+  "Media_Control",
   "Win32_System_Com",
 ] }
 # The list and the async operation the Share panel's data takes, at the
