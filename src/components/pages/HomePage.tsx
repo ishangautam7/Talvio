@@ -16,8 +16,8 @@ const NeedsSpeechModel: React.FC = () => {
   const { t } = useTranslation();
   const { openModelSlot } = useNavigation();
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-warning/25 bg-warning/[0.06] px-5 py-3.5">
-      <span className="h-2 w-2 shrink-0 rounded-full bg-warning" />
+    <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-warning/25 bg-warning/[0.06] px-5 py-3.5">
+      <span className="h-2 w-2 shrink-0 rounded-full bg-warning shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-warning)_16%,transparent)]" />
       <p className="min-w-0 flex-1 text-sm font-medium text-ink">
         {t("home.needsModel.title")}
       </p>
@@ -41,13 +41,20 @@ const NeedsSpeechModel: React.FC = () => {
  * beside the other three.
  */
 export const HomePage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const slots = useModelSlots();
-  const greeting = t(`home.greeting.${partOfDay(new Date().getHours())}`);
+  const now = new Date();
+  const greeting = t(`home.greeting.${partOfDay(now.getHours())}`);
+  // Today's date, in the app's language, above the greeting.
+  const today = new Intl.DateTimeFormat(i18n.language, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(now);
 
   return (
     <Page>
-      <PageHeader title={greeting} />
+      <PageHeader title={greeting} eyebrow={today} />
 
       {slots.stt.issue === "needs_update" ? (
         <RetiredSelectionPrompt placement="home" className="mb-6" />

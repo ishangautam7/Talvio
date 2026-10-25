@@ -43,6 +43,14 @@ if (previewParams.get("update") === "1") {
 if (previewParams.get("feedback") === "1") {
   useFeedbackDialog.getState().show();
 }
+// `?scroll=<px>` scrolls the page once it has rendered, for screenshots of
+// what sits below the fold (and of the compact title that appears then).
+const scrollBy = Number(previewParams.get("scroll") ?? 0);
+if (scrollBy > 0) {
+  window.setTimeout(() => {
+    document.querySelector(".page-layer-active")?.scrollTo(0, scrollBy);
+  }, 1500);
+}
 
 document.documentElement.dataset.platform = "windows";
 applyThemePreference(
