@@ -9,6 +9,7 @@ import { RetiredSelectionPrompt } from "@/components/settings/models/RetiredSele
 import { ShortcutsCard } from "./home/ShortcutsCard";
 import { ModelsCard } from "./home/ModelsCard";
 import { RecentCard } from "./home/RecentCard";
+import { StatusHero } from "./home/StatusHero";
 import { partOfDay } from "./home/usageMath";
 
 /** Shown above everything else when dictation cannot run yet. */
@@ -62,7 +63,9 @@ export const HomePage: React.FC = () => {
         !slots.stt.ready && <NeedsSpeechModel />
       )}
 
-      <div className="grid grid-cols-1 gap-10 @4xl:grid-cols-[minmax(0,1fr)_22rem] @4xl:gap-8">
+      <StatusHero />
+
+      <div className="mt-10 grid grid-cols-1 gap-10 @4xl:grid-cols-[minmax(0,1fr)_22rem] @4xl:gap-8">
         <ShortcutsCard />
         <ModelsCard />
       </div>
