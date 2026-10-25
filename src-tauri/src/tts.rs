@@ -32,7 +32,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::io::Cursor;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
 use std::time::Duration;
 use tauri::AppHandle;
 
@@ -741,6 +741,107 @@ impl Drop for PlayingGuard {
     }
 }
 
+// ---------------------------------------------------------------------------
+// The voice's loudness, for the quick ask's orb
+// ---------------------------------------------------------------------------
+
+/// The loudness of the speech being played right now (RMS of the last ~33 ms,
+/// as `f32` bits), so the quick ask's orb can move with the assistant's voice
+/// the way it moves with the user's while they speak.
+static SPEECH_LEVEL: AtomicU32 = AtomicU32::new(0);
+
+/// How often the playback thread reports the level to the panel.
+const SPEECH_LEVEL_INTERVAL: Duration = Duration::from_millis(40);
+
+/// Reported to the assistant panel while a reply plays (`assistant-tts-level`).
+pub const SPEECH_LEVEL_EVENT: &str = "assistant-tts-level";
+
+/// The RMS of a window of samples. Pure.
+fn rms(sum_of_squares: f32, count: u32) -> f32 {
+    if count == 0 {
+        return 0.0;
+    }
+    (sum_of_squares / count as f32).sqrt()
+}
+
+/// A source that measures its own loudness as the mixer pulls it.
+///
+/// The mixer reads a little ahead of the speaker, so the level leads what is
+/// heard by the output buffer (tens of milliseconds), which is well inside what
+/// the eye can tell apart.
+struct Metered<S> {
+    inner: S,
+    sum: f32,
+    count: u32,
+    window: u32,
+}
+
+impl<S: rodio::Source> Metered<S> {
+    fn new(inner: S) -> Self {
+        let per_second = inner.sample_rate().max(1) * u32::from(inner.channels().max(1));
+        Self {
+            inner,
+            sum: 0.0,
+            count: 0,
+            window: (per_second / 30).max(1),
+        }
+    }
+}
+
+impl<S: rodio::Source> Iterator for Metered<S> {
+    type Item = rodio::Sample;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let Some(sample) = self.inner.next() else {
+            SPEECH_LEVEL.store(0, Ordering::Relaxed);
+            return None;
+        };
+        self.sum += sample * sample;
+        self.count += 1;
+        if self.count >= self.window {
+            SPEECH_LEVEL.store(rms(self.sum, self.count).to_bits(), Ordering::Relaxed);
+            self.sum = 0.0;
+            self.count = 0;
+        }
+        Some(sample)
+    }
+}
+
+impl<S: rodio::Source> rodio::Source for Metered<S> {
+    fn current_span_len(&self) -> Option<usize> {
+        self.inner.current_span_len()
+    }
+    fn channels(&self) -> rodio::ChannelCount {
+        self.inner.channels()
+    }
+    fn sample_rate(&self) -> rodio::SampleRate {
+        self.inner.sample_rate()
+    }
+    fn total_duration(&self) -> Option<Duration> {
+        self.inner.total_duration()
+    }
+}
+
+/// Tell the panel how loud the voice is, at most every
+/// [`SPEECH_LEVEL_INTERVAL`]. Silent while nothing plays.
+fn report_speech_level(app: &AppHandle, sink: &rodio::Sink, last: &mut std::time::Instant) {
+    if last.elapsed() < SPEECH_LEVEL_INTERVAL {
+        return;
+    }
+    *last = std::time::Instant::now();
+    let level = if sink.empty() {
+        0.0
+    } else {
+        f32::from_bits(SPEECH_LEVEL.load(Ordering::Relaxed))
+    };
+    use tauri::Emitter;
+    let _ = app.emit_to(
+        crate::assistant::PANEL_LABEL,
+        SPEECH_LEVEL_EVENT,
+        (level * 1000.0).round() / 1000.0,
+    );
+}
+
 /// Queue one synthesized clip for gapless playback.
 ///
 /// Chunks play strictly in the order they are enqueued, so callers must enqueue
@@ -887,18 +988,20 @@ fn run_playback_session(
     let mut playing: Option<PlayingGuard> = None;
     let mut idle_since: Option<std::time::Instant> = None;
     let mut decode_failures = 0usize;
+    let mut level_reported = std::time::Instant::now();
 
     loop {
         if current_epoch() != epoch {
             sink.stop();
             break;
         }
-        match rx.recv_timeout(Duration::from_millis(50)) {
+        report_speech_level(&app, &sink, &mut level_reported);
+        match rx.recv_timeout(SPEECH_LEVEL_INTERVAL) {
             Ok(bytes) => {
                 idle_since = None;
                 match rodio::Decoder::new(Cursor::new(bytes)) {
                     Ok(source) => {
-                        sink.append(source);
+                        sink.append(Metered::new(source));
                         if playing.is_none() {
                             playing = Some(announce_playing(&app));
                         }
@@ -930,13 +1033,21 @@ fn run_playback_session(
                         sink.stop();
                         break;
                     }
-                    std::thread::sleep(Duration::from_millis(50));
+                    report_speech_level(&app, &sink, &mut level_reported);
+                    std::thread::sleep(SPEECH_LEVEL_INTERVAL);
                 }
                 break;
             }
         }
     }
 
+    // The voice is silent from here: let the orb settle rather than freeze on
+    // the last syllable's level.
+    SPEECH_LEVEL.store(0, Ordering::Relaxed);
+    {
+        use tauri::Emitter;
+        let _ = app.emit_to(crate::assistant::PANEL_LABEL, SPEECH_LEVEL_EVENT, 0.0f32);
+    }
     // Dropping the guard emits the balancing event once no session is left
     // playing, on every exit path including an unexpected panic.
     drop(playing);
@@ -3017,6 +3128,41 @@ fn sanitize_speech_inner(input: &str, allow_raw_fallback: bool, keep_audio_tags:
         return String::new();
     }
     cleaned.to_string()
+}
+
+#[cfg(test)]
+mod level_tests {
+    use super::{rms, Metered, SPEECH_LEVEL};
+    use std::sync::atomic::Ordering;
+
+    /// The orb reads the voice's loudness as an RMS: a full-scale square wave
+    /// is 1, half scale is 0.5, and nothing is 0.
+    #[test]
+    fn loudness_is_the_root_mean_square() {
+        assert_eq!(rms(0.0, 0), 0.0);
+        assert!((rms(4.0 * 0.25, 4) - 0.5).abs() < 1e-6);
+        assert!((rms(10.0, 10) - 1.0).abs() < 1e-6);
+    }
+
+    /// Metering passes every sample through untouched, publishes the level as
+    /// it goes, and reads silent once the clip has ended.
+    #[test]
+    fn a_metered_clip_plays_unchanged_and_reports_its_loudness() {
+        let samples: Vec<f32> = (0..1600)
+            .map(|i| if i % 2 == 0 { 0.5 } else { -0.5 })
+            .collect();
+        let source = rodio::buffer::SamplesBuffer::new(1, 16_000, samples.clone());
+        let mut metered = Metered::new(source);
+        let mut out = Vec::new();
+        let mut heard = 0.0f32;
+        while let Some(sample) = metered.next() {
+            out.push(sample);
+            heard = heard.max(f32::from_bits(SPEECH_LEVEL.load(Ordering::Relaxed)));
+        }
+        assert_eq!(out, samples);
+        assert!((heard - 0.5).abs() < 1e-3, "level was {heard}");
+        assert_eq!(f32::from_bits(SPEECH_LEVEL.load(Ordering::Relaxed)), 0.0);
+    }
 }
 
 #[cfg(test)]

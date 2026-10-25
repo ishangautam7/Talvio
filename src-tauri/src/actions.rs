@@ -52,8 +52,11 @@ impl Drop for FinishGuard {
         // generation) is done, so drop the cancel shortcut here rather than at
         // recording-stop. Keeping it registered through generation is what lets
         // Esc abort a streaming assistant answer or Flow generation, not just a
-        // recording.
-        shortcut::unregister_cancel_shortcut(&self.0);
+        // recording. A quick ask whose answer is still being spoken keeps it
+        // until the answer ends (`assistant::end_spoken_ask`).
+        if !crate::assistant::spoken_ask_active() {
+            shortcut::unregister_cancel_shortcut(&self.0);
+        }
         crate::flow::stop_prewarm_watch();
         if let Some(c) = self.0.try_state::<TranscriptionCoordinator>() {
             c.notify_processing_finished();
