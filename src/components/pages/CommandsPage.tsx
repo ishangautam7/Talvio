@@ -306,6 +306,7 @@ export const CommandsPage: React.FC = () => {
     <Page>
       <PageHeader
         title={t("nav.commands")}
+        feature="commands"
         description={t("commandsPage.description")}
         actions={
           <div className="inline-flex items-center gap-2.5 text-sm font-medium text-ink">

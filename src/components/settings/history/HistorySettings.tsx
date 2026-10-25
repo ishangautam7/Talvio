@@ -30,7 +30,7 @@ import {
   Trash2,
   Users,
   History,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StickyHeading } from "@/components/ui/StickyHeading";
 import { useTranslation } from "react-i18next";
@@ -775,6 +775,7 @@ export const HistorySettings: React.FC = () => {
     <div className="w-full">
       <PageHeader
         title={t("sidebar.history")}
+        feature="history"
         description={t("sectionSubtitles.history")}
         actions={
           <>

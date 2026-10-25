@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil } from "lucide-react";
+import { Pencil } from "@/components/icons/glyphs";
 import { useSettings } from "@/hooks/useSettings";
 import { Page, PageHeader, SectionTitle } from "@/components/ui/Page";
 import { Switch } from "@/components/ui/Switch";
@@ -247,6 +247,7 @@ export const CleanupPage: React.FC = () => {
     <Page>
       <PageHeader
         title={t("nav.cleanup")}
+        feature="cleanup"
         description={t("cleanup.description")}
         actions={
           <div className="inline-flex items-center gap-2.5 text-sm font-medium text-ink">

@@ -1,15 +1,15 @@
 import type React from "react";
 import {
-  CircleUserRound,
-  FlaskConical,
-  Headphones,
-  Info,
-  Keyboard,
-  ShieldCheck,
-  SlidersHorizontal,
-  TextCursorInput,
-  Wrench,
-} from "lucide-react";
+  AboutGlyph,
+  AccountGlyph,
+  AdvancedGlyph,
+  AudioGlyph,
+  DebugGlyph,
+  PrivacyGlyph,
+  SettingsGlyph,
+  ShortcutsGlyph,
+  TypingGlyph,
+} from "@/components/icons/glyphs";
 import type { SettingsTab } from "@/components/shell/navigation";
 
 type TabIcon = React.ComponentType<{
@@ -24,13 +24,13 @@ type TabIcon = React.ComponentType<{
  * like the tab it opens. Debug is listed only while debug mode is on.
  */
 export const SETTINGS_TAB_META: { id: SettingsTab; icon: TabIcon }[] = [
-  { id: "general", icon: SlidersHorizontal },
-  { id: "account", icon: CircleUserRound },
-  { id: "shortcuts", icon: Keyboard },
-  { id: "audio", icon: Headphones },
-  { id: "dictation", icon: TextCursorInput },
-  { id: "privacy", icon: ShieldCheck },
-  { id: "advanced", icon: Wrench },
-  { id: "about", icon: Info },
-  { id: "debug", icon: FlaskConical },
+  { id: "general", icon: SettingsGlyph },
+  { id: "account", icon: AccountGlyph },
+  { id: "shortcuts", icon: ShortcutsGlyph },
+  { id: "audio", icon: AudioGlyph },
+  { id: "dictation", icon: TypingGlyph },
+  { id: "privacy", icon: PrivacyGlyph },
+  { id: "advanced", icon: AdvancedGlyph },
+  { id: "about", icon: AboutGlyph },
+  { id: "debug", icon: DebugGlyph },
 ];

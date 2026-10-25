@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { CircleQuestionMark, CornerDownLeft, Search } from "lucide-react";
+import { CornerDownLeft, HelpGlyph, Search } from "@/components/icons/glyphs";
 import { MODELS_ITEM, NAV_ITEMS } from "@/components/Sidebar";
 import { TITLEBAR_CENTER_ID } from "@/components/TitleBar";
 import { Keycaps } from "@/components/ui/Keycaps";
@@ -18,7 +18,7 @@ import { useFeedbackDialog } from "@/components/feedback/feedbackStore";
 import { useOsType } from "@/hooks/useOsType";
 import { useSettings } from "@/hooks/useSettings";
 import { MODEL_SLOTS, useNavigation } from "./navigation";
-import { SLOT_META } from "./SlotVisuals";
+import { SLOT_HUES, SLOT_META } from "./SlotVisuals";
 import { matchScore } from "./paletteSearch";
 
 type Glyph = React.ComponentType<{ className?: string }>;
@@ -28,6 +28,8 @@ interface PaletteEntry {
   group: "pages" | "settings" | "models" | "actions";
   label: string;
   icon: Glyph;
+  /** Whose colour the entry's tile wears (a page, a model job), or none. */
+  hue: string;
   run: () => void;
 }
 
@@ -84,7 +86,7 @@ export const CommandPalette: React.FC = () => {
       onClick={() => setOpen(true)}
       aria-haspopup="dialog"
       aria-expanded={open}
-      className="palette-trigger flex h-7 w-[min(24rem,40vw)] min-w-0 cursor-pointer items-center gap-2 rounded-lg ps-2.5 pe-1.5 text-start text-[0.8125rem] focus-visible:outline-none"
+      className="palette-trigger flex h-8 w-[min(26rem,40vw)] min-w-0 cursor-pointer items-center gap-2 rounded-full ps-3 pe-1.5 text-start text-[0.8125rem] focus-visible:outline-none"
     >
       <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span className="min-w-0 flex-1 truncate">{t("palette.trigger")}</span>
@@ -125,6 +127,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         group: "pages" as const,
         label: t(item.labelKey),
         icon: item.icon,
+        hue: item.id,
         run: () => navigateRoot(item.id),
       })),
       ...MODEL_SLOTS.map((slot) => ({
@@ -132,6 +135,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         group: "models" as const,
         label: t(`modelsHub.slots.${slot}.name`),
         icon: SLOT_META[slot].icon,
+        hue: SLOT_HUES[slot],
         run: () => openModelSlot(slot),
       })),
       ...SETTINGS_TAB_META.filter((tab) => tab.id !== "debug" || debugMode).map(
@@ -140,6 +144,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           group: "settings" as const,
           label: t(`settingsDialog.tabs.${tab.id}`),
           icon: tab.icon,
+          hue: "neutral",
           run: () => openSettings(tab.id),
         }),
       ),
@@ -147,7 +152,8 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         id: "action-feedback",
         group: "actions" as const,
         label: t("feedback.button"),
-        icon: CircleQuestionMark,
+        icon: HelpGlyph,
+        hue: "neutral",
         run: () => showFeedback(),
       },
     ],
@@ -243,14 +249,14 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     >
       <div
         aria-hidden="true"
-        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(10_11_26/0.42)] backdrop-blur-[6px]"
+        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(12_12_16/0.38)] backdrop-blur-[8px]"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={t("palette.label")}
         onKeyDown={onKeyDown}
-        className="palette-panel relative flex max-h-[min(30rem,72vh)] w-[min(38rem,100%)] flex-col overflow-hidden rounded-2xl"
+        className="palette-panel relative flex max-h-[min(30rem,72vh)] w-[min(38rem,100%)] flex-col overflow-hidden rounded-[1.375rem]"
       >
         <div className="flex shrink-0 items-center gap-3 border-b border-hairline px-4">
           <Search className="h-[1.125rem] w-[1.125rem] shrink-0 text-muted" />
@@ -294,7 +300,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <li key={group} role="presentation">
                 <p
                   role="presentation"
-                  className="px-3 pt-2.5 pb-1.5 text-[0.6875rem] font-semibold tracking-[0.08em] text-muted uppercase"
+                  className="px-3 pt-2.5 pb-1.5 text-xs font-semibold text-muted"
                 >
                   {t(`palette.groups.${group}`)}
                 </p>
@@ -311,6 +317,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         role="option"
                         aria-selected={selected}
                         data-index={n}
+                        data-hue={entry.hue}
                         onMouseMove={() => setActive(n)}
                         onClick={() => run(entry)}
                         className="palette-option flex h-11 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm text-ink"

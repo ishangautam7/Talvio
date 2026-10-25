@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/icons/glyphs";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
@@ -34,6 +34,7 @@ export const DictionaryPage: React.FC = () => {
     <Page>
       <PageHeader
         title={t("nav.dictionary")}
+        feature="dictionary"
         description={t("dictionary.description")}
         actions={
           <Button onClick={addWord}>

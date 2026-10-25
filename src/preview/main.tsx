@@ -4,6 +4,8 @@ import { previewParams } from "./mockBackend";
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import { Toaster } from "sonner";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/plus-jakarta-sans";
 import "../App.css";

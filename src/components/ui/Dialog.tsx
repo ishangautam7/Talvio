@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { X } from "@/components/icons/glyphs";
 import { usePortalTarget } from "./portal";
 
 /**
@@ -25,8 +25,10 @@ const SIZE_CLASSES: Record<DialogSize, string> = {
   xl: "w-[min(56rem,calc(100vw-2rem))]",
   settings:
     "w-[min(60rem,calc(100vw-2.5rem))] h-[min(44rem,calc(100vh-4.5rem))]",
-  // A sheet that slides in from the window's end edge, full height.
-  drawer: "dialog-drawer w-[min(50rem,calc(100vw-6rem))] h-full max-h-none",
+  // Settings: a large panel over the whole window, its categories down the
+  // start edge.
+  drawer:
+    "dialog-drawer w-[min(62rem,calc(100vw-2rem))] h-[min(46rem,calc(100vh-3.5rem))] max-h-none",
 };
 
 /** Stack of open dialog ids; the last one owns Escape. */
@@ -157,11 +159,7 @@ export const Dialog: React.FC<DialogProps> = ({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[60] flex p-4 ${
-        isDrawer
-          ? "items-stretch justify-end p-2 pt-[calc(2.75rem+0.5rem)]"
-          : "items-center justify-center"
-      }`}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       onMouseDown={(event) => {
         pressStartedOnScrim.current = event.target === event.currentTarget;
       }}
@@ -178,7 +176,7 @@ export const Dialog: React.FC<DialogProps> = ({
     >
       <div
         aria-hidden="true"
-        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(16_17_34/0.34)] backdrop-blur-[6px] backdrop-saturate-[1.1]"
+        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(12_12_16/0.32)] backdrop-blur-[10px] backdrop-saturate-[1.2]"
       />
       <div
         ref={panelRef}
@@ -187,7 +185,7 @@ export const Dialog: React.FC<DialogProps> = ({
         aria-labelledby={bare ? labelledBy : title ? titleId : undefined}
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className={`${isDrawer ? "" : "dialog-panel max-h-[calc(100vh-3rem)]"} relative flex flex-col overflow-hidden rounded-[1.125rem] bg-surface text-ink shadow-[0_0_0_1px_rgba(27,29,51,0.06),0_32px_80px_-24px_rgba(27,29,51,0.45),0_4px_12px_rgba(27,29,51,0.06)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
+        className={`${isDrawer ? "" : "dialog-panel max-h-[calc(100vh-3rem)]"} relative flex flex-col overflow-hidden rounded-[1.375rem] bg-surface text-ink shadow-[0_0_0_1px_rgba(22,21,27,0.06),0_32px_80px_-24px_rgba(22,21,27,0.42),0_4px_12px_rgba(22,21,27,0.06)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
       >
         {!bare && (
           <div className="flex shrink-0 items-start gap-4 px-6 pt-6 pb-4">
