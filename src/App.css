@@ -1388,6 +1388,11 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
     0 1px 2px rgba(0, 0, 0, 0.4),
     0 6px 16px -8px rgba(255, 98, 72, 0.55);
 }
+:root[data-theme="dark"] .btn-primary:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    var(--focus-ring);
+}
 :root[data-theme="dark"] .btn-primary:hover:not(:disabled) {
   background-image: linear-gradient(180deg, #ff8a74 0%, #ff705a 100%);
 }
@@ -1533,7 +1538,8 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   border-color: #34385a;
   box-shadow: var(--edge-light);
 }
-.control-raised:focus-visible {
+.control-raised:focus-visible,
+:root[data-theme="dark"] .control-raised:focus-visible {
   border-color: var(--color-accent-fill);
   box-shadow: var(--focus-ring);
 }
