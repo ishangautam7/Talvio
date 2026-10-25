@@ -2761,6 +2761,10 @@
       "selection": "Vùng chọn",
       "copied": "Đã sao chép",
       "newConversation": "Cuộc trò chuyện mới"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Đang chuẩn bị giọng nói · {{percent}}%"
     }
   },
   "nav": {

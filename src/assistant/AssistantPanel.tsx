@@ -43,13 +43,17 @@ import MarkdownMessage from "./MarkdownMessage";
 import {
   DEFAULT_LAYOUT,
   parseLayout,
+  lingerFor,
   quickAskPhase,
+  toolCaption,
   workingLabelKey,
   type AssistantState,
   type QuickAskLayout,
   type QuickAskPhase,
 } from "./quickAskState";
 import { VOICE_INTERRUPTED_MARKER } from "./conversationPolicy";
+import { speechLevel } from "./orbMotion";
+import { voiceEnergy } from "@/components/shared/waveformSignal";
 import { useLocalLlmEngineStatus } from "@/hooks/useLocalLlmEngineStatus";
 import { beginSafeResize, useSafeWindowDrag } from "@/lib/useSafeWindowDrag";
 import "./AssistantPanel.css";
@@ -114,13 +118,9 @@ const EMPTY_ASK_DISMISS_MS = 350;
 /** How long a voice ask's error stays on screen when nobody is pointing at it. */
 const ERROR_DISMISS_MS = 9000;
 
-/** How long a quick ask that only set a reminder stays: long enough to read the
- *  time and reach Undo, then it is out of the way like any confirmation. */
-const REMINDER_DISMISS_MS = 6000;
-
-/** Longer than this, the answer is more than a confirmation (an ask that set a
- *  reminder *and* wrote something), so the card stays until it is closed. */
-const REMINDER_CONFIRMATION_MAX_CHARS = 280;
+/** How long the orb takes to draw into itself before the window goes
+ *  (`.qa-surface[data-leaving]` in AssistantPanel.css). */
+const ORB_LEAVE_MS = 380;
 
 /** A reminder's time as the card shows it: the time today, or with the day. */
 function reminderWhen(reminder: Reminder): string {
@@ -449,10 +449,13 @@ const AssistantPanel: React.FC = () => {
   const [askReminders, setAskReminders] = useState<Reminder[]>([]);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [micLevels, setMicLevels] = useState<number[]>([]);
+  // The orb's voice levels, held outside React: the orb reads them every frame
+  // (`levelSource`), so 30 updates a second never re-render the panel.
+  const micLevelRef = useRef(0);
+  const speechLevelRef = useRef(0);
   // `mic-level` is emitted app-wide ~30x/s during *every* dictation, while this
   // window is usually hidden, and Tauri only wakes a webview that holds a
-  // listener for it. Only a listening ask renders the levels, so the panel
+  // listener for it. Only a listening ask uses the levels, so the panel
   // subscribes for exactly that span instead of for its whole life.
   const listening = state === "listening";
   useEffect(() => {
@@ -460,7 +463,7 @@ const AssistantPanel: React.FC = () => {
     let disposed = false;
     let unlisten: (() => void) | null = null;
     listen<number[]>("mic-level", (e) => {
-      setMicLevels(e.payload);
+      micLevelRef.current = voiceEnergy(e.payload);
     })
       .then((stop) => {
         if (disposed) stop();
@@ -472,6 +475,7 @@ const AssistantPanel: React.FC = () => {
     return () => {
       disposed = true;
       unlisten?.();
+      micLevelRef.current = 0;
     };
   }, [listening]);
   const [tool, setTool] = useState<ToolActivity | null>(null);
@@ -562,12 +566,13 @@ const AssistantPanel: React.FC = () => {
   const expandCallRef = useRef(callForm.expand);
   expandCallRef.current = callForm.expand;
 
-  // Speaking belongs to the call and nothing else: a quick answer is read, not
-  // listened to, and `run_assistant_turn_inner` decides it the same way.
-  const ttsEnabled =
-    voice.open &&
-    voice.phase !== "error" &&
-    (!voice.speakerOff || (settings?.assistant_tts_enabled ?? true));
+  // The quick ask always answers aloud (it is the orb, with no card to read);
+  // a call speaks unless its speaker is off. `run_assistant_turn_inner`
+  // decides it the same way (`should_speak_reply`).
+  const ttsEnabled = voice.open
+    ? voice.phase !== "error" &&
+      (!voice.speakerOff || (settings?.assistant_tts_enabled ?? true))
+    : true;
   const ttsEngine = settings?.assistant_tts_engine ?? "kokoro";
   const ttsVoice = settings?.assistant_tts_voice ?? "af_heart";
   const ttsDtype = settings?.assistant_tts_kokoro_dtype ?? "fp32";
@@ -864,6 +869,15 @@ const AssistantPanel: React.FC = () => {
       track(
         await listen<boolean>("assistant-tts-playing", (e) => {
           setTtsPlaying(e.payload);
+          if (!e.payload) speechLevelRef.current = 0;
+        }),
+      );
+
+      // How loud the answer's voice is (RMS, from the playback thread), so
+      // the orb moves with it. Sent only to this window, only while it plays.
+      track(
+        await listen<number>("assistant-tts-level", (e) => {
+          speechLevelRef.current = speechLevel(Number(e.payload));
         }),
       );
 
@@ -1228,6 +1242,8 @@ const AssistantPanel: React.FC = () => {
     stream,
     answer: finishedAnswer,
     hasError: !!error,
+    // Only the quick ask's own voice counts: a call has its own queue.
+    audible: !voice.open && ttsAudible,
   });
   const selectionChars =
     lastUserMessage?.selectionChars ?? (question ? 0 : selectionCaptured);
@@ -1236,14 +1252,74 @@ const AssistantPanel: React.FC = () => {
   // lands, between two pipeline stages, and in the moment before an empty ask
   // puts itself away — and drawing the bar there flashed a text field in the
   // middle of a voice-only flow (and focused it, taking the keyboard). It keeps
-  // the waiting pill instead. `phase` itself is unchanged for the logic below.
+  // the thinking orb instead. `phase` itself is unchanged for the logic below.
   const shownPhase: QuickAskPhase =
     phase === "prompt" && !userOpened ? "transcribing" : phase;
   const status = engineSetupActive
     ? engineSetupLabel || t("assistant.engineSetup.short")
-    : // No search query appended: the pill says what is happening in a few
-      // words, and a query is a sentence the user cannot read at a glance.
-      t(workingLabelKey(phase, state, tool));
+    : phase === "speaking"
+      ? t("assistant.status.speaking")
+      : t(workingLabelKey(phase, state, tool));
+
+  // Whether this exchange's answer was heard. An answer that never was (the
+  // voice failed, or there was nothing sayable in it) is offered to copy, so
+  // it is never lost.
+  const heardRef = useRef(false);
+  if (phase === "speaking") heardRef.current = true;
+  useEffect(() => {
+    if (phase === "listening" || phase === "transcribing")
+      heardRef.current = false;
+  }, [phase]);
+  const answerText = stream || finishedAnswer;
+  // The orb moves with the user's voice while they ask and with the
+  // assistant's while it answers. Read every frame; never re-renders.
+  const listeningRef = useRef(listening);
+  listeningRef.current = listening;
+  const orbLevel = useCallback(
+    () =>
+      listeningRef.current ? micLevelRef.current : speechLevelRef.current,
+    [],
+  );
+  const answerReady = !busy && !!finishedAnswer.trim();
+  const offerCopy =
+    phase === "done" && answerReady && !heardRef.current && !voice.open;
+
+  // The one visible line: the local engine setting up, the voice getting
+  // ready, a tool at work. Nothing for the plain listening and thinking.
+  const toolLine = toolCaption(tool);
+  const caption = engineSetupActive
+    ? engineSetupLabel || t("assistant.engineSetup.short")
+    : toolLine
+      ? t(toolLine.key, toolLine.values)
+      : tts.status === "loading" &&
+          (phase === "answering" || phase === "working")
+        ? t("assistant.orb.voiceLoading", { percent: tts.progress })
+        : null;
+
+  // The orb puts itself away once the answer has been said: a moment after
+  // the voice stops, or a while later when it is offering something to click
+  // (Insert, Undo, Copy), unless the pointer is on it. It shrinks into itself
+  // first (`leaving`), then the window goes.
+  const [leaving, setLeaving] = useState(false);
+  const offersAction =
+    (selectionChars > 0 && answerReady) || askReminders.length > 0 || offerCopy;
+  useEffect(() => {
+    setLeaving(false);
+    if (phase !== "done" || voice.open || !panelVisible) return;
+    if (hovered && offersAction) return;
+    let hide: number | undefined;
+    const settle = window.setTimeout(() => {
+      setLeaving(true);
+      hide = window.setTimeout(
+        () => void commands.hideAssistantPanel(),
+        ORB_LEAVE_MS,
+      );
+    }, lingerFor(offersAction));
+    return () => {
+      window.clearTimeout(settle);
+      if (hide !== undefined) window.clearTimeout(hide);
+    };
+  }, [phase, voice.open, panelVisible, hovered, offersAction]);
 
   // A voice ask that ended with nothing to show — a tap too short to record, or
   // silence — puts itself away instead of leaving an empty prompt on screen.
@@ -1278,34 +1354,17 @@ const AssistantPanel: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [callEnded, panelVisible]);
 
-  // A failed voice ask stays long enough to read, then puts itself away unless the
+  // A failed ask stays long enough to read, then puts itself away unless the
   // pointer is on it: an always-on-top error nobody asked to keep must not sit
-  // over the user's work forever. One the user opened from the tray stays.
+  // over the user's work forever.
   useEffect(() => {
-    if (phase !== "error" || userOpened || hovered || voice.open) return;
+    if (phase !== "error" || hovered || voice.open) return;
     const timer = window.setTimeout(
       () => void commands.hideAssistantPanel(),
       ERROR_DISMISS_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [phase, userOpened, hovered, voice.open]);
-
-  // A quick ask that only set a reminder is a confirmation, and goes away like
-  // one once it has been read, unless the pointer is on it (reaching for Undo).
-  // An answer with more in it than "it's set" stays until it is closed.
-  const answerText = stream || finishedAnswer;
-  const reminderOnly =
-    askReminders.length > 0 &&
-    answerText.trim().length <= REMINDER_CONFIRMATION_MAX_CHARS;
-  useEffect(() => {
-    if (phase !== "done" || !reminderOnly || hovered || voice.open) return;
-    const timer = window.setTimeout(
-      () => void commands.hideAssistantPanel(),
-      REMINDER_DISMISS_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [phase, reminderOnly, hovered, voice.open]);
-
+  }, [phase, hovered, voice.open]);
   const undoReminders = useCallback(async () => {
     const ids = askReminders.map((reminder) => reminder.id);
     setAskReminders([]);
@@ -1535,7 +1594,11 @@ const AssistantPanel: React.FC = () => {
         <QuickAsk
           phase={shownPhase}
           status={status}
-          levels={listening ? micLevels : undefined}
+          caption={caption}
+          levelSource={orbLevel}
+          answerReady={answerReady}
+          offerCopy={offerCopy}
+          leaving={leaving}
           question={question}
           answer={answerText}
           markdown={MD_COMPONENTS}
