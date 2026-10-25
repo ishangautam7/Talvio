@@ -358,7 +358,7 @@ const Notes: React.FC = () => {
             {t("memoryManager.noMatches")}
           </p>
         ) : (
-          <ul className="divide-y divide-hairline border-t border-hairline">
+          <ul className="rows border-t border-hairline">
             {shown.map((note) => (
               <NoteRow
                 key={note.id}

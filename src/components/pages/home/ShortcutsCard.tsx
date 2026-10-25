@@ -195,7 +195,7 @@ export const ShortcutsCard: React.FC = () => {
           </TextLink>
         }
       />
-      <ul className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+      <ul className="rows rounded-2xl border border-hairline bg-surface elev-card">
         {rows.map((row) => (
           <React.Fragment key={row.id}>
             <li className={rowClass}>

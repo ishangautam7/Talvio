@@ -104,7 +104,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         zIndex: 9999,
         opacity: coords ? 1 : 0,
       }}
-      className="elev-float rounded-xl border border-hairline bg-surface px-3.5 py-2.5 whitespace-normal transition-opacity duration-150"
+      className="elev-float rounded-xl bg-surface px-3.5 py-2.5 whitespace-normal transition-opacity duration-150"
     >
       {children}
       <div

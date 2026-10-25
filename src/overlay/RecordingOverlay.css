@@ -31,6 +31,14 @@
 
 .overlay-root {
   --ov-surface: rgba(23, 25, 47, 0.97);
+  /* The assistant's sheen (AssistantPanel.css `--as-sheen`): a faint light
+     along the top of the surface. */
+  --ov-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.012) 42%,
+    rgba(255, 255, 255, 0) 100%
+  );
   --ov-edge: rgba(255, 255, 255, 0.08);
   --ov-ring: rgba(255, 255, 255, 0.34);
   --ov-text: #d6d5e2;
@@ -76,10 +84,10 @@
 .overlay-pill,
 .overlay-card {
   box-sizing: border-box;
-  background: var(--ov-surface);
+  background: var(--ov-sheen), var(--ov-surface);
   border: 1px solid var(--ov-edge);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.085),
     inset 0 0 0 0.5px rgba(0, 0, 0, 0.45);
   opacity: 1;
   transform: scale(1) translateY(0);

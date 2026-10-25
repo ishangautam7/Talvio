@@ -29,6 +29,7 @@ import { watchScreenScale } from "@/lib/screenScale";
 import { useModelStore } from "@/stores/modelStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { suppressCaretBrowsing } from "@/lib/caretBrowsing";
+import { TOAST_OPTIONS } from "@/lib/toaster";
 import { suppressBrowserContextMenu } from "@/lib/contextMenu";
 import { useUpdateStore } from "@/components/update-checker/updateStore";
 import { useFeedbackDialog } from "@/components/feedback/feedbackStore";
@@ -42,6 +43,14 @@ if (previewParams.get("update") === "1") {
 }
 if (previewParams.get("feedback") === "1") {
   useFeedbackDialog.getState().show();
+}
+// `?scroll=<px>` scrolls the page once it has rendered, for screenshots of
+// what sits below the fold (and of the compact title that appears then).
+const scrollBy = Number(previewParams.get("scroll") ?? 0);
+if (scrollBy > 0) {
+  window.setTimeout(() => {
+    document.querySelector(".page-layer-active")?.scrollTo(0, scrollBy);
+  }, 1500);
 }
 
 document.documentElement.dataset.platform = "windows";
@@ -111,7 +120,7 @@ const onboarding = previewParams.get("onboarding") as FlowStep | null;
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <div className="flex h-screen cursor-default flex-col overflow-hidden select-none">
-      <Toaster theme="system" />
+      <Toaster theme="system" toastOptions={TOAST_OPTIONS} />
       <TitleBar />
       <div className="flex min-h-0 flex-1 flex-col">
         <OnboardingPreview from={onboarding ?? "done"} />

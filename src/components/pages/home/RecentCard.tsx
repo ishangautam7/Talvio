@@ -139,7 +139,7 @@ export const RecentCard: React.FC = () => {
       {entries === null ? (
         <div className="h-40 animate-pulse rounded-2xl border border-hairline bg-surface-muted" />
       ) : hasEntries ? (
-        <ul className="divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
+        <ul className="rows overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
           {entries.map((entry) => (
             <RecentRow key={entry.id} entry={entry} />
           ))}
