@@ -15,6 +15,18 @@ void main() {
     expect(AssistantPending.tryParse({'id': '7', 'summary': 'Send'}), isNull);
   });
 
+  test('the action waiting for Do it is listed once, as the card', () {
+    final turn =
+        AssistantTurn(computerId: 'pc', computerName: 'PC', spoken: false)
+          ..actions = const [
+            AssistantAction(label: 'Drafted it', status: 'done'),
+            AssistantAction(label: 'Send it', status: 'awaiting_confirmation'),
+          ];
+    expect(turn.shownActions, hasLength(2), reason: 'nothing pending');
+    turn.pending = const AssistantPending(id: 1, summary: 'Send it');
+    expect(turn.shownActions.map((a) => a.label), ['Drafted it']);
+  });
+
   test('a turn survives a round trip through storage', () {
     final turn =
         AssistantTurn(

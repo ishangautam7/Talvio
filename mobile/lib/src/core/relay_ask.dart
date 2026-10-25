@@ -19,13 +19,16 @@ const approvalTimeout = Duration(minutes: 3);
 
 /// Sends [body] to device [to] and waits for its result. The wait is
 /// [timeout], started again by every `progress` (the computer is still at
-/// it), and [approvalTimeout] while the last progress is `approval`. On
+/// it), and [approvalTimeout] while the last progress is `approval`.
+/// [stageTimeouts] gives a stage its own wait: one after which the computer
+/// may go quiet for long (a command at work, a tool the assistant runs). On
 /// timeout the request is cancelled on the computer too.
 Future<RelayAnswer> askComputer(
   RelayClient relay,
   String to,
   Map<String, Object?> body, {
   required Duration timeout,
+  Map<String, Duration> stageTimeouts = const {},
   void Function(RelayRequest request)? onRequest,
   void Function(String stage)? onStage,
   void Function(Map<String, Object?> progress)? onProgress,
@@ -48,7 +51,12 @@ Future<RelayAnswer> askComputer(
       if (reply['kind'] == RelayKind.progress) {
         if (reply['stage'] case final String stage) onStage?.call(stage);
         onProgress?.call(reply);
-        wait(reply['stage'] == 'approval' ? approvalTimeout : timeout);
+        final stage = reply['stage'];
+        wait(
+          stage == 'approval'
+              ? approvalTimeout
+              : stageTimeouts[stage] ?? timeout,
+        );
       } else if (reply['kind'] == RelayKind.result && !result.isCompleted) {
         result.complete(reply);
       }

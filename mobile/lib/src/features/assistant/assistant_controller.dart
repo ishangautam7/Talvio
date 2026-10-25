@@ -25,6 +25,11 @@ abstract final class AssistantKind {
 /// adds its own length (PROTOCOL.md).
 const assistantTimeout = Duration(seconds: 60);
 
+/// The wait after a `tool` progress: the assistant may be doing something
+/// on the computer (command mode, the screen agent) with nothing to say
+/// until it is done.
+const assistantToolTimeout = Duration(minutes: 10);
+
 /// Questions are at most 4 000 characters (PROTOCOL.md).
 const maxQuestionChars = 4000;
 
@@ -165,6 +170,15 @@ class AssistantTurn {
     return null;
   }
 
+  /// What was done, to list. The action waiting for Do it is in [actions]
+  /// too (PROTOCOL.md), but it shows once, as the pending card.
+  List<AssistantAction> get shownActions => pending == null
+      ? actions
+      : [
+          for (final action in actions)
+            if (action.status != 'awaiting_confirmation') action,
+        ];
+
   /// Do it and Cancel are offered.
   bool get awaitingConfirmation =>
       pending != null && confirmStatus == null && !confirming;
@@ -229,6 +243,9 @@ class AssistantController extends ChangeNotifier {
   AssistantPhase get phase => _phase;
   bool get cancelling => _cancelling;
   bool get paused => _voice.paused;
+
+  /// Another page is recording, so this one cannot start.
+  bool get micBlocked => VoiceRecorder.heldByOther(_voice);
   ValueListenable<double> get level => _voice.level;
   ValueListenable<Duration> get elapsed => _voice.elapsed;
 
@@ -394,11 +411,13 @@ class AssistantController extends ChangeNotifier {
       ..confirming = true
       ..confirmError = null;
     _notify();
-    final reply = await askComputer(_relay, computer.id, {
-      'kind': CommandKind.confirm,
-      'id': pending.id,
-      'accept': accept,
-    }, timeout: commandTimeout);
+    final reply = await askComputer(
+      _relay,
+      computer.id,
+      {'kind': CommandKind.confirm, 'id': pending.id, 'accept': accept},
+      timeout: commandTimeout,
+      stageTimeouts: const {'working': commandWorkingTimeout},
+    );
     if (_disposed) return;
     turn.confirming = false;
     if (reply.error case final error?) {
@@ -414,7 +433,10 @@ class AssistantController extends ChangeNotifier {
       } else {
         turn
           ..confirmStatus = result.status
-          ..confirmFeedback = result.feedback;
+          // A question the computer asks back is answered there.
+          ..confirmFeedback = result.answerable
+              ? (result.question ?? result.feedback)
+              : result.feedback;
       }
     }
     await _save();
@@ -452,6 +474,7 @@ class AssistantController extends ChangeNotifier {
       computer.id,
       body,
       timeout: timeout,
+      stageTimeouts: const {'tool': assistantToolTimeout},
       onRequest: (request) => _request = request,
       onProgress: (progress) => _onProgress(turn, progress),
     );
