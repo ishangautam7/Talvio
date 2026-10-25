@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { StickyHeading } from "@/components/ui/StickyHeading";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { MenuButton, type MenuItem } from "@/components/ui/Menu";
@@ -101,9 +102,12 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
       <div className="space-y-6">
         {groups.map((group) => (
           <section key={group.key} aria-label={group.label}>
-            <h3 className="sticky top-0 z-10 -mx-1 mb-2 bg-canvas/95 px-1 py-1.5 text-sm font-semibold text-muted backdrop-blur-[2px]">
+            <StickyHeading
+              as="h3"
+              className="-mx-1 mb-2 text-sm font-semibold text-muted"
+            >
               {group.label}
-            </h3>
+            </StickyHeading>
             <ul className="rows overflow-hidden rounded-xl border border-hairline bg-surface elev-card">
               {group.items.map((meeting) => (
                 <MeetingRow

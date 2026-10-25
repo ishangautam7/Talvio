@@ -1316,6 +1316,26 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   translate: none;
 }
 
+/* ---------- A list's day headings ----------
+ * They stick under the compact title while their day scrolls past, and are
+ * frosted only while stuck (`ui/StickyHeading.tsx` measures that), so at rest
+ * they draw no band across the sheet's light. */
+.sticky-day {
+  position: sticky;
+  top: 2.75rem;
+  z-index: 10;
+}
+.sticky-day-label {
+  display: block;
+  border-radius: var(--radius-md);
+  transition: background-color 150ms ease;
+}
+.sticky-day[data-stuck="true"] .sticky-day-label {
+  background: color-mix(in srgb, var(--color-canvas) 90%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
 /* ---------- Buttons ----------
  * Filled buttons are lit from above: a soft vertical gradient, a hairline of
  * light along the top and a darker rim, so they read as something to press

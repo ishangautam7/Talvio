@@ -32,6 +32,7 @@ import {
   History,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { StickyHeading } from "@/components/ui/StickyHeading";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { toast } from "sonner";
@@ -704,11 +705,12 @@ export const HistorySettings: React.FC = () => {
         <div className="space-y-6">
           {dayGroups.map((group) => (
             <section key={group.key} aria-label={group.label}>
-              {/* Sticky so a long day keeps its heading in view. The canvas
-                  fill hides rows scrolling underneath it. */}
-              <h2 className="sticky top-0 z-10 -mx-1 mb-2 bg-canvas/95 px-1 py-1.5 text-sm font-semibold text-muted backdrop-blur-[2px]">
+              {/* Sticky so a long day keeps its heading in view, under the
+                  page's compact title. It is frosted only while stuck, so at
+                  rest it never draws a band across the sheet's light. */}
+              <StickyHeading className="-mx-1 mb-2 text-sm font-semibold text-muted">
                 {group.label}
-              </h2>
+              </StickyHeading>
               <div className="rows overflow-visible rounded-xl border border-hairline bg-surface elev-card">
                 {group.items.map((item) =>
                   item.kind === "transcription" ? (
