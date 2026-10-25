@@ -548,7 +548,7 @@
   overflow: hidden;
   background: var(--as-sheen, none), var(--as-panel-surface);
   border: 1px solid var(--as-hairline);
-  border-radius: 18px;
+  border-radius: 22px;
   box-shadow: var(--as-inner);
   backdrop-filter: blur(22px) saturate(1.4);
   -webkit-backdrop-filter: blur(22px) saturate(1.4);
