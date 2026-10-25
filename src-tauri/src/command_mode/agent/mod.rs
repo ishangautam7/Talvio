@@ -635,15 +635,24 @@ impl Agent<'_> {
                         window_label(snapshot),
                         element.role.clone(),
                         element.name.clone(),
+                        element.value.clone(),
                     )
                 })
         });
-        let Some((window_id, place, role, label)) = found else {
+        let Some((window_id, place, role, label, current)) = found else {
             self.step(name, args, "failed", format!("no element {id}"));
             return error(format!(
                 "There is no element {id} in the most recent read. Call read_window and use an id from it."
             ));
         };
+
+        if let UiAction::SetValue(text) = &action {
+            if would_erase(&role, current.as_deref(), text) {
+                info!("command mode agent: refused a set_value that would erase a {role}'s text");
+                self.step(name, args, "failed", "would replace text already there");
+                return error(ERASE_REFUSAL.to_string());
+            }
+        }
 
         if needs_confirmation(&role, &label, &action) {
             info!(
@@ -752,6 +761,32 @@ impl Agent<'_> {
             is_error,
         })
     }
+}
+
+/// Told to the model when [`would_erase`] refuses a `set_value`.
+const ERASE_REFUSAL: &str = "Not done: set_value replaces everything in that control, and it \
+already holds text the user wrote, which would be lost. To add text, call focus_element on it, \
+press_keys ctrl+end, then type_text. If the task is to replace or clear that text, give_up and \
+say so: that is not done automatically.";
+
+/// Text this long, or with a line break, is the user's writing rather than a
+/// search box's last query.
+const ERASABLE_CHARS: usize = 80;
+
+/// Whether `set_value` with `new` would throw away text the user wrote: a
+/// document, or a field holding a paragraph or several lines, whose current
+/// text `new` does not keep. Measured on the live run: asked to "write a line"
+/// in Notepad, the agent set the whole document of a tab Notepad had restored
+/// to that one line. A short field (a search box, a To line) is replaced as
+/// before.
+fn would_erase(role: &str, current: Option<&str>, new: &str) -> bool {
+    let Some(current) = current.map(str::trim).filter(|text| !text.is_empty()) else {
+        return false;
+    };
+    if new.contains(current) {
+        return false;
+    }
+    role == "document" || current.chars().count() >= ERASABLE_CHARS || current.contains('\n')
 }
 
 /// The [`UiAction`] an element tool asks for, or `None` for another tool.
@@ -1529,6 +1564,55 @@ mod tests {
         let results = results_of(&llm.requests()[1]);
         assert_eq!(results.len(), 2);
         assert!(results.iter().all(|r| !r.is_error && r.content == "ok"));
+    }
+
+    /// set_value never wipes what the user wrote: a document or a long or
+    /// multi-line field whose text the new value does not keep.
+    #[test]
+    fn set_value_that_would_erase_written_text_is_refused() {
+        // Replacing a short field, filling an empty one, or keeping the text.
+        assert!(!would_erase("edit", Some("old query"), "new query"));
+        assert!(!would_erase("edit", None, "anything"));
+        assert!(!would_erase("document", Some("  "), "hello"));
+        assert!(!would_erase(
+            "document",
+            Some("Dear Ron,"),
+            "Dear Ron,\nSee you at 9."
+        ));
+        // A document, a paragraph, several lines.
+        assert!(would_erase("document", Some("draft notes"), "hello"));
+        assert!(would_erase(
+            "edit",
+            Some(&"x".repeat(ERASABLE_CHARS)),
+            "hello"
+        ));
+        assert!(would_erase("edit", Some("line one\nline two"), "hello"));
+    }
+
+    #[test]
+    fn the_refusal_reaches_the_model_and_nothing_is_set() {
+        let mut doc = element(9, "document", "Text editor", &["set_value", "focus"]);
+        doc.value = Some("My paper's metadata\nTitle: ...".into());
+        let tree = Arc::new(FakeTree::with(vec![UiSnapshot {
+            window_id: 7,
+            window_title: "notes.txt - Notepad".into(),
+            app: "Notepad".into(),
+            elements: vec![doc],
+            truncated: false,
+        }]));
+        let llm = ScriptedLlm::new(vec![
+            answer(vec![("set_value", json!({"element": 9, "text": "hello"}))]),
+            answer(vec![(DONE, json!({"summary": "stopped"}))]),
+        ]);
+        let (_, _) = quick(&llm, tree.clone());
+        assert!(tree.acted().is_empty());
+        let results = results_of(&llm.requests()[1]);
+        assert!(results[0].is_error);
+        assert!(
+            results[0].content.contains("ctrl+end"),
+            "{}",
+            results[0].content
+        );
     }
 
     /// An id the model made up is an error it can recover from, not the end.
