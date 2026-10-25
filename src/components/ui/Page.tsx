@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft } from "lucide-react";
 import { useNavigation, type NavLocation } from "@/components/shell/navigation";
@@ -27,7 +27,7 @@ export const Page: React.FC<{
   className?: string;
 }> = ({ width = "default", children, className = "" }) => (
   <div
-    className={`@container mx-auto w-full ${WIDTHS[width]} px-6 pt-9 pb-16 sm:px-10 ${className}`}
+    className={`@container mx-auto w-full ${WIDTHS[width]} px-6 pt-8 pb-16 sm:px-10 ${className}`}
   >
     {children}
   </div>
@@ -38,6 +38,46 @@ export const useLocationLabel = () => {
   const { t } = useTranslation();
   return (location: NavLocation): string => t(`nav.${location.page}`);
 };
+
+/**
+ * The page's title again, small and centred in a frosted strip along the top
+ * of the sheet, once the real title has scrolled away under it — so a long
+ * page never loses its name. Hidden from screen readers: the heading itself
+ * is still there.
+ */
+const useTitleScrolledAway = (heading: React.RefObject<HTMLElement | null>) => {
+  const [away, setAway] = useState(false);
+  useEffect(() => {
+    const element = heading.current;
+    const root = element?.closest<HTMLElement>("[data-page]");
+    if (!element || !root || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const top = entry.rootBounds?.top ?? 0;
+        setAway(!entry.isIntersecting && entry.boundingClientRect.top < top);
+      },
+      { root, threshold: 0 },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [heading]);
+  return away;
+};
+
+const CompactTitle: React.FC<{ title: React.ReactNode; shown: boolean }> = ({
+  title,
+  shown,
+}) => (
+  <div className="sticky top-0 z-30 h-0" aria-hidden="true">
+    <div className="page-titlebar" data-shown={shown}>
+      <span className="min-w-0 truncate px-6 font-display text-[0.875rem] text-ink">
+        {title}
+      </span>
+    </div>
+  </div>
+);
 
 /** "‹ Home" — the way back to wherever the user came from. */
 export const BackLink: React.FC<{
@@ -70,6 +110,8 @@ interface PageHeaderProps {
   backLabel?: string;
   /** Small element after the title (a Beta badge). */
   badge?: React.ReactNode;
+  /** A quiet line above the title (Home's date). */
+  eyebrow?: React.ReactNode;
   className?: string;
 }
 
@@ -80,41 +122,59 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   onBack,
   backLabel,
   badge,
+  eyebrow,
   className,
 }) => {
   const { t } = useTranslation();
   const { back, goBack } = useNavigation();
   const labelFor = useLocationLabel();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const titleAway = useTitleScrolledAway(headingRef);
   const backTarget = onBack
     ? { label: backLabel ?? t("common.back"), onClick: onBack }
     : back
       ? { label: labelFor(back), onClick: goBack }
       : null;
 
+  // The compact title is the header's sibling, not its child: a sticky
+  // element sticks only within its parent, and the page is the tall one.
   return (
-    <header className={className ?? "mb-8"}>
-      {backTarget && (
-        <BackLink
-          label={backTarget.label}
-          onClick={backTarget.onClick}
-          className="mb-3"
-        />
-      )}
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
-          <h1 className="font-display text-[1.75rem] text-ink">{title}</h1>
-          {badge}
-          {description && (
-            <InfoTip text={description} size="md" className="mt-1.5" />
+    <>
+      <CompactTitle title={title} shown={titleAway} />
+      <header className={className ?? "mb-8"}>
+        {backTarget && (
+          <BackLink
+            label={backTarget.label}
+            onClick={backTarget.onClick}
+            className="mb-3"
+          />
+        )}
+        {eyebrow && (
+          <p className="mb-1.5 text-[0.8125rem] font-medium text-muted">
+            {eyebrow}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <h1
+              ref={headingRef}
+              className="font-display text-[1.625rem] text-ink"
+            >
+              {title}
+            </h1>
+            {badge}
+            {description && (
+              <InfoTip text={description} size="md" className="mt-1.5" />
+            )}
+          </div>
+          {actions && (
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {actions}
+            </div>
           )}
         </div>
-        {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            {actions}
-          </div>
-        )}
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
 
@@ -135,7 +195,7 @@ export const SectionTitle: React.FC<{
       className={`mb-3 flex min-h-8 items-center justify-between gap-3 ${className}`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <Heading className="font-display text-[1.125rem] text-ink">
+        <Heading className="font-display text-[1.0625rem] text-ink">
           {title}
         </Heading>
         {description && <InfoTip text={description} />}

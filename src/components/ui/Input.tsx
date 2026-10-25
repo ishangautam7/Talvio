@@ -4,24 +4,25 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: "default" | "compact";
 }
 
+/** A text field, drawn by `.control` in App.css like every other field. */
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className = "", variant = "default", disabled, ...props }, ref) => {
     const baseClasses =
-      "text-sm bg-surface border border-hairline-strong rounded-lg text-ink placeholder:text-muted-soft text-start transition-colors duration-150";
+      "control text-sm rounded-lg text-ink placeholder:text-muted-soft text-start";
 
-    const interactiveClasses = disabled
-      ? "opacity-60 cursor-not-allowed bg-surface-strong border-hairline"
-      : "hover:border-hairline-strong focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20";
+    const stateClasses = disabled
+      ? "opacity-60 cursor-not-allowed bg-surface-strong"
+      : "";
 
     const variantClasses = {
-      default: "px-3 py-2",
-      compact: "px-2.5 py-1.5",
+      default: "h-[2.125rem] px-3",
+      compact: "h-8 px-2.5",
     } as const;
 
     return (
       <input
         ref={ref}
-        className={`${baseClasses} ${variantClasses[variant]} ${interactiveClasses} ${className}`}
+        className={`${baseClasses} ${variantClasses[variant]} ${stateClasses} ${className}`}
         disabled={disabled}
         {...props}
       />

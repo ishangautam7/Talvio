@@ -198,7 +198,7 @@ export const MenuButton: React.FC<{
                 ? { top: position.top }
                 : { bottom: window.innerHeight - position.top }),
             }}
-            className="elev-float menu-in z-[70] rounded-xl border border-hairline bg-surface p-1"
+            className="elev-float menu-in z-[70] rounded-xl bg-surface p-1"
           >
             {items.map((item) => {
               const Icon = item.icon;

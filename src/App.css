@@ -7,53 +7,57 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * Design system — Talvio (docs/talvio-brand.md §5): warm paper, deep
- * ink-navy, one coral.
+ * Design system — Talvio "Frame & Sheet" (docs/talvio-brand.md §5–6).
  *
- * Neutrals lean warm on the light theme (a paper canvas with white cards on
- * it and warm hairlines between them) and toward indigo on the dark one, the
- * brand's ink. The chrome — title bar and sidebar — is one step deeper than
- * the content pane, so the pane reads as a sheet laid on it.
+ * The window is a frame with a sheet floating in it. The frame (title bar,
+ * sidebar, and a thin margin round the content) is one tinted surface; the
+ * page is a rounded sheet inset into it on every side, lifted by a hairline
+ * and a soft shadow, the way Arc and Things hold their content. Cards sit on
+ * the sheet, white on the light theme and a step lighter than the sheet on
+ * the dark one, so depth always reads frame → sheet → card → fill.
+ *
+ * Neutrals are warm but quiet on the light theme (stone, not beige) and lean
+ * toward the brand's ink navy on the dark one.
  *
  * Type: Inter for everything you read and operate; Plus Jakarta Sans (the
  * logo's own face) for display — page titles, section titles, banner
- * headlines, the wordmark and the Insights figures. The serif italics of the
- * previous design are retired.
+ * headlines, the wordmark and the Insights figures.
  *
  * Colour: coral is used with restraint, for state and for the one primary
- * action — the page you are on, a primary button, a switch that is on, the
- * selected option, a link, a focus ring. Never a coral flood. Brand coral
- * `#F2543D` is only 3.4:1 on white, so on the light theme it is a graphics
- * colour (`--color-accent-fill`: switches, dots, bars, icons, focus rings);
- * text, links and filled buttons use `#C2402A` (`--color-accent`), which
- * holds white text. On the dark theme one coral, `#FF6A52`, does both, with
- * ink-navy text on a fill. Provider and model logos carry their own brand
- * colours (ProviderLogos.tsx).
+ * action — a primary button, a switch that is on, the icon of the page you
+ * are on, a link, a focus ring. Never a coral flood: the page you are on is a
+ * raised white chip in the sidebar, not a coral wash. Brand coral `#F2543D`
+ * is only 3.4:1 on white, so on the light theme it is a graphics colour
+ * (`--color-accent-fill`: switches, dots, bars, icons, focus rings); text,
+ * links and filled buttons use `#C2402A` (`--color-accent`), which holds
+ * white text. On the dark theme one coral, `#FF6A52`, does both, with
+ * ink-navy text on a fill.
  *
- * Every text pairing below was checked for WCAG AA: ink on canvas 15.5:1,
- * muted on canvas 5.9:1 (on the chrome 5.6:1), accent on a card 5.2:1 (on
- * canvas 4.9:1, on the chrome 4.6:1), white on accent 5.2:1; dark: muted on
- * a card 7.1:1, accent on a card 6.1:1, ink navy on accent 6.6:1. A switch's
- * off track is 3.5:1 against a card (3:1 is the bar for a control's edge).
+ * Every text pairing below was checked for WCAG AA: ink on the sheet 15.6:1,
+ * muted on the sheet 6.0:1, on the frame 5.3:1, accent on a card 5.2:1 (on
+ * the sheet 4.9:1), white on accent 5.2:1; dark: muted on a card 7.1:1, on
+ * the frame 8.1:1, accent on a card 6.1:1, ink navy on accent 6.6:1. A
+ * switch's off track is 3.5:1 against a card (3:1 is the bar for a control's
+ * edge).
  */
 @theme {
   /* === Surfaces === */
-  --color-canvas: #fbf7f3; /* content pane: warm paper */
-  --color-canvas-soft: #f6f1eb; /* chrome: title bar + sidebar */
+  --color-canvas: #faf8f5; /* the sheet: the page's own ground */
+  --color-canvas-soft: #efebe6; /* the frame: title bar, sidebar, margins */
   --color-surface: #ffffff; /* cards */
-  --color-surface-strong: #f4eee8; /* fills, hover, badges */
-  --color-surface-muted: #fcf9f6; /* quiet wells inside a card */
+  --color-surface-strong: #f2eee9; /* fills, hover, badges */
+  --color-surface-muted: #f8f6f3; /* quiet wells inside a card */
 
   /* === Ink / text === */
   --color-ink: #1b1d33;
   --color-ink-soft: #2a2d47;
-  --color-body: #3e4159;
-  --color-muted: #5b5e78; /* ≥5.4:1 on every surface above */
-  --color-muted-soft: #a3a1b3; /* decorative + disabled only */
+  --color-body: #3b3e56;
+  --color-muted: #5b5e78; /* ≥5.3:1 on every surface above */
+  --color-muted-soft: #a19fb0; /* decorative + disabled only */
 
   /* === Hairlines === */
-  --color-hairline: #eae3dc;
-  --color-hairline-strong: #dcd3ca;
+  --color-hairline: #ebe6e0;
+  --color-hairline-strong: #dcd5cd;
 
   /* === Feature banners ===
    * The dark stage: the brand's ink navy. It is also the default for
@@ -100,6 +104,14 @@
   --color-text-stroke: #ffffff;
   --color-mid-gray: #7f8196;
 
+  /* === Radii ===
+   * A touch tighter than Tailwind's defaults: precise rather than bubbly. A
+   * card is 14px, a control 9px, a chip 6px. */
+  --radius-md: 0.4375rem;
+  --radius-lg: 0.5625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.875rem;
+
   /* === Type families === */
   --font-sans:
     "Inter Variable", -apple-system, BlinkMacSystemFont,
@@ -110,6 +122,27 @@
     BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-brand: var(--font-display);
   --font-hero: var(--font-display);
+}
+
+/* Depth, as tokens, so a component can say "a card" or "a raised chip"
+ * without knowing which theme it is on. Shadows are tinted with the ink
+ * rather than black, which keeps them from going grey on warm paper. */
+:root {
+  --shadow-card:
+    0 1px 2px rgba(27, 29, 51, 0.04), 0 2px 8px -4px rgba(27, 29, 51, 0.06);
+  --shadow-raised:
+    0 1px 2px rgba(27, 29, 51, 0.08), 0 0 0 1px rgba(27, 29, 51, 0.05),
+    0 4px 12px -6px rgba(27, 29, 51, 0.12);
+  --shadow-float:
+    0 0 0 1px rgba(27, 29, 51, 0.06), 0 12px 32px -12px rgba(27, 29, 51, 0.28),
+    0 2px 6px rgba(27, 29, 51, 0.06);
+  --shadow-sheet:
+    0 0 0 1px rgba(27, 29, 51, 0.055), 0 1px 3px rgba(27, 29, 51, 0.05),
+    0 12px 32px -18px rgba(27, 29, 51, 0.16);
+  /* The light along the top edge of a raised control. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --focus-ring: 0 0 0 3px
+    color-mix(in srgb, var(--color-accent-fill) 28%, transparent);
 }
 
 :root[data-theme="light"] {
@@ -143,7 +176,7 @@
   );
 
   color: var(--color-text);
-  background-color: var(--color-background);
+  background-color: var(--color-canvas-soft);
 }
 
 :root[data-screen="compact"] {
@@ -161,7 +194,7 @@
 .font-display {
   font-family: var(--font-display);
   font-weight: 720;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.024em;
   line-height: 1.15;
   text-wrap: balance;
 }
@@ -194,7 +227,7 @@
 
 /* === Dark ===
  * The brand's ink navy, with each step lighter than the one under it
- * (chrome → pane → card → fill), because in the dark depth comes from
+ * (frame → sheet → card → fill), because in the dark depth comes from
  * lightness, not shadow.
  *
  * Text is a step softer than white: light glyphs on a dark ground bloom and
@@ -204,7 +237,7 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --color-canvas: #101122;
-  --color-canvas-soft: #0b0c1a;
+  --color-canvas-soft: #090a18;
   --color-surface: #17192f;
   --color-surface-strong: #23263f;
   /* Lighter than a card, so a hovered row lifts instead of sinking. */
@@ -216,7 +249,7 @@
   --color-muted: #a3a5bf;
   --color-muted-soft: #5e6180;
 
-  --color-hairline: #262944;
+  --color-hairline: #24273f;
   --color-hairline-strong: #343858;
 
   --color-accent: #ff6a52;
@@ -241,6 +274,25 @@
   --color-logo-stroke: #e2e1ec;
   --color-mid-gray: #a3a5bf;
 
+  /* In the dark a surface is lit from above: a hairline of light along its
+   * top edge does what a drop shadow does on paper. */
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-float:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.07), 0 20px 48px -16px rgba(0, 0, 0, 0.75),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-sheet:
+    0 0 0 1px rgba(255, 255, 255, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 16px 40px -20px rgba(0, 0, 0, 0.8);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --focus-ring: 0 0 0 3px
+    color-mix(in srgb, var(--color-accent-fill) 34%, transparent);
+
   /* Light-on-dark reads heavier, so every weight eases off a notch (Inter is
    * variable, so these are real weights, not synthesized). */
   --font-weight-medium: 470;
@@ -248,7 +300,7 @@
   --font-weight-bold: 660;
   font-weight: 380;
 
-  background-color: var(--color-canvas);
+  background-color: var(--color-canvas-soft);
 }
 :root[data-theme="dark"] .font-display {
   font-weight: 680;
@@ -260,7 +312,7 @@
   :root:not([data-theme]) {
     color-scheme: dark;
     --color-canvas: #101122;
-    --color-canvas-soft: #0b0c1a;
+    --color-canvas-soft: #090a18;
     --color-surface: #17192f;
     --color-surface-strong: #23263f;
     --color-surface-muted: #1c1e37;
@@ -269,7 +321,7 @@
     --color-body: #cfd0de;
     --color-muted: #a3a5bf;
     --color-muted-soft: #5e6180;
-    --color-hairline: #262944;
+    --color-hairline: #24273f;
     --color-hairline-strong: #343858;
     --color-accent: #ff6a52;
     --color-accent-strong: #ff8c78;
@@ -278,6 +330,7 @@
     --color-on-ink: #101122;
     --color-background: var(--color-canvas);
     --color-text: var(--color-ink);
+    background-color: #090a18;
   }
 }
 
@@ -286,10 +339,11 @@
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-/* Custom scrollbar — Windows/Linux only; macOS keeps native overlay bars */
+/* Custom scrollbar — Windows/Linux only; macOS keeps native overlay bars.
+ * Thin and quiet, only darkening under the pointer. */
 :root:not([data-platform="macos"]) ::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 :root:not([data-platform="macos"]) ::-webkit-scrollbar-track {
   background: transparent;
@@ -303,6 +357,11 @@
 }
 :root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover);
+}
+
+/* Text selection in the brand's tint rather than the system blue. */
+::selection {
+  background: color-mix(in srgb, var(--color-accent-fill) 24%, transparent);
 }
 
 @layer utilities {
@@ -326,34 +385,29 @@
  * ==========================================================================*/
 @layer components {
   /* Cards carry their edge with a hairline; the shadow only lifts them a hair
-   * off the pane. */
+   * off the sheet. */
   .elev-card {
-    box-shadow:
-      0 1px 2px rgba(43, 28, 20, 0.04),
-      0 4px 14px -10px rgba(43, 28, 20, 0.12);
+    box-shadow: var(--shadow-card);
   }
 
   .elev-hover {
     transition:
       box-shadow 160ms cubic-bezier(0.25, 1, 0.5, 1),
       border-color 160ms cubic-bezier(0.25, 1, 0.5, 1),
-      background-color 160ms cubic-bezier(0.25, 1, 0.5, 1);
+      background-color 160ms cubic-bezier(0.25, 1, 0.5, 1),
+      translate 160ms cubic-bezier(0.25, 1, 0.5, 1);
   }
   .elev-hover:hover {
-    box-shadow:
-      0 1px 2px rgba(43, 28, 20, 0.04),
-      0 8px 24px -14px rgba(43, 28, 20, 0.18);
+    box-shadow: var(--shadow-raised);
   }
 
   .elev-chip {
-    box-shadow:
-      0 1px 2px rgba(43, 28, 20, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    box-shadow: var(--shadow-raised);
   }
 
-  /* The content pane, lifted off the chrome toward the sidebar. */
+  /* The content sheet, floating in the frame. */
   .elev-pane {
-    box-shadow: -1px 0 0 rgba(43, 28, 20, 0.02);
+    box-shadow: var(--shadow-sheet);
   }
 
   /* Floating menus overlay real content, so they are opaque. */
@@ -363,33 +417,29 @@
 
   /* Popover / menu shadow, shared by every floating surface. */
   .elev-float {
-    box-shadow:
-      0 18px 44px -16px rgba(43, 28, 20, 0.3),
-      0 2px 6px rgba(43, 28, 20, 0.06);
+    box-shadow: var(--shadow-float);
   }
-}
 
-/* In the dark a card is lit from above: a hairline of light along its top
- * edge does what a drop shadow does on paper. */
-:root[data-theme="dark"] .elev-card {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
-    0 1px 2px rgba(0, 0, 0, 0.35);
-}
-:root[data-theme="dark"] .elev-hover:hover {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 10px 28px -12px rgba(0, 0, 0, 0.7);
-}
-:root[data-theme="dark"] .elev-chip {
-  box-shadow:
-    0 2px 5px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-:root[data-theme="dark"] .elev-float {
-  box-shadow:
-    0 20px 48px -16px rgba(0, 0, 0, 0.75),
-    0 2px 6px rgba(0, 0, 0, 0.4);
+  /* A list of rows inside a card, divided by hairlines that stop short of
+   * the card's edges, so the rows read as one object rather than a stack of
+   * boxes. The rows keep the full width for their hover fill. */
+  .rows > * {
+    position: relative;
+  }
+  .rows > * + *::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: 1.25rem;
+    height: 1px;
+    background: var(--color-hairline);
+    pointer-events: none;
+  }
+  /* A row that is itself a card-wide control (a hovered link row) brings its
+   * divider to the edge, so the hover fill never shows a gap above it. */
+  .rows > [data-row-flush]::before {
+    inset-inline: 0;
+  }
 }
 
 /* ============================================================================
@@ -814,19 +864,26 @@
 /* ============================================================================
  * Keycaps
  * ==========================================================================*/
+/* A key you could press: a pale cap with a deeper lip along its bottom edge,
+ * set in the UI face at a small, firm weight. */
 .keycap {
-  background: linear-gradient(180deg, #ffffff 0%, #f7f2ed 100%);
-  border: 1px solid var(--color-hairline-strong);
+  font-weight: 560;
+  letter-spacing: 0.005em;
+  background: linear-gradient(180deg, #ffffff 0%, #f9f7f4 100%);
+  border: 1px solid #ddd6ce;
+  border-bottom-color: #cfc6bc;
   box-shadow:
-    inset 0 -1.5px 0 rgba(43, 28, 20, 0.09),
-    0 1px 1.5px rgba(43, 28, 20, 0.05);
+    inset 0 -1px 0 rgba(27, 29, 51, 0.06),
+    0 1px 1px rgba(27, 29, 51, 0.06);
 }
 :root[data-theme="dark"] .keycap {
-  background: linear-gradient(180deg, #2a2d4a 0%, #21243d 100%);
+  background: linear-gradient(180deg, #2b2e4c 0%, #23263f 100%);
   border-color: #3a3e62;
+  border-bottom-color: #2c2f4c;
   box-shadow:
-    inset 0 -1.5px 0 rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 2px rgba(0, 0, 0, 0.35);
 }
 /* On a banner: glass keys with a lit top edge and a dark bottom lip. */
 .keycap-hero {
@@ -846,11 +903,12 @@
 }
 /* On the light stage the keys are the app's ordinary keycaps. */
 :root:not([data-theme="dark"]) .hero-stage .keycap-hero {
-  background: linear-gradient(180deg, #ffffff 0%, #f7f2ed 100%);
-  border-color: var(--color-hairline-strong);
+  background: linear-gradient(180deg, #ffffff 0%, #f9f7f4 100%);
+  border-color: #ddd6ce;
+  border-bottom-color: #cfc6bc;
   box-shadow:
-    inset 0 -1.5px 0 rgba(43, 28, 20, 0.09),
-    0 1px 1.5px rgba(43, 28, 20, 0.05);
+    inset 0 -1px 0 rgba(27, 29, 51, 0.06),
+    0 1px 1px rgba(27, 29, 51, 0.06);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -1096,20 +1154,447 @@
 }
 .segmented-pill {
   background-color: var(--color-surface);
-  box-shadow:
-    0 1px 2px rgba(43, 28, 20, 0.12),
-    0 0 0 0.5px rgba(43, 28, 20, 0.05);
+  box-shadow: var(--shadow-raised);
 }
 :root[data-theme="dark"] .segmented-pill {
-  background-color: #30344f;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 1px 2px rgba(0, 0, 0, 0.45);
+  background-color: #2a2e4b;
 }
 
 /* Native range inputs pick up the brand accent. */
 input[type="range"] {
   accent-color: var(--color-accent);
+}
+
+/* ============================================================================
+ * Components — the shared controls, so every one of them is drawn once
+ * ==========================================================================*/
+
+/* ---------- Sidebar: the page you are on ----------
+ * A raised chip under the active item that slides when the page changes. On
+ * the frame it is the one white object, which is enough to say "you are
+ * here"; the item's icon carries the coral. */
+.nav-indicator {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+  pointer-events: none;
+}
+/* The Settings window's tab list uses the same chip, without the slide. */
+.settings-tab-active {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+}
+:root[data-theme="dark"] .settings-tab-active {
+  background: #1d2039;
+}
+.nav-indicator.is-animated {
+  transition:
+    top 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root[data-theme="dark"] .nav-indicator {
+  background: #1d2039;
+}
+
+/* ---------- Dawn ----------
+ * The sheet's one piece of atmosphere: a faint coral light along its top
+ * edge, from the side the art on the feature banners sits. Under 7% so it
+ * never competes with the content; on the dark theme it is the ink tile's
+ * indigo with a breath of coral in it. */
+.sheet-glow {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 26rem;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      55% 90% at 88% 0%,
+      rgba(242, 84, 61, 0.065),
+      transparent 72%
+    ),
+    radial-gradient(
+      45% 70% at 55% 0%,
+      rgba(255, 143, 63, 0.035),
+      transparent 70%
+    );
+}
+[dir="rtl"] .sheet-glow {
+  scale: -1 1;
+}
+:root[data-theme="dark"] .sheet-glow {
+  background:
+    radial-gradient(
+      60% 95% at 88% 0%,
+      rgba(78, 84, 200, 0.16),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 70% at 70% 0%,
+      rgba(255, 106, 82, 0.06),
+      transparent 70%
+    );
+}
+
+/* ---------- The page's title, once it has scrolled away ----------
+ * A frosted strip along the top of the sheet. It spans the whole sheet (the
+ * page layer clips it), whatever the width of the page's own column. */
+.page-titlebar {
+  position: absolute;
+  top: 0;
+  left: -50vw;
+  right: -50vw;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-hairline) 80%, transparent);
+  opacity: 0;
+  translate: 0 -0.375rem;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    translate 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.page-titlebar[data-shown="true"] {
+  opacity: 1;
+  translate: none;
+}
+
+/* ---------- Buttons ----------
+ * Filled buttons are lit from above: a soft vertical gradient, a hairline of
+ * light along the top and a darker rim, so they read as something to press
+ * rather than a coloured rectangle. */
+.btn {
+  position: relative;
+  border: 1px solid transparent;
+  transition:
+    background-color 150ms ease,
+    background-position 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease,
+    transform 120ms ease;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  color: var(--color-on-primary);
+  background-image: linear-gradient(180deg, #cc4730 0%, #b93a25 100%);
+  border-color: #a8341f;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(163, 51, 31, 0.28),
+    0 3px 8px -4px rgba(163, 51, 31, 0.35);
+}
+.btn-primary:hover:not(:disabled) {
+  background-image: linear-gradient(180deg, #c2402a 0%, #ab3420 100%);
+}
+.btn-primary:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    var(--focus-ring);
+}
+:root[data-theme="dark"] .btn-primary {
+  background-image: linear-gradient(180deg, #ff7a62 0%, #ff6248 100%);
+  border-color: transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 6px 16px -8px rgba(255, 98, 72, 0.55);
+}
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  background-image: linear-gradient(180deg, #ff8a74 0%, #ff705a 100%);
+}
+/* Disabled, a coral fill read as a washed-out pink (a dim maroon on the dark
+ * theme), so it turns neutral instead. */
+.btn-primary:disabled,
+:root[data-theme="dark"] .btn-primary:disabled {
+  color: var(--color-muted);
+  background-image: none;
+  background-color: var(--color-surface-strong);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border-color: var(--color-hairline-strong);
+  box-shadow:
+    0 1px 2px rgba(27, 29, 51, 0.05),
+    var(--edge-light);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-surface-muted);
+  border-color: color-mix(
+    in srgb,
+    var(--color-ink) 18%,
+    var(--color-hairline-strong)
+  );
+}
+:root[data-theme="dark"] .btn-secondary {
+  background-color: #1e2139;
+  border-color: #34385a;
+}
+:root[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+  background-color: #262a46;
+  border-color: #40456b;
+}
+.btn-secondary:disabled {
+  opacity: 0.45;
+}
+
+.btn-soft {
+  color: var(--color-ink);
+  background-color: var(--color-surface-strong);
+}
+.btn-soft:hover:not(:disabled) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-ink) 8%,
+    var(--color-surface-strong)
+  );
+}
+.btn-soft:disabled {
+  opacity: 0.45;
+}
+
+.btn-ghost {
+  color: var(--color-ink);
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-ink) 6%, transparent);
+}
+.btn-ghost:disabled {
+  opacity: 0.4;
+}
+
+.btn-danger {
+  color: #ffffff;
+  background-image: linear-gradient(180deg, #c1322a 0%, #a8231c 100%);
+  border-color: #921d17;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(146, 29, 23, 0.3);
+}
+.btn-danger:hover:not(:disabled) {
+  background-image: linear-gradient(180deg, #b52c24 0%, #9a1f18 100%);
+}
+:root[data-theme="dark"] .btn-danger {
+  color: #1b0b10;
+  background-image: linear-gradient(180deg, #ff93a5 0%, #ff7a90 100%);
+  border-color: transparent;
+}
+.btn-danger:disabled {
+  opacity: 0.45;
+}
+
+.btn-danger-ghost {
+  color: var(--color-error);
+}
+.btn-danger-ghost:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-error) 9%, transparent);
+}
+.btn-danger-ghost:disabled {
+  opacity: 0.4;
+}
+
+/* ---------- Form controls ----------
+ * Text fields, selects and pickers share one frame: a card-coloured well
+ * with a firm hairline, sunk a hair into the card, and the brand's focus ring
+ * when they have the keyboard. */
+.control {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-hairline-strong);
+  box-shadow: 0 1px 1px rgba(27, 29, 51, 0.035);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+.control:hover:not(:disabled):not(:focus-within) {
+  border-color: color-mix(
+    in srgb,
+    var(--color-ink) 20%,
+    var(--color-hairline-strong)
+  );
+}
+.control:focus-visible,
+.control:focus-within {
+  outline: none;
+  border-color: var(--color-accent-fill);
+  box-shadow: var(--focus-ring);
+}
+:root[data-theme="dark"] .control {
+  background-color: #13152a;
+  border-color: #33375a;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+:root[data-theme="dark"] .control:focus-visible,
+:root[data-theme="dark"] .control:focus-within {
+  border-color: var(--color-accent-fill);
+  box-shadow: var(--focus-ring);
+}
+/* A trigger that only opens a menu (a select, a picker) is a raised control
+ * rather than a sunk well: it is pressed, not typed into. */
+.control-raised {
+  box-shadow:
+    0 1px 2px rgba(27, 29, 51, 0.05),
+    var(--edge-light);
+}
+:root[data-theme="dark"] .control-raised {
+  background-color: #1e2139;
+  border-color: #34385a;
+  box-shadow: var(--edge-light);
+}
+.control-raised:focus-visible {
+  border-color: var(--color-accent-fill);
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Switch ----------
+ * One drawing for every on/off control. The knob travels on a spring with a
+ * little overshoot, and stretches while it is held, so the switch feels like
+ * it has weight. Put `.switch` on the element right after the checkbox. */
+.switch {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 2.375rem;
+  height: 1.375rem;
+  border-radius: 999px;
+  background-color: var(--color-toggle-track-off);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: calc(1.375rem - 4px);
+  height: calc(1.375rem - 4px);
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.22),
+    0 2px 5px -1px rgba(0, 0, 0, 0.16);
+  transition:
+    translate 280ms cubic-bezier(0.34, 1.4, 0.64, 1),
+    width 160ms ease;
+}
+:checked + .switch,
+:checked ~ .switch {
+  background-color: var(--color-toggle-track-on);
+}
+:checked + .switch::after,
+:checked ~ .switch::after {
+  translate: 1rem 0;
+}
+[dir="rtl"] :checked + .switch::after,
+[dir="rtl"] :checked ~ .switch::after {
+  translate: -1rem 0;
+}
+:active:not(:disabled) + .switch::after,
+:active:not(:disabled) ~ .switch::after {
+  width: calc(1.375rem + 0.125rem);
+}
+:checked:active:not(:disabled) + .switch::after,
+:checked:active:not(:disabled) ~ .switch::after {
+  translate: calc(1rem - 0.375rem) 0;
+}
+[dir="rtl"] :checked:active:not(:disabled) + .switch::after,
+[dir="rtl"] :checked:active:not(:disabled) ~ .switch::after {
+  translate: calc(-1rem + 0.375rem) 0;
+}
+:focus-visible + .switch,
+:focus-visible ~ .switch {
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.12),
+    var(--focus-ring);
+}
+:disabled + .switch,
+:disabled ~ .switch {
+  opacity: 0.45;
+}
+/* On a feature banner's stage. */
+.switch.switch-hero {
+  background-color: var(--color-hero-border);
+}
+.switch.switch-hero::after {
+  background: var(--color-hero-control);
+}
+:checked + .switch.switch-hero,
+:checked ~ .switch.switch-hero {
+  background-color: var(--color-hero-ink);
+}
+:checked + .switch.switch-hero::after,
+:checked ~ .switch.switch-hero::after {
+  background: var(--color-hero-surface);
+}
+
+/* ---------- Tabs ----------
+ * Pills on a quiet track: the view you are in is a raised chip, the same
+ * object as the sidebar's page and the segmented control's choice. */
+.tab-pill {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+.tab-pill[aria-selected="true"] {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+}
+:root[data-theme="dark"] .tab-pill[aria-selected="true"] {
+  background: #262a46;
+}
+.tab-pill:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Setting rows ----------
+ * A row lights up faintly under the pointer, so a long list is easy to track
+ * across from label to control. */
+.setting-row {
+  transition: background-color 150ms ease;
+}
+.rows > .setting-row:hover {
+  background-color: color-mix(in srgb, var(--color-ink) 1.6%, transparent);
+}
+.rows > .setting-row:first-child {
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.rows > .setting-row:last-child {
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1129,7 +1614,15 @@ input[type="range"] {
     transition: none;
   }
   .elev-hover,
-  .segmented-thumb {
+  .segmented-thumb,
+  .nav-indicator.is-animated,
+  .page-titlebar,
+  .switch,
+  .switch::after,
+  .btn {
     transition: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
   }
 }

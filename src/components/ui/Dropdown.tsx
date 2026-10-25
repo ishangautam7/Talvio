@@ -222,7 +222,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`w-full ${size === "sm" ? "h-7 min-w-[7.5rem] rounded-md px-2.5 text-[0.8125rem]" : "h-9 min-w-[12.5rem] rounded-lg px-3 text-sm"} bg-surface border border-hairline-strong text-start flex items-center justify-between shadow-[0_1px_1px_rgba(43,28,20,0.04)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+        className={`w-full ${size === "sm" ? "h-7 min-w-[7.5rem] rounded-md px-2.5 text-[0.8125rem]" : "h-[2.125rem] min-w-[12.5rem] rounded-lg px-3 text-sm"} control control-raised text-start flex items-center justify-between ${
           disabled
             ? "opacity-50 cursor-not-allowed"
             : "hover:border-ink/25 cursor-pointer"
@@ -279,7 +279,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                 ? { top: position.top }
                 : { bottom: window.innerHeight - position.top }),
             }}
-            className="glass-menu elev-float z-[70] overflow-y-auto overflow-x-hidden rounded-xl border border-hairline p-1"
+            className="glass-menu elev-float menu-in z-[70] overflow-y-auto overflow-x-hidden rounded-xl p-1"
           >
             {options.length === 0 ? (
               <div className="px-2.5 py-1.5 text-sm text-muted">
