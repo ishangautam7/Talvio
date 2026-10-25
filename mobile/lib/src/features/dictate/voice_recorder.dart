@@ -22,6 +22,16 @@ class VoiceRecorder {
   /// Called when [paused] changes.
   final VoidCallback onChanged;
 
+  /// The recorder holding the microphone, from [start] to the recording's
+  /// end: one page records at a time.
+  static final ValueNotifier<VoiceRecorder?> holder = ValueNotifier(null);
+  static VoiceRecorder? get _holder => holder.value;
+  static set _holder(VoiceRecorder? value) => holder.value = value;
+
+  /// Whether a recorder other than [self] holds the microphone.
+  static bool heldByOther(VoiceRecorder self) =>
+      _holder != null && !identical(_holder, self);
+
   AudioRecorder? _recorder;
   AudioRecorder get _audio => _recorder ??= AudioRecorder();
 
@@ -50,11 +60,14 @@ class VoiceRecorder {
   String? get path => _path;
 
   /// Starts recording. Answers null when it started, else an error code:
-  /// `mic_denied` or `mic_failed`. [onLimit] runs when the recording reaches
-  /// [maxRecording].
+  /// `mic_denied`, `mic_failed`, or `mic_busy` while another page records.
+  /// [onLimit] runs when the recording reaches [maxRecording].
   Future<String?> start({required VoidCallback onLimit}) async {
     if (_recording || _starting) return null;
+    if (heldByOther(this)) return 'mic_busy';
     _starting = true;
+    _holder = this;
+    var started = false;
     try {
       if (!await _audio.hasPermission()) return 'mic_denied';
       final dir = await getTemporaryDirectory();
@@ -87,11 +100,13 @@ class VoiceRecorder {
           });
       _state = _audio.onStateChanged().listen(_onState);
       _limit = Timer(maxRecording, onLimit);
+      started = true;
       return null;
     } on Exception {
       return 'mic_failed';
     } finally {
       _starting = false;
+      if (!started) _release();
     }
   }
 
@@ -160,7 +175,12 @@ class VoiceRecorder {
     onChanged();
   }
 
+  void _release() {
+    if (identical(_holder, this)) _holder = null;
+  }
+
   Duration _end() {
+    _release();
     _recording = false;
     _limit?.cancel();
     _limit = null;
