@@ -19,6 +19,8 @@ import "@fontsource-variable/inter";
 import "../i18n";
 import QuickAsk from "@/assistant/QuickAsk";
 import { LuminousOrb } from "@/assistant/LuminousOrb";
+import { VoiceOrb } from "@/assistant/VoiceOrb";
+import "@/assistant/CallBar.css";
 import type { OrbMode } from "@/assistant/orbMotion";
 import "@/assistant/AssistantPanel.css";
 import RecordingOverlay from "@/overlay/RecordingOverlay";
@@ -265,6 +267,47 @@ const Harness: React.FC = () => {
       }}
     >
       {w === "orb-lab" && <OrbLab />}
+      {w === "call-orb" && (
+        <div
+          className="assistant-scope"
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 24,
+          }}
+        >
+          {(["hearing", "responding", "speaking", "muted"] as const).map(
+            (phase) => (
+              <div
+                key={phase}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  height: 44,
+                  padding: "0 16px 0 9px",
+                  borderRadius: 22,
+                  background: "rgba(18, 20, 40, 0.97)",
+                  color: "#d6d5e2",
+                  fontSize: 13,
+                }}
+              >
+                <button type="button" className="call-orb">
+                  <VoiceOrb
+                    phase={phase}
+                    level={0.6}
+                    speechLevel={() => 0.12}
+                  />
+                </button>
+                {phase}
+              </div>
+            ),
+          )}
+        </div>
+      )}
       {w === "ask" && <Ask phase="prompt" />}
       {w === "ask-listening" && <Ask phase="listening" />}
       {w === "ask-working" && <Ask phase="working" />}
