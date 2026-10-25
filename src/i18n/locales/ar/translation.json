@@ -2609,7 +2609,7 @@
     "cancel": "إلغاء",
     "working": "جارٍ التنفيذ…",
     "dryRun": "تشغيل تجريبي: لم يُنفَّذ أي شيء.",
-    "sayAgain": "قل الأمر مجددًا مع تضمين الإجابة فيه."
+    "sayAgain": "قل إجابتك باستخدام مفاتيح الأوامر."
   },
   "assistant": {
     "conversation": {
@@ -4104,6 +4104,11 @@
       "failed": "{{reason}}",
       "mediaNext": "انتقلت إلى المقطع التالي.",
       "mediaPlayPause": "ضغطت تشغيل/إيقاف مؤقت.",
+      "mediaPaused": "تم الإيقاف المؤقت.",
+      "mediaNothingPlaying": "لا يوجد شيء قيد التشغيل.",
+      "mediaResumed": "تم الاستئناف.",
+      "mediaAlreadyPlaying": "إنه قيد التشغيل بالفعل.",
+      "windowNotReady": "لم يظهر التطبيق في الوقت المناسب، لذلك لم أكتب شيئًا.",
       "mediaPlaying": "جارٍ تشغيل «{{title}}» على {{service}}.",
       "mediaPrevious": "عدت إلى المقطع السابق.",
       "mediaResultsOpened": "فتحت نتائج {{service}} لـ«{{query}}».",

@@ -2567,7 +2567,7 @@
     "cancel": "ביטול",
     "working": "עובד על זה…",
     "dryRun": "הרצת ניסיון: לא נעשה דבר.",
-    "sayAgain": "אמור את הפקודה שוב, עם התשובה בתוכה."
+    "sayAgain": "אמרו את התשובה בעזרת מקשי הפקודות."
   },
   "assistant": {
     "conversation": {
@@ -3942,6 +3942,11 @@
       "failed": "{{reason}}",
       "mediaNext": "דילגתי לרצועה הבאה.",
       "mediaPlayPause": "נלחץ הפעל/השהה.",
+      "mediaPaused": "הושהה.",
+      "mediaNothingPlaying": "שום דבר לא מתנגן.",
+      "mediaResumed": "הופעל מחדש.",
+      "mediaAlreadyPlaying": "זה כבר מתנגן.",
+      "windowNotReady": "האפליקציה לא נפתחה בזמן, אז לא הקלדתי כלום.",
       "mediaPlaying": "מנגן את ״{{title}}״ ב-{{service}}.",
       "mediaPrevious": "חזרתי לרצועה הקודמת.",
       "mediaResultsOpened": "פתחתי את התוצאות של {{service}} עבור ״{{query}}״.",

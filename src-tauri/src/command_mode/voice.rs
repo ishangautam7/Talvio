@@ -149,10 +149,30 @@ pub async fn run_spoken(app: &AppHandle, transcript: String) {
         return;
     }
     crate::overlay::show_command_overlay(app);
-    let context = captured_context().await;
-    // `run_command` lowers the cancel flag as it starts; an Esc from here on
-    // is this command's.
-    let run = super::run_command(app, &transcript, CommandOrigin::Voice, None, context);
+    // A spoken command while the card asks a question is the answer to it:
+    // the card says to say the answer, and run as a command of its own
+    // ("the work one") it would mean nothing.
+    let question = question_on_card(current_card());
+    let context = match question {
+        Some(_) => None,
+        None => captured_context().await,
+    };
+    // `run_command` and `answer_command` lower the cancel flag as they start,
+    // so an Esc pressed while the context was awaited is honoured here.
+    if cancelled() {
+        info!("Spoken command stopped by the user");
+        crate::utils::hide_recording_overlay(app);
+        return;
+    }
+    let run = async {
+        match question {
+            Some((seq, id)) => {
+                info!("Spoken command answers the question on card {seq}");
+                super::answer_command(app, id, &transcript).await
+            }
+            None => super::run_command(app, &transcript, CommandOrigin::Voice, None, context).await,
+        }
+    };
     let Some(report) = until_cancelled(run, cancelled).await else {
         info!("Spoken command stopped by the user");
         crate::utils::hide_recording_overlay(app);
@@ -212,6 +232,17 @@ pub fn current_card() -> Option<CommandCard> {
 /// Take card `seq` down. Answers whether it was the one on screen.
 pub fn close_card(app: &AppHandle, seq: u32) -> bool {
     crate::account::approval::close_command_card(app, seq)
+}
+
+/// The card's seq and its command's id, when the card on screen asks a
+/// question of a command spoken at this computer. A question a phone or the
+/// assistant asked is answered there, not by the next spoken command.
+fn question_on_card(card: Option<CommandCard>) -> Option<(u32, u32)> {
+    card.filter(|card| {
+        card.report.status == CommandStatus::NeedsAnswer
+            && card.report.origin == CommandOrigin::Voice
+    })
+    .map(|card| (card.seq, card.report.id))
 }
 
 /// What a click on the card is aimed at: the report of card `seq`, while it
@@ -313,6 +344,32 @@ mod tests {
         // An answer to a card that waits for a confirmation.
         assert!(aimed_at(card, 3, CommandStatus::NeedsAnswer).is_none());
         assert!(aimed_at(None, 3, CommandStatus::NeedsAnswer).is_none());
+    }
+
+    #[test]
+    fn only_a_spoken_question_takes_the_next_spoken_command_as_its_answer() {
+        let card = |status, origin| {
+            Some(CommandCard {
+                seq: 4,
+                report: report(status, origin),
+            })
+        };
+        assert_eq!(
+            question_on_card(card(CommandStatus::NeedsAnswer, CommandOrigin::Voice)),
+            Some((4, 7))
+        );
+        assert_eq!(
+            question_on_card(card(CommandStatus::NeedsAnswer, CommandOrigin::Assistant)),
+            None
+        );
+        assert_eq!(
+            question_on_card(card(
+                CommandStatus::AwaitingConfirmation,
+                CommandOrigin::Voice
+            )),
+            None
+        );
+        assert_eq!(question_on_card(None), None);
     }
 
     #[test]

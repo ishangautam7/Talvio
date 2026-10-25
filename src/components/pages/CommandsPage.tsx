@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { commands, type CommandModelInUse, type ModelChoice } from "@/bindings";
@@ -148,13 +148,18 @@ const CommandModelRow: React.FC = () => {
 
   // A provider nobody gave a key (the shipped Anthropic default, say) moves to
   // one set up elsewhere, the assistant's first, so commands run on a key
-  // already entered instead of asking for another.
-  const adopt = providerWithSavedKey(settings, (id) =>
-    LLM_REQUIRES_KEY.has(id),
-  );
+  // already entered instead of asking for another. Once, when the page first
+  // has settings: a keyless provider picked here afterwards is someone about
+  // to type its key, and must not be switched away under them.
+  const adoptChecked = useRef(false);
   useEffect(() => {
+    if (!settings || adoptChecked.current) return;
+    adoptChecked.current = true;
+    const adopt = providerWithSavedKey(settings, (id) =>
+      LLM_REQUIRES_KEY.has(id),
+    );
     if (adopt) void chooseProvider(adopt);
-  }, [adopt]);
+  }, [settings]);
 
   const choices: Choice[] = models.map((item) => ({
     value: item.id,

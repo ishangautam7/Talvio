@@ -2553,7 +2553,7 @@
     "cancel": "Avbryt",
     "working": "Jobbar på det…",
     "dryRun": "Testkörning: inget gjordes.",
-    "sayAgain": "Säg kommandot igen med svaret i det."
+    "sayAgain": "Säg ditt svar med kommandotangenterna."
   },
   "assistant": {
     "conversation": {
@@ -3888,6 +3888,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Hoppade till nästa spår.",
       "mediaPlayPause": "Tryckte på spela/pausa.",
+      "mediaPaused": "Pausad.",
+      "mediaNothingPlaying": "Inget spelas.",
+      "mediaResumed": "Återupptogs.",
+      "mediaAlreadyPlaying": "Det spelas redan.",
+      "windowNotReady": "Appen kom inte upp i tid, så jag skrev ingenting.",
       "mediaPlaying": "Spelar ”{{title}}” på {{service}}.",
       "mediaPrevious": "Tillbaka till föregående spår.",
       "mediaResultsOpened": "Öppnade resultaten för ”{{query}}” på {{service}}.",

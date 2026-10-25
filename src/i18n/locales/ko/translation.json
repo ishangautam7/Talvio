@@ -2539,7 +2539,7 @@
     "cancel": "취소",
     "working": "처리 중…",
     "dryRun": "모의 실행: 아무것도 실행하지 않았습니다.",
-    "sayAgain": "답을 포함해서 명령을 다시 말하세요."
+    "sayAgain": "명령 키를 누르고 답을 말하세요."
   },
   "assistant": {
     "conversation": {
@@ -3834,6 +3834,11 @@
       "failed": "{{reason}}",
       "mediaNext": "다음 트랙으로 넘겼습니다.",
       "mediaPlayPause": "재생/일시정지를 눌렀습니다.",
+      "mediaPaused": "일시 정지했습니다.",
+      "mediaNothingPlaying": "재생 중인 것이 없습니다.",
+      "mediaResumed": "다시 재생합니다.",
+      "mediaAlreadyPlaying": "이미 재생 중입니다.",
+      "windowNotReady": "앱이 제때 열리지 않아 아무것도 입력하지 않았습니다.",
       "mediaPlaying": "{{service}}에서 “{{title}}”을(를) 재생합니다.",
       "mediaPrevious": "이전 트랙으로 돌아갔습니다.",
       "mediaResultsOpened": "{{service}}에서 “{{query}}” 검색 결과를 열었습니다.",

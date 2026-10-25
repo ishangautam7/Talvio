@@ -2553,7 +2553,7 @@
     "cancel": "Abbrechen",
     "working": "Wird erledigt…",
     "dryRun": "Probelauf: Es wurde nichts ausgeführt.",
-    "sayAgain": "Sag den Befehl noch einmal, diesmal mit der Antwort darin."
+    "sayAgain": "Sag deine Antwort mit den Befehlstasten."
   },
   "assistant": {
     "conversation": {
@@ -3888,6 +3888,11 @@
       "failed": "{{reason}}",
       "mediaNext": "Zum nächsten Titel gesprungen.",
       "mediaPlayPause": "Wiedergabe/Pause gedrückt.",
+      "mediaPaused": "Pausiert.",
+      "mediaNothingPlaying": "Gerade läuft nichts.",
+      "mediaResumed": "Fortgesetzt.",
+      "mediaAlreadyPlaying": "Es läuft bereits.",
+      "windowNotReady": "Die App ist nicht rechtzeitig erschienen, deshalb habe ich nichts getippt.",
       "mediaPlaying": "„{{title}}“ wird auf {{service}} abgespielt.",
       "mediaPrevious": "Zurück zum vorherigen Titel.",
       "mediaResultsOpened": "Ergebnisse für „{{query}}“ auf {{service}} geöffnet.",
