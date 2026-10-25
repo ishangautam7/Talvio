@@ -29,6 +29,7 @@ import { watchScreenScale } from "@/lib/screenScale";
 import { useModelStore } from "@/stores/modelStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { suppressCaretBrowsing } from "@/lib/caretBrowsing";
+import { TOAST_OPTIONS } from "@/lib/toaster";
 import { suppressBrowserContextMenu } from "@/lib/contextMenu";
 import { useUpdateStore } from "@/components/update-checker/updateStore";
 import { useFeedbackDialog } from "@/components/feedback/feedbackStore";
@@ -119,7 +120,7 @@ const onboarding = previewParams.get("onboarding") as FlowStep | null;
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <div className="flex h-screen cursor-default flex-col overflow-hidden select-none">
-      <Toaster theme="system" />
+      <Toaster theme="system" toastOptions={TOAST_OPTIONS} />
       <TitleBar />
       <div className="flex min-h-0 flex-1 flex-col">
         <OnboardingPreview from={onboarding ?? "done"} />
