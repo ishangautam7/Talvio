@@ -182,10 +182,10 @@ class TurnView extends StatelessWidget {
       a: TextStyle(color: t.accent, decoration: TextDecoration.underline),
       code: text.bodyMedium?.copyWith(
         fontFamily: 'monospace',
-        backgroundColor: t.sunken,
+        backgroundColor: t.well,
       ),
       codeblockDecoration: BoxDecoration(
-        color: t.sunken,
+        color: t.well,
         borderRadius: BorderRadius.circular(Radii.sm),
       ),
       blockquoteDecoration: BoxDecoration(
@@ -317,7 +317,7 @@ class _Actions extends StatelessWidget {
       padding: const EdgeInsets.only(top: Space.md),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: t.sunken,
+          color: t.well,
           borderRadius: BorderRadius.circular(Radii.md),
         ),
         child: Padding(

@@ -119,7 +119,11 @@ class TalvioColors extends ThemeExtension<TalvioColors> {
 
   /// The fill of a round button that cannot be pressed now: a well on
   /// light, a step up on dark (a well there reads as a hole).
-  Color get disabledFill => ink.computeLuminance() > 0.5 ? raised : sunken;
+  Color get disabledFill => well;
+
+  /// A box set into a card (what the assistant did, code): sunken on light,
+  /// raised on dark, where a darker box reads as a hole.
+  Color get well => ink.computeLuminance() > 0.5 ? raised : sunken;
 
   /// The brand gradient: the icon's tile, the mic.
   static const gradient = LinearGradient(
