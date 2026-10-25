@@ -3981,5 +3981,22 @@
       "waitingForAnswer": "הפקודה הזו ממתינה לתשובה, לא לאישור.",
       "waitingForConfirmation": "הפקודה הזו ממתינה לאישור שלך, לא לתשובה."
     }
+  },
+  "palette": {
+    "trigger": "חיפוש או מעבר אל…",
+    "placeholder": "חיפוש דפים, מודלים והגדרות",
+    "label": "לוח פקודות",
+    "empty": "אין תוצאות עבור „{{query}}”",
+    "groups": {
+      "pages": "דפים",
+      "models": "מודלים",
+      "settings": "הגדרות",
+      "actions": "פעולות"
+    },
+    "hints": {
+      "move": "מעבר",
+      "open": "פתיחה",
+      "close": "סגירה"
+    }
   }
 }

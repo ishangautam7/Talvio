@@ -41,23 +41,31 @@
  * edge).
  */
 @theme {
+  /* === The frame ===
+   * Title bar and rail: the brand's ink navy in both themes, an L around the
+   * page. Text on it is near-white; its quiet text is 7:1. */
+  --color-frame: #15172f;
+  --color-frame-raise: #1f2242; /* hover on the frame */
+  --color-frame-ink: #f1f1f8;
+  --color-frame-muted: #a3a5c4;
+
   /* === Surfaces === */
-  --color-canvas: #faf8f5; /* the sheet: the page's own ground */
-  --color-canvas-soft: #efebe6; /* the frame: title bar, sidebar, margins */
+  --color-canvas: #f4f4f8; /* the page: cool porcelain */
+  --color-canvas-soft: #eeeef4; /* a quieter panel on the page */
   --color-surface: #ffffff; /* cards */
-  --color-surface-strong: #f2eee9; /* fills, hover, badges */
-  --color-surface-muted: #f8f6f3; /* quiet wells inside a card */
+  --color-surface-strong: #ececf3; /* fills, hover, badges */
+  --color-surface-muted: #f8f8fb; /* quiet wells inside a card */
 
   /* === Ink / text === */
-  --color-ink: #1b1d33;
-  --color-ink-soft: #2a2d47;
-  --color-body: #3b3e56;
-  --color-muted: #5b5e78; /* ≥5.3:1 on every surface above */
-  --color-muted-soft: #a19fb0; /* decorative + disabled only */
+  --color-ink: #16182e;
+  --color-ink-soft: #262944;
+  --color-body: #383b55;
+  --color-muted: #5c5f78; /* ≥5.4:1 on every surface above */
+  --color-muted-soft: #a2a4b8; /* decorative + disabled only */
 
   /* === Hairlines === */
-  --color-hairline: #ebe6e0;
-  --color-hairline-strong: #dcd5cd;
+  --color-hairline: #e4e4ee;
+  --color-hairline-strong: #d3d4e1;
 
   /* === Feature banners ===
    * The dark stage: the brand's ink navy. It is also the default for
@@ -88,11 +96,11 @@
 
   /* === On-colour text === */
   --color-on-primary: #ffffff; /* text on accent fills */
-  --color-on-ink: #fbf7f3; /* text on ink buttons */
+  --color-on-ink: #f4f4f8; /* text on ink buttons */
 
   /* === Toggle switch === */
   --color-toggle-track-on: var(--color-accent-fill);
-  --color-toggle-track-off: #8e8782;
+  --color-toggle-track-off: #878699;
   --color-toggle-knob-on: #ffffff;
 
   /* === Back-compat aliases (leaf components still use these names) === */
@@ -100,17 +108,17 @@
   --color-text: var(--color-ink);
   --color-background-ui: var(--color-accent);
   --color-logo-primary: var(--color-accent-fill);
-  --color-logo-stroke: #1b1d33;
+  --color-logo-stroke: #16182e;
   --color-text-stroke: #ffffff;
   --color-mid-gray: #7f8196;
 
   /* === Radii ===
    * A touch tighter than Tailwind's defaults: precise rather than bubbly. A
    * card is 14px, a control 9px, a chip 6px. */
-  --radius-md: 0.4375rem;
-  --radius-lg: 0.5625rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 0.875rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
 
   /* === Type families === */
   --font-sans:
@@ -176,7 +184,7 @@
   );
 
   color: var(--color-text);
-  background-color: var(--color-canvas-soft);
+  background-color: var(--color-frame);
 }
 
 :root[data-screen="compact"] {
@@ -219,7 +227,7 @@
     [lang|="uk"],
     [lang|="zh"]
   )
-  :is(.font-display, .hero-title) {
+  :is(.font-display, .hero-title, .page-title) {
   font-family: var(--font-sans);
   font-weight: 650;
   letter-spacing: -0.02em;
@@ -236,12 +244,14 @@
  * 7.1:1, coral on a card 6.1:1, ink navy on a coral fill 6.6:1. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-canvas: #101122;
-  --color-canvas-soft: #090a18;
-  --color-surface: #17192f;
-  --color-surface-strong: #23263f;
+  --color-frame: #07081a;
+  --color-frame-raise: #15172f;
+  --color-canvas: #0f1024;
+  --color-canvas-soft: #13152c;
+  --color-surface: #171933;
+  --color-surface-strong: #23264a;
   /* Lighter than a card, so a hovered row lifts instead of sinking. */
-  --color-surface-muted: #1c1e37;
+  --color-surface-muted: #1c1e3c;
 
   --color-ink: #f2f1f7;
   --color-ink-soft: #e2e1ec;
@@ -249,8 +259,8 @@
   --color-muted: #a3a5bf;
   --color-muted-soft: #5e6180;
 
-  --color-hairline: #24273f;
-  --color-hairline-strong: #343858;
+  --color-hairline: #24274a;
+  --color-hairline-strong: #353a63;
 
   --color-accent: #ff6a52;
   --color-accent-strong: #ff8c78;
@@ -300,7 +310,7 @@
   --font-weight-bold: 660;
   font-weight: 380;
 
-  background-color: var(--color-canvas-soft);
+  background-color: var(--color-frame);
 }
 :root[data-theme="dark"] .font-display {
   font-weight: 680;
@@ -311,18 +321,19 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --color-canvas: #101122;
-    --color-canvas-soft: #090a18;
-    --color-surface: #17192f;
-    --color-surface-strong: #23263f;
-    --color-surface-muted: #1c1e37;
+    --color-frame: #07081a;
+    --color-canvas: #0f1024;
+    --color-canvas-soft: #13152c;
+    --color-surface: #171933;
+    --color-surface-strong: #23264a;
+    --color-surface-muted: #1c1e3c;
     --color-ink: #f2f1f7;
     --color-ink-soft: #e2e1ec;
     --color-body: #cfd0de;
     --color-muted: #a3a5bf;
     --color-muted-soft: #5e6180;
-    --color-hairline: #24273f;
-    --color-hairline-strong: #343858;
+    --color-hairline: #24274a;
+    --color-hairline-strong: #353a63;
     --color-accent: #ff6a52;
     --color-accent-strong: #ff8c78;
     --color-accent-fill: #ff6a52;
@@ -330,7 +341,7 @@
     --color-on-ink: #101122;
     --color-background: var(--color-canvas);
     --color-text: var(--color-ink);
-    background-color: #090a18;
+    background-color: #07081a;
   }
 }
 
@@ -1685,7 +1696,200 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   border-end-end-radius: inherit;
 }
 
+/* ============================================================================
+ * The ink frame — title bar and rail
+ * ----------------------------------------------------------------------------
+ * The frame is the brand's ink navy in both themes. Anything drawn inside it
+ * (the update pill, the download ring, their popovers) is drawn with the
+ * ordinary tokens, so `.frame-scope` redefines those tokens for the frame
+ * rather than every component learning a frame variant.
+ * ==========================================================================*/
+.frame-scope {
+  color-scheme: dark;
+  --color-ink: #f1f1f8;
+  --color-ink-soft: #e2e2ee;
+  --color-body: #d3d4e4;
+  --color-muted: #a3a5c4;
+  --color-muted-soft: #6f7296;
+  --color-surface: #1f2242;
+  --color-surface-strong: #292c52;
+  --color-surface-muted: #1a1d3a;
+  --color-hairline: rgba(255, 255, 255, 0.08);
+  --color-hairline-strong: rgba(255, 255, 255, 0.14);
+  --color-accent: #ff6a52;
+  --color-accent-strong: #ff8c78;
+  --color-accent-fill: #ff6a52;
+  --color-on-primary: #101122;
+  --color-text: var(--color-ink);
+  --color-logo-primary: #ff6a52;
+  color: var(--color-ink);
+}
+
+/* ---------- Rail items ----------
+ * A glyph in a squircle with the page's name under it. The page you are on
+ * wears the brand's coral gradient (the icon tile's own), and pops into it. */
+.rail-tile {
+  color: var(--color-frame-muted);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 200ms ease;
+}
+.rail-caption {
+  color: var(--color-frame-muted);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  transition: color 160ms ease;
+}
+.rail-item:hover .rail-tile,
+.rail-plain:hover {
+  color: var(--color-frame-ink);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.rail-item:hover .rail-caption {
+  color: var(--color-frame-ink);
+}
+.rail-item[data-active="true"] .rail-tile {
+  color: #ffffff;
+  background-image: linear-gradient(
+    145deg,
+    #ff8f3f 0%,
+    #f2543d 55%,
+    #ee3a5c 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 6px 16px -6px rgba(242, 84, 61, 0.75);
+  animation: rail-pop 360ms cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+.rail-item[data-active="true"] .rail-caption {
+  color: var(--color-frame-ink);
+  font-weight: 600;
+}
+.rail-item:focus-visible .rail-tile,
+.rail-plain:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--color-frame),
+    0 0 0 4px #ff6a52;
+}
+.rail-plain {
+  color: var(--color-frame-muted);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+@keyframes rail-pop {
+  from {
+    scale: 0.82;
+  }
+}
+/* The bar on the rail's edge beside the page you are on. It slides. */
+/* A list that scrolls when the window is short, without a bar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.rail-indicator {
+  position: absolute;
+  inset-inline-start: -0.5rem;
+  width: 3px;
+  margin-top: 0.75rem;
+  height: 1.5rem;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: #ff6a52;
+  pointer-events: none;
+}
+.rail-indicator.is-animated {
+  transition: top 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- The command palette's button, in the title bar ---------- */
+.palette-trigger {
+  color: var(--color-frame-muted);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+.palette-trigger:hover {
+  color: var(--color-frame-ink);
+  background: rgba(255, 255, 255, 0.11);
+}
+.palette-trigger:focus-visible {
+  box-shadow: 0 0 0 2px #ff6a52;
+}
+.palette-trigger .keycap,
+:root[data-theme="dark"] .palette-trigger .keycap {
+  color: var(--color-frame-muted);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+/* ---------- The palette ---------- */
+.palette-panel {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
+  animation: palette-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
+.palette-option {
+  transition: background-color 100ms ease;
+}
+.palette-option[aria-selected="true"] {
+  background: var(--color-surface-strong);
+}
+.palette-glyph {
+  color: var(--color-muted);
+  background: var(--color-surface-strong);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+.palette-option[aria-selected="true"] .palette-glyph {
+  color: #ffffff;
+  background-image: linear-gradient(
+    145deg,
+    #ff8f3f 0%,
+    #f2543d 55%,
+    #ee3a5c 100%
+  );
+}
+
+/* ---------- Type: a louder voice for titles ----------
+ * Page titles are large and tightly tracked in the logo's face; the labels
+ * above groups are small capitals, so a page reads in two clear steps. */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+:root[data-theme="dark"] .page-title {
+  font-weight: 760;
+}
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .rail-item[data-active="true"] .rail-tile,
+  .palette-panel,
   .anim-rise,
   .dialog-scrim,
   .dialog-panel,
@@ -1704,6 +1908,8 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
   .elev-hover,
   .segmented-thumb,
   .nav-indicator.is-animated,
+  .rail-indicator.is-animated,
+  .rail-tile,
   .page-titlebar,
   .switch,
   .switch::after,

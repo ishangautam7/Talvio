@@ -3873,5 +3873,22 @@
       "waitingForAnswer": "このコマンドは確認ではなく、回答を待っています。",
       "waitingForConfirmation": "このコマンドは回答ではなく、確認を待っています。"
     }
+  },
+  "palette": {
+    "trigger": "検索またはジャンプ…",
+    "placeholder": "ページ、モデル、設定を検索",
+    "label": "コマンドパレット",
+    "empty": "「{{query}}」に一致するものはありません",
+    "groups": {
+      "pages": "ページ",
+      "models": "モデル",
+      "settings": "設定",
+      "actions": "アクション"
+    },
+    "hints": {
+      "move": "移動",
+      "open": "開く",
+      "close": "閉じる"
+    }
   }
 }

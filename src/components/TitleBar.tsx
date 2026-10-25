@@ -18,6 +18,9 @@ import LogoLockup from "./LogoLockup";
  * Rendered on every screen (onboarding included) so the window can always be
  * moved, resized, maximized, and closed.
  */
+/** Where the main window's command palette button is portalled to. */
+export const TITLEBAR_CENTER_ID = "titlebar-center";
+
 export const TitleBar: React.FC = () => {
   const { t } = useTranslation();
   const isMac = platform() === "macos";
@@ -83,8 +86,8 @@ export const TitleBar: React.FC = () => {
     <div
       data-tauri-drag-region
       onDoubleClick={handleTitleBarDoubleClick}
-      className={`relative z-20 flex items-center justify-between h-11 shrink-0 bg-canvas-soft ${
-        isMac ? "pl-[78px] pr-3" : "ps-3.5 pe-2"
+      className={`titlebar relative z-20 grid h-11 shrink-0 grid-cols-[1fr_auto_1fr] items-center bg-frame text-frame-ink ${
+        isMac ? "pl-[78px] pr-3" : "ps-4 pe-2"
       }`}
     >
       {/* The Wave-T mark and the wordmark. pointer-events-none keeps the strip
@@ -93,18 +96,23 @@ export const TitleBar: React.FC = () => {
         <LogoLockup
           className="gap-2 [&>svg:last-child]:h-[0.8125rem]"
           iconClassName="h-[1.375rem] w-auto"
+          toneClass="text-frame-ink"
         />
       </div>
 
+      {/* The main window puts its command palette's button here (see
+          shell/CommandPalette.tsx); onboarding leaves it empty. */}
+      <div id={TITLEBAR_CENTER_ID} className="flex min-w-0 justify-center" />
+
       {/* Windows/Linux use these controls; macOS keeps native traffic lights. */}
-      {!isMac && (
-        <div className="flex items-center gap-0.5">
+      {!isMac ? (
+        <div className="flex items-center justify-self-end gap-0.5">
           <button
             type="button"
             aria-label={t("window.minimize")}
             title={t("window.minimize")}
             onClick={handleMinimize}
-            className="flex items-center justify-center h-8 w-9 rounded-md text-muted hover:text-ink hover:bg-ink/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors cursor-pointer"
+            className="flex items-center justify-center h-8 w-9 rounded-md text-frame-muted hover:text-frame-ink hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors cursor-pointer"
           >
             <Minus width={16} height={16} />
           </button>
@@ -113,7 +121,7 @@ export const TitleBar: React.FC = () => {
             aria-label={t(isMaximized ? "window.restore" : "window.maximize")}
             title={t(isMaximized ? "window.restore" : "window.maximize")}
             onClick={() => void handleToggleMaximize()}
-            className="flex items-center justify-center h-8 w-9 rounded-md text-muted hover:text-ink hover:bg-ink/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors cursor-pointer"
+            className="flex items-center justify-center h-8 w-9 rounded-md text-frame-muted hover:text-frame-ink hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors cursor-pointer"
           >
             {isMaximized ? (
               <Copy width={13} height={13} />
@@ -126,11 +134,13 @@ export const TitleBar: React.FC = () => {
             aria-label={t("window.close")}
             title={t("window.close")}
             onClick={handleClose}
-            className="flex items-center justify-center h-8 w-9 rounded-md text-muted hover:text-white hover:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/70 transition-colors cursor-pointer"
+            className="flex items-center justify-center h-8 w-9 rounded-md text-frame-muted hover:text-white hover:bg-[#c42b1c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/70 transition-colors cursor-pointer"
           >
             <X width={16} height={16} />
           </button>
         </div>
+      ) : (
+        <div />
       )}
     </div>
   );

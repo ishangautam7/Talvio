@@ -4035,5 +4035,22 @@
       "waitingForAnswer": "Ten příkaz čeká na odpověď, ne na potvrzení.",
       "waitingForConfirmation": "Ten příkaz čeká na vaše potvrzení, ne na odpověď."
     }
+  },
+  "palette": {
+    "trigger": "Hledat nebo přejít na…",
+    "placeholder": "Hledejte stránky, modely a nastavení",
+    "label": "Paleta příkazů",
+    "empty": "Nic neodpovídá „{{query}}“",
+    "groups": {
+      "pages": "Stránky",
+      "models": "Modely",
+      "settings": "Nastavení",
+      "actions": "Akce"
+    },
+    "hints": {
+      "move": "Pohyb",
+      "open": "Otevřít",
+      "close": "Zavřít"
+    }
   }
 }

@@ -149,17 +149,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             className="mb-3"
           />
         )}
-        {eyebrow && (
-          <p className="mb-1.5 text-[0.8125rem] font-medium text-muted">
-            {eyebrow}
-          </p>
-        )}
+        {eyebrow && <p className="eyebrow mb-2 text-muted">{eyebrow}</p>}
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <h1
-              ref={headingRef}
-              className="font-display text-[1.625rem] text-ink"
-            >
+            <h1 ref={headingRef} className="page-title text-ink">
               {title}
             </h1>
             {badge}
@@ -195,7 +188,7 @@ export const SectionTitle: React.FC<{
       className={`mb-3 flex min-h-8 items-center justify-between gap-3 ${className}`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <Heading className="font-display text-[1.0625rem] text-ink">
+        <Heading className="font-display text-[1.125rem] text-ink">
           {title}
         </Heading>
         {description && <InfoTip text={description} />}

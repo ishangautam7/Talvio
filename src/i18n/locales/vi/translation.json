@@ -3873,5 +3873,22 @@
       "waitingForAnswer": "Lệnh đó đang chờ câu trả lời, không phải xác nhận.",
       "waitingForConfirmation": "Lệnh đó đang chờ bạn xác nhận, không phải câu trả lời."
     }
+  },
+  "palette": {
+    "trigger": "Tìm kiếm hoặc chuyển đến…",
+    "placeholder": "Tìm trang, mô hình và cài đặt",
+    "label": "Bảng lệnh",
+    "empty": "Không có kết quả cho “{{query}}”",
+    "groups": {
+      "pages": "Trang",
+      "models": "Mô hình",
+      "settings": "Cài đặt",
+      "actions": "Thao tác"
+    },
+    "hints": {
+      "move": "Di chuyển",
+      "open": "Mở",
+      "close": "Đóng"
+    }
   }
 }

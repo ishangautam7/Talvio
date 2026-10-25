@@ -3927,5 +3927,22 @@
       "waitingForAnswer": "Det kommandot väntar på ett svar, inte en bekräftelse.",
       "waitingForConfirmation": "Det kommandot väntar på att du bekräftar, inte på ett svar."
     }
+  },
+  "palette": {
+    "trigger": "Sök eller gå till…",
+    "placeholder": "Sök bland sidor, modeller och inställningar",
+    "label": "Kommandopalett",
+    "empty": "Inget matchar ”{{query}}”",
+    "groups": {
+      "pages": "Sidor",
+      "models": "Modeller",
+      "settings": "Inställningar",
+      "actions": "Åtgärder"
+    },
+    "hints": {
+      "move": "Flytta",
+      "open": "Öppna",
+      "close": "Stäng"
+    }
   }
 }

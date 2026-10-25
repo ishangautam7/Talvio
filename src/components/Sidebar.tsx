@@ -3,14 +3,13 @@ import { useTranslation } from "react-i18next";
 import {
   BookA,
   ChartColumn,
-  ChevronsLeft,
-  ChevronsRight,
   CircleQuestionMark,
   Cloud,
   Cpu,
   History,
   House,
   MessageCircle,
+  Mic,
   Settings,
   Users,
   Wand2,
@@ -19,8 +18,7 @@ import {
 import DownloadIndicator from "./model-selector/DownloadIndicator";
 import { useFeedbackDialog } from "./feedback/feedbackStore";
 import { useNavigation, type PageId } from "./shell/navigation";
-import { useModelSlots } from "./shell/useModelSlots";
-import { useSttLoadState } from "./shell/useSttStatus";
+import { TONE_DOT, useListeningStatus } from "./shell/useListeningStatus";
 import { UpdatePill } from "./update-checker/UpdatePill";
 
 type NavIcon = React.ComponentType<{
@@ -36,11 +34,11 @@ interface NavItem {
 }
 
 /**
- * Primary navigation. Pages are the things you *do* (and look back at); the
- * one page that configures models sits below a rule, and everything else —
- * the long tail of preferences — lives behind Settings at the bottom, the way
- * the reference apps arrange it. The old rail was five settings pages, which
- * put a hundred options one click from the top and the product nowhere.
+ * Primary navigation: the rail. Pages are the things you *do* (and look back
+ * at); the one page that configures models sits below a rule, and everything
+ * else — the long tail of preferences — lives behind Settings at the bottom.
+ * Every page is also one search away in the command palette (Ctrl+K), which
+ * is why the rail can be this narrow.
  *
  * Insights closes the list: it is where you look back, not where you work, so
  * the pages used every day come first.
@@ -56,19 +54,25 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "insights", labelKey: "nav.insights", icon: ChartColumn },
 ];
 
-const MODELS_ITEM: NavItem = {
+export const MODELS_ITEM: NavItem = {
   id: "models",
   labelKey: "nav.models",
   icon: Cpu,
 };
 
-const NavButton: React.FC<{
+/**
+ * One rail item: the page's glyph in a squircle with its name under it. The
+ * page you are on wears the brand's coral gradient, the one bright object on
+ * the frame. The name is always visible (truncated if a translation is long,
+ * with the whole name as the tooltip), so the rail never relies on icons
+ * alone.
+ */
+const RailButton: React.FC<{
   item: NavItem;
   active: boolean;
-  collapsed: boolean;
   onClick: () => void;
   buttonRef?: (element: HTMLButtonElement | null) => void;
-}> = ({ item, active, collapsed, onClick, buttonRef }) => {
+}> = ({ item, active, onClick, buttonRef }) => {
   const { t } = useTranslation();
   const Icon = item.icon;
   const label = t(item.labelKey);
@@ -77,34 +81,26 @@ const NavButton: React.FC<{
       ref={buttonRef}
       type="button"
       aria-current={active ? "page" : undefined}
-      title={collapsed ? label : undefined}
+      title={label}
       onClick={onClick}
-      className={`group relative z-10 flex h-[2.125rem] w-full cursor-pointer items-center gap-2.5 rounded-lg text-start transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-        collapsed ? "justify-center px-0" : "px-2.5"
-      } ${
-        active
-          ? "font-medium text-ink"
-          : "text-body hover:bg-ink/[0.045] hover:text-ink"
-      }`}
+      className="rail-item group relative z-10 flex w-full cursor-pointer flex-col items-center gap-1 rounded-xl py-1.5 focus-visible:outline-none"
+      data-active={active}
     >
-      <Icon
-        size={16}
-        strokeWidth={active ? 2.1 : 1.8}
-        className={`shrink-0 transition-colors ${
-          active ? "text-accent-fill" : "text-muted group-hover:text-ink"
-        }`}
-      />
-      {!collapsed && <span className="truncate text-[0.875rem]">{label}</span>}
+      <span className="rail-tile grid h-9 w-9 place-items-center rounded-[0.8125rem]">
+        <Icon size={18} strokeWidth={active ? 2.1 : 1.8} aria-hidden="true" />
+      </span>
+      <span className="rail-caption w-full truncate px-0.5 text-center text-[0.6875rem] leading-tight">
+        {label}
+      </span>
     </button>
   );
 };
 
 /**
- * The raised chip under the page you are on. One element for the whole list,
- * moved rather than redrawn, so changing page slides it to the new item the
- * way a segmented control's thumb slides.
+ * The bar along the rail's inline-start edge that marks the page you are on.
+ * One element, moved rather than redrawn, so changing page slides it.
  */
-const useNavIndicator = (activeId: PageId, collapsed: boolean) => {
+const useRailIndicator = (activeId: PageId) => {
   const buttons = useRef<Partial<Record<PageId, HTMLButtonElement | null>>>({});
   const [box, setBox] = useState<{ top: number; height: number } | null>(null);
   const [animated, setAnimated] = useState(false);
@@ -129,7 +125,7 @@ const useNavIndicator = (activeId: PageId, collapsed: boolean) => {
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [activeId, collapsed]);
+  }, [activeId]);
 
   // The first placement is instant; only later moves slide.
   useLayoutEffect(() => {
@@ -145,79 +141,33 @@ const useNavIndicator = (activeId: PageId, collapsed: boolean) => {
   const indicator = box ? (
     <span
       aria-hidden="true"
-      className={`nav-indicator ${animated ? "is-animated" : ""}`}
-      style={{ top: box.top, height: box.height }}
+      className={`rail-indicator ${animated ? "is-animated" : ""}`}
+      style={{ top: box.top }}
     />
   ) : null;
 
   return { refFor, indicator };
 };
 
-/** Speech-model status line: which model is listening, and whether it is up. */
-const ListeningStatus: React.FC<{ collapsed: boolean }> = ({ collapsed }) => {
-  const { t } = useTranslation();
+/** The speech model's state as a dot on the rail; the model and its state
+ *  are the tooltip and the accessible name, and a click opens its settings. */
+const ListeningStatus: React.FC = () => {
   const { openModelSlot } = useNavigation();
-  const slots = useModelSlots();
-  const stt = slots.stt;
-  const { state } = useSttLoadState();
-
-  const isCloud = stt.where === "cloud";
-  const tone = !stt.ready
-    ? "bg-amber-500"
-    : isCloud || state === "ready"
-      ? "bg-emerald-500"
-      : state === "loading"
-        ? "bg-sky-500 animate-pulse"
-        : state === "error"
-          ? "bg-error"
-          : "bg-muted-soft";
-
-  const statusText = !stt.ready
-    ? stt.issue === "needs_update"
-      ? t("nav.status.needsUpdate")
-      : t("nav.status.setup")
-    : isCloud
-      ? t("nav.status.cloud", { provider: stt.providerLabel ?? "" })
-      : state === "loading"
-        ? t("nav.status.loading")
-        : state === "error"
-          ? t("nav.status.error")
-          : state === "ready"
-            ? t("nav.status.ready")
-            : t("nav.status.idle");
-
-  const name = stt.modelLabel ?? t("nav.status.noModel");
-  const label = t("nav.status.label", { model: name, status: statusText });
-
+  const { tone, isCloud, label } = useListeningStatus();
+  const Glyph = isCloud ? Cloud : Mic;
   return (
     <button
       type="button"
       onClick={() => openModelSlot("stt")}
       title={label}
       aria-label={label}
-      className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-        collapsed
-          ? "h-9 justify-center hover:bg-ink/[0.045]"
-          : "border border-hairline-strong/60 bg-surface/55 px-2.5 py-2 hover:bg-surface"
-      }`}
+      className="rail-plain relative grid h-9 w-9 cursor-pointer place-items-center rounded-[0.8125rem] focus-visible:outline-none"
     >
-      <span className="relative grid h-4 w-4 shrink-0 place-items-center">
-        {isCloud && !collapsed ? (
-          <Cloud className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
-        ) : (
-          <span className={`h-2 w-2 rounded-full ${tone}`} />
-        )}
-      </span>
-      {!collapsed && (
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[0.8125rem] font-medium text-ink">
-            {name}
-          </span>
-          <span className="block truncate text-xs text-muted">
-            {statusText}
-          </span>
-        </span>
-      )}
+      <Glyph className="h-[1.0625rem] w-[1.0625rem]" aria-hidden="true" />
+      <span
+        aria-hidden="true"
+        className={`absolute end-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-frame ${TONE_DOT[tone]}`}
+      />
     </button>
   );
 };
@@ -226,103 +176,65 @@ export const Sidebar: React.FC = () => {
   const { t } = useTranslation();
   const { page, navigateRoot, openSettings, settingsTab } = useNavigation();
   const showFeedback = useFeedbackDialog((s) => s.show);
-  // Opens expanded every launch; collapsing is a per-session choice.
-  const [collapsed, setCollapsed] = useState(false);
-  const toggleLabel = collapsed ? t("sidebar.expand") : t("sidebar.collapse");
-  const { refFor, indicator } = useNavIndicator(page, collapsed);
+  const { refFor, indicator } = useRailIndicator(page);
 
   return (
-    <aside
-      className={`relative z-20 flex h-full shrink-0 flex-col pt-2 pb-3 transition-[width] duration-200 ease-out motion-reduce:transition-none ${
-        collapsed ? "w-16 px-2" : "w-[14.25rem] px-2.5"
-      }`}
-    >
-      <nav
-        className="relative flex flex-col gap-px"
-        aria-label={t("nav.label")}
-      >
-        {indicator}
-        {NAV_ITEMS.map((item) => (
-          <NavButton
-            key={item.id}
-            item={item}
-            active={page === item.id}
-            collapsed={collapsed}
-            onClick={() => navigateRoot(item.id)}
-            buttonRef={refFor(item.id)}
-          />
-        ))}
-        <div className="mx-2.5 my-2 h-px bg-hairline-strong/80" />
-        <NavButton
-          item={MODELS_ITEM}
-          active={page === "models"}
-          collapsed={collapsed}
-          onClick={() => navigateRoot("models")}
-          buttonRef={refFor("models")}
-        />
-      </nav>
-
-      <div className="mt-auto flex flex-col gap-1.5">
-        <UpdatePill collapsed={collapsed} />
-        <div className={collapsed ? "flex justify-center pb-1" : "px-1 pb-1"}>
-          <DownloadIndicator placement="start" compact={collapsed} />
-        </div>
-        <ListeningStatus collapsed={collapsed} />
-        <div
-          className={`flex gap-1 ${collapsed ? "flex-col" : "items-center"}`}
+    <aside className="frame-scope relative z-20 flex h-full w-[5.25rem] shrink-0 flex-col items-center px-2 pt-1 pb-3">
+      {/* The pages scroll on their own when the window is short; the foot
+          does not, so its popovers are never clipped. */}
+      <div className="no-scrollbar -mx-2 min-h-0 w-[calc(100%+1rem)] flex-1 overflow-y-auto px-2">
+        <nav
+          className="relative flex w-full flex-col gap-0.5"
+          aria-label={t("nav.label")}
         >
-          <button
-            type="button"
-            onClick={() => openSettings()}
-            aria-haspopup="dialog"
-            aria-expanded={settingsTab !== null}
-            title={collapsed ? t("nav.settings") : undefined}
-            className={`group flex h-[2.125rem] cursor-pointer items-center gap-2.5 rounded-lg text-body transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-              collapsed ? "w-full justify-center" : "min-w-0 flex-1 px-2.5"
-            }`}
-          >
-            <Settings
-              size={16}
-              strokeWidth={1.8}
-              className="shrink-0 text-muted transition-transform duration-300 group-hover:rotate-45 group-hover:text-ink motion-reduce:transition-none"
+          {indicator}
+          {NAV_ITEMS.map((item) => (
+            <RailButton
+              key={item.id}
+              item={item}
+              active={page === item.id}
+              onClick={() => navigateRoot(item.id)}
+              buttonRef={refFor(item.id)}
             />
-            {!collapsed && (
-              <span className="truncate text-[0.875rem]">
-                {t("nav.settings")}
-              </span>
-            )}
-          </button>
-          {/* Feedback sits beside Settings as a quiet "?", the way help does in
-              most apps: always one click away, never in the way. */}
-          <button
-            type="button"
-            onClick={() => showFeedback()}
-            aria-haspopup="dialog"
-            aria-label={t("feedback.button")}
-            title={t("feedback.button")}
-            className={`grid h-[2.125rem] shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-              collapsed ? "w-full" : "w-[2.125rem]"
-            }`}
-          >
-            <CircleQuestionMark className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setCollapsed((value) => !value)}
-            aria-label={toggleLabel}
-            aria-expanded={!collapsed}
-            title={toggleLabel}
-            className={`grid h-[2.125rem] shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.045] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
-              collapsed ? "w-full" : "w-[2.125rem]"
-            }`}
-          >
-            {collapsed ? (
-              <ChevronsRight className="h-4 w-4 rtl:rotate-180" />
-            ) : (
-              <ChevronsLeft className="h-4 w-4 rtl:rotate-180" />
-            )}
-          </button>
-        </div>
+          ))}
+          <div className="mx-3 my-1.5 h-px bg-white/10" />
+          <RailButton
+            item={MODELS_ITEM}
+            active={page === "models"}
+            onClick={() => navigateRoot("models")}
+            buttonRef={refFor("models")}
+          />
+        </nav>
+      </div>
+
+      <div className="mt-2 flex w-full shrink-0 flex-col items-center gap-1.5">
+        <UpdatePill collapsed />
+        <DownloadIndicator placement="start" compact />
+        <ListeningStatus />
+        <button
+          type="button"
+          onClick={() => showFeedback()}
+          aria-haspopup="dialog"
+          aria-label={t("feedback.button")}
+          title={t("feedback.button")}
+          className="rail-plain grid h-9 w-9 cursor-pointer place-items-center rounded-[0.8125rem] focus-visible:outline-none"
+        >
+          <CircleQuestionMark className="h-[1.0625rem] w-[1.0625rem]" />
+        </button>
+        <button
+          type="button"
+          onClick={() => openSettings()}
+          aria-haspopup="dialog"
+          aria-expanded={settingsTab !== null}
+          aria-label={t("nav.settings")}
+          title={t("nav.settings")}
+          className="rail-plain group grid h-9 w-9 cursor-pointer place-items-center rounded-[0.8125rem] focus-visible:outline-none"
+        >
+          <Settings
+            className="h-[1.0625rem] w-[1.0625rem] transition-transform duration-300 group-hover:rotate-45 motion-reduce:transition-none"
+            strokeWidth={1.8}
+          />
+        </button>
       </div>
     </aside>
   );

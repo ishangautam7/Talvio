@@ -3927,5 +3927,22 @@
       "waitingForAnswer": "Dieser Befehl wartet auf eine Antwort, nicht auf eine Bestätigung.",
       "waitingForConfirmation": "Dieser Befehl wartet auf deine Bestätigung, nicht auf eine Antwort."
     }
+  },
+  "palette": {
+    "trigger": "Suchen oder springen zu…",
+    "placeholder": "Seiten, Modelle und Einstellungen durchsuchen",
+    "label": "Befehlspalette",
+    "empty": "Nichts passt zu „{{query}}“",
+    "groups": {
+      "pages": "Seiten",
+      "models": "Modelle",
+      "settings": "Einstellungen",
+      "actions": "Aktionen"
+    },
+    "hints": {
+      "move": "Bewegen",
+      "open": "Öffnen",
+      "close": "Schließen"
+    }
   }
 }

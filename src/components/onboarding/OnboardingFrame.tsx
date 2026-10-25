@@ -24,8 +24,8 @@ export const OnboardingFrame: React.FC<{
   const index = STEPS.indexOf(step);
   const column = width === "wide" ? "max-w-7xl" : "max-w-3xl";
   return (
-    <div className="flex h-full min-h-0 flex-col bg-canvas-soft">
-      <div className="relative isolate mx-2 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-canvas elev-pane">
+    <div className="flex h-full min-h-0 flex-col bg-frame">
+      <div className="relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[1.25rem] bg-canvas">
         <div aria-hidden="true" className="sheet-glow" />
         <header className="ob-header shrink-0 px-6 sm:px-10">
           <ol
