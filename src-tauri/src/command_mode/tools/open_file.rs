@@ -35,8 +35,9 @@ use crate::command_mode::registry::{arg_str, Risk, ToolCtx, ToolOutcome, ToolSpe
 pub static SPEC: ToolSpec = ToolSpec {
     name: "open_file",
     description: "Open a file on this computer by name with its default app (\"open my resume\", \
-        \"open the budget spreadsheet\"). Searches recent files and the Documents, Downloads and \
-        Desktop folders. Asks when several files match.",
+        \"open the budget spreadsheet\"), or one of the Documents, Downloads and Desktop folders \
+        themselves (\"open my downloads folder\"). Searches recent files and those folders. Asks \
+        when several files match.",
     schema,
     risk: Risk::Safe,
     platforms: ALL_PLATFORMS,
@@ -106,6 +107,18 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     let Some(name) = arg_str(&args, "name") else {
         return ToolOutcome::failed("Which file should I open?", false);
     };
+    // "Open my Downloads folder": the folder itself, which the walk below
+    // never offers (it lists the files in it).
+    if let Some(folder) = known_folder_named(name, &ctx.effects.known_folders()) {
+        return match ctx.effects.open_path(&folder) {
+            Ok(()) => ToolOutcome::done(
+                "openingFile",
+                "Opening {{file}}.",
+                &[("file", &file_name(&folder))],
+            ),
+            Err(e) => ToolOutcome::failed(e, false),
+        };
+    }
     let kind = Kind::parse(arg_str(&args, "kind"));
     let query = clean_file_query(name);
 
@@ -160,6 +173,31 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
             ToolOutcome::failed(format!("I couldn't find a file called {name}."), false)
         }
     }
+}
+
+/// The known folder (Documents, Downloads, Desktop, home) a spoken name means
+/// on its own: "Downloads", "my downloads folder", "the desktop". Only the
+/// whole name: "the budget in downloads" is a file, and is left to the walk.
+fn known_folder_named(spoken: &str, folders: &[PathBuf]) -> Option<PathBuf> {
+    const FILLER: &[&str] = &["my", "the", "folder", "directory", "dir", "files"];
+    let words: Vec<String> = spoken
+        .split_whitespace()
+        .map(|word| word.to_lowercase())
+        .filter(|word| !FILLER.contains(&word.as_str()))
+        .collect();
+    let [word] = words.as_slice() else {
+        return None;
+    };
+    let singular = word.trim_end_matches('s');
+    folders
+        .iter()
+        .find(|folder| {
+            folder
+                .file_name()
+                .map(|name| name.to_string_lossy().to_lowercase())
+                .is_some_and(|name| name == *word || name.trim_end_matches('s') == singular)
+        })
+        .cloned()
 }
 
 fn open(ctx: &ToolCtx, path: &Path) -> ToolOutcome {
@@ -579,6 +617,29 @@ mod tests {
 
     fn opened(path: &Path) -> Vec<String> {
         vec![format!("open_path {}", path.display())]
+    }
+
+    /// "Open my Downloads folder" opens the folder, which the walk never
+    /// lists; a file named with the folder in it is still searched for.
+    #[test]
+    fn a_known_folder_said_by_name_is_opened_itself() {
+        let folders = vec![
+            PathBuf::from(r"C:\Users\u\Documents"),
+            PathBuf::from(r"C:\Users\u\Downloads"),
+        ];
+        for spoken in ["Downloads", "my downloads folder", "the download folder"] {
+            assert_eq!(
+                known_folder_named(spoken, &folders),
+                Some(folders[1].clone()),
+                "{spoken}"
+            );
+        }
+        assert_eq!(known_folder_named("budget in downloads", &folders), None);
+        assert_eq!(known_folder_named("resume", &folders), None);
+
+        let (outcome, actions) = run(vec![], folders.clone(), json!({"name": "my documents"}));
+        assert_eq!(actions, opened(&folders[0]));
+        assert!(matches!(outcome, ToolOutcome::Done { .. }));
     }
 
     #[test]
