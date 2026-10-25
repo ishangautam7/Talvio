@@ -109,6 +109,73 @@ async fn assistant_live_plays_music_through_do_on_computer() {
     assert!(!answer.trim().is_empty());
 }
 
+/// Which messages the assistant acts on and which it only answers, English
+/// and Nepali-English, one row each with the latency. Fails on any miss.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore = "calls the assistant model this machine's settings name"]
+async fn assistant_live_acting_sweep() {
+    let mut settings = crate::command_mode::live_tests::installed_settings();
+    settings.command_mode_enabled = true;
+    settings.assistant_tts_enabled = false;
+    let model = super::resolve_turn_model(&settings).expect("an assistant model");
+    println!("assistant: {} · {}", model.provider.id, model.model);
+    let cases: &[(&str, bool)] = &[
+        ("play believer by imagine dragons", true),
+        ("open youtube", true),
+        ("turn the volume down a bit", true),
+        ("pause the music", true),
+        ("switch to chrome", true),
+        ("open notepad and type hello world", true),
+        ("email ram that I'll be late today", true),
+        ("youtube ma arijit singh ko gaana bajau", true),
+        ("gmail khola", true),
+        ("who wrote the song Believer?", false),
+        ("write me a two-line poem about rain", false),
+        ("how do I open task manager on windows?", false),
+        ("what is 15% of 240?", false),
+        ("believer kasle gayeko ho?", false),
+    ];
+    let mut misses = Vec::new();
+    for (message, should_act) in cases {
+        let messages = request_messages(&settings, &model, &[], message);
+        let hooks = Recording::default();
+        let started = Instant::now();
+        let answer =
+            turn::run_tool_loop(&model, messages.with_tools, &messages.tools, &hooks, || {
+                |_: &str| {}
+            })
+            .await;
+        let took = started.elapsed();
+        let calls = hooks.calls.lock().unwrap().clone();
+        let acted: Vec<String> = calls
+            .iter()
+            .filter(|(name, _)| name == act::TOOL_NAME)
+            .map(|(_, args)| act::parse_request(args))
+            .collect();
+        // The request goes to the router in English (names kept), never
+        // translated into Hindi from romanized Nepali.
+        let devanagari = acted.iter().any(|request| {
+            request
+                .chars()
+                .any(|c| ('\u{0900}'..='\u{097F}').contains(&c))
+        });
+        let ok = answer.is_ok() && acted.is_empty() != *should_act && !devanagari;
+        let answer = answer.unwrap_or_else(|e| format!("ERROR {e}"));
+        let short: String = answer.chars().take(80).collect();
+        println!(
+            "ROW | {message} | acted {acted:?} | {} | {:.2}s | {}",
+            if ok { "ok" } else { "MISS" },
+            took.as_secs_f64(),
+            short.replace('\n', " ")
+        );
+        if !ok {
+            misses.push(*message);
+        }
+    }
+    println!("SUMMARY {}/{} ok", cases.len() - misses.len(), cases.len());
+    assert!(misses.is_empty(), "missed: {misses:?}");
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[ignore = "calls the assistant model this machine's settings name"]
 async fn assistant_live_answers_a_question_without_acting() {
