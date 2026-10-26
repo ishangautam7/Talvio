@@ -7,19 +7,36 @@ abstract final class AssistantStrings {
   static String prompt(String name) => 'Ask $name';
   static const promptDetail =
       'It answers questions and can act on the computer: play a song, open '
-      'a site, start an email.';
-  static const examples = 'Try';
+      'a site, send an email.';
+
+  /// The greeting over an empty conversation, by the hour of day.
+  static String greeting(int hour, String? name) {
+    final when = hour >= 5 && hour < 12
+        ? 'Good morning'
+        : hour >= 12 && hour < 17
+        ? 'Good afternoon'
+        : 'Good evening';
+    return name == null || name.isEmpty ? when : '$when, $name';
+  }
+
+  /// Under the greeting: who answers and what it can do.
+  static String greetingDetail(String name) =>
+      'Ask $name anything. It answers, and gets things done on the computer '
+      'for you.';
+  static const examples = 'Try asking';
 
   /// Questions to tap and send as they are.
   static const exampleQuestions = [
     'Play Believer on YouTube',
+    'Email Ron that the meeting moves to 9',
     "What's the weather tomorrow?",
     'Open Gmail',
   ];
 
   /// What each example is, shown under it.
   static const exampleDetails = [
-    'Acts on the computer',
+    'Plays on the computer',
+    'Writes and sends it',
     'Answers from the web',
     'Opens it in the browser',
   ];
@@ -56,6 +73,7 @@ abstract final class AssistantStrings {
 
   // What the assistant did on the computer.
   static const didOnComputer = 'On the computer';
+  static String didOn(String name) => 'On $name';
   static String actionLabel(String label, String status) => switch (status) {
     'done' => 'Done: $label',
     'failed' => 'Failed: $label',

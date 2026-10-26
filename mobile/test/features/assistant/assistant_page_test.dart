@@ -118,7 +118,7 @@ void main() {
     );
     expect(find.text('Played “Believer” on YouTube'), findsOneWidget);
     expect(find.text('Turned it up'), findsOneWidget);
-    expect(find.byIcon(AppIcons.failed), findsOneWidget);
+    expect(find.byIcon(AppIcons.close), findsOneWidget, reason: 'failed');
     expect(find.text('Thinking…'), findsNothing);
     expect(tester.takeException(), isNull);
 

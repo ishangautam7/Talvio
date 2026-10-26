@@ -147,7 +147,18 @@ class TurnView extends StatelessWidget {
             child: Align(
               key: ValueKey(turnStatus(turn, cancelling: c.cancelling)),
               alignment: AlignmentDirectional.centerStart,
-              child: ShimmerText(turnStatus(turn, cancelling: c.cancelling)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const TalvioOrb(size: 18, mood: OrbMood.thinking),
+                  const SizedBox(width: Space.s12),
+                  Flexible(
+                    child: ShimmerText(
+                      turnStatus(turn, cancelling: c.cancelling),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -191,7 +202,8 @@ class TurnView extends StatelessWidget {
                 : null,
           ),
         ),
-      if (turn.shownActions.isNotEmpty) _Actions(turn.shownActions),
+      if (turn.shownActions.isNotEmpty)
+        _Actions(turn.shownActions, computerName: turn.computerName),
       if (turn.pending != null)
         _PendingCard(turn: turn, controller: controller),
       if (turn.done && answer.isNotEmpty && !compact) _CopyButton(answer),
@@ -294,27 +306,41 @@ class _QuestionBubble extends StatelessWidget {
   }
 }
 
-/// What the assistant did on the computer: one line per action, no box.
+/// What the assistant did on the computer: a small receipt under the
+/// answer, one line per action.
 class _Actions extends StatelessWidget {
-  const _Actions(this.actions);
+  const _Actions(this.actions, {required this.computerName});
 
   final List<AssistantAction> actions;
+  final String computerName;
 
   @override
   Widget build(BuildContext context) {
     final t = context.talvio;
     return Padding(
-      padding: const EdgeInsets.only(top: Space.s12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AssistantStrings.didOnComputer,
-            style: TalvioType.footnote.copyWith(color: t.muted),
-          ),
-          const SizedBox(height: Space.s4),
-          for (final action in actions) _ActionRow(action),
-        ],
+      padding: const EdgeInsets.only(top: Space.s16),
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          color: t.card,
+          borderRadius: BorderRadius.circular(Radii.lg),
+          boxShadow: Depth.card(t),
+          border: Depth.edge(t),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AssistantStrings.didOn(computerName),
+              style: TalvioType.footnote.copyWith(color: t.muted),
+            ),
+            const SizedBox(height: Space.s8),
+            for (final (i, action) in actions.indexed) ...[
+              if (i > 0) const SizedBox(height: Space.s8),
+              _ActionRow(action),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -328,33 +354,33 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.talvio;
-    final (IconData icon, Color color) = switch (action.status) {
-      'done' => (AppIcons.done, t.success),
-      'failed' => (AppIcons.failed, t.danger),
-      'cancelled' => (AppIcons.cancelledFill, t.muted),
-      _ => (AppIcons.pendingFill, t.muted),
+    final (IconData icon, Color color, Color wash) = switch (action.status) {
+      'done' => (AppIcons.check, t.success, t.successSoft),
+      'failed' => (AppIcons.close, t.danger, t.dangerSoft),
+      'cancelled' => (AppIcons.cancelled, t.muted, t.fill),
+      _ => (AppIcons.waiting, t.muted, t.fill),
     };
     return Semantics(
       label: AssistantStrings.actionLabel(action.label, action.status),
       excludeSemantics: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Icon(icon, size: 16, color: color),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            margin: const EdgeInsets.only(top: 1),
+            decoration: BoxDecoration(color: wash, shape: BoxShape.circle),
+            child: Icon(icon, size: 14, color: color),
+          ),
+          const SizedBox(width: Space.s12),
+          Expanded(
+            child: Text(
+              action.label,
+              style: TalvioType.rowTitle.copyWith(color: t.ink),
             ),
-            const SizedBox(width: Space.s8),
-            Expanded(
-              child: Text(
-                action.label,
-                style: TalvioType.rowBody.copyWith(color: t.ink),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
