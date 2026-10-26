@@ -33,7 +33,6 @@ use tauri_nspanel::{tauri_panel, CollectionBehavior, PanelBuilder, PanelLevel};
 #[cfg(target_os = "linux")]
 use gtk_layer_shell::{Edge as LayerEdge, KeyboardMode, Layer, LayerShell};
 
-#[cfg(target_os = "linux")]
 #[cfg(target_os = "macos")]
 tauri_panel! {
     panel!(RecordingOverlayPanel {
