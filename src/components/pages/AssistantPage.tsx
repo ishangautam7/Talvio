@@ -84,7 +84,7 @@ export const AssistantPage: React.FC = () => {
             actions={
               <div className="flex flex-wrap gap-x-8 gap-y-5">
                 <HeroShortcut
-                  icon={<Mic className="h-4 w-4 text-hue" aria-hidden="true" />}
+                  icon={<Mic className="h-4 w-4 text-muted" aria-hidden="true" />}
                   label={t("assistantPage.hero.ask")}
                   hint={
                     holdToTalk
@@ -102,7 +102,7 @@ export const AssistantPage: React.FC = () => {
                 <HeroShortcut
                   icon={
                     <CallGlyph
-                      className="h-4 w-4 text-hue"
+                      className="h-4 w-4 text-muted"
                       aria-hidden="true"
                     />
                   }

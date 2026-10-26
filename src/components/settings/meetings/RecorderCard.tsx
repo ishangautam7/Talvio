@@ -101,7 +101,7 @@ export const RecorderCard: React.FC<RecorderCardProps> = ({
               type="button"
               onClick={onStop}
               disabled={busy !== null}
-              className="stage-cta inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full ps-5 pe-6 text-[0.9375rem] font-semibold disabled:cursor-wait disabled:opacity-70"
+              className="stage-cta inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg ps-3.5 pe-4 text-sm font-medium disabled:cursor-wait disabled:opacity-70"
             >
               <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
               {busy === "stopping"

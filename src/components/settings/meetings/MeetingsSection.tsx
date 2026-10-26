@@ -342,11 +342,11 @@ export const MeetingsSection: React.FC<{
                 type="button"
                 onClick={start}
                 disabled={busy !== null}
-                className="stage-cta inline-flex h-11 cursor-pointer items-center justify-center gap-2.5 rounded-full ps-4 pe-6 text-[0.9375rem] font-semibold disabled:cursor-wait disabled:opacity-70"
+                className="stage-cta inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg ps-3.5 pe-4 text-sm font-medium disabled:cursor-wait disabled:opacity-70"
               >
                 <span
                   aria-hidden="true"
-                  className="h-2.5 w-2.5 rounded-full bg-current shadow-[0_0_0_3px_rgba(255,255,255,0.25)]"
+                  className="h-2 w-2 rounded-full bg-current"
                 />
                 {busy === "starting"
                   ? t("meetings.recorder.starting")

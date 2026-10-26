@@ -48,9 +48,9 @@ const WEEKS = 26;
 
 const LEVEL_CLASSES: Record<HeatLevel, string> = {
   0: "bg-surface-strong",
-  1: "bg-hue/22",
-  2: "bg-hue/45",
-  3: "bg-hue/72",
+  1: "bg-hue/20",
+  2: "bg-hue/40",
+  3: "bg-hue/65",
   4: "bg-hue",
 };
 
@@ -448,7 +448,7 @@ const ActivityCard: React.FC<{
                         cell.future
                           ? "bg-transparent"
                           : `${LEVEL_CLASSES[cell.level]} hover:shadow-[0_0_0_1.5px_var(--color-ink)]`
-                      } ${cell.isToday ? "shadow-[0_0_0_1.5px_var(--hue)]" : ""}`}
+                      } ${cell.isToday ? "shadow-[0_0_0_1.5px_var(--color-ink)]" : ""}`}
                       style={
                         {
                           gridRow: row + 2,

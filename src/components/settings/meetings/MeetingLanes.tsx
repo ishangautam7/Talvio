@@ -85,7 +85,7 @@ export const MeetingLanes: React.FC<{
         >
           <span
             className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${
-              speaking ? "bg-hue text-white" : "hue-tile"
+              speaking ? "bg-ink text-surface" : "hue-tile"
             } transition-colors`}
           >
             {icon}
@@ -96,7 +96,7 @@ export const MeetingLanes: React.FC<{
           levels={levels}
           idle={!live}
           className={`h-10 min-w-0 flex-1 ${
-            key === "mic" ? "text-hue" : "text-[var(--hue-assistant)]"
+            key === "mic" ? "text-hue" : "text-muted-soft"
           } ${paused ? "opacity-40" : ""} ${!captured ? "text-warning" : ""}`}
         />
       </div>
