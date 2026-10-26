@@ -73,13 +73,17 @@ class DestinationRow extends StatelessWidget {
       child: Group(
         children: [
           ListRow(
-            leading: RowGlyph(icon),
+            leading: RowTile(icon),
             title: title,
             titleMaxLines: 1,
             subtitle: subtitle,
             subtitleMaxLines: 1,
-            trailing: Icon(AppIcons.caretUpDown, size: 16, color: t.muted),
+            // Held by a recording: still readable, just not choosable.
+            trailing: onTap == null
+                ? null
+                : Icon(AppIcons.caretUpDown, size: 16, color: t.muted),
             enabled: onTap != null,
+            dimWhenDisabled: false,
             semanticLabel: hasWindows
                 ? DictateStrings.chooseWindow
                 : DictateStrings.goesTo,

@@ -352,8 +352,54 @@ class _DictateScreenState extends State<DictateScreen>
     );
 
     final Widget status;
-    if (voice.recording) {
+    if (voice.recording && compact) {
       status = const SizedBox(key: ValueKey('none'));
+    } else if (voice.recording) {
+      final where = c.deliver == Deliver.keep
+          ? DictateStrings.listeningKeep
+          : switch (c.window) {
+              final window? => DictateStrings.listeningFor(
+                windowLabel(window).$1,
+              ),
+              null => DictateStrings.listeningCursor(name),
+            };
+      status = Semantics(
+        key: const ValueKey('listening'),
+        liveRegion: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatusDot(
+                    color: voice.paused ? t.warning : t.live,
+                    size: 8,
+                    blink: !voice.paused,
+                  ),
+                  const SizedBox(width: Space.s8),
+                  Text(
+                    voice.paused
+                        ? DictateStrings.paused
+                        : DictateStrings.listening,
+                    style: TalvioType.title2.copyWith(color: t.ink),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Space.s4),
+              Text(
+                where,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TalvioType.footnote.copyWith(color: t.muted),
+              ),
+            ],
+          ),
+        ),
+      );
     } else if (sending && c.stage == 'approval' && !c.cancelling) {
       status = RequestCard(
         key: const ValueKey('approval'),
@@ -494,11 +540,11 @@ class _DictateScreenState extends State<DictateScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedSwitcher(duration: Motion.quick, child: status),
-          if (!voice.recording && status.key != const ValueKey('none'))
-            const SizedBox(height: Space.s16),
+          if (status.key != const ValueKey('none'))
+            SizedBox(height: voice.recording ? Space.s40 : Space.s24),
           MicOrb(voice: voice, size: compact ? 64 : 80),
           if (voice.recording) ...[
-            const SizedBox(height: Space.s16),
+            SizedBox(height: compact ? Space.s16 : Space.s40),
             RecordingStrip(voice: voice),
           ],
         ],
