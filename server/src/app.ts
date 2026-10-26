@@ -10,6 +10,8 @@ import {
   signup,
 } from "./account";
 import { Store } from "./db";
+import { Free } from "./free";
+import type { FreeConfig } from "./free/config";
 import {
   deleteFeedback,
   type FeedbackGithub,
@@ -58,6 +60,8 @@ export interface Options {
   adminToken?: string | null;
   /** Also file each feedback entry as a GitHub issue; null files nothing. */
   feedbackGithub?: FeedbackGithub | null;
+  /** Free credit upstreams and prices (PROTOCOL.md, "Free credit"); null or absent turns it off. */
+  free?: FreeConfig | null;
   /** Seconds without a byte from a client before its socket is dropped (75; tests shorten it). */
   idleSeconds?: number;
   now?: () => number;
@@ -77,6 +81,7 @@ export interface Ctx {
   adminToken: string | null;
   feedbackGithub: FeedbackGithub | null;
   feedbackLimits: FeedbackLimits;
+  free: Free;
 }
 
 type Route = (
@@ -172,6 +177,17 @@ export function startServer(options: Options) {
     adminToken: options.adminToken || null,
     feedbackGithub: options.feedbackGithub ?? null,
     feedbackLimits,
+    free: new Free(
+      options.free ?? {
+        limitUsd: 1,
+        perMinute: 60,
+        chat: null,
+        stt: null,
+        tts: null,
+      },
+      store.database,
+      { store, now, log },
+    ),
   };
 
   function clientIp(req: Request, server: Server<SocketData>): string {
@@ -232,6 +248,8 @@ export function startServer(options: Options) {
       return putSecret(req, ctx, secretName);
     if (secretName && req.method === "DELETE")
       return deleteSecret(req, ctx, url, secretName);
+    if (url.pathname.startsWith("/v1/free/"))
+      return ctx.free.route(req, url, server);
     throw notFound();
   }
 
@@ -284,6 +302,7 @@ export function startServer(options: Options) {
         feedbackLimits.perIp.prune();
         feedbackLimits.global.prune();
         feedbackLimits.adminFailures.prune();
+        ctx.free.prune();
       }),
     10 * 60 * 1000,
   );

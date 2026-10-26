@@ -57,23 +57,131 @@ address decides where people's sign-ins go, so keep it locked down.
 
 ## Configuration
 
-| Variable                    | Default                  | Meaning                                                                                                                                              |
-| --------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                      | `8787`                   | Port to listen on.                                                                                                                                   |
-| `HOST`                      | `0.0.0.0`                | Address to listen on.                                                                                                                                |
-| `DATABASE_PATH`             | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.                |
-| `PUBLIC_URL`                | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                                  |
-| `GOOGLE_CLIENT_ID`          | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                                   |
-| `GOOGLE_CLIENT_SECRET`      | unset                    | Stays on the server; the apps never see it.                                                                                                          |
-| `TALVIO_SECRETS_KEY`        | unset                    | Base64 of 32 random bytes: the key that encrypts stored API keys. Unset uses (and on first start creates) `secrets.key` beside the database.         |
-| `TRUST_PROXY`               | unset                    | `1` takes the client's address from the last `X-Forwarded-For` entry, for rate limiting. Set it only behind exactly one reverse proxy.               |
-| `CLOUDFLARE_TURN_KEY_ID`    | unset                    | With `CLOUDFLARE_TURN_API_TOKEN`: a Cloudflare Realtime TURN key. The server asks Cloudflare for short-lived TURN credentials for each live view.    |
-| `CLOUDFLARE_TURN_API_TOKEN` | unset                    | The API token of that TURN key. Stays on the server.                                                                                                 |
-| `TURN_URLS`                 | unset                    | Instead of Cloudflare: your own TURN server (coturn with `use-auth-secret`), comma-separated `turn:` / `turns:` URLs.                                |
-| `TURN_SECRET`               | unset                    | That server's `static-auth-secret`. Credentials follow the TURN REST scheme and last a day.                                                          |
+| Variable                    | Default                  | Meaning                                                                                                                                           |
+| --------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                      | `8787`                   | Port to listen on.                                                                                                                                |
+| `HOST`                      | `0.0.0.0`                | Address to listen on.                                                                                                                             |
+| `DATABASE_PATH`             | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.             |
+| `PUBLIC_URL`                | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                               |
+| `GOOGLE_CLIENT_ID`          | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                                |
+| `GOOGLE_CLIENT_SECRET`      | unset                    | Stays on the server; the apps never see it.                                                                                                       |
+| `TALVIO_SECRETS_KEY`        | unset                    | Base64 of 32 random bytes: the key that encrypts stored API keys. Unset uses (and on first start creates) `secrets.key` beside the database.      |
+| `TRUST_PROXY`               | unset                    | `1` takes the client's address from the last `X-Forwarded-For` entry, for rate limiting. Set it only behind exactly one reverse proxy.            |
+| `CLOUDFLARE_TURN_KEY_ID`    | unset                    | With `CLOUDFLARE_TURN_API_TOKEN`: a Cloudflare Realtime TURN key. The server asks Cloudflare for short-lived TURN credentials for each live view. |
+| `CLOUDFLARE_TURN_API_TOKEN` | unset                    | The API token of that TURN key. Stays on the server.                                                                                              |
+| `TURN_URLS`                 | unset                    | Instead of Cloudflare: your own TURN server (coturn with `use-auth-secret`), comma-separated `turn:` / `turns:` URLs.                             |
+| `TURN_SECRET`               | unset                    | That server's `static-auth-secret`. Credentials follow the TURN REST scheme and last a day.                                                       |
 | `ADMIN_TOKEN`               | unset                    | At least 24 characters: unlocks the owner's feedback routes (`/v1/admin/feedback`). Unset, they answer 404. Generate it with `openssl rand -hex 32`. |
 | `FEEDBACK_GITHUB_TOKEN`     | unset                    | With `FEEDBACK_GITHUB_REPO`: also file each feedback entry as a GitHub issue. A fine-grained token with Issues: write on that repository.            |
 | `FEEDBACK_GITHUB_REPO`      | unset                    | `owner/name` of that repository. Use a private one: an issue carries the reply email when the sender gave one.                                       |
+| `FREE_*`                    | unset                    | The free credit upstreams, keys and prices. See "Free credit" below; it is off until they are set.                                                |
+
+## Free credit
+
+Every account gets `FREE_CREDIT_USD` ($1.00 by default) of AI usage paid with
+the operator's own provider keys: cloud transcription, the assistant's answers
+and spoken answers, one balance for all three. The apps reach it as an
+OpenAI-compatible provider at `{server}/v1/free` with the session token as the
+key; the routes, metering and errors are under "Free credit" in
+[PROTOCOL.md](PROTOCOL.md).
+
+The upstream keys live **only in the server's environment**: never in SQLite,
+never in a log line (upstream failures are logged as `free chat: upstream
+answered 401`, nothing more), never in a reply (an upstream's error message is
+passed on only for a malformed request, with every key and upstream host
+replaced by `[hidden]`). Each kind is on when its URL, key and model are all
+set; with none set the feature is off (`/v1/free/balance` answers
+`"enabled": false`, the rest `503 free_disabled`).
+
+| Variable                        | Default                                 | Meaning                                                                                                                   |
+| ------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `FREE_CREDIT_USD`               | `1`                                     | Each account's allowance, in USD.                                                                                         |
+| `FREE_RATE_PER_MINUTE`          | `60`                                    | Metered requests per minute per account (a spoken answer is one request per sentence).                                    |
+| `FREE_CHAT_BASE_URL`            | unset                                   | OpenAI-compatible base for chat. An Azure OpenAI endpoint as pasted from the portal is moved to its `/openai/v1` surface. |
+| `FREE_CHAT_API_KEY`             | unset                                   | Sent as `Authorization: Bearer`, and also as `api-key` to an Azure host.                                                  |
+| `FREE_CHAT_MODEL`               | unset                                   | The model (on Azure, the deployment name) every chat request is sent to.                                                  |
+| `FREE_CHAT_INPUT_USD_PER_MTOK`  | `0.20`                                  | Price per million prompt tokens.                                                                                          |
+| `FREE_CHAT_OUTPUT_USD_PER_MTOK` | `1.20`                                  | Price per million completion tokens (reasoning tokens included).                                                          |
+| `FREE_CHAT_MAX_OUTPUT_TOKENS`   | `8192`                                  | The most completion tokens one request may use.                                                                           |
+| `FREE_STT_BASE_URL`             | unset                                   | OpenAI-compatible base for `/audio/transcriptions` (Groq, OpenAI, …).                                                     |
+| `FREE_STT_API_KEY`              | unset                                   | Bearer key for it.                                                                                                        |
+| `FREE_STT_MODEL`                | unset                                   | e.g. `whisper-large-v3-turbo`.                                                                                            |
+| `FREE_STT_USD_PER_HOUR`         | `0.04`                                  | Price per hour of audio.                                                                                                  |
+| `FREE_STT_MIN_SECONDS`          | `10`                                    | The shortest length one request is billed at (Groq's minimum).                                                            |
+| `FREE_TTS_BASE_URL`             | unset                                   | `https://api.elevenlabs.io` (ElevenLabs) or an OpenAI-compatible base with `/audio/speech`.                               |
+| `FREE_TTS_API_KEY`              | unset                                   | `xi-api-key` for ElevenLabs, Bearer otherwise.                                                                            |
+| `FREE_TTS_KIND`                 | from the URL                            | `elevenlabs` or `openai`; only needed when the URL does not say.                                                          |
+| `FREE_TTS_MODEL`                | `eleven_flash_v2_5` / `gpt-4o-mini-tts` | The speech model.                                                                                                         |
+| `FREE_TTS_VOICE`                | ElevenLabs "Rachel" / `alloy`           | The voice when a request names none the upstream knows.                                                                   |
+| `FREE_TTS_USD_PER_1K_CHARS`     | `0.05`                                  | Price per 1000 characters of speech.                                                                                      |
+
+**The default prices** are the public list prices of the upstreams this server
+is set up with (October 2026); set the variables when yours differ, since the
+ledger charges whatever they say:
+
+- Chat: GPT-5.6 Luna (OpenAI, and the same on Azure OpenAI), $0.20 per million
+  input tokens and $1.20 per million output tokens.
+- Transcription: Groq `whisper-large-v3-turbo`, $0.04 per hour of audio, billed
+  at least 10 s per request.
+- Speech: ElevenLabs Flash v2.5, $0.05 per 1000 characters.
+
+At those prices $1 is roughly 25 hours of transcription, about a thousand short
+assistant answers, or 20,000 characters (about 20 minutes) of
+spoken answers; speech is what uses the credit up fastest.
+
+**How a request is charged.** It first reserves its worst case (chat: the
+prompt at about three characters per token, a fixed 1600 tokens per image,
+plus its capped output; transcription: the WAV header's length, or the upload
+at 16 kbit/s; speech: its characters) and is refused with `402
+credit_exhausted` when that is more than is left; a chat request's output cap
+is lowered to what the balance covers first, as long as that is at least 256
+tokens. After the answer it is charged the real cost (the upstream's `usage`
+tokens, its reported audio duration, the characters) and the rest of the hold
+is released; a failed request is charged nothing. Holds live in memory, so a
+restart never leaves credit stuck.
+
+**The ledger** is two tables in the same SQLite file: `free_usage`, one row per
+charged request (kind, model, units, cost, time), and `free_totals`, the
+running total per account, both written in one transaction. Both are keyed by
+a SHA-256 of the account's email rather than the account, so deleting an
+account and signing up again with the same address does not renew the credit;
+that hash (and the usage rows) stay after an account is deleted. To read it:
+
+```sh
+bun scripts/free-usage.ts ./data/talvio.db                       # locally
+docker exec talvio-server bun scripts/free-usage.ts /data/talvio.db
+```
+
+which prints the totals, spend per kind and model over 30 days, and the top 20
+accounts. Or ask SQLite directly:
+`SELECT kind, SUM(cost_usd) FROM free_usage GROUP BY kind;`.
+
+### Setting it up from the owner's PC
+
+Three PowerShell scripts in `scripts/` read the keys the Talvio desktop app on
+this Windows PC keeps in Credential Manager (and the non-secret settings
+beside them). None of them prints a key or writes one to a local file.
+
+1. `scripts\inspect-desktop-keys.ps1` lists which provider keys are there (as
+   present or absent, with the vendor format they match), their base URLs,
+   models and voices, to choose upstreams from.
+2. `scripts\live-check-free.ps1` runs `scripts/free-live-check.ts` with the
+   chosen upstreams: one tiny speech, transcription and chat request (plain and
+   streamed) through an in-memory server, printing statuses, costs, the
+   transcript, and whether a key turned up anywhere it should not.
+3. `scripts\install-free-credit-env.ps1` writes them to the server's root-only
+   env file (`/etc/talvio-server.env`, mode 600) over ssh, replacing any
+   `FREE_*` lines already there, so it can be run again after a key changes.
+   The values travel over ssh's stdin into `sudo tee -a`; `-DryRun` shows the
+   variable names and non-secret values without connecting. Restart the server
+   afterwards so it reads them; its start-up line then says
+   `free credit $1 per account (chat …, transcribe …, speech …)`.
+
+The upstreams it chooses (`Get-FreeCreditEnv` in `scripts/TalvioCredentials.ps1`):
+chat on the Azure OpenAI deployment the desktop assistant uses
+(`gpt-5.6-luna`), transcription on Groq `whisper-large-v3-turbo` with the
+custom provider's Groq key, and speech on ElevenLabs `eleven_flash_v2_5` with
+the assistant voice's key and voice.
 
 ## Live view across the internet (TURN)
 

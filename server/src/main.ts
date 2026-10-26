@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { startServer } from "./app";
 import { resolveDatabasePath } from "./databasePath";
 import { feedbackGithubFromEnv } from "./feedback";
+import { describeFree, freeFromEnv } from "./free/config";
 import { turnFromEnv } from "./turn";
 
 const env = process.env;
@@ -37,6 +38,7 @@ const adminToken = env.ADMIN_TOKEN?.trim() || null;
 if (adminToken && adminToken.length < 24) {
   throw new Error("ADMIN_TOKEN must be at least 24 characters.");
 }
+const free = freeFromEnv(env);
 
 const app = startServer({
   port,
@@ -49,9 +51,10 @@ const app = startServer({
   turn,
   adminToken,
   feedbackGithub,
+  free,
 });
 console.log(
-  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"}, feedback admin ${adminToken ? "on" : "off"}, feedback issues ${feedbackGithub ? feedbackGithub.repo : "off"})`,
+  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"}, free credit ${describeFree(free)}, feedback admin ${adminToken ? "on" : "off"}, feedback issues ${feedbackGithub ? feedbackGithub.repo : "off"})`,
 );
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

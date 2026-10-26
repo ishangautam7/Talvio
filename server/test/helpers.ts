@@ -1,6 +1,7 @@
 import { startServer } from "../src/app";
 import { randomToken } from "../src/crypto";
 import type { FeedbackGithub } from "../src/feedback";
+import type { FreeConfig } from "../src/free/config";
 import type { TurnConfig } from "../src/turn";
 
 // Test messages are loosely typed on purpose: each assertion states the shape it expects.
@@ -40,6 +41,8 @@ export async function harness(
     turn?: TurnConfig | null;
     adminToken?: string | null;
     feedbackGithub?: FeedbackGithub | null;
+    free?: FreeConfig | null;
+    log?: (line: string) => void;
   } = {},
 ) {
   let time = Date.UTC(2026, 0, 1);
@@ -52,6 +55,7 @@ export async function harness(
     turn: options.turn ?? null,
     adminToken: options.adminToken ?? null,
     feedbackGithub: options.feedbackGithub ?? null,
+    free: options.free ?? null,
     publicUrl: PUBLIC_URL,
     google: google && {
       clientId: CLIENT_ID,
@@ -61,7 +65,7 @@ export async function harness(
     trustProxy: options.trustProxy ?? false,
     idleSeconds: options.idleSeconds,
     now: () => time,
-    log: () => {},
+    log: options.log ?? (() => {}),
   });
   const base = `http://127.0.0.1:${app.port}`;
 

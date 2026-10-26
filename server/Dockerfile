@@ -5,6 +5,8 @@ WORKDIR /app
 # No runtime dependencies, so there is nothing to install.
 COPY package.json ./
 COPY src ./src
+# Reads the free credit ledger: `docker exec talvio-server bun scripts/free-usage.ts`.
+COPY scripts/free-usage.ts ./scripts/
 
 RUN mkdir -p /data && chown bun:bun /data
 USER bun
