@@ -12,35 +12,48 @@ import 'package:talvio_mobile/src/core/relay_client.dart';
 import 'package:talvio_mobile/src/design/components.dart';
 
 import 'package:talvio_mobile/src/features/screen/live_controller.dart';
+import 'package:talvio_mobile/src/shell/home_shell.dart';
 
 import 'features/screen/fakes.dart' show FakeLinks, offerFields, progressOf;
 import 'helpers.dart';
 
+/// The navigation bar (or the rail, on a wide window).
+Finder get navigation {
+  final bar = find.byType(TalvioNavBar);
+  return bar.evaluate().isNotEmpty ? bar : find.byType(TalvioNavRail);
+}
+
 /// Shows [page] through the navigation bar (or the rail, on a wide window).
 Future<void> goTo(WidgetTester tester, String page) async {
-  final bar = find.byType(NavigationBar);
-  await tester.tap(
-    find.descendant(
-      of: bar.evaluate().isNotEmpty ? bar : find.byType(NavigationRail),
-      matching: find.text(page),
-    ),
-  );
+  await tester.tap(find.descendant(of: navigation, matching: find.text(page)));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 500));
 }
 
 /// The Dictate page's big mic, and its stop.
-final mic = find.byIcon(Icons.mic_rounded);
-final stop = find.byIcon(Icons.stop_rounded);
+final mic = find.byWidgetPredicate(
+  (w) => w is Icon && w.icon == AppIcons.micFill && w.size != IconSize.large,
+);
+final stop = find.byIcon(AppIcons.stop);
 
 /// Whether the button showing [icon] can be pressed.
-bool enabled(WidgetTester tester, Finder icon) =>
-    tester
-        .widget<InkWell>(
-          find.ancestor(of: icon, matching: find.byType(InkWell)).first,
+bool enabled(WidgetTester tester, Finder icon) {
+  final button = tester.widget(
+    find
+        .ancestor(
+          of: icon,
+          matching: find.byWidgetPredicate(
+            (w) => w is InkWell || w is GestureDetector,
+          ),
         )
-        .onTap !=
-    null;
+        .first,
+  );
+  return switch (button) {
+    InkWell(:final onTap) => onTap != null,
+    GestureDetector(:final onTap) => onTap != null,
+    _ => false,
+  };
+}
 
 /// The whole signed-in app on a small phone (iPhone SE size, 320×568), with
 /// [devices] on the account, showing [page] (home when null). With
@@ -114,7 +127,7 @@ Future<(FakeServer, RelayClient)> pumpApp(
     });
   await tester.pump();
   await tester.pump();
-  final bar = find.byType(NavigationBar);
+  final bar = find.byType(TalvioNavBar);
   if (page != null &&
       find
           .descendant(of: bar, matching: find.text(page))
@@ -188,10 +201,10 @@ final hint = mic;
 
 /// The labels of the navigation bar, in order.
 List<String?> tabs(WidgetTester tester) => [
-  for (final d in tester.widgetList<NavigationDestination>(
-    find.byType(NavigationDestination),
+  for (final t in tester.widgetList<Text>(
+    find.descendant(of: navigation, matching: find.byType(Text)),
   ))
-    d.label,
+    t.data,
 ];
 
 /// Unmounts the app and stops the socket's timers.
@@ -214,9 +227,10 @@ void main() {
   ) async {
     final (_, relay) = await pumpApp(tester, [deviceJson(online: false)]);
     await goTo(tester, 'Dictate');
-    expect(find.textContaining('ISHAN-PC is offline'), findsOneWidget);
+    expect(find.text('ISHAN-PC is offline'), findsWidgets);
     expect(find.text('Offline'), findsOneWidget, reason: 'the top bar');
-    expect(enabled(tester, mic), isFalse);
+    expect(mic, findsNothing);
+    expect(find.text('Send'), findsNothing);
     await finish(tester, relay);
   });
 
@@ -292,7 +306,7 @@ void main() {
     await tester.pump();
     await goTo(tester, 'Do');
     expect(
-      enabled(tester, find.byIcon(Icons.mic_rounded)),
+      enabled(tester, mic),
       isFalse,
       reason: 'Dictate holds the microphone',
     );
@@ -300,7 +314,7 @@ void main() {
     await tester.tap(find.byTooltip('Discard'));
     await tester.pump();
     await goTo(tester, 'Do');
-    expect(enabled(tester, find.byIcon(Icons.mic_rounded)), isTrue);
+    expect(enabled(tester, mic), isTrue);
     await finish(tester, relay);
   });
 
@@ -315,7 +329,7 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(hint, findsOneWidget);
-    expect(find.byIcon(Icons.expand_more_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.caretDown), findsOneWidget);
     await finish(tester, relay);
   });
 
@@ -332,7 +346,7 @@ void main() {
     await tester.tap(find.text('LAPTOP'));
     await tester.pump();
     expect(find.text('Choose a computer'), findsNothing);
-    expect(find.textContaining('LAPTOP is offline'), findsOneWidget);
+    expect(find.text('LAPTOP is offline'), findsWidgets);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('account.dictate.computer'), 'b');
 
@@ -348,7 +362,7 @@ void main() {
     });
     await tester.pump();
     await tester.pump();
-    expect(find.textContaining('LAPTOP is offline'), findsOneWidget);
+    expect(find.text('LAPTOP is offline'), findsWidgets);
 
     // The top bar switches back.
     await tester.tap(find.text('LAPTOP'));
@@ -374,7 +388,7 @@ void main() {
     ]);
     expect(find.text('ISHAN-PC'), findsOneWidget, reason: 'still the one');
     expect(hint, findsOneWidget);
-    expect(find.byIcon(Icons.expand_more_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.caretDown), findsOneWidget);
 
     // Once ISHAN-PC leaves the account, NEW-PC is its only computer, and
     // still not chosen for the user.
@@ -401,7 +415,7 @@ void main() {
     expect(find.text('Allow this phone on ISHAN-PC'), findsOneWidget);
     // Under the keyboard here; the button itself is what matters.
     tester
-        .widget<TextButton>(find.widgetWithText(TextButton, 'Cancel'))
+        .widget<TextButton>(find.widgetWithText(TextButton, 'Cancel').last)
         .onPressed!();
     await tester.pump();
     expect(server.relays.last['body'], {'kind': 'cancel', 'requestId': id});
@@ -496,7 +510,7 @@ void main() {
       findsOneWidget,
     );
     final cancel = tester.widget<TextButton>(
-      find.widgetWithText(TextButton, 'Cancel'),
+      find.widgetWithText(TextButton, 'Cancel').last,
     );
     expect(cancel.onPressed, isNotNull);
 
@@ -664,9 +678,10 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(find.byTooltip('Send'), findsOneWidget, reason: 'still here');
+      // Offline, the page says so instead; the outcome comes back with it.
       expect(
         find.textContaining('on it and try again', skipOffstage: false),
-        findsOneWidget,
+        pc['online'] == false ? findsNothing : findsOneWidget,
       );
       expect(find.text('Hello'), findsOneWidget);
       expect(find.textContaining('Update Talvio'), findsNothing);
@@ -680,7 +695,7 @@ void main() {
     final (_, relay) = await pumpApp(tester, [
       deviceJson(capabilities: ['text']),
     ], page: null);
-    expect(find.byType(NavigationBar), findsNothing, reason: 'one page left');
+    expect(find.byType(TalvioNavBar), findsNothing, reason: 'one page left');
     expect(
       find.text('Update Talvio on ISHAN-PC to see its screen from your phone.'),
       findsOneWidget,
@@ -759,10 +774,17 @@ void main() {
     testWidgets('a computer without them shows nothing about windows', (
       tester,
     ) async {
+      final handle = tester.ensureSemantics();
       final (_, relay) = await pumpApp(tester, [deviceJson()]);
-      expect(find.text('Where the cursor is'), findsNothing);
-      expect(find.byTooltip('Enter'), findsNothing);
-      expect(find.text('Keys'), findsNothing);
+      expect(find.bySemanticsLabel('Choose window'), findsNothing);
+      expect(find.byTooltip('Press Enter'), findsNothing);
+      expect(find.byTooltip('Keys'), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Text goes to'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Keep on phone'), findsOneWidget);
+      expect(find.text('Windows'), findsNothing);
+      handle.dispose();
       await finish(tester, relay);
     });
 
@@ -777,8 +799,7 @@ void main() {
       expect(find.text('Claude Code — zynveliq'), findsOneWidget);
       expect(find.text('In front'), findsOneWidget);
       await pick(tester, 'Notepad');
-      expect(find.text('Notepad'), findsOneWidget, reason: 'the row');
-      expect(find.text('notes.txt'), findsOneWidget);
+      expect(find.text('Notepad — notes.txt'), findsOneWidget, reason: 'row');
 
       await sendVisibleText(tester);
       final text = lastBody(server);
@@ -790,7 +811,7 @@ void main() {
       });
       expect(find.text('Sent to Notepad on ISHAN-PC and pasted.'), findsOne);
 
-      await tapVisible(tester, find.text('Press Enter'));
+      await tapVisible(tester, find.byTooltip('Press Enter'));
       expect(lastBody(server), {
         'kind': 'windows.keys',
         'keys': ['enter'],
@@ -802,9 +823,7 @@ void main() {
         'ok': true,
         'pressed': 1,
       });
-      expect(find.text('Press Enter'), findsNothing, reason: 'used up');
-
-      await tapVisible(tester, find.text('Keys'));
+      await tapVisible(tester, find.byTooltip('Keys'));
       await tapVisible(tester, find.byTooltip('Tab'));
       expect(lastBody(server)['keys'], ['tab']);
       expect(lastBody(server)['target'], 'w2');
@@ -813,7 +832,7 @@ void main() {
       expect(lastBody(server)['keys'], ['escape']);
       await answer(tester, server, lastBody(server)['requestId'], {'ok': true});
       await tapVisible(tester, find.byTooltip('More keys'));
-      await tester.tap(find.text('Ctrl + C (copy)'));
+      await tester.tap(find.bySemanticsLabel('Ctrl + C (copy)'));
       await tester.pump(const Duration(milliseconds: 500));
       expect(lastBody(server)['keys'], ['ctrl+c']);
 
@@ -838,15 +857,8 @@ void main() {
       await tapVisible(tester, mic);
       await tester.pump();
       expect(
-        tester
-            .widget<InkWell>(
-              find.descendant(
-                of: find.bySemanticsLabel('Choose window'),
-                matching: find.byType(InkWell),
-              ),
-            )
-            .onTap,
-        isNull,
+        tester.getSemantics(find.bySemanticsLabel('Choose window')),
+        isSemantics(isButton: true, isEnabled: false),
         reason: 'a recording keeps its window',
       );
       await tapVisible(tester, stop);
@@ -870,9 +882,13 @@ void main() {
       );
       await tester.pump();
       expect(find.text('Pasted in Windows Terminal on ISHAN-PC'), findsOne);
-      expect(find.text('Press Enter'), findsOneWidget);
       await tester.pump(const Duration(seconds: 9));
-      expect(find.text('Press Enter'), findsNothing, reason: 'it goes');
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        find.text('Pasted in Windows Terminal on ISHAN-PC'),
+        findsNothing,
+        reason: 'the hint comes back',
+      );
 
       // The dictation is listed under Recent, to open again.
       expect(find.text('Recent', skipOffstage: false), findsOneWidget);
@@ -934,7 +950,7 @@ void main() {
       // Closed without a choice: the same window, under its new id.
       await tester.tapAt(const Offset(10, 10));
       await tester.pump(const Duration(milliseconds: 500));
-      await tapVisible(tester, find.byTooltip('Enter'));
+      await tapVisible(tester, find.byTooltip('Press Enter'));
       expect(lastBody(server)['target'], 'n7');
       await finish(tester, relay);
       handle.dispose();
@@ -944,7 +960,7 @@ void main() {
       tester,
     ) async {
       final (server, relay) = await pumpApp(tester, [windowsPc]);
-      final enter = find.byTooltip('Enter');
+      final enter = find.byTooltip('Press Enter');
       await tester.ensureVisible(enter);
       await tester.pump();
       for (var i = 0; i < 5; i++) {
@@ -1039,14 +1055,13 @@ void main() {
         expect(find.text('Notepad'), findsOneWidget);
         expect(find.text('Screens'), findsNothing);
         expect(find.text('Display 1'), findsNothing);
-        expect(find.byTooltip('Watch Notepad'), findsNothing);
         await pick(tester, 'Notepad');
         expect(find.byTooltip('Show the screen'), findsNothing);
         await finish(tester, relay);
         handle.dispose();
       });
 
-      testWidgets('lists screens, and watches a window from the picker', (
+      testWidgets('lists screens, and watches one from the picker', (
         tester,
       ) async {
         final handle = tester.ensureSemantics();
@@ -1054,13 +1069,13 @@ void main() {
         await listWithScreen(tester, server);
         expect(find.text('Screens'), findsOneWidget);
         expect(find.text('Display 1'), findsOneWidget);
-        expect(find.text('2560 × 1440 · Main'), findsOneWidget);
-        expect(find.byTooltip('Watch Display 1'), findsOneWidget);
+        expect(find.text('Main · 2560 × 1440'), findsOneWidget);
+        expect(find.bySemanticsLabel('Watch Display 1'), findsOneWidget);
 
-        await tapVisible(tester, find.byTooltip('Watch Notepad'));
+        await tapVisible(tester, find.bySemanticsLabel('Watch Display 1'));
         expect(lastBody(server), {
           'kind': 'screen.watch',
-          'target': 'w2',
+          'target': 's3',
           'control': false,
           'audio': false,
           'requestId': lastBody(server)['requestId'],
@@ -1077,8 +1092,8 @@ void main() {
         expect(lastBody(server), {'kind': 'cancel', 'requestId': id});
         expect(find.byTooltip('Stop watching'), findsNothing);
 
-        // Watching aimed dictation at Notepad.
-        expect(find.text('notes.txt'), findsOneWidget);
+        // Watching a screen aims dictation wherever the cursor is.
+        expect(find.text('Where the cursor is'), findsOneWidget);
         await finish(tester, relay);
         handle.dispose();
       });
@@ -1162,23 +1177,30 @@ void main() {
       final handle = tester.ensureSemantics();
       final (server, relay) = await pumpApp(tester, [screenPc], page: 'Screen');
       expect(
-        find.text('Looking for windows and screens…', skipOffstage: false),
+        find.bySemanticsLabel('Looking for windows and screens…'),
         findsOneWidget,
       );
       await answerList(tester, server);
       expect(tester.takeException(), isNull, reason: 'fits a small phone');
-      expect(find.text('View screen'), findsOneWidget);
-      expect(find.text('Display 1 · 2560 × 1440'), findsOneWidget);
+      expect(find.text('Display 1'), findsOneWidget);
+      expect(
+        find.text('Main · 2560 × 1440', findRichText: true),
+        findsOneWidget,
+      );
       await tester.scrollUntilVisible(find.text('Notepad'), 100);
       expect(find.text('Windows'), findsOneWidget);
       expect(find.text('In front'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Display 2'), 100);
-      expect(find.text('1920 × 1080'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Display 2'), -100);
+      expect(find.text('1920 × 1080', findRichText: true), findsOneWidget);
 
-      // View screen opens the main one, not the first listed.
-      await tester.ensureVisible(find.text('View screen', skipOffstage: false));
+      // The main screen is listed first.
+      expect(
+        tester.getTopLeft(find.text('Display 1')).dy,
+        lessThan(tester.getTopLeft(find.text('Display 2')).dy),
+      );
+      await tester.ensureVisible(find.text('Display 1', skipOffstage: false));
       await tester.pump();
-      await tester.tap(find.text('View screen'));
+      await tester.tap(find.text('Display 1'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(lastBody(server)['kind'], 'screen.watch');
@@ -1204,7 +1226,8 @@ void main() {
       // The view stays while the user goes to another page.
       await goTo(tester, 'Dictate');
       expect(find.byTooltip('Stop watching'), findsOneWidget);
-      expect(find.text('Outlook'), findsNWidgets(2), reason: 'target, view');
+      expect(find.text('Outlook — Inbox'), findsOneWidget, reason: 'target');
+      expect(find.text('Outlook'), findsOneWidget, reason: 'the view');
       await tester.tap(find.byTooltip('Stop watching'));
       await tester.pump();
       await finish(tester, relay);
@@ -1219,14 +1242,14 @@ void main() {
       addTearDown(() => debugLinkFactory = null);
       final (server, relay) = await pumpApp(tester, [screenPc], page: 'Screen');
       await answerList(tester, server);
-      await tester.tap(find.text('View screen'));
+      await tester.tap(find.text('Display 1'));
       await tester.pump();
       final watch = lastBody(server)['requestId']! as String;
       await progressOf(tester, server, watch, 'rtc.offer', offerFields);
       await progressOf(tester, server, watch, 'live');
       // The view opens out at the top of the page.
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('LIVE'), findsOneWidget);
+      expect(find.text('Live'), findsOneWidget);
       expect(tester.takeException(), isNull, reason: 'fits a small phone');
 
       await tester.tap(find.byTooltip('Make it smaller'));
@@ -1245,7 +1268,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(InteractiveViewer), findsNothing);
-      expect(find.text('LIVE'), findsOneWidget, reason: 'still watching');
+      expect(find.text('Live'), findsOneWidget, reason: 'still watching');
       expect(links.last.closed, isFalse);
       expect(
         server.relays.where((r) => (r['body']! as Map)['kind'] == 'cancel'),
@@ -1283,7 +1306,7 @@ void main() {
         find.textContaining('"Let phones see and use windows"'),
         findsWidgets,
       );
-      expect(find.text('View screen'), findsNothing);
+      expect(find.text('Screens'), findsNothing);
       expect(server.relays, isEmpty, reason: 'nothing to list');
       await finish(tester, relay);
     });
@@ -1305,8 +1328,8 @@ void main() {
       final (_, relay) = await pumpApp(tester, [deviceJson()], page: null);
       tester.view.physicalSize = const Size(800, 400);
       await tester.pump();
-      expect(find.byType(NavigationRail), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(TalvioNavRail), findsOneWidget);
+      expect(find.byType(TalvioNavBar), findsNothing);
       expect(tester.takeException(), isNull);
       await goTo(tester, 'Screen');
       expect(find.text("See ISHAN-PC's screen here"), findsOneWidget);
@@ -1323,7 +1346,8 @@ void main() {
     expect(find.text('This phone'), findsOneWidget);
     expect(find.text('Ishan'), findsOneWidget);
     expect(find.textContaining('Last seen'), findsOneWidget);
-    expect(find.text('Development server · sync.test:8787'), findsOneWidget);
+    expect(find.text('Development server'), findsOneWidget);
+    expect(find.text('sync.test:8787'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Remove ISHAN-PC'));
     await tester.pumpAndSettle();

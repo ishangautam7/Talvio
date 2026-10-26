@@ -20,6 +20,16 @@ import '../../app_test.dart' show lock;
 import '../../helpers.dart';
 import 'fakes.dart';
 
+/// Picks [label] in the viewer's More options sheet.
+Future<void> option(WidgetTester tester, String label) async {
+  await tester.tap(find.byTooltip('More options'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.tap(find.text(label));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
 void main() {
   late LiveController live;
 
@@ -97,7 +107,7 @@ void main() {
     tester,
   ) async {
     final (server, links, _) = await pumpViewer(tester, assistant: true);
-    expect(find.text('Live'), findsOneWidget);
+    expect(find.text('Live · ISHAN-PC'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'fits');
     expect(sentOf(server, 'screen.watch').single['control'], isFalse);
 
@@ -109,7 +119,7 @@ void main() {
     }
     // The computer has no assistant: no bar, though the chat exists.
     expect(find.byType(TextField), findsNothing);
-    expect(find.byIcon(Icons.mic_rounded), findsNothing);
+    expect(find.byIcon(AppIcons.micFill), findsNothing);
     expect(find.byTooltip('Keys'), findsOneWidget);
     expect(find.byTooltip('Turn sound on'), findsOneWidget);
     expect(find.text('Stop'), findsOneWidget);
@@ -176,11 +186,9 @@ void main() {
     final (_, links, _) = await pumpViewer(tester);
     final link = links.last;
 
-    expect(find.byTooltip('Follow the cursor'), findsNothing, reason: 'none');
     link.receive({'t': 'caret', 'x': 0.5, 'y': 0.5, 'w': 0, 'h': 0.02});
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byTooltip('Following the cursor'), findsOneWidget);
     expect(scale(tester), greaterThan(2), reason: 'zoomed in to read');
 
     await tester.drag(
@@ -190,14 +198,12 @@ void main() {
       touchSlopY: 0,
     );
     await tester.pump();
-    expect(find.byTooltip('Follow the cursor'), findsOneWidget);
     final moved = viewOf(tester).clone();
     link.receive({'t': 'caret', 'x': 0.1, 'y': 0.1, 'w': 0, 'h': 0.02});
     await tester.pump(const Duration(milliseconds: 400));
     expect(viewOf(tester), moved, reason: 'Follow is off');
 
-    await tester.tap(find.byTooltip('Follow the cursor'));
-    await tester.pump(const Duration(milliseconds: 400));
+    await option(tester, 'Follow the cursor');
     expect(viewOf(tester), isNot(moved));
   });
 
@@ -223,31 +229,29 @@ void main() {
     await pumpViewer(tester);
 
     // 16:9 on a tall phone leaves bars; filling crops them away.
-    await tester.tap(find.byTooltip('Fill the screen'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await option(tester, 'Fill the screen');
     expect(scale(tester), greaterThan(3));
-    await tester.tap(find.byTooltip('Show all of it'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await option(tester, 'Show all of it');
     expect(scale(tester), moreOrLessEquals(1));
 
-    await tester.tap(find.byTooltip('Turn sideways'));
-    await tester.pump();
+    await option(tester, 'Turn sideways');
     expect(orientations.last, [
       'DeviceOrientation.landscapeLeft',
       'DeviceOrientation.landscapeRight',
     ]);
 
-    // On its side the controls move beside the picture.
+    // On its side the controls move to a panel beside the picture.
     tester.view.physicalSize = const Size(800, 400);
     await tester.pump();
     expect(tester.takeException(), isNull, reason: 'fits sideways');
     final stage = tester.getRect(find.byType(InteractiveViewer));
     expect(stage.height, 400, reason: 'the picture has the full height');
-    expect(stage.width, greaterThan(650), reason: 'a slim column of buttons');
-    expect(find.byTooltip('Turn upright'), findsOneWidget);
-    expect(find.byTooltip('Stop'), findsOneWidget, reason: 'Stop beside it');
+    expect(stage.width, 440, reason: 'a 360 panel beside it');
+    expect(find.text('Stop'), findsOneWidget, reason: 'Stop beside it');
+    await tester.tap(find.byTooltip('More options'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Turn upright'), findsOneWidget);
 
     // Leaving lets the phone decide again.
     await tester.pumpWidget(const SizedBox());
@@ -314,6 +318,7 @@ void main() {
     link.receive({'t': 'ack', 'id': 'k1', 'ok': true});
     link.receive({'t': 'ack', 'id': 'k2', 'ok': false, 'error': 'key_refused'});
     await tester.pump();
+    await tester.pump();
     expect(find.textContaining("doesn't press keys"), findsOneWidget);
     await tester.tap(find.byTooltip('Tab'));
     await tester.pump();
@@ -363,12 +368,12 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.text('Played “Believer” on YouTube'), findsOneWidget);
-    final card = tester.getRect(find.text('Talvio on ISHAN-PC'));
+    final card = tester.getRect(find.text('play believer'));
     final stage = tester.getRect(find.byType(InteractiveViewer));
     expect(
       card.top,
-      greaterThan(stage.bottom - stage.height * 0.36),
-      reason: 'the card covers at most about a third of the picture',
+      greaterThanOrEqualTo(stage.bottom),
+      reason: 'the card sits under the picture, never over it',
     );
 
     // Do it, from inside the card.
@@ -401,15 +406,15 @@ void main() {
     expect(sentOf(server, 'assistant.ask').last['conversation'], 'c1');
 
     // Hidden, then shown again.
-    await tester.tap(find.byTooltip('Hide the answer'));
+    await tester.tap(find.byTooltip('Hide the answer').first);
     await tester.pump();
-    expect(find.text('Talvio on ISHAN-PC'), findsNothing);
-    await tester.tap(find.text('Show the answer'));
+    expect(find.text('louder'), findsNothing);
+    await tester.tap(find.byTooltip('Show the answer'));
     await tester.pump();
-    expect(find.text('Talvio on ISHAN-PC'), findsOneWidget);
+    expect(find.text('louder'), findsOneWidget);
   });
 
-  screenTest('on its side the keys and the assistant open beside it', (
+  screenTest('on its side the keys and the assistant sit beside it', (
     tester,
   ) async {
     await pumpViewer(
@@ -419,14 +424,8 @@ void main() {
     );
     tester.view.physicalSize = const Size(800, 400);
     await tester.pump();
-    expect(find.byType(TextField), findsNothing, reason: 'panel closed');
-    expect(
-      tester.getRect(find.byType(InteractiveViewer)).width,
-      greaterThan(650),
-    );
+    expect(find.byType(TextField), findsOneWidget, reason: 'in the panel');
 
-    await tester.tap(find.byTooltip('Ask the assistant'));
-    await tester.pump();
     await tester.tap(find.byTooltip('Keys'));
     await tester.pump();
     expect(tester.takeException(), isNull, reason: 'fits sideways');

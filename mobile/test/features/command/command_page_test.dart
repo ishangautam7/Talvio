@@ -3,10 +3,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:talvio_mobile/src/design/components.dart';
 import 'package:talvio_mobile/src/features/command/command_controller.dart';
 
 import '../../app_test.dart'
-    show enabled, finish, goTo, progress, pumpApp, tabs;
+    show enabled, finish, goTo, mic, progress, pumpApp, tabs;
 import '../../helpers.dart';
 
 final commandPc = deviceJson(capabilities: ['dictate', 'text', 'command']);
@@ -115,8 +116,9 @@ void main() {
 
     // Once dismissed, an example is one tap.
     await tapVisible(tester, find.byTooltip('Dismiss', skipOffstage: false));
-    await tapVisible(tester, find.text('Pause the music', skipOffstage: false));
-    expect(lastBody(server)['text'], 'Pause the music');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tapVisible(tester, find.text('Open YouTube', skipOffstage: false));
+    expect(lastBody(server)['text'], 'Open YouTube');
     await finish(tester, relay);
   });
 
@@ -153,7 +155,7 @@ void main() {
     await scrollTo(tester, find.byTooltip('Run "email Ron" again'));
     expect(
       find.descendant(
-        of: find.byType(ListTile),
+        of: find.byType(ListRow),
         matching: find.text('Sent the email to Ron.'),
       ),
       findsOneWidget,
@@ -227,7 +229,7 @@ void main() {
     });
     expect(find.text("Couldn't do that"), findsOneWidget);
     expect(find.text("I couldn't find an app called Spotfy."), findsWidgets);
-    expect(find.byIcon(Icons.error_outline_rounded), findsWidgets);
+    expect(find.byIcon(AppIcons.failed), findsWidgets);
 
     // The computer's own reason, and nothing that contradicts it.
     id = await typeCommand(tester, server, 'click the blue button');
@@ -250,7 +252,13 @@ void main() {
       'ok': true,
       'status': 'needs_computer_use',
     });
-    expect(find.textContaining('Control the screen when needed'), findsOne);
+    expect(
+      find.text(
+        'That needs Talvio to work the screen itself. Turn on "Control the '
+        'screen when needed" in Talvio on the computer (Commands page).',
+      ),
+      findsOne,
+    );
     await finish(tester, relay);
   });
 
@@ -380,7 +388,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(enabled(tester, find.byIcon(Icons.mic_rounded)), isFalse);
+    expect(enabled(tester, mic), isFalse);
     await goTo(tester, 'Dictate');
     await finish(tester, relay);
   });

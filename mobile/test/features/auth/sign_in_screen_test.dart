@@ -162,6 +162,9 @@ void main() {
 
     await tester.enterText(email, 'a@b.com');
     await tester.enterText(password, 'short');
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Create account'),
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
     await tester.pump();
     expect(find.text('Use at least 8 characters.'), findsOneWidget);
@@ -278,7 +281,7 @@ void main() {
     discovery.complete(http.Response('', 503));
     await tester.pump();
     await tester.pump();
-    expect(find.text("Can't find the server"), findsOneWidget);
+    expect(find.textContaining("Can't find the server"), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'fits a small phone');
     expect(hosts, isEmpty, reason: 'no server to ask yet');
 
@@ -287,7 +290,10 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pump();
     await tester.pump();
-    expect(find.text('Server · sync.example.com'), findsOneWidget);
+    expect(
+      find.text('Server · sync.example.com', findRichText: true),
+      findsOneWidget,
+    );
     expect(find.text('Try again'), findsNothing);
     expect(hosts, ['sync.example.com']);
   });
