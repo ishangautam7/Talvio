@@ -2107,6 +2107,12 @@ pub struct AppSettings {
     /// `--dry-run` can still override it for one command.
     #[serde(default)]
     pub command_dry_run: bool,
+    /// "Ask before irreversible actions": hold every send, post or delete for
+    /// the user's Do it. Off by default: a command the user spoke is the
+    /// request, so it is carried out, Send included, and waits only when the
+    /// user's own words ask to review (`command_mode::review`).
+    #[serde(default)]
+    pub command_confirm_irreversible: bool,
     /// The Google account Gmail and Calendar links open in, sent as
     /// `authuser=`. Empty means the browser's default Google account.
     #[serde(default)]
@@ -4740,6 +4746,7 @@ pub fn get_default_settings() -> AppSettings {
         command_router_provider_id: default_command_router_provider_id(),
         command_router_model: default_command_router_model(),
         command_dry_run: false,
+        command_confirm_irreversible: false,
         command_google_account: String::new(),
         command_search_url: default_command_search_url(),
         command_auto_escalate: true,

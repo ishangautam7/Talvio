@@ -3243,6 +3243,10 @@
       "key": "Klucz API {{provider}}",
       "keyShared": "Wspólny z czyszczeniem AI i asystentem."
     },
+    "confirmIrreversible": {
+      "title": "Pytaj przed wysłaniem lub usunięciem",
+      "info": "Wył.: wysłanie, publikacja lub usunięcie, o które prosisz, zostaje wykonane. Wł.: czeka, aż naciśniesz Zrób to. Zawsze czeka, gdy o to poprosisz („tylko szkic”, „daj mi sprawdzić”)."
+    },
     "dryRun": {
       "title": "Przebieg próbny",
       "info": "Pokazuj, co zrobiłoby polecenie, zamiast to robić."

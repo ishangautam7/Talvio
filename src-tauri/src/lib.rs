@@ -1367,6 +1367,7 @@ pub fn run(cli_args: CliArgs) {
             commands::command_mode::change_command_router_provider_id_setting,
             commands::command_mode::change_command_router_model_setting,
             commands::command_mode::change_command_dry_run_setting,
+            commands::command_mode::change_command_confirm_irreversible_setting,
             commands::command_mode::change_command_google_account_setting,
             commands::command_mode::change_command_search_url_setting,
             commands::command_mode::change_command_auto_escalate_setting,

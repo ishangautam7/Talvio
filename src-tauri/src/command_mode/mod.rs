@@ -56,6 +56,7 @@ pub mod effects;
 pub mod fuzzy;
 pub mod llm;
 pub mod registry;
+pub mod review;
 pub mod router;
 pub mod schema;
 pub mod sites;
@@ -67,6 +68,7 @@ pub(crate) mod live_tests;
 
 use log::{debug, info, warn};
 use serde::Serialize;
+use serde_json::Value;
 use specta::Type;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -476,6 +478,51 @@ impl Scope<'_> {
         followup.already_done.extend(completed_steps(&report.steps));
         followup
     }
+}
+
+/// Whether this command waits for the user before anything irreversible:
+/// the "Ask before irreversible actions" switch is on, or the user's words
+/// ask to review (`review::asks_to_review`). A call can ask for itself too
+/// ([`review::call_wants_review`]); see [`waits_for_review`].
+fn reviews_first(scope: &Scope<'_>) -> bool {
+    scope.ctx.settings.command_confirm_irreversible || review::asks_to_review(&scope.transcript)
+}
+
+/// Whether one call's irreversible step waits for the user: the command
+/// does, or the router marked this call ([`review::CONFIRM_FIRST`]).
+fn waits_for_review(scope: &Scope<'_>, args: &Value) -> bool {
+    reviews_first(scope) || review::call_wants_review(args)
+}
+
+/// Carry out the irreversible half a tool held ([`ToolOutcome::NeedsConfirmation`])
+/// right away, because nobody asked to review it: the tool's `on_confirm`,
+/// or for a control the agent held, [`agent::confirm_element`]. The outcome
+/// is what the user hears ("Sent to Ron."), or an honest failure.
+pub(crate) async fn carry_out_pending(ctx: &Arc<ToolCtx>, pending: &PendingAction) -> ToolOutcome {
+    info!(
+        "command mode: carrying out {} without waiting (nobody asked to review it)",
+        pending.tool
+    );
+    if pending.tool == agent::CONFIRM_TOOL {
+        let payload = pending.payload.clone();
+        if ctx.dry_run {
+            return agent::confirm_element(ctx, &agent::tree::Unsupported, &payload);
+        }
+        let run_ctx = ctx.clone();
+        return run_blocking(TOOL_TIMEOUT, pending.tool, move || {
+            agent::confirm_element(&run_ctx, agent::tree().as_ref(), &payload)
+        })
+        .await;
+    }
+    let Some(on_confirm) = registry::find(pending.tool).and_then(|spec| spec.on_confirm) else {
+        return ToolOutcome::failed("That can no longer be done.", false);
+    };
+    let payload = pending.payload.clone();
+    let run_ctx = ctx.clone();
+    run_blocking(TOOL_TIMEOUT, pending.tool, move || {
+        on_confirm(&run_ctx, payload)
+    })
+    .await
 }
 
 /// The steps that changed something, as `tool(args)`: done, or done up to
@@ -1247,7 +1294,8 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
                     "done",
                     "handed to the screen agent",
                 ));
-                escalate(scope, report, task).await;
+                let review = waits_for_review(scope, &call.args);
+                escalate(scope, report, task, review).await;
                 return true;
             }
             report.steps.push(step(
@@ -1292,6 +1340,16 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
             let run_ctx = scope.ctx.clone();
             let args = call.args.clone();
             let outcome = run_blocking(TOOL_TIMEOUT, name, move || handler(&run_ctx, args)).await;
+            // What the tool held for a Do it runs now, unless someone asked
+            // to review it (`review`).
+            let outcome = match outcome {
+                ToolOutcome::NeedsConfirmation { pending, .. }
+                    if !waits_for_review(scope, &call.args) =>
+                {
+                    carry_out_pending(&scope.ctx, &pending).await
+                }
+                other => other,
+            };
             report.steps.push(step(name, &args_json, "", ""));
             let stop = apply_outcome(scope, report, outcome);
             // A failure another approach could fix goes to the agent, with
@@ -1304,7 +1362,7 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
                     .clone()
                     .unwrap_or_else(|| scope.transcript.clone());
                 let task = with_steps_done(task, &completed_steps(&report.steps));
-                escalate(scope, report, task).await;
+                escalate(scope, report, task, reviews_first(scope)).await;
             }
             stop
         }
@@ -1348,7 +1406,7 @@ fn computer_use_unavailable(settings: &crate::settings::AppSettings) -> Feedback
 /// Hand `task` to the agent on `command_agent_model`. A model that cannot be
 /// built (no key, no provider) leaves the command at `NeedsComputerUse` with
 /// the reason.
-async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String) {
+async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String, review: bool) {
     report.escalation = Some(task.clone());
     let llm = match llm::agent_llm_for(&scope.ctx.settings) {
         Ok(llm) => llm,
@@ -1363,7 +1421,16 @@ async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String) {
             return;
         }
     };
-    run_agent_into(scope, report, &task, llm.as_ref(), agent::tree(), &CANCEL).await;
+    run_agent_into(
+        scope,
+        report,
+        &task,
+        llm.as_ref(),
+        agent::tree(),
+        &CANCEL,
+        review,
+    )
+    .await;
 }
 
 /// Run the agent and fold what it did into the report: its steps, its
@@ -1377,8 +1444,10 @@ async fn run_agent_into(
     llm: &dyn llm::RouterLlm,
     tree: Arc<dyn agent::tree::AccessibilityTree>,
     cancel: &AtomicBool,
+    review: bool,
 ) {
-    let limits = agent::Limits::from_settings(&scope.ctx.settings);
+    let mut limits = agent::Limits::from_settings(&scope.ctx.settings);
+    limits.review_first = review;
     let outcome = agent::run(task, scope.ctx.clone(), llm, tree, limits, cancel).await;
 
     report.feedback.push(match outcome.app.as_deref() {
@@ -1738,6 +1807,96 @@ mod tests {
             origin: CommandOrigin::Typed,
             transcript: "email Ron".into(),
             followup,
+        }
+    }
+
+    /// Runs one `press_keys enter` plan for `transcript` with `args`, in a
+    /// chat window that stays in front; the report and what was pressed.
+    fn run_enter(transcript: &str, args: Value, ask_setting: bool) -> (CommandReport, Vec<String>) {
+        let chat = effects::WindowEntry {
+            id: 5,
+            app: "Slack".into(),
+            title: "general | Slack".into(),
+        };
+        let fake = Arc::new(FakeEffects {
+            windows: vec![chat.clone()],
+            foreground: std::sync::Mutex::new(Some(chat)),
+            ..Default::default()
+        });
+        let state = CommandModeState::default();
+        let id = state.begin();
+        let mut scope = scope(&state, &fake, Followup::default());
+        scope.transcript = transcript.into();
+        if ask_setting {
+            let mut settings = crate::settings::get_default_settings();
+            settings.command_confirm_irreversible = true;
+            scope.ctx = Arc::new(ToolCtx {
+                settings,
+                context: scope.ctx.context.clone(),
+                effects: fake.clone(),
+                contacts: Arc::new(ContactBook::default()),
+                platform: Platform::Windows,
+                dry_run: false,
+            });
+        }
+        let plan = router::RoutePlan {
+            calls: vec![PlannedCall {
+                name: "press_keys".into(),
+                args,
+            }],
+            dropped: Vec::new(),
+            text: String::new(),
+            usage: Usage::default(),
+            llm_calls: 1,
+        };
+        let report = CommandReport::new(id, CommandOrigin::Typed, transcript, false);
+        let report = tauri::async_runtime::block_on(finish(
+            &scope,
+            report,
+            None,
+            "mock/router".into(),
+            Ok(plan),
+            Instant::now(),
+        ));
+        (report, fake.actions())
+    }
+
+    /// What the user asked for is carried out, the step that sends included:
+    /// no card, no Do it.
+    #[test]
+    fn a_held_step_is_carried_out_when_nobody_asked_to_review() {
+        let (report, pressed) = run_enter("press enter", json!({"keys": "enter"}), false);
+        assert_eq!(report.status, CommandStatus::Done, "{:?}", report.feedback);
+        assert_eq!(report.pending_summary, None);
+        assert_eq!(pressed, vec!["press_keys Enter".to_string()]);
+        assert_eq!(report.steps[0].result, "done");
+    }
+
+    /// It waits when the user's words ask, when the router marks the call, or
+    /// when "Ask before sending or deleting" is on.
+    #[test]
+    fn a_held_step_waits_when_review_was_asked_for() {
+        for (transcript, args, setting) in [
+            (
+                "press enter but ask before sending",
+                json!({"keys": "enter"}),
+                false,
+            ),
+            (
+                "press enter",
+                json!({"keys": "enter", "confirm_first": true}),
+                false,
+            ),
+            ("press enter", json!({"keys": "enter"}), true),
+        ] {
+            let (report, pressed) = run_enter(transcript, args, setting);
+            assert_eq!(
+                report.status,
+                CommandStatus::AwaitingConfirmation,
+                "{transcript}: {:?}",
+                report.feedback
+            );
+            assert!(pressed.is_empty(), "{transcript}: {pressed:?}");
         }
     }
 
@@ -2257,6 +2416,7 @@ mod tests {
             &llm,
             tree.clone(),
             &AtomicBool::new(false),
+            false,
         ));
         assert_eq!(report.status, CommandStatus::Done);
         assert_eq!(report.error, None);
@@ -2294,6 +2454,7 @@ mod tests {
             &llm,
             tree.clone(),
             &AtomicBool::new(false),
+            true,
         ));
         assert_eq!(report.status, CommandStatus::AwaitingConfirmation);
         assert!(report.pending_summary.as_deref().unwrap().contains("Send"));
@@ -2335,6 +2496,7 @@ mod tests {
             &llm,
             agent_tree(),
             &AtomicBool::new(true),
+            false,
         ));
         assert_eq!(report.status, CommandStatus::Cancelled);
         assert_eq!(keys(&report), vec!["agentWorkingNoApp", "agentCancelled"]);

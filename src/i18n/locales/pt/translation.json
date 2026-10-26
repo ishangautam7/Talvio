@@ -3219,6 +3219,10 @@
       "key": "Chave de API do {{provider}}",
       "keyShared": "Compartilhada com a limpeza com IA e o assistente."
     },
+    "confirmIrreversible": {
+      "title": "Perguntar antes de enviar ou excluir",
+      "info": "Desligado: um envio, publicação ou exclusão que você pedir é feito. Ligado: espera você tocar em Fazer. Em ambos os casos espera se você pedir (“só um rascunho”, “deixa eu conferir”)."
+    },
     "dryRun": {
       "title": "Simulação",
       "info": "Mostra o que um comando faria em vez de fazê-lo."

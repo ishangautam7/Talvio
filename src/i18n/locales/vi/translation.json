@@ -3171,6 +3171,10 @@
       "key": "Khóa API {{provider}}",
       "keyShared": "Dùng chung với dọn dẹp bằng AI và trợ lý."
     },
+    "confirmIrreversible": {
+      "title": "Hỏi trước khi gửi hoặc xóa",
+      "info": "Tắt: việc gửi, đăng hoặc xóa bạn yêu cầu sẽ được thực hiện. Bật: chờ bạn nhấn Thực hiện. Dù thế nào cũng chờ khi bạn nói (“chỉ soạn nháp”, “để tôi kiểm tra trước”)."
+    },
     "dryRun": {
       "title": "Chạy thử",
       "info": "Hiển thị lệnh sẽ làm gì thay vì thực hiện nó."

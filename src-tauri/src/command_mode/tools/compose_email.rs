@@ -54,21 +54,56 @@ const TRUNCATION_MARK: &str = " …";
 /// foreground is read again after it, so this only makes a refusal rarer.
 const FOCUS_SETTLE: Duration = Duration::from_millis(400);
 
+/// Whether the waits below run at their real length: always outside tests,
+/// and in a live test (`TALVIO_LIVE_RUN`), where a real browser has to come
+/// up. Unit tests use a sliver of each, since most never put a Gmail window
+/// in front.
+fn real_waits() -> bool {
+    !cfg!(test) || std::env::var_os("TALVIO_LIVE_RUN").is_some()
+}
+
 /// How long [`run`] watches for the draft to come forward after opening the
 /// link, and how often it looks. A browser that has to start, or a busy
 /// machine, takes seconds to show the tab; past this the draft is left
-/// unidentified and the send refuses. Tests use a sliver of it, since most of
-/// them never put a Gmail window in front.
-const DRAFT_WAIT: Duration = if cfg!(test) {
-    Duration::from_millis(30)
-} else {
-    Duration::from_secs(6)
-};
-const DRAFT_POLL: Duration = if cfg!(test) {
-    Duration::from_millis(5)
-} else {
-    Duration::from_millis(250)
-};
+/// unidentified and the send refuses.
+fn draft_wait() -> (Duration, Duration) {
+    if real_waits() {
+        (Duration::from_secs(10), Duration::from_millis(250))
+    } else {
+        (Duration::from_millis(30), Duration::from_millis(5))
+    }
+}
+
+/// How long [`send`] waits for Gmail to finish drawing the compose page
+/// before pressing the send shortcut, how often it looks, and how long it
+/// then lets the page settle. A send carried out straight after the draft
+/// opened used to press Ctrl+Enter into a page still loading, which Gmail
+/// ignored; the user confirming later never hit that, because by then it had
+/// loaded.
+fn compose_wait() -> (Duration, Duration, Duration) {
+    if real_waits() {
+        (
+            Duration::from_secs(15),
+            Duration::from_millis(250),
+            Duration::from_millis(1500),
+        )
+    } else {
+        (Duration::from_millis(30), Duration::from_millis(5), Duration::ZERO)
+    }
+}
+
+/// How long [`send`] watches for the evidence that Gmail sent the draft
+/// (its window closed, or no longer the compose page), and how often it looks.
+/// Gmail takes up to several seconds to send and close the compose page
+/// (measured: about six, from the Send button); past this the send is
+/// reported as not confirmed, never as done.
+fn sent_wait() -> (Duration, Duration) {
+    if real_waits() {
+        (Duration::from_secs(15), Duration::from_millis(250))
+    } else {
+        (Duration::from_millis(30), Duration::from_millis(5))
+    }
+}
 
 /// What every Gmail window title carries ("Compose Mail - … - Gmail"),
 /// compared lowercase. The only title fragment trusted on its own: "compose"
@@ -81,9 +116,10 @@ const NO_DRAFT_WINDOW: &str =
 
 pub static SPEC: ToolSpec = ToolSpec {
     name: "compose_email",
-    description: "Write an email in Gmail: opens a filled-in draft in the browser for the user \
-                  to review. The email is only sent after the user confirms. Use for any \
-                  request to email, mail or message someone by email.",
+    description: "Write and send an email in Gmail: opens a filled-in draft in the browser \
+                  and sends it. With confirm_first the draft is left open for the user to \
+                  check and send. Use for any request to email, mail or message someone by \
+                  email.",
     schema,
     risk: Risk::NeedsConfirmation,
     platforms: ALL_PLATFORMS,
@@ -259,10 +295,11 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
 
 /// Watch the foreground until a Gmail window comes forward that was not
 /// already there before the link opened (`before`: a different window, or the
-/// same browser window now showing another tab), or until [`DRAFT_WAIT`] runs
+/// same browser window now showing another tab), or until [`draft_wait`] runs
 /// out.
 fn wait_for_draft_window(ctx: &ToolCtx, before: Option<&WindowEntry>) -> Option<WindowEntry> {
-    let deadline = Instant::now() + DRAFT_WAIT;
+    let (wait, poll) = draft_wait();
+    let deadline = Instant::now() + wait;
     loop {
         if let Some(front) = ctx.effects.foreground_window() {
             let already_there = before.is_some_and(|b| b.id == front.id && b.title == front.title);
@@ -273,7 +310,7 @@ fn wait_for_draft_window(ctx: &ToolCtx, before: Option<&WindowEntry>) -> Option<
         if Instant::now() >= deadline {
             return None;
         }
-        std::thread::sleep(DRAFT_POLL);
+        std::thread::sleep(poll);
     }
 }
 
@@ -383,6 +420,15 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
         );
     };
 
+    // Gmail's own title for the loaded compose page is the baseline the
+    // send is judged against; the one recorded at open time is often only
+    // "Gmail", from before the page had drawn.
+    let loaded = wait_for_compose(ctx, draft.id);
+    if loaded.is_none() {
+        warn!("command mode: compose_email never saw the compose page finish loading; sending anyway");
+    }
+    let baseline = loaded.unwrap_or_else(|| draft.title.clone());
+
     if let Err(e) = ctx.effects.focus_window(&window) {
         warn!("command mode: compose_email could not focus the draft: {e}");
         return ToolOutcome::failed(
@@ -404,7 +450,7 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
             // Why, without the titles themselves (they name the email).
             let front_title = front.as_ref().map(|f| f.title.to_lowercase());
             warn!(
-                "command mode: compose_email's draft was not in front at send time; not sending                  (front window: {}, same window: {}, gmail title: {}, compose title: {},                  exactly that window: {})",
+                "command mode: compose_email's draft was not in front at send time; not sending (front window: {}, same window: {}, gmail title: {}, compose title: {}, exactly that window: {})",
                 front.is_some(),
                 front.as_ref().is_some_and(|f| f.id == draft.id),
                 front_title.as_deref().is_some_and(|t| t.contains(GMAIL_MARK)),
@@ -418,7 +464,95 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
             );
         }
     }
-    press_send(ctx, &combo, name)
+    // Gmail's own Send button first: Ctrl+Enter only sends from inside the
+    // compose form, and a focused window does not put the keyboard there (a
+    // send carried out the moment the draft opened pressed it into nothing).
+    // The shortcut stays as the fallback where the tree finds no button.
+    let pressed = match ctx.effects.press_button(draft.id, "send") {
+        Ok(true) => {
+            info!("command mode: compose_email pressed Gmail's Send button");
+            ToolOutcome::done("emailSent", "Sent to {{name}}.", &[("name", name)])
+        }
+        Ok(false) => press_send(ctx, &combo, name),
+        Err(e) => {
+            warn!("command mode: compose_email could not press the Send button ({e}); trying the shortcut");
+            press_send(ctx, &combo, name)
+        }
+    };
+    match pressed {
+        ToolOutcome::Done { feedback } => {
+            if gmail_took_the_draft(ctx, draft.id, &baseline) {
+                info!("command mode: compose_email saw Gmail take the draft");
+                ToolOutcome::Done { feedback }
+            } else {
+                warn!("command mode: compose_email pressed send but the draft is still open");
+                ToolOutcome::failed(
+                    "I pressed Send, but Gmail still shows the draft, so it may not have gone. Check the draft in Gmail.",
+                    false,
+                )
+            }
+        }
+        failed => failed,
+    }
+}
+
+/// Whether Gmail took the draft after the send shortcut: its window closed,
+/// or it no longer shows the compose page (Gmail moves on to the inbox once
+/// a message is sent; a draft it refused, for a bad address say, stays with
+/// an error on it). Only evidence counts: a send is never reported done
+/// because a key was pressed. The title comes from the foreground when that
+/// is the draft's window, since on a Mac the window list names only the app.
+fn gmail_took_the_draft(ctx: &ToolCtx, id: i64, baseline: &str) -> bool {
+    let (wait, poll) = sent_wait();
+    let deadline = Instant::now() + wait;
+    loop {
+        let Some(title) = window_title(ctx, id) else {
+            return true;
+        };
+        let lower = title.to_lowercase();
+        if !lower.starts_with(COMPOSE_TITLE) && title != baseline {
+            return true;
+        }
+        if Instant::now() >= deadline {
+            return false;
+        }
+        std::thread::sleep(poll);
+    }
+}
+
+/// The title of window `id` now, from the foreground when that is the
+/// window (on a Mac the window list names only the app), else from the list.
+/// `None` when the window has closed.
+fn window_title(ctx: &ToolCtx, id: i64) -> Option<String> {
+    let listed = ctx
+        .effects
+        .open_windows()
+        .into_iter()
+        .find(|w| w.id == id)?;
+    Some(match ctx.effects.foreground_window() {
+        Some(front) if front.id == id => front.title,
+        _ => listed.title,
+    })
+}
+
+/// Wait for window `id` to show Gmail's compose page ("Compose Mail - …"),
+/// then let it settle ([`compose_wait`]). The loaded title, or `None` when it
+/// never came (a Gmail in another language titles it otherwise; the send is
+/// then tried anyway and judged by its evidence).
+fn wait_for_compose(ctx: &ToolCtx, id: i64) -> Option<String> {
+    let (wait, poll, settle) = compose_wait();
+    let deadline = Instant::now() + wait;
+    loop {
+        let title = window_title(ctx, id)?;
+        if title.to_lowercase().starts_with(COMPOSE_TITLE) {
+            std::thread::sleep(settle);
+            return Some(title);
+        }
+        if Instant::now() >= deadline {
+            return None;
+        }
+        std::thread::sleep(poll);
+    }
 }
 
 /// Press the send shortcut in whatever has the keyboard; [`send`] has
@@ -1162,6 +1296,64 @@ mod tests {
     }
 
     const DRAFT_TITLE: &str = "Compose Mail - me@example.com - Gmail - Google Chrome";
+    /// What the draft's window shows once Gmail has sent it.
+    const INBOX_TITLE: &str = "Inbox (3) - me@example.com - Gmail - Google Chrome";
+
+    /// A send is reported done only on evidence: Ctrl+Enter was pressed in
+    /// the draft, but Gmail still shows the compose page (a bad address, a
+    /// key Gmail did not take), so the user hears it may not have gone.
+    #[test]
+    fn a_send_gmail_did_not_take_is_not_reported_sent() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = Arc::new(FakeEffects {
+            windows: vec![draft.clone()],
+            foreground: std::sync::Mutex::new(Some(draft)),
+            focus_follows: true,
+            ..Default::default()
+        });
+        let ctx = ctx(&fake, book(), Platform::Windows);
+        let ToolOutcome::Failed { reason, escalate } = send(&ctx, payload()) else {
+            panic!("expected an unconfirmed send");
+        };
+        assert!(reason.contains("may not have gone"), "{reason}");
+        assert!(!escalate);
+        assert!(fake.actions().contains(&ctrl_enter()), "{:?}", fake.actions());
+    }
+
+    /// Gmail's Send button is pressed through the accessibility tree when it
+    /// is there, and the shortcut is then not pressed at all.
+    #[test]
+    fn the_send_button_is_pressed_before_the_shortcut() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = Arc::new(FakeEffects {
+            windows: vec![draft.clone()],
+            foreground: std::sync::Mutex::new(Some(draft)),
+            focus_follows: true,
+            send_retitles: Some(INBOX_TITLE.into()),
+            buttons: vec![(2, "Send".into())],
+            ..Default::default()
+        });
+        let ctx = ctx(&fake, book(), Platform::Windows);
+        let outcome = send(&ctx, payload());
+        assert!(matches!(outcome, ToolOutcome::Done { .. }), "{outcome:?}");
+        assert_eq!(
+            fake.actions(),
+            vec!["focus_window 2".to_string(), "press_button 2 send".to_string()]
+        );
+    }
+
+    /// Gmail closing the draft's window is evidence too.
+    #[test]
+    fn a_draft_window_that_closes_after_the_send_counts_as_sent() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = FakeEffects {
+            windows: vec![],
+            foreground: std::sync::Mutex::new(None),
+            ..Default::default()
+        };
+        let ctx = ctx_over(Arc::new(fake), book(), Platform::Windows);
+        assert!(gmail_took_the_draft(&ctx, draft.id, &draft.title));
+    }
 
     fn payload_with(window: Value) -> Value {
         json!({
@@ -1194,6 +1386,7 @@ mod tests {
             windows: vec![window(1, "Spotify Premium", "Spotify"), draft.clone()],
             foreground: std::sync::Mutex::new(Some(window(1, "Spotify Premium", "Spotify"))),
             focus_follows: true,
+            send_retitles: Some(INBOX_TITLE.into()),
             ..Default::default()
         });
         let ctx = ctx_over(browser(&fake, Some(draft)), book(), Platform::Windows);
@@ -1448,6 +1641,7 @@ mod tests {
         let fake = Arc::new(FakeEffects {
             windows: vec![window(7, "Notes", "Notes"), window(9, "Safari", "Safari")],
             foreground: std::sync::Mutex::new(Some(window(9, DRAFT_TITLE, "Safari"))),
+            send_retitles: Some(INBOX_TITLE.into()),
             ..Default::default()
         });
         let ctx = ctx(&fake, book(), Platform::MacOs);

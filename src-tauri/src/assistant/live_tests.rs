@@ -109,6 +109,65 @@ async fn assistant_live_plays_music_through_do_on_computer() {
     assert!(!answer.trim().is_empty());
 }
 
+/// The assistant acts at once, without asking the user to confirm first, and
+/// the request it hands on keeps a wish to check before sending, so the
+/// command waits exactly when the user asked it to (`command_mode::review`).
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore = "calls the assistant model this machine's settings name"]
+async fn assistant_live_passes_on_a_wish_to_review() {
+    use crate::command_mode::review::asks_to_review;
+    let mut settings = crate::command_mode::live_tests::installed_settings();
+    settings.command_mode_enabled = true;
+    settings.assistant_tts_enabled = false;
+    let model = super::resolve_turn_model(&settings).expect("an assistant model");
+    let cases: &[(&str, bool)] = &[
+        ("email ram that I'll be late today", false),
+        ("send an email to sita saying the report is ready", false),
+        (
+            "write an email to ram about the trip but let me read it before you send it",
+            true,
+        ),
+        ("draft an email to my boss asking for friday off", true),
+        (
+            "ram lai bholi ko meeting 10 baje ho bhanera email lekha tara napathau",
+            true,
+        ),
+    ];
+    let mut misses = Vec::new();
+    for (message, waits) in cases {
+        let messages = request_messages(&settings, &model, &[], message);
+        let hooks = Recording::default();
+        let answer =
+            turn::run_tool_loop(&model, messages.with_tools, &messages.tools, &hooks, || {
+                |_: &str| {}
+            })
+            .await
+            .unwrap_or_else(|e| format!("ERROR {e}"));
+        let requests: Vec<String> = hooks
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(name, _)| name == act::TOOL_NAME)
+            .map(|(_, args)| act::parse_request(args))
+            .collect();
+        let ok = requests.len() == 1 && asks_to_review(&requests[0]) == *waits;
+        println!(
+            "WISH | {message} | {requests:?} | {} | {}",
+            if ok { "ok" } else { "MISS" },
+            answer
+                .chars()
+                .take(80)
+                .collect::<String>()
+                .replace('\n', " ")
+        );
+        if !ok {
+            misses.push(*message);
+        }
+    }
+    assert!(misses.is_empty(), "missed: {misses:?}");
+}
+
 /// Which messages the assistant acts on and which it only answers, English
 /// and Nepali-English, one row each with the latency. Fails on any miss.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
