@@ -314,7 +314,7 @@ export const FeedbackDialog: React.FC = () => {
           />
 
           {/* The composer: message, screenshots, and the attach control in one box. */}
-          <div className="rounded-xl border border-hairline-strong bg-surface transition-colors duration-150 focus-within:border-ink hover:border-ink/40 focus-within:hover:border-ink">
+          <div className="control rounded-lg">
             <label htmlFor={`${ids}-message`} className="sr-only">
               {t("feedback.messageLabel")}
             </label>
@@ -457,7 +457,7 @@ export const FeedbackDialog: React.FC = () => {
               placeholder={t("feedback.emailPlaceholder")}
               aria-invalid={emailInvalid || undefined}
               aria-describedby={emailInvalid ? `${ids}-email-error` : undefined}
-              className={`w-full rounded-lg border bg-surface px-3.5 py-2 text-sm text-ink transition-colors duration-150 placeholder:text-muted-soft hover:border-ink/40 focus:border-ink focus:outline-none ${emailInvalid ? "border-error" : "border-hairline-strong"}`}
+              className={`control w-full rounded-lg px-3.5 py-2 text-sm text-ink placeholder:text-muted-soft focus:outline-none ${emailInvalid ? "!border-error" : ""}`}
             />
             {emailInvalid && (
               <p id={`${ids}-email-error`} className="mt-1 text-xs text-error">

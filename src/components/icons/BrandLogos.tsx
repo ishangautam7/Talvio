@@ -120,7 +120,7 @@ const BRAND_TILES = {
   // A model that ships its own artwork (SpeakoFlow Mini) keeps it rather than
   // a tinted glyph, so the tile stays empty and the mark supplies the color.
   speakoflow: "bg-transparent",
-  neutral: "bg-accent/10 text-accent ring-1 ring-inset ring-accent/15",
+  neutral: "bg-surface-strong text-body ring-1 ring-inset ring-hairline",
 } as const;
 
 /**
