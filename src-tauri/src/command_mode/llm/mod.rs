@@ -181,8 +181,38 @@ pub fn router_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError
 /// before "open YouTube" works; the default router is Anthropic, which many
 /// people have no key for.
 pub(crate) fn effective(settings: &AppSettings, model: &str) -> (String, String) {
+    effective_with(
+        settings,
+        model,
+        crate::free_credit::signed_in(),
+        crate::free_credit::usable(),
+    )
+}
+
+/// [`effective`] with the free credit's state given: `free_signed_in` lets a
+/// router the user pointed at Talvio free run, and `free_usable` makes Talvio
+/// free the last resort after every provider the user set up a key for.
+pub(crate) fn effective_with(
+    settings: &AppSettings,
+    model: &str,
+    free_signed_in: bool,
+    free_usable: bool,
+) -> (String, String) {
+    let free = crate::free_credit::PROVIDER_ID;
+    let usable = |provider: &str| {
+        if provider == free {
+            free_signed_in
+        } else {
+            usable(settings, provider)
+        }
+    };
     let chosen = settings.command_router_provider_id.trim();
-    if usable(settings, chosen) {
+    if usable(chosen) {
+        let model = if chosen == free {
+            crate::free_credit::CHAT_MODEL
+        } else {
+            model
+        };
         return (chosen.to_string(), model.to_string());
     }
     // Another provider set up with a key: the assistant's, then AI cleanup's.
@@ -200,12 +230,17 @@ pub(crate) fn effective(settings: &AppSettings, model: &str) -> (String, String)
     ];
     for (feature, provider, models) in elsewhere {
         let other_model = models.get(provider).map(|m| m.trim()).unwrap_or_default();
-        if provider != chosen && usable(settings, provider) && !other_model.is_empty() {
+        if provider != chosen && usable(provider) && !other_model.is_empty() {
             log::info!(
                 "Command mode has no key for `{chosen}`; using the {feature}'s `{provider}/{other_model}`"
             );
             return (provider.to_string(), other_model.to_string());
         }
+    }
+    // Nothing the user set up can route: the account's free credit can.
+    if free_usable {
+        log::info!("Command mode has no key for `{chosen}`; using Talvio free");
+        return (free.to_string(), crate::free_credit::CHAT_MODEL.to_string());
     }
     (chosen.to_string(), model.to_string())
 }
@@ -218,6 +253,9 @@ pub(crate) fn usable(settings: &AppSettings, provider_id: &str) -> bool {
     };
     if provider.id == "apple_intelligence" || !provider.base_url.starts_with("http") {
         return false;
+    }
+    if provider.id == crate::free_credit::PROVIDER_ID {
+        return crate::free_credit::signed_in();
     }
     let has_key = settings
         .post_process_api_keys
@@ -303,6 +341,11 @@ fn llm_for(
             provider: provider.label.clone(),
         });
     }
+    if provider.id == crate::free_credit::PROVIDER_ID && !crate::free_credit::signed_in() {
+        return Err(LlmError::NotConfigured(
+            crate::free_credit::SIGN_IN_MESSAGE.to_string(),
+        ));
+    }
     Ok(Box::new(openai_compat::OpenAiCompatRouter::new(
         provider,
         api_key,
@@ -352,6 +395,63 @@ mod agent_choice_tests {
         let (provider, model) = agent_choice(&settings);
         assert_eq!(provider, "anthropic");
         assert_eq!(model, crate::settings::DEFAULT_COMMAND_AGENT_MODEL);
+    }
+}
+
+#[cfg(test)]
+mod free_credit_tests {
+    use super::effective_with;
+    use crate::free_credit::{CHAT_MODEL, PROVIDER_ID};
+    use crate::settings::get_default_settings;
+
+    #[test]
+    fn talvio_free_is_the_last_resort() {
+        let mut settings = get_default_settings();
+        settings.command_router_provider_id = "anthropic".into();
+        // Nothing set up, free credit available: Talvio free routes.
+        assert_eq!(
+            effective_with(&settings, "claude-haiku-5-5", true, true),
+            (PROVIDER_ID.into(), CHAT_MODEL.into())
+        );
+        // Signed out, or out of credit: the user's choice stays (and says
+        // what it needs).
+        assert_eq!(
+            effective_with(&settings, "claude-haiku-5-5", false, false).0,
+            "anthropic"
+        );
+        assert_eq!(
+            effective_with(&settings, "claude-haiku-5-5", true, false).0,
+            "anthropic"
+        );
+        // A provider the user has a key for always wins over the free credit.
+        settings.post_process_provider_id = "openai".into();
+        settings
+            .post_process_models
+            .insert("openai".into(), "gpt-5-mini".into());
+        settings
+            .post_process_api_keys
+            .insert("openai".into(), "key".into());
+        assert_eq!(
+            effective_with(&settings, "claude-haiku-5-5", true, true),
+            ("openai".into(), "gpt-5-mini".into())
+        );
+        settings
+            .post_process_api_keys
+            .insert("anthropic".into(), "key".into());
+        assert_eq!(
+            effective_with(&settings, "claude-haiku-5-5", true, true).0,
+            "anthropic"
+        );
+    }
+
+    #[test]
+    fn a_router_pointed_at_it_runs_while_signed_in() {
+        let mut settings = get_default_settings();
+        settings.command_router_provider_id = PROVIDER_ID.into();
+        assert_eq!(
+            effective_with(&settings, "claude-haiku-5-5", true, false),
+            (PROVIDER_ID.into(), CHAT_MODEL.into())
+        );
     }
 }
 

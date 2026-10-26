@@ -347,6 +347,23 @@ pub(crate) const TTS_PROVIDERS: &[TtsProvider] = &[
         response_format: "mp3",
         auth: TtsAuth::Basic,
     },
+    // Talvio free: the account server's OpenAI-compatible speech route, paid
+    // for by the account's free credit. No fixed root and no key here: both
+    // come from the account session at request time (`crate::free_credit`).
+    TtsProvider {
+        id: crate::free_credit::PROVIDER_ID,
+        label: crate::free_credit::LABEL,
+        protocol: TtsProtocol::OpenAiCompatible,
+        base_url: None,
+        default_model: crate::free_credit::SPEECH_MODEL,
+        default_voice: crate::free_credit::DEFAULT_VOICE,
+        models: &[crate::free_credit::SPEECH_MODEL],
+        requires_key: false,
+        max_chars: 4096,
+        speed_range: Some((0.25, 4.0)),
+        response_format: "mp3",
+        auth: TtsAuth::Bearer,
+    },
     TtsProvider {
         id: "custom",
         label: "Custom server",
@@ -399,6 +416,35 @@ fn active_provider(settings: &AppSettings) -> Result<&'static TtsProvider, Strin
         .ok_or_else(|| format!("Unknown TTS engine: {}", settings.assistant_tts_engine))
 }
 
+/// The engine that speaks: the chosen one, or Talvio free when the chosen
+/// one is a remote engine still waiting for its key and the account's free
+/// credit can speak instead. A voice that needs nothing (Kokoro, the native
+/// voices, a custom server) is never replaced.
+pub(crate) fn effective_engine(settings: &AppSettings, free_usable: bool) -> String {
+    let engine = settings.assistant_tts_engine.trim();
+    let waiting_for_key = provider(engine)
+        .is_some_and(|p| p.requires_key && settings.assistant_tts_api_key.0.trim().is_empty());
+    if waiting_for_key && free_usable {
+        crate::free_credit::PROVIDER_ID.to_string()
+    } else {
+        engine.to_string()
+    }
+}
+
+/// `settings` as the engine that really speaks sees them: unchanged, or moved
+/// to Talvio free with its own model and voice when that engine stands in.
+fn speaking_settings(settings: &AppSettings) -> std::borrow::Cow<'_, AppSettings> {
+    let engine = effective_engine(settings, crate::free_credit::usable());
+    if engine == settings.assistant_tts_engine.trim() {
+        return std::borrow::Cow::Borrowed(settings);
+    }
+    let mut moved = settings.clone();
+    moved.assistant_tts_engine = engine;
+    moved.assistant_tts_model = String::new();
+    moved.assistant_tts_remote_voice = String::new();
+    std::borrow::Cow::Owned(moved)
+}
+
 /// The user's value, or the engine's default when they left the field empty.
 fn or_default<'a>(value: &'a str, default: &'a str) -> &'a str {
     let value = value.trim();
@@ -420,6 +466,11 @@ fn speed_for(provider: &TtsProvider, settings: &AppSettings) -> Option<f64> {
 
 /// The engine's API root: the registry's fixed URL, or the one the user typed.
 fn api_root(provider: &TtsProvider, settings: &AppSettings) -> Result<String, String> {
+    if provider.id == crate::free_credit::PROVIDER_ID {
+        return crate::free_credit::access()
+            .map(|access| access.base_url)
+            .ok_or_else(|| crate::free_credit::SIGN_IN_MESSAGE.to_string());
+    }
     if let Some(fixed) = provider.base_url {
         return Ok(fixed.to_string());
     }
@@ -615,14 +666,19 @@ pub fn current_epoch() -> u64 {
 /// legitimately needs no key, and refusing it would break a working setup. It
 /// does need an address, which no default can supply.
 pub fn voice_engine_blocker(settings: &AppSettings) -> Option<String> {
+    let settings = speaking_settings(settings);
     let engine = settings.assistant_tts_engine.trim();
+    if engine == crate::free_credit::PROVIDER_ID {
+        return (!crate::free_credit::signed_in())
+            .then(|| crate::free_credit::SIGN_IN_MESSAGE.to_string());
+    }
     // The in-webview engine needs nothing configured.
     if engine.is_empty() || engine == "kokoro" {
         return None;
     }
     // Local voices that run natively need their download, not a key.
     if provider(engine).is_some_and(|p| p.protocol == TtsProtocol::Native) {
-        return crate::native_tts::blocker(settings);
+        return crate::native_tts::blocker(&settings);
     }
     let Some(provider) = provider(engine) else {
         return Some(format!(
@@ -1085,6 +1141,7 @@ pub(crate) async fn synthesize_speech(
     settings: &AppSettings,
     request: SpeechRequest<'_>,
 ) -> Result<SynthesizedSpeech, String> {
+    let settings = &*speaking_settings(settings);
     let provider = active_provider(settings)?;
     let plain = |bytes: Vec<u8>| SynthesizedSpeech {
         bytes,
@@ -1382,14 +1439,21 @@ async fn openai_speech_attempt(
     if let Some(speed) = speed_for(provider, settings) {
         body["speed"] = serde_json::json!(speed);
     }
-    let request = with_openai_auth(
-        client.post(url).json(&body),
-        provider,
-        settings.assistant_tts_api_key.0.trim(),
-    );
+    // Talvio free authenticates with the account session, never a saved key.
+    let key = if provider.id == crate::free_credit::PROVIDER_ID {
+        crate::free_credit::access()
+            .map(|access| access.token)
+            .unwrap_or_default()
+    } else {
+        settings.assistant_tts_api_key.0.trim().to_string()
+    };
+    let request = with_openai_auth(client.post(url).json(&body), provider, &key);
 
     let response = send_tts_with_retries(request).await?;
     let status = response.status();
+    if status.is_success() {
+        crate::free_credit::note_success(url, response.headers());
+    }
     if !status.is_success() {
         let body = response.text().await.unwrap_or_default();
         return Ok(SpeechAttempt::HttpError { status, body });
@@ -1514,6 +1578,9 @@ async fn fetch_openai_speech(
             maybe_wrap_pcm(&content_type, bytes)
         }),
         SpeechAttempt::HttpError { status, body } => {
+            if let Some(message) = crate::free_credit::note_failure(&url, status.as_u16(), &body) {
+                return Err(message);
+            }
             // Only retry as pcm for the specific "this model needs pcm" 400 so
             // unrelated 4xx/5xx errors (bad key, missing model, gateway) still
             // surface to the user immediately instead of doubling the latency.
@@ -2073,6 +2140,10 @@ pub async fn list_azure_voices(settings: &AppSettings) -> Result<Vec<AzureVoice>
 /// voice picker. Errors are returned for inline display.
 pub async fn list_tts_voices(settings: &AppSettings) -> Result<Vec<TtsVoice>, String> {
     let provider = active_provider(settings)?;
+    // Talvio free speaks with OpenAI's voices and has no listing to ask.
+    if provider.id == crate::free_credit::PROVIDER_ID {
+        return Ok(voices_from(OPENAI_TTS_VOICES));
+    }
     match provider.protocol {
         TtsProtocol::Local => Err("Kokoro's voices are built in".to_string()),
         TtsProtocol::Native => Ok(crate::native_tts::voice_names(provider.id)
@@ -3201,10 +3272,10 @@ mod tests {
         assert!(voice_engine_blocker(&with_voice("kokoro", "", "")).is_none());
         assert!(voice_engine_blocker(&get_default_settings()).is_none());
         // Native voices are gated on their download, not a key (tested below).
-        for provider in super::TTS_PROVIDERS
-            .iter()
-            .filter(|p| p.protocol != super::TtsProtocol::Native)
-        {
+        // Talvio free is gated on the account session (free_credit's tests).
+        for provider in super::TTS_PROVIDERS.iter().filter(|p| {
+            p.protocol != super::TtsProtocol::Native && p.id != crate::free_credit::PROVIDER_ID
+        }) {
             assert!(
                 voice_engine_blocker(&with_voice(
                     provider.id,

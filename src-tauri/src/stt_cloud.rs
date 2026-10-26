@@ -117,6 +117,39 @@ fn request_timeout(base_secs: u64, audio_secs: f64) -> Duration {
 pub(crate) fn resolve_cloud_stt(
     settings: &AppSettings,
 ) -> Result<ResolvedCloudStt, CloudSttResolutionError> {
+    resolve_cloud_stt_with(settings, crate::free_credit::access().as_ref())
+}
+
+/// The cloud provider a recording goes to: the chosen one, or Talvio free when
+/// the chosen one still needs a key the user never saved and the account's
+/// free credit can serve. Only ever on the cloud engine: choosing cloud is the
+/// user's consent to send audio out, so the local engine is never switched.
+pub(crate) fn effective_stt_provider(settings: &AppSettings, free_usable: bool) -> String {
+    let chosen = settings.cloud_stt_provider_id.as_str();
+    if chosen == crate::free_credit::PROVIDER_ID || !free_usable {
+        return chosen.to_string();
+    }
+    let needs_key = settings
+        .cloud_stt_providers
+        .iter()
+        .find(|p| p.id == chosen)
+        .is_none_or(|p| !allows_anonymous(p));
+    let has_key = settings
+        .cloud_stt_api_keys
+        .get(chosen)
+        .is_some_and(|k| !k.trim().is_empty());
+    if needs_key && !has_key {
+        crate::free_credit::PROVIDER_ID.to_string()
+    } else {
+        chosen.to_string()
+    }
+}
+
+/// [`resolve_cloud_stt`] with the free API's address and credential given.
+pub(crate) fn resolve_cloud_stt_with(
+    settings: &AppSettings,
+    free: Option<&crate::free_credit::FreeAccess>,
+) -> Result<ResolvedCloudStt, CloudSttResolutionError> {
     if settings.stt_engine_mode != SttEngineMode::Cloud {
         return Err(CloudSttResolutionError {
             reason: CloudSttUnavailableReason::NotEnabled,
@@ -125,10 +158,11 @@ pub(crate) fn resolve_cloud_stt(
         });
     }
 
+    let provider_id = effective_stt_provider(settings, free.is_some_and(|f| f.usable));
     let provider = settings
         .cloud_stt_providers
         .iter()
-        .find(|p| p.id == settings.cloud_stt_provider_id)
+        .find(|p| p.id == provider_id)
         .cloned()
         .ok_or_else(|| CloudSttResolutionError {
             reason: CloudSttUnavailableReason::SelectedProviderMissing,
@@ -147,6 +181,40 @@ pub(crate) fn resolve_cloud_stt(
             reason: CloudSttUnavailableReason::NoModelConfigured,
             provider_id: Some(provider.id.clone()),
             provider_label: Some(provider.label.clone()),
+        });
+    }
+
+    // Talvio free: the account session is the credential and the account
+    // server the address, both taken now rather than stored.
+    if provider.id == crate::free_credit::PROVIDER_ID {
+        let Some(free) = free else {
+            return Err(CloudSttResolutionError {
+                reason: CloudSttUnavailableReason::SignInRequired,
+                provider_id: Some(provider.id.clone()),
+                provider_label: Some(provider.label.clone()),
+            });
+        };
+        let keyterms = if settings.cloud_stt_send_custom_words {
+            crate::managers::transcription::recognition_words(settings)
+                .into_iter()
+                .map(|w| w.trim().to_string())
+                .filter(|w| !w.is_empty() && w.chars().count() <= MAX_KEYTERM_CHARS)
+                .take(MAX_KEYTERMS)
+                .collect()
+        } else {
+            Vec::new()
+        };
+        return Ok(ResolvedCloudStt {
+            base_url: free.base_url.clone(),
+            api_key: free.token.clone(),
+            model,
+            language: cloud_language_code(&settings.selected_language),
+            translate: false,
+            keyterms,
+            no_verbatim: settings.cloud_stt_no_verbatim,
+            timeout_secs: settings.cloud_stt_timeout_secs.max(5),
+            amazon: None,
+            provider,
         });
     }
 
@@ -832,6 +900,11 @@ pub(crate) fn prewarm_cloud_stt(settings: &AppSettings) {
     let Ok(cfg) = resolve_cloud_stt(settings) else {
         return;
     };
+    // A warm-up is a real, metered transcription: on Talvio free it would
+    // spend the user's free credit (and the owner's money) on a tone.
+    if cfg.provider.id == crate::free_credit::PROVIDER_ID {
+        return;
+    }
     // Realtime streaming opens its own socket at recording start already.
     if streams_live(settings, &cfg) {
         return;
@@ -1465,6 +1538,10 @@ impl CloudRequest {
         response: reqwest::Response,
     ) -> Result<T, String> {
         let status = response.status();
+        let url = response.url().to_string();
+        if status.is_success() {
+            crate::free_credit::note_success(&url, response.headers());
+        }
         let body = response.text().await.map_err(|e| {
             // The client timeout covers the whole exchange, so a slow body
             // times out here rather than at `send`. Reported as a timeout so it
@@ -1480,6 +1557,11 @@ impl CloudRequest {
             }
         })?;
         if !status.is_success() {
+            // Talvio free's refusals in words the user can act on. The
+            // message names no status, so it is never retried as transient.
+            if let Some(message) = crate::free_credit::note_failure(&url, status.as_u16(), &body) {
+                return Err(message);
+            }
             return Err(format!(
                 "{} returned {}: {}",
                 self.label,
@@ -1895,7 +1977,8 @@ mod tests {
         for provider in crate::settings::default_cloud_stt_providers() {
             assert_eq!(
                 provider.key_optional,
-                provider.id == "custom",
+                // Talvio free's credential is the account session.
+                provider.id == "custom" || provider.id == crate::free_credit::PROVIDER_ID,
                 "{} has the wrong key requirement",
                 provider.id
             );

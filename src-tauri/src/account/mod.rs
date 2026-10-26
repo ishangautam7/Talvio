@@ -170,7 +170,7 @@ fn manager(app: &AppHandle) -> Arc<AccountManager> {
 }
 
 /// The server in use, if there is one yet.
-fn server_url(app: &AppHandle) -> Option<String> {
+pub(crate) fn server_url(app: &AppHandle) -> Option<String> {
     let settings = get_settings(app);
     resolve_server(&settings.account_discovered_server, RELEASE)
 }
@@ -326,6 +326,11 @@ impl AccountManager {
         for task in inner.tasks.drain(..) {
             task.abort();
         }
+        // Talvio free authenticates with this session, on this server.
+        crate::free_credit::set_session(
+            server_url(&self.app).filter(|url| server_allowed(url)),
+            Some(token.to_string()),
+        );
         inner.router = None;
         inner.generation += 1;
         inner.devices.clear();
@@ -425,6 +430,7 @@ impl AccountManager {
             inner.devices.clear();
             inner.session.take()
         };
+        crate::free_credit::set_session(None, None);
         self.keep_approved(|_| false);
         // What phones asked the assistant belonged to this session.
         crate::assistant::phone::forget_all();

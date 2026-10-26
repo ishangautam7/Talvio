@@ -16,6 +16,7 @@ mod dictation_recovery;
 pub mod engine_supervisor;
 mod feedback;
 mod flow;
+mod free_credit;
 mod hands_free;
 mod helpers;
 mod huggingface;
@@ -1343,6 +1344,9 @@ pub fn run(cli_args: CliArgs) {
             commands::get_settings_notices,
             commands::dismiss_settings_notice,
             account::account_get_status,
+            free_credit::get_free_credit_status,
+            free_credit::refresh_free_credit,
+            free_credit::choose_free_credit,
             account::account_sign_up,
             account::account_sign_in,
             account::account_sign_in_google,
@@ -1675,6 +1679,7 @@ pub fn run(cli_args: CliArgs) {
             app.manage(command_mode::CommandModeState::default());
 
             initialize_core_logic(&app_handle);
+            free_credit::init(&app_handle);
             account::init(&app_handle);
 
             // Create the assistant panel window (hidden until first use). Skipped
