@@ -249,6 +249,13 @@ reload) is press_keys with its usual shortcut, using \"primary\" for Ctrl or Cmd
 file\" is primary+s). Do not ask which file: the app in front knows.
 - A file, or the Documents, Downloads or Desktop folder, is open_file (\"open my downloads \
 folder\").
+- To email or send a file from this computer (\"email me the project report\", \"send the \
+invoice PDF to Ron\", \"send me this file\", Nepali \"mero report mail ma pathau\"), use \
+compose_email alone with attach set to the file as the user named it; do not open_file first. \
+\"Me\", \"myself\" or \"malai\" is to=\"me\". \"This file\" is the file open in the window in \
+front: take its name from that window's title. Write a short subject and body naming the file. \
+When you asked for the user's own email address and they answered with it, set \
+remember_as_mine to true.
 - Closing or quitting an app or window is never done for the user (unsaved work could be lost): \
 use say to tell them to close it themselves. Do not ask a question about it.
 - To play a song, video, artist or playlist by name (\"play Believer\", \"play some lo-fi\", \
@@ -1746,5 +1753,33 @@ mod tests {
             let b: Vec<&str> = offered.iter().map(|s| s.name).collect();
             assert_eq!(a, b);
         }
+    }
+
+    /// Emailing a file, in English or Nepali, is compose_email's job: its
+    /// words reach it when the tools are narrowed, and the prompt and its
+    /// schema say how (attach, "me", remember_as_mine).
+    #[test]
+    fn emailing_a_file_is_routed_to_compose_email() {
+        let email = registry::all()
+            .iter()
+            .find(|s| s.name == "compose_email")
+            .expect("compose_email");
+        for spoken in [
+            "email me the project report",
+            "send the invoice pdf to Ron",
+            "mero report mail ma pathau",
+        ] {
+            assert!(
+                relevance(email, &word_set(spoken)) > 0,
+                "{spoken} should reach compose_email"
+            );
+        }
+        let schema = (email.schema)();
+        for field in ["attach", "attach_kind", "remember_as_mine"] {
+            assert!(schema["properties"].get(field).is_some(), "{field}");
+        }
+        let prompt = system_prompt();
+        assert!(prompt.contains("attach set to the file"), "{prompt}");
+        assert!(prompt.contains("remember_as_mine"), "{prompt}");
     }
 }

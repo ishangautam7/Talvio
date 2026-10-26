@@ -20,6 +20,19 @@
 //! Message", a Teams chat named after the subject and any open Gmail reply,
 //! and Ctrl+Enter in any of those sends something.
 //!
+//! **A file can go with it** (`attach`: "email me the project report", "send
+//! the invoice PDF to Ron"). The file is found the way `open_file` finds one
+//! (recent files first, then a bounded walk of Documents, Downloads, Desktop
+//! and home), restricted to what [`files::send_refusal`] lets leave the
+//! computer, and checked against Gmail's 25 MB limit before any draft opens.
+//! It is attached in the draft itself, through Gmail's own Attach button and
+//! the file dialog it opens ([`attach`]), and the draft only goes on to be
+//! sent once Gmail's chip says "Attachment: <file>": a draft whose file did
+//! not attach is never sent, and [`send`] checks the chip again before it
+//! presses Send. "Me" is the user's own address (`command_own_email`, filled
+//! from the signed-in Talvio account), asked for once when unknown and then
+//! remembered (`remember_as_mine`, [`address_to_remember`]).
+//!
 //! Recipients are spoken names, so they go through the contact book, and the
 //! rule is the contact book's: one clear person with an address is used,
 //! anything else becomes a question. Mailing the wrong person is worse than
@@ -30,10 +43,13 @@
 use log::{info, warn};
 use reqwest::Url;
 use serde_json::{json, Value};
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use crate::command_mode::contacts::{looks_like_email, Contact, ContactMatch};
-use crate::command_mode::effects::{KeyCombo, WindowEntry};
+use crate::command_mode::effects::{AttachState, KeyCombo, WindowEntry};
+use crate::command_mode::files;
+use crate::command_mode::tools::open_file::{self, FileLookup};
 use crate::command_mode::registry::{
     arg_str, arg_strings, Feedback, PendingAction, Risk, ToolCtx, ToolOutcome, ToolSpec,
     ALL_PLATFORMS,
@@ -105,6 +121,32 @@ fn sent_wait() -> (Duration, Duration) {
     }
 }
 
+/// How long [`attach`] waits for the file dialog to take the keyboard after
+/// Attach is pressed, and how often it looks (measured: 0.6 to 0.8 s).
+fn picker_wait() -> (Duration, Duration) {
+    if real_waits() {
+        (Duration::from_secs(8), Duration::from_millis(200))
+    } else {
+        (Duration::from_millis(30), Duration::from_millis(5))
+    }
+}
+
+/// How long [`attach`] waits for Gmail to finish uploading a file of `bytes`
+/// (measured: under 4 s for a small file), and how often it looks: a floor,
+/// plus time for the upload itself on a slow link (about 2 s a megabyte),
+/// capped at three minutes.
+fn upload_wait(bytes: u64) -> (Duration, Duration) {
+    if real_waits() {
+        let per_mb = Duration::from_secs(2) * (bytes / (1024 * 1024)) as u32;
+        (
+            (Duration::from_secs(20) + per_mb).min(Duration::from_secs(180)),
+            Duration::from_millis(400),
+        )
+    } else {
+        (Duration::from_millis(30), Duration::from_millis(5))
+    }
+}
+
 /// What every Gmail window title carries ("Compose Mail - … - Gmail"),
 /// compared lowercase. The only title fragment trusted on its own: "compose"
 /// and "new message" also name editors, Outlook and Apple Mail.
@@ -119,11 +161,15 @@ pub static SPEC: ToolSpec = ToolSpec {
     description: "Write and send an email in Gmail: opens a filled-in draft in the browser \
                   and sends it. With confirm_first the draft is left open for the user to \
                   check and send. Use for any request to email, mail or message someone by \
-                  email.",
+                  email, and to email a file from this computer (attach): \"email me the \
+                  project report\", \"send the invoice PDF to Ron\", \"mero report mail ma \
+                  pathau\".",
     schema,
     risk: Risk::NeedsConfirmation,
     platforms: ALL_PLATFORMS,
-    keywords: &["email", "mail", "gmail", "send", "write", "message"],
+    keywords: &[
+        "email", "mail", "gmail", "send", "write", "message", "attach", "file", "pathau",
+    ],
     handler: run,
     on_confirm: Some(send),
 };
@@ -137,9 +183,31 @@ fn schema() -> Value {
                 "minLength": 1,
                 "maxLength": 500,
                 "description": "Who the email is for: a contact's name as the user said it \
-                                (\"Ron\", \"Hermione Granger\") or an email address the user \
-                                said, written alone. Several recipients are separated by \
-                                commas."
+                                (\"Ron\", \"Hermione Granger\"), an email address the user \
+                                said, written alone, or \"me\" when the user means themself \
+                                (\"email me\", \"send it to myself\", \"malai\"). Several \
+                                recipients are separated by commas."
+            },
+            "attach": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 260,
+                "description": "A file on this computer to attach, as the user named it \
+                                (\"the project report\", \"invoice pdf\", \"Q3 budget\"). For \
+                                \"this file\", the file open in the window in front (its \
+                                name is in that window's title). Only when the user asks to \
+                                send or attach a file."
+            },
+            "attach_kind": {
+                "type": "string",
+                "enum": ["document", "spreadsheet", "presentation", "pdf", "image", "video", "audio", "any"],
+                "description": "The kind of file to attach when the user said it (\"the \
+                                budget spreadsheet\", \"the invoice PDF\"); otherwise omit."
+            },
+            "remember_as_mine": {
+                "type": "boolean",
+                "description": "True only when `to` is an email address the user just gave \
+                                as their own, answering what their address is."
             },
             "subject": {
                 "type": "string",
@@ -205,6 +273,16 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
         }
     }
 
+    // The file is found, judged and sized before anything opens, so a file
+    // that cannot go never leaves a draft behind.
+    let attachment = match arg_str(&args, "attach") {
+        Some(spoken) => match find_attachment(ctx, spoken, arg_str(&args, "attach_kind")) {
+            Ok(file) => Some(file),
+            Err(outcome) => return outcome,
+        },
+        None => None,
+    };
+
     let account = ctx.settings.command_google_account.trim();
     let draft = match build_draft_url(&to, &cc, subject, body, account) {
         Ok(draft) => draft,
@@ -239,6 +317,37 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     if unidentified {
         warn!("command mode: compose_email saw no Gmail window come forward; the send will refuse");
     }
+    // The file goes into the draft now, so a draft the user reviews already
+    // has it, and one it never reached is never sent.
+    if let Some(file) = &attachment {
+        if unidentified {
+            return ToolOutcome::failed(
+                format!(
+                    "I couldn't tell which window the Gmail draft opened in, so I couldn't \
+                     attach {} and nothing was sent.",
+                    file.name
+                ),
+                false,
+            );
+        }
+        if let Some(window) = &window {
+            if let Err(why) = attach(ctx, window, file) {
+                warn!("command mode: compose_email could not attach the file: {why}");
+                return ToolOutcome::failed(
+                    format!(
+                        "I couldn't attach {}, so nothing was sent. {why} The draft is open in \
+                         Gmail.",
+                        file.name
+                    ),
+                    false,
+                );
+            }
+            info!(
+                "command mode: compose_email attached a file ({})",
+                files::readable_size(file.bytes)
+            );
+        }
+    }
 
     let names = to
         .iter()
@@ -257,13 +366,22 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     if !cc.is_empty() {
         summary.push_str(&format!(", cc {}", recipient_labels(&cc)));
     }
+    if let Some(file) = &attachment {
+        summary.push_str(&format!(" with {}", file.name));
+    }
     if !subject.is_empty() {
         summary.push_str(&format!(" · {subject}"));
     }
     if unidentified {
         summary.push_str(" (I couldn't identify the draft window, so I can't press Send for you)");
     }
-    let feedback = if draft.truncated {
+    let feedback = if let Some(file) = &attachment {
+        Feedback::new(
+            "emailDraftFile",
+            "Draft to {{name}} with {{file}} is open. Say send or cancel.",
+            &[("name", &addressed), ("file", &file.name)],
+        )
+    } else if draft.truncated {
         Feedback::new(
             "emailDraftTruncated",
             "Draft to {{name}} is open. The message was too long to pass to Gmail, so it was \
@@ -278,16 +396,20 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
         )
     };
     let window = window.map(|w| json!({"id": w.id, "app": w.app, "title": w.title}));
+    let mut payload = json!({
+        "subject": subject,
+        "to_name": names,
+        "to_email": emails,
+        "window": window,
+    });
+    if let Some(file) = &attachment {
+        payload["attachment"] = json!({"name": file.name, "bytes": file.bytes});
+    }
     ToolOutcome::NeedsConfirmation {
         pending: PendingAction {
             tool: "compose_email",
             summary,
-            payload: json!({
-                "subject": subject,
-                "to_name": names,
-                "to_email": emails,
-                "window": window,
-            }),
+            payload,
         },
         feedback,
     }
@@ -396,11 +518,28 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
         modifiers: vec![ctx.platform.primary_modifier()],
         key: "enter".to_string(),
     };
+    let attached: Option<(String, u64)> = payload.get("attachment").and_then(|a| {
+        Some((
+            a.get("name")?.as_str()?.to_string(),
+            a.get("bytes").and_then(Value::as_u64).unwrap_or(0),
+        ))
+    });
+    let sent = || match &attached {
+        Some((file, _)) => ToolOutcome::done(
+            "emailSentFile",
+            "Sent {{file}} to {{name}}.",
+            &[("file", file), ("name", name)],
+        ),
+        None => ToolOutcome::done("emailSent", "Sent to {{name}}.", &[("name", name)]),
+    };
 
     // A dry run touches no real window: the press is only recorded, and
     // there is no draft to check because none was opened.
     if ctx.dry_run {
-        return press_send(ctx, &combo, name);
+        return match press_send(ctx, &combo, name) {
+            ToolOutcome::Done { .. } => sent(),
+            failed => failed,
+        };
     }
 
     let Some(draft) = stored_window(&payload) else {
@@ -428,6 +567,18 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
         warn!("command mode: compose_email never saw the compose page finish loading; sending anyway");
     }
     let baseline = loaded.unwrap_or_else(|| draft.title.clone());
+
+    // Never without its file: the chip has to still say it is attached (an
+    // upload still running is waited out).
+    if let Some((file, bytes)) = &attached {
+        if wait_for_attachment(ctx, draft.id, file, *bytes) != AttachState::Attached {
+            warn!("command mode: compose_email's attachment is no longer on the draft; not sending");
+            return ToolOutcome::failed(
+                format!("{file} isn't attached to the draft any more, so nothing was sent."),
+                false,
+            );
+        }
+    }
 
     if let Err(e) = ctx.effects.focus_window(&window) {
         warn!("command mode: compose_email could not focus the draft: {e}");
@@ -468,10 +619,14 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
     // compose form, and a focused window does not put the keyboard there (a
     // send carried out the moment the draft opened pressed it into nothing).
     // The shortcut stays as the fallback where the tree finds no button.
+    // How many compose pages the window holds before the send: a browser
+    // window with another draft in a tab of its own shows that tab, with the
+    // same title, once Gmail closes this one.
+    let compose_tabs = compose_tab_count(ctx, draft.id);
     let pressed = match ctx.effects.press_button(draft.id, "send") {
         Ok(true) => {
             info!("command mode: compose_email pressed Gmail's Send button");
-            ToolOutcome::done("emailSent", "Sent to {{name}}.", &[("name", name)])
+            sent()
         }
         Ok(false) => press_send(ctx, &combo, name),
         Err(e) => {
@@ -480,10 +635,10 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
         }
     };
     match pressed {
-        ToolOutcome::Done { feedback } => {
-            if gmail_took_the_draft(ctx, draft.id, &baseline) {
+        ToolOutcome::Done { .. } => {
+            if gmail_took_the_draft(ctx, draft.id, &baseline, compose_tabs) {
                 info!("command mode: compose_email saw Gmail take the draft");
-                ToolOutcome::Done { feedback }
+                sent()
             } else {
                 warn!("command mode: compose_email pressed send but the draft is still open");
                 ToolOutcome::failed(
@@ -499,10 +654,18 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
 /// Whether Gmail took the draft after the send shortcut: its window closed,
 /// or it no longer shows the compose page (Gmail moves on to the inbox once
 /// a message is sent; a draft it refused, for a bad address say, stays with
-/// an error on it). Only evidence counts: a send is never reported done
-/// because a key was pressed. The title comes from the foreground when that
-/// is the draft's window, since on a Mac the window list names only the app.
-fn gmail_took_the_draft(ctx: &ToolCtx, id: i64, baseline: &str) -> bool {
+/// an error on it), or one compose tab fewer in the window than
+/// `compose_tabs` before the send (Gmail closed this draft's tab and another
+/// compose tab, with the same title, came to the front). Only evidence
+/// counts: a send is never reported done because a key was pressed. The
+/// title comes from the foreground when that is the draft's window, since on
+/// a Mac the window list names only the app.
+fn gmail_took_the_draft(
+    ctx: &ToolCtx,
+    id: i64,
+    baseline: &str,
+    compose_tabs: Option<usize>,
+) -> bool {
     let (wait, poll) = sent_wait();
     let deadline = Instant::now() + wait;
     loop {
@@ -513,11 +676,26 @@ fn gmail_took_the_draft(ctx: &ToolCtx, id: i64, baseline: &str) -> bool {
         if !lower.starts_with(COMPOSE_TITLE) && title != baseline {
             return true;
         }
+        if let (Some(before), Some(now)) = (compose_tabs, compose_tab_count(ctx, id)) {
+            if now < before {
+                return true;
+            }
+        }
         if Instant::now() >= deadline {
             return false;
         }
         std::thread::sleep(poll);
     }
+}
+
+/// How many of window `id`'s tabs show Gmail's compose page, where its tab
+/// strip can be read.
+fn compose_tab_count(ctx: &ToolCtx, id: i64) -> Option<usize> {
+    ctx.effects.tab_titles(id).map(|tabs| {
+        tabs.iter()
+            .filter(|tab| tab.to_lowercase().starts_with(COMPOSE_TITLE))
+            .count()
+    })
 }
 
 /// The title of window `id` now, from the foreground when that is the
@@ -597,6 +775,19 @@ fn split_recipients(raw: &str) -> Vec<String> {
 /// more than a bare address would get), or a contact with no address on file.
 /// Either way the confirmation shows exactly where the mail goes.
 fn resolve_recipient(ctx: &ToolCtx, query: &str) -> Result<Recipient, ToolOutcome> {
+    if means_self(query) {
+        let own = ctx.settings.command_own_email.trim();
+        if looks_like_email(own) {
+            return Ok(Recipient {
+                name: "you".to_string(),
+                email: own.to_string(),
+            });
+        }
+        return Err(ToolOutcome::ask(
+            "What's your email address? I'll remember it.",
+            Vec::new(),
+        ));
+    }
     if let Some((name, email)) = parse_named_address(query) {
         if let Some(contact) = contact_with_address(ctx, &email) {
             return Ok(Recipient {
@@ -689,6 +880,183 @@ fn choice_label(contact: &Contact) -> String {
     match contact.primary_email() {
         Some(email) => format!("{} <{email}>", contact.name),
         None => contact.name.clone(),
+    }
+}
+
+/// Whether a spoken recipient is the user themself: "me", "myself", "my
+/// email", or the Nepali "malai" / "mero email".
+fn means_self(query: &str) -> bool {
+    const SELF: &[&str] = &[
+        "me",
+        "myself",
+        "my self",
+        "my email",
+        "my email address",
+        "my own email",
+        "my address",
+        "my mail",
+        "my inbox",
+        "malai",
+        "mailai",
+        "mero email",
+        "mero mail",
+    ];
+    let spoken = query.trim().trim_end_matches('.').to_lowercase();
+    SELF.contains(&spoken.as_str())
+}
+
+/// The address to keep as the user's own, from a planned call: an email
+/// whose `remember_as_mine` is set and whose `to` is one address.
+pub(crate) fn address_to_remember(tool: &str, args: &Value) -> Option<String> {
+    if tool != SPEC.name || args.get("remember_as_mine").and_then(Value::as_bool) != Some(true) {
+        return None;
+    }
+    let to = arg_str(args, "to")?.trim();
+    let to = parse_named_address(to).map_or_else(|| to.to_string(), |(_, email)| email);
+    looks_like_email(&to).then_some(to)
+}
+
+/// A file found to attach.
+#[derive(Debug, Clone, PartialEq)]
+struct Attachment {
+    path: PathBuf,
+    /// Its name, as Gmail's chip shows it.
+    name: String,
+    bytes: u64,
+}
+
+/// Find the file `spoken` names among the user's own documents, or the
+/// outcome to give instead: a question when several match, a refusal when
+/// the only match may not leave the computer or is too big for Gmail.
+fn find_attachment(
+    ctx: &ToolCtx,
+    spoken: &str,
+    kind: Option<&str>,
+) -> Result<Attachment, ToolOutcome> {
+    let Some(home) = files::home_dir() else {
+        return Err(ToolOutcome::failed(
+            "I couldn't find your user folder, so I can't look for the file.",
+            false,
+        ));
+    };
+    let found =
+        match open_file::find_file(ctx, spoken, kind, &|path| files::may_send(path, &home)) {
+            FileLookup::One(path) => path,
+            FileLookup::Several(labels) => {
+                return Err(ToolOutcome::ask("Which file should I attach?", labels));
+            }
+            FileLookup::OnlyPrograms => {
+                return Err(ToolOutcome::failed(
+                    "I only attach documents, and Gmail doesn't take programs.",
+                    false,
+                ));
+            }
+            FileLookup::Nothing => {
+                // Said apart from "not found": a file that is there but may
+                // not leave the computer.
+                let private = matches!(
+                    open_file::find_file(ctx, spoken, kind, &|_| true),
+                    FileLookup::One(_) | FileLookup::Several(_)
+                );
+                let why = if private {
+                    format!(
+                        "I won't email {spoken}: it looks private (a key, a password or an \
+                         app's data), or it is outside your user folder."
+                    )
+                } else {
+                    format!("I couldn't find a file called {spoken} to attach.")
+                };
+                return Err(ToolOutcome::failed(why, false));
+            }
+        };
+    let path = files::followed(&found).ok_or_else(|| {
+        ToolOutcome::failed("I couldn't tell which file that shortcut opens.", false)
+    })?;
+    if let Some(why) = files::send_refusal(&path, &home) {
+        return Err(ToolOutcome::failed(
+            format!("I won't email that file: {why}."),
+            false,
+        ));
+    }
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| spoken.to_string());
+    let bytes = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+    if bytes > files::MAX_ATTACHMENT_BYTES {
+        return Err(ToolOutcome::failed(
+            format!(
+                "{name} is {}, and Gmail attaches at most 25 MB, so nothing was sent.",
+                files::readable_size(bytes)
+            ),
+            false,
+        ));
+    }
+    info!(
+        "command mode: compose_email will attach a file ({})",
+        files::readable_size(bytes)
+    );
+    Ok(Attachment { path, name, bytes })
+}
+
+/// Put `file` into the draft in `window`: Gmail's Attach button opens the
+/// file dialog, its name box (which has the keyboard) gets the full path,
+/// Enter attaches, and Gmail's chip has to come to "Attachment: <file>".
+/// The path is typed only while the dialog is what holds the keyboard.
+fn attach(ctx: &ToolCtx, window: &WindowEntry, file: &Attachment) -> Result<(), String> {
+    if wait_for_compose(ctx, window.id).is_none() {
+        warn!("command mode: compose_email attaching to a compose page that never said it loaded");
+    }
+    ctx.effects
+        .focus_window(window)
+        .map_err(|e| format!("I couldn't bring the draft forward. {e}"))?;
+    std::thread::sleep(FOCUS_SETTLE);
+    match ctx.effects.open_file_picker(window.id, "attach") {
+        Ok(true) => {}
+        Ok(false) => return Err("I couldn't find Gmail's Attach button.".into()),
+        Err(e) => return Err(format!("Gmail's Attach button didn't open. {e}")),
+    }
+    let (wait, poll) = picker_wait();
+    let deadline = Instant::now() + wait;
+    while !ctx.effects.file_picker_ready(window.id) {
+        if Instant::now() >= deadline {
+            return Err("The file picker didn't open.".into());
+        }
+        std::thread::sleep(poll);
+    }
+    ctx.effects
+        .type_text(&file.path.display().to_string())
+        .map_err(|e| format!("I couldn't type the file's location. {e}"))?;
+    std::thread::sleep(Duration::from_millis(250));
+    if !ctx.effects.file_picker_ready(window.id) {
+        return Err("The file picker closed before I could choose the file.".into());
+    }
+    let enter = KeyCombo {
+        modifiers: Vec::new(),
+        key: "enter".to_string(),
+    };
+    ctx.effects
+        .press_keys(&enter)
+        .map_err(|e| format!("I couldn't choose the file. {e}"))?;
+    match wait_for_attachment(ctx, window.id, &file.name, file.bytes) {
+        AttachState::Attached => Ok(()),
+        AttachState::Uploading => Err("Gmail was still uploading it.".into()),
+        AttachState::Absent => Err("Gmail didn't show it on the draft.".into()),
+    }
+}
+
+/// Wait while Gmail uploads `file` to the draft in window `id`, until its
+/// chip says it is attached or [`upload_wait`] runs out. What the page last
+/// said.
+fn wait_for_attachment(ctx: &ToolCtx, id: i64, file: &str, bytes: u64) -> AttachState {
+    let (wait, poll) = upload_wait(bytes);
+    let deadline = Instant::now() + wait;
+    loop {
+        let state = ctx.effects.attachment_state(id, file);
+        if state == AttachState::Attached || Instant::now() >= deadline {
+            return state;
+        }
+        std::thread::sleep(poll);
     }
 }
 
@@ -1274,6 +1642,24 @@ mod tests {
         fn focus_window(&self, window: &WindowEntry) -> Result<(), String> {
             self.inner.focus_window(window)
         }
+        fn foreground_is_exactly(&self, id: i64) -> bool {
+            self.inner.foreground_is_exactly(id)
+        }
+        fn press_button(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+            self.inner.press_button(window_id, first_word)
+        }
+        fn open_file_picker(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+            self.inner.open_file_picker(window_id, first_word)
+        }
+        fn file_picker_ready(&self, window_id: i64) -> bool {
+            self.inner.file_picker_ready(window_id)
+        }
+        fn attachment_state(&self, window_id: i64, file_name: &str) -> AttachState {
+            self.inner.attachment_state(window_id, file_name)
+        }
+        fn tab_titles(&self, window_id: i64) -> Option<Vec<String>> {
+            self.inner.tab_titles(window_id)
+        }
         fn type_text(&self, text: &str) -> Result<(), String> {
             self.inner.type_text(text)
         }
@@ -1352,7 +1738,7 @@ mod tests {
             ..Default::default()
         };
         let ctx = ctx_over(Arc::new(fake), book(), Platform::Windows);
-        assert!(gmail_took_the_draft(&ctx, draft.id, &draft.title));
+        assert!(gmail_took_the_draft(&ctx, draft.id, &draft.title, None));
     }
 
     fn payload_with(window: Value) -> Value {
@@ -1715,5 +2101,285 @@ mod tests {
             &json!({"to": "Ron", "subject": "", "body": "", "bcc": ["x"]})
         )
         .is_err());
+    }
+    // ── Attachments ──────────────────────────────────────────────────────
+
+    /// A temporary user folder with `files` (relative paths) in Documents,
+    /// standing in for the real one on this thread.
+    fn home_with(files: &[&str]) -> tempfile::TempDir {
+        let home = tempfile::tempdir().unwrap();
+        for rel in files {
+            let path = home.path().join("Documents").join(rel);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(&path, "report").unwrap();
+        }
+        crate::command_mode::files::set_test_home(home.path());
+        home
+    }
+
+    /// A Gmail draft that opens, takes an attachment as `attaches_as`, and
+    /// sends from its Send button.
+    fn attaching_browser(
+        home: &Path,
+        attaches_as: Option<AttachState>,
+    ) -> (Arc<FakeEffects>, Arc<dyn Effects>) {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = Arc::new(FakeEffects {
+            windows: vec![draft.clone()],
+            folders: vec![home.join("Documents")],
+            foreground: std::sync::Mutex::new(None),
+            focus_follows: true,
+            send_retitles: Some(INBOX_TITLE.into()),
+            buttons: vec![(2, "Send".into())],
+            picker_buttons: vec![(2, "Attach".into())],
+            attaches_as,
+            ..Default::default()
+        });
+        let effects = browser(&fake, Some(draft));
+        (fake, effects)
+    }
+
+    fn own_ctx(effects: Arc<dyn Effects>) -> ToolCtx {
+        let mut ctx = ctx_over(effects, book(), Platform::Windows);
+        ctx.settings.command_own_email = "me@example.com".into();
+        ctx
+    }
+
+    /// "Email me the project report": the file is found in Documents, put
+    /// into the draft through Gmail's Attach button and the file dialog, and
+    /// the send reports the file by name, to "you".
+    #[test]
+    fn a_file_is_found_attached_and_sent_to_me() {
+        let home = home_with(&["Project report.pdf", "holiday.jpg"]);
+        let (fake, effects) = attaching_browser(home.path(), Some(AttachState::Attached));
+        let ctx = own_ctx(effects);
+        let ToolOutcome::NeedsConfirmation { pending, feedback } = run(
+            &ctx,
+            json!({"to": "me", "subject": "Project report", "body": "Here it is.",
+                   "attach": "the project report"}),
+        ) else {
+            panic!("expected a draft with the file");
+        };
+        assert_eq!(feedback.key, "commandMode.feedback.emailDraftFile");
+        assert!(pending.summary.contains("me@example.com"), "{}", pending.summary);
+        assert!(pending.summary.contains("with Project report.pdf"), "{}", pending.summary);
+        assert_eq!(pending.payload["attachment"]["name"], "Project report.pdf");
+        let path = home.path().join("Documents").join("Project report.pdf");
+        let actions = fake.actions();
+        assert!(actions[0].starts_with("open_url "), "{actions:?}");
+        assert!(actions[0].contains("me%40example.com"), "{actions:?}");
+        assert_eq!(
+            actions[1..],
+            [
+                "focus_window 2".to_string(),
+                "open_file_picker 2 attach".to_string(),
+                format!("type_text {}", path.display()),
+                "press_keys Enter".to_string(),
+            ]
+        );
+
+        let outcome = send(&ctx, pending.payload);
+        assert_eq!(
+            outcome,
+            ToolOutcome::done(
+                "emailSentFile",
+                "Sent {{file}} to {{name}}.",
+                &[("file", "Project report.pdf"), ("name", "you")]
+            )
+        );
+        assert!(fake.actions().contains(&"press_button 2 send".to_string()));
+    }
+
+    /// A file the draft never showed as attached is never sent: the run
+    /// fails honestly and nothing waits to be sent.
+    #[test]
+    fn a_file_that_did_not_attach_is_never_sent() {
+        let home = home_with(&["invoice.pdf"]);
+        for shown in [None, Some(AttachState::Uploading)] {
+            let (fake, effects) = attaching_browser(home.path(), shown);
+            let ctx = own_ctx(effects);
+            let outcome = run(
+                &ctx,
+                json!({"to": "Ron", "subject": "Invoice", "body": "Attached.",
+                       "attach": "invoice", "attach_kind": "pdf"}),
+            );
+            let ToolOutcome::Failed { reason, .. } = outcome else {
+                panic!("expected a failure, got {outcome:?}");
+            };
+            assert!(reason.contains("couldn't attach invoice.pdf"), "{reason}");
+            assert!(reason.contains("nothing was sent"), "{reason}");
+            assert!(
+                !fake.actions().iter().any(|a| a.contains("send")),
+                "{:?}",
+                fake.actions()
+            );
+        }
+    }
+
+    /// The send itself checks the chip again: a file removed from the draft
+    /// since it was attached stops the send.
+    #[test]
+    fn the_send_checks_the_file_is_still_attached() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = Arc::new(FakeEffects {
+            windows: vec![draft.clone()],
+            foreground: std::sync::Mutex::new(Some(draft)),
+            focus_follows: true,
+            send_retitles: Some(INBOX_TITLE.into()),
+            buttons: vec![(2, "Send".into())],
+            ..Default::default()
+        });
+        let ctx = ctx(&fake, book(), Platform::Windows);
+        let mut payload = payload();
+        payload["attachment"] = json!({"name": "invoice.pdf", "bytes": 1200});
+        let ToolOutcome::Failed { reason, .. } = send(&ctx, payload.clone()) else {
+            panic!("expected a refusal");
+        };
+        assert!(reason.contains("isn't attached"), "{reason}");
+        assert!(!fake.actions().iter().any(|a| a.contains("press_button")));
+
+        *fake.attachment.lock().unwrap() = Some(AttachState::Attached);
+        let outcome = send(&ctx, payload);
+        assert_eq!(
+            outcome,
+            ToolOutcome::done(
+                "emailSentFile",
+                "Sent {{file}} to {{name}}.",
+                &[("file", "invoice.pdf"), ("name", "Ron Weasley")]
+            )
+        );
+    }
+
+    /// Several close files are a question naming each, and nothing opens.
+    #[test]
+    fn several_close_files_are_a_question() {
+        let home = home_with(&["report 2025.pdf", "report 2026.pdf"]);
+        let (fake, effects) = attaching_browser(home.path(), Some(AttachState::Attached));
+        let ctx = own_ctx(effects);
+        let outcome = run(
+            &ctx,
+            json!({"to": "me", "subject": "Report", "body": "", "attach": "report"}),
+        );
+        let ToolOutcome::AskUser { question, choices } = outcome else {
+            panic!("expected a question, got {outcome:?}");
+        };
+        assert_eq!(question, "Which file should I attach?");
+        assert_eq!(choices.len(), 2, "{choices:?}");
+        assert!(fake.actions().is_empty(), "{:?}", fake.actions());
+    }
+
+    /// A file that reads as a secret is refused by name, and one that is
+    /// not there is said to be missing; neither opens a draft.
+    #[test]
+    fn private_and_missing_files_are_said_apart() {
+        let home = home_with(&["my passwords.txt"]);
+        let (fake, effects) = attaching_browser(home.path(), Some(AttachState::Attached));
+        let ctx = own_ctx(effects);
+        let ToolOutcome::Failed { reason, .. } = run(
+            &ctx,
+            json!({"to": "me", "subject": "x", "body": "", "attach": "my passwords"}),
+        ) else {
+            panic!("expected a refusal");
+        };
+        assert!(reason.contains("won't email"), "{reason}");
+        let ToolOutcome::Failed { reason, .. } = run(
+            &ctx,
+            json!({"to": "me", "subject": "x", "body": "", "attach": "tax return"}),
+        ) else {
+            panic!("expected not found");
+        };
+        assert!(reason.contains("couldn't find a file called tax return"), "{reason}");
+        assert!(fake.actions().is_empty(), "{:?}", fake.actions());
+    }
+
+    /// A file over Gmail's 25 MB is refused before any draft opens.
+    #[test]
+    fn a_file_too_big_for_gmail_is_refused_first() {
+        let home = home_with(&[]);
+        let big = home.path().join("Documents").join("site backup.zip");
+        std::fs::create_dir_all(big.parent().unwrap()).unwrap();
+        std::fs::File::create(&big)
+            .unwrap()
+            .set_len(30 * 1024 * 1024)
+            .unwrap();
+        let (fake, effects) = attaching_browser(home.path(), Some(AttachState::Attached));
+        let ctx = own_ctx(effects);
+        let ToolOutcome::Failed { reason, .. } = run(
+            &ctx,
+            json!({"to": "Ron", "subject": "Backup", "body": "", "attach": "site backup"}),
+        ) else {
+            panic!("expected a refusal");
+        };
+        assert!(reason.contains("30 MB"), "{reason}");
+        assert!(reason.contains("25 MB"), "{reason}");
+        assert!(fake.actions().is_empty(), "{:?}", fake.actions());
+    }
+
+    /// A browser window with another draft in a tab of its own still reads
+    /// "Compose Mail" once Gmail closes the one just sent; one compose tab
+    /// fewer is the evidence then.
+    #[test]
+    fn one_compose_tab_fewer_counts_as_sent() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = FakeEffects {
+            windows: vec![draft.clone()],
+            foreground: std::sync::Mutex::new(Some(draft.clone())),
+            tabs: std::sync::Mutex::new(Some(vec![
+                "Compose Mail - me@example.com - Gmail".into(),
+                "Believer - YouTube".into(),
+            ])),
+            ..Default::default()
+        };
+        let ctx = ctx_over(Arc::new(fake), book(), Platform::Windows);
+        assert!(gmail_took_the_draft(&ctx, draft.id, &draft.title, Some(2)));
+        assert!(!gmail_took_the_draft(&ctx, draft.id, &draft.title, Some(1)));
+        assert!(!gmail_took_the_draft(&ctx, draft.id, &draft.title, None));
+    }
+
+    /// "Me" with no address known is a question, asked once.
+    #[test]
+    fn me_without_an_address_asks_for_it() {
+        let fake = Arc::new(FakeEffects::default());
+        let ctx = ctx(&fake, book(), Platform::Windows);
+        let outcome = run(&ctx, json!({"to": "me", "subject": "Hi", "body": "Hello"}));
+        let ToolOutcome::AskUser { question, .. } = outcome else {
+            panic!("expected a question, got {outcome:?}");
+        };
+        assert!(question.contains("your email address"), "{question}");
+        assert!(fake.actions().is_empty());
+    }
+
+    #[test]
+    fn the_user_themself_is_recognised_in_english_and_nepali() {
+        for spoken in ["me", "Me", "myself", "my email", "malai", "mero email", "me."] {
+            assert!(means_self(spoken), "{spoken}");
+        }
+        for spoken in ["Ron", "meera", "my boss", "mero sathi"] {
+            assert!(!means_self(spoken), "{spoken}");
+        }
+    }
+
+    /// Only an address the user gave as their own is kept.
+    #[test]
+    fn only_an_address_given_as_ones_own_is_remembered() {
+        let given = json!({"to": "isang@example.com", "subject": "", "body": "",
+                           "remember_as_mine": true});
+        assert_eq!(
+            address_to_remember("compose_email", &given).as_deref(),
+            Some("isang@example.com")
+        );
+        let named = json!({"to": "Isang <isang@example.com>", "remember_as_mine": true});
+        assert_eq!(
+            address_to_remember("compose_email", &named).as_deref(),
+            Some("isang@example.com")
+        );
+        for args in [
+            json!({"to": "isang@example.com"}),
+            json!({"to": "isang@example.com", "remember_as_mine": false}),
+            json!({"to": "Ron", "remember_as_mine": true}),
+        ] {
+            assert_eq!(address_to_remember("compose_email", &args), None, "{args}");
+        }
+        assert_eq!(address_to_remember("open_url", &given), None);
     }
 }

@@ -156,6 +156,15 @@ pub fn init(app: &AppHandle) {
     });
 }
 
+/// The signed-in account's email address, if anyone is signed in. Command
+/// mode reads it as the user's own address ("email me this file").
+pub(crate) fn signed_in_email(app: &AppHandle) -> Option<String> {
+    app.try_state::<Arc<AccountManager>>()?
+        .session()
+        .map(|(session, _)| session.user.email)
+        .filter(|email| !email.trim().is_empty())
+}
+
 fn manager(app: &AppHandle) -> Arc<AccountManager> {
     app.state::<Arc<AccountManager>>().inner().clone()
 }

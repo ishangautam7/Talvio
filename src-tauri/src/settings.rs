@@ -2117,6 +2117,12 @@ pub struct AppSettings {
     /// `authuser=`. Empty means the browser's default Google account.
     #[serde(default)]
     pub command_google_account: String,
+    /// The user's own email address, which "email me" and "send it to
+    /// myself" mean. Empty: the signed-in Talvio account's address is used
+    /// (`command_mode::command_settings`), and failing that the command asks
+    /// once and keeps the answer here.
+    #[serde(default)]
+    pub command_own_email: String,
     /// The search page a web search opens; `{query}` is replaced with the
     /// URL-encoded query.
     #[serde(default = "default_command_search_url")]
@@ -4748,6 +4754,7 @@ pub fn get_default_settings() -> AppSettings {
         command_dry_run: false,
         command_confirm_irreversible: false,
         command_google_account: String::new(),
+        command_own_email: String::new(),
         command_search_url: default_command_search_url(),
         command_auto_escalate: true,
         command_agent_model: default_command_agent_model(),
