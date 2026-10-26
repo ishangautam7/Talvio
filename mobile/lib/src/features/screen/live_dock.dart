@@ -106,25 +106,33 @@ class _Dock extends StatelessWidget {
     return Semantics(
       container: true,
       label: ScreenStrings.watchItem(w.title),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(Radii.lg),
-        child: showPicture
-            ? ColoredBox(
-                color: TalvioColors.mediaBg,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: (height * 0.32).clamp(0, 280),
-                  ),
-                  child: Center(
-                    heightFactor: 1,
-                    child: _Aspect(
-                      watch: w,
-                      child: _Picture(live: live, watch: w),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Radii.lg),
+          boxShadow: showPicture
+              ? Depth.raised(context.talvio)
+              : Depth.card(context.talvio),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Radii.lg),
+          child: showPicture
+              ? ColoredBox(
+                  color: TalvioColors.mediaBg,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: (height * 0.32).clamp(0, 280),
+                    ),
+                    child: Center(
+                      heightFactor: 1,
+                      child: _Aspect(
+                        watch: w,
+                        child: _Picture(live: live, watch: w),
+                      ),
                     ),
                   ),
-                ),
-              )
-            : _Bar(live: live, watch: w),
+                )
+              : _Bar(live: live, watch: w),
+        ),
       ),
     );
   }
