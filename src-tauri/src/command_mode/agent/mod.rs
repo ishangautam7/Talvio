@@ -106,6 +106,16 @@ that. When it does, use the control, then read the window again to check it went
 - If a sign-in page, a captcha or an unexpected dialog blocks the task, call give_up saying exactly what the user has to do (\"Sign in to Gmail, then ask again\").
 - Do not close apps or windows, sign out, or change settings the task did not ask about.";
 
+/// The same action, with the same arguments, this many times in a row gets a
+/// note in its result: a model that keeps pressing a button that does nothing
+/// otherwise spends the whole step budget on it.
+const REPEATS_NOTED: u32 = 3;
+const REPEAT_NOTE: &str = " (You have now done exactly this several times in a row. If the window did not change, it is not working: read_window and try another way, or give_up.)";
+
+/// This many failed actions in a row end the task: the window is not doing
+/// what the model expects, and more rounds only cost more.
+const FAILURES_IN_A_ROW: u32 = 5;
+
 /// Said when the model answers with prose instead of a tool call.
 const NO_CALL_REMINDER: &str = "You answered without a tool call. Call the next tool, or done \
 with a summary if the task is finished, or give_up with the reason if you are stuck.";
@@ -1049,6 +1059,9 @@ pub async fn run(
             max_tokens: MAX_TOKENS,
         };
         let mut nudged = false;
+        let mut last_action: Option<String> = None;
+        let mut repeats: u32 = 0;
+        let mut failures: u32 = 0;
 
         loop {
             if agent.cancelled() {
@@ -1118,9 +1131,30 @@ pub async fn run(
                     break 'run AgentEnd::Cancelled;
                 }
                 match agent.execute(call, &defs).await {
-                    CallResult::Continue(result) => {
+                    CallResult::Continue(mut result) => {
                         if call.name == READ_WINDOW && !result.is_error {
                             new_reads.push(results.len());
+                        }
+                        if call.name != READ_WINDOW && call.name != LIST_WINDOWS {
+                            let action = format!("{}{}", call.name, call.input);
+                            if last_action.as_deref() == Some(action.as_str()) {
+                                repeats += 1;
+                            } else {
+                                repeats = 1;
+                                last_action = Some(action);
+                            }
+                            if repeats >= REPEATS_NOTED {
+                                result.content.push_str(REPEAT_NOTE);
+                            }
+                            failures = if result.is_error { failures + 1 } else { 0 };
+                            if failures >= FAILURES_IN_A_ROW {
+                                break 'run AgentEnd::GaveUp {
+                                    reason: format!(
+                                        "{FAILURES_IN_A_ROW} actions in a row did not work; the last: {}",
+                                        clip(&result.content, 200)
+                                    ),
+                                };
+                            }
                         }
                         results.push(result);
                     }
@@ -1706,6 +1740,54 @@ mod tests {
     }
 
     /// An id the model made up is an error it can recover from, not the end.
+    #[test]
+    fn the_same_action_again_and_again_is_noted() {
+        let mut llm = ScriptedLlm::new(vec![]);
+        llm.repeat = Some(("invoke".into(), json!({"element": 3})));
+        let fake = Arc::new(FakeEffects::default());
+        let limits = Limits {
+            max_steps: 4,
+            ..Limits::default()
+        };
+        run_with(
+            &llm,
+            compose_tree(),
+            &fake,
+            false,
+            limits,
+            &AtomicBool::new(false),
+        );
+        let requests = llm.requests();
+        let second = results_of(&requests[2]);
+        assert!(!second.last().unwrap().content.contains("several times"));
+        let third = results_of(&requests[3]);
+        assert!(
+            third.last().unwrap().content.contains("several times"),
+            "{:?}",
+            third.last()
+        );
+    }
+
+    #[test]
+    fn five_failed_actions_in_a_row_end_the_task() {
+        let mut llm = ScriptedLlm::new(vec![]);
+        llm.repeat = Some(("invoke".into(), json!({"element": 999})));
+        let fake = Arc::new(FakeEffects::default());
+        let outcome = run_with(
+            &llm,
+            compose_tree(),
+            &fake,
+            false,
+            Limits::default(),
+            &AtomicBool::new(false),
+        );
+        let AgentEnd::GaveUp { reason } = &outcome.end else {
+            panic!("not given up: {:?}", outcome.end);
+        };
+        assert!(reason.contains("5 actions in a row"), "{reason}");
+        assert_eq!(outcome.llm_calls, 5);
+    }
+
     #[test]
     fn an_unknown_element_id_is_fed_back_and_the_loop_goes_on() {
         let tree = compose_tree();
