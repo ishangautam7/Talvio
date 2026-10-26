@@ -940,6 +940,8 @@ const settings: Json = {
   assistant_response_length: "default",
   local_llm_context_size: 16384,
   local_llm_unload_timeout: "min5",
+  // `?commands=on`: Voice commands switched on, so the Commands page shows its settings.
+  command_mode_enabled: params.get("commands") === "on",
   experimental_enabled: params.get("experimental") === "1",
   // `?engine=handy_keys` shows the editor Windows and macOS really use.
   ...(params.get("engine")
