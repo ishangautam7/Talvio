@@ -396,10 +396,46 @@ fn file_score(query: &str, path: &Path) -> f64 {
     } else {
         0.0
     };
-    [stem, file_name(path)]
+    let best = [stem.clone(), file_name(path)]
         .iter()
         .map(|name| fuzzy::score(query, name))
-        .fold(echoed, f64::max)
+        .fold(echoed, f64::max);
+    // Below a whole-word match the score is a spelling likeness of the whole
+    // string, and a long request that shares one word with a short name
+    // ("Talvio demo project report" against "talvio-orig") reads as close:
+    // the shared start alone lifts it. So it is scaled by how many of the
+    // request's words the name actually holds; a typo still counts as held.
+    if best >= 0.95 {
+        return best;
+    }
+    best * (0.6 + 0.4 * word_coverage(query, &stem))
+}
+
+/// The share of `query`'s meaningful words (three letters or more) that the
+/// name holds, as a whole word, a prefix either way, or a near spelling.
+fn word_coverage(query: &str, name: &str) -> f64 {
+    let name_words: Vec<String> = fuzzy::normalize(name)
+        .split(' ')
+        .map(str::to_string)
+        .collect();
+    let query = fuzzy::normalize(query);
+    let words: Vec<&str> = query.split(' ').filter(|w| w.chars().count() >= 3).collect();
+    if words.is_empty() {
+        return 1.0;
+    }
+    let held = words
+        .iter()
+        .filter(|word| {
+            name_words.iter().any(|n| {
+                n.chars().count() >= 3
+                    && (n == *word
+                        || n.starts_with(*word)
+                        || word.starts_with(n.as_str())
+                        || fuzzy::score(word, n) >= 0.9)
+            })
+        })
+        .count();
+    held as f64 / words.len() as f64
 }
 
 /// Whether opening `path` would run something rather than show it: a program,
@@ -691,6 +727,27 @@ mod tests {
         };
         assert_eq!(feedback.key, "commandMode.feedback.openingFile");
         assert_eq!(feedback.render_en(), "Opening Resume.pdf.");
+    }
+
+    /// A name that shares only its first word with a long request does not
+    /// beat the file the request spells out (a weak "talvio" match once sent
+    /// the wrong attachment).
+    #[test]
+    fn one_shared_word_does_not_beat_the_named_file() {
+        let home = tempfile::tempdir().unwrap();
+        let report = touch(home.path(), "Documents/Talvio Demo Project Report.pdf");
+        touch(home.path(), "Desktop/video/talvio-orig.txt");
+        let (_, actions) = run(
+            vec![],
+            vec![home.path().into()],
+            json!({"name": "the Talvio demo project report"}),
+        );
+        assert_eq!(actions, opened(&report));
+        let candidate = |p: &str| file_score("talvio demo project report", Path::new(p));
+        assert!(candidate("x/talvio-orig.txt") < DEFAULT_MIN_SCORE);
+        assert!(candidate("x/Talvio Demo Project Report.pdf") >= 0.95);
+        // A typo in one word still finds the file.
+        assert!(candidate("x/Talvio Demo Projcet Report.pdf") >= DEFAULT_MIN_SCORE);
     }
 
     /// Two files of one name in different folders are a question whose
