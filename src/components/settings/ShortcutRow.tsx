@@ -17,7 +17,7 @@ export const RowAction: React.FC<{
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="inline-flex h-7 shrink-0 cursor-pointer items-center whitespace-nowrap rounded-md px-2 text-[0.8125rem] font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+    className="inline-flex h-7 shrink-0 cursor-pointer items-center whitespace-nowrap rounded-lg border border-hairline-strong bg-surface px-2.5 text-[0.8125rem] font-medium text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
   >
     {children}
   </button>

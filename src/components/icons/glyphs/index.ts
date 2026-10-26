@@ -26,13 +26,19 @@ export type LucideIcon = L.LucideIcon;
 /** The one stroke every icon in the main window is drawn with. */
 export const GLYPH_STROKE = 1.75;
 
+/** "AudioLines" → "audio-lines", for the `glyph-*` class each icon carries. */
+const kebab = (name: string) =>
+  name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+
 const wrap = (Icon: L.LucideIcon, name: string): Glyph => {
+  const base = `glyph glyph-${kebab(name)}`;
   const Component = forwardRef<SVGSVGElement, GlyphProps>((props, ref) =>
     createElement(Icon, {
       strokeWidth: GLYPH_STROKE,
       "aria-hidden": props["aria-label"] ? undefined : true,
       focusable: "false",
       ...props,
+      className: props.className ? `${base} ${props.className}` : base,
       ref,
     }),
   );
@@ -117,7 +123,8 @@ export const CircleUserRound = wrap(L.CircleUserRound, "CircleUserRound");
 export const Clock = wrap(L.Clock, "Clock");
 export const History = wrap(L.History, "History");
 export const Globe = wrap(L.Globe, "Globe");
-export const Earth = wrap(L.Earth, "Earth");
+// Drawn as the old set drew it: one globe, under both names.
+export const Earth = wrap(L.Earth, "Globe");
 export const Power = wrap(L.Power, "Power");
 export const Gauge = wrap(L.Gauge, "Gauge");
 export const Radio = wrap(L.Radio, "Radio");

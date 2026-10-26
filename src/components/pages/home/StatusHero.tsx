@@ -4,6 +4,8 @@ import { useSettings } from "@/hooks/useSettings";
 import { Keycaps } from "@/components/ui/Keycaps";
 import { LevelBars, restingVoice, Stage } from "@/components/ui/Stage";
 import { useNavigation } from "@/components/shell/navigation";
+import { Button } from "@/components/ui/Button";
+import { ArrowRight } from "@/components/icons/glyphs";
 import {
   TONE_DOT,
   useListeningStatus,
@@ -21,7 +23,7 @@ const Figure: React.FC<{
   <button
     type="button"
     onClick={onClick}
-    className="flex min-w-0 cursor-pointer flex-col items-start gap-0.5 px-5 py-4 text-start transition-colors hover:bg-[var(--fill-hover)] focus-visible:relative focus-visible:shadow-[var(--focus-ring)] focus-visible:outline-none"
+    className="flex min-w-0 cursor-pointer flex-col items-start gap-0.5 px-6 py-4 text-start transition-colors hover:bg-[var(--fill-hover)] focus-visible:relative focus-visible:shadow-[var(--focus-ring)] focus-visible:outline-none"
   >
     <span className="block max-w-full truncate text-[0.8125rem] text-muted">
       {label}
@@ -37,9 +39,12 @@ const Figure: React.FC<{
  * which model, the keys that start a dictation, and a voice line that
  * breathes while the speech model is ready (flat and grey when it is not).
  * Along its foot, three numbers that open Insights. The first thing on the
- * page answers "can I talk now?".
+ * page answers "can I talk now?". When it cannot (`needsModel`), the card
+ * says so and carries the one action that fixes it.
  */
-export const StatusHero: React.FC = () => {
+export const StatusHero: React.FC<{ needsModel?: boolean }> = ({
+  needsModel = false,
+}) => {
   const { t, i18n } = useTranslation();
   const { getSetting } = useSettings();
   const { openModelSlot, navigate } = useNavigation();
@@ -97,15 +102,25 @@ export const StatusHero: React.FC = () => {
           {status.name}
         </button>
       }
-      subtitle={status.statusText}
+      subtitle={needsModel ? t("home.needsModel.title") : status.statusText}
       actions={
-        binding && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Keycaps binding={binding} size="md" />
-            <p className="max-w-[18rem] text-[0.8125rem] leading-snug text-muted text-pretty">
-              {holdToTalk ? t("home.subtitleHold") : t("home.subtitleTap")}
-            </p>
-          </div>
+        needsModel ? (
+          <Button size="md" onClick={() => openModelSlot("stt")}>
+            {t("home.needsModel.action")}
+            <ArrowRight
+              className="h-3.5 w-3.5 rtl:rotate-180"
+              aria-hidden="true"
+            />
+          </Button>
+        ) : (
+          binding && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Keycaps binding={binding} size="md" />
+              <p className="max-w-[18rem] text-[0.8125rem] leading-snug text-muted text-pretty">
+                {holdToTalk ? t("home.subtitleHold") : t("home.subtitleTap")}
+              </p>
+            </div>
+          )
         )
       }
       picture={

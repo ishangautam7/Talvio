@@ -304,13 +304,14 @@ export interface ProviderBrand {
  * #EF2CC1 → #FC4C02, Tavily #468BFF, Kimi #1783FF, OpenRouter's slate).
  *
  * Brands whose mark is black (OpenAI, xAI, Ollama, ElevenLabs, Apple, Z.ai,
- * Moonshot) take the ink tile, which inverts with the theme — black on a light
- * page, white on a dark one — which is exactly how those brands present.
+ * Moonshot) take the ink tile: black on a light page; on a dark one a raised
+ * graphite tile with a light mark, since a white square was the brightest thing
+ * on a dark page.
  */
 const SOLID =
   "shadow-[inset_0_1px_0_rgb(255_255_255/0.16),inset_0_0_0_1px_rgb(0_0_0/0.06),0_1px_2px_rgb(0_0_0/0.12)] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.14),inset_0_0_0_1px_rgb(255_255_255/0.1)]";
 const PROVIDER_TILES = {
-  mono: `bg-ink text-surface ${SOLID}`,
+  mono: `bg-ink text-surface dark:bg-surface-strong dark:text-ink dark:ring-1 dark:ring-hairline-strong ${SOLID}`,
   anthropic: `bg-[#D97757] text-white ${SOLID}`,
   gemini: `bg-linear-to-br from-[#3186FF] to-[#8E75B2] text-white ${SOLID}`,
   groq: `bg-[#F55036] text-white ${SOLID}`,
@@ -331,8 +332,10 @@ const PROVIDER_TILES = {
   tavily: `bg-[#468BFF] text-white ${SOLID}`,
   exa: `bg-[#1F40ED] text-white ${SOLID}`,
   kimi: `bg-[#1783FF] text-white ${SOLID}`,
-  /** Ours (the built-in engine, the local voice): the app's own coral. */
-  ours: `bg-gradient-to-br from-[#FF8F3F] to-[#EE3A5C] text-white ${SOLID}`,
+  /** Ours (the built-in engine, the local voices): a neutral tile with the
+   *  mark in ink, since a coral gradient on every local option read as a row
+   *  of stock app icons. */
+  ours: "bg-surface-strong text-ink ring-1 ring-inset ring-hairline",
   /** Things the user points at themselves (custom endpoints, search APIs
    *  with no mark of their own): a quiet tinted chip, clearly not a brand. */
   generic: "bg-accent/10 text-accent ring-1 ring-inset ring-accent/15",

@@ -43,7 +43,9 @@ export const AssistantPreview: React.FC = () => {
             <span
               key={name}
               className={`rounded-md px-2 py-0.5 text-[0.6875rem] font-medium transition-colors ${
-                name === example ? "bg-ink text-surface" : "hue-tile"
+                name === example
+                  ? "text-ink shadow-[inset_0_0_0_1px_var(--color-ink)]"
+                  : "text-muted shadow-[inset_0_0_0_1px_var(--color-hairline-strong)]"
               }`}
             >
               {t(`onboarding.tour.ask.chips.${name}`)}

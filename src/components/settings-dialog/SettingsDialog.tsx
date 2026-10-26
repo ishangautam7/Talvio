@@ -141,9 +141,7 @@ export const SettingsDialog: React.FC = () => {
               <h3 className="font-display text-[1.25rem] text-ink">
                 {t(`settingsDialog.tabs.${active.id}`)}
               </h3>
-              {active.intro && (
-                <InfoTip text={t(active.intro)} size="md" />
-              )}
+              {active.intro && <InfoTip text={t(active.intro)} size="md" />}
             </div>
             <DialogCloseButton
               onClick={closeSettings}
