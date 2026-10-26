@@ -453,6 +453,11 @@ void main() {
       );
       await tab(tester, 'Dictate');
       await shot(tester, '09-dictate-$m');
+      await tester.tap(find.byTooltip('Keys'));
+      await tester.pump();
+      await shot(tester, '25-dictate-keys-$m');
+      await tester.tap(find.byTooltip('Hide keys'));
+      await tester.pump();
       await tester.tap(find.bySemanticsLabel('Start dictating'));
       for (var i = 0; i < 30; i++) {
         await tester.pump(const Duration(milliseconds: 100));
