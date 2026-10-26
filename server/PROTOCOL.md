@@ -564,6 +564,19 @@ control the request never mentioned. A send is reported `done` only once the
 app showed it went (Gmail closed the draft); otherwise the command `failed`
 with a sentence saying it may not have gone.
 
+A command can also email a file from the computer, which is what makes it
+useful away from home: "email me the project report", "send the invoice PDF to
+Ron", "mero report mail ma pathau". The computer finds the file among its
+user's own documents (recent files, then Documents, Downloads, Desktop and the
+user folder), attaches it in Gmail and sends it: `done` with "Sent report.pdf to
+you." "Me" is the address of the account signed in on the computer; when it has
+none, the command asks for it once (`needs_answer`) and keeps the answer.
+Several close files are a `needs_answer` question whose `choices` name each
+file and its folder. A file that may not leave the computer (outside the user
+folder, hidden, an app's data, anything that reads as a key or password), a
+file over Gmail's 25 MB, and a file Gmail did not show as attached all end
+`failed`, with nothing sent.
+
 ```jsonc
 // phone → computer
 { "kind": "command", "requestId": "uuid",
