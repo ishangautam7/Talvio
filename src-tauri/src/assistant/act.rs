@@ -9,8 +9,11 @@
 //! ("Voice commands") is on, because that switch is the user's consent to
 //! having things done on their computer.
 //!
-//! The assistant can never confirm anything itself: there is no confirm tool.
-//! A command that waits for "send" shows on the computer's command card
+//! A request is carried out whole, sending included (`command_mode::review`):
+//! asking the assistant to email someone is asking for the email to go. It
+//! waits only when the user asked to check it first, which the model passes on
+//! in the request. The assistant can never confirm anything itself: there is
+//! no confirm tool. A command that waits for "send" shows on the computer's command card
 //! (`command_mode::voice::show_card`) with Do it and Cancel, and the model is
 //! told to say it is waiting.
 
@@ -35,7 +38,7 @@ pub fn tool_definition() -> Value {
         "type": "function",
         "function": {
             "name": TOOL_NAME,
-            "description": "Carry out an action on the user's computer: open an app or website, play music or a video, pause, resume or skip media, change the volume, switch windows, type text, start an email or a calendar event, or search the web in the browser. Call it whenever the user asks for something to be done on their computer instead of explaining how to do it. Pass the request in plain words, with every detail they gave (names, titles, times). Anything that would send, buy or delete is only prepared and waits for the user to press Do it.",
+            "description": "Carry out an action on the user's computer: open an app or website, play music or a video, pause, resume or skip media, change the volume, switch windows, type text, start an email or a calendar event, or search the web in the browser. Call it whenever the user asks for something to be done on their computer instead of explaining how to do it. Pass the request in plain words, with every detail they gave (names, titles, times). It carries the whole request out, sending an email or a message included. When the user asked to check it first (\"let me see it before you send\", \"just draft it\", \"ask before sending\"), say so in the request and it waits for them instead.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -52,7 +55,7 @@ pub fn tool_definition() -> Value {
 
 /// When to use it, for the Tools section of the system prompt. Fixed text, so
 /// the prompt prefix stays cache-stable.
-pub const GUIDANCE: &str = "• do_on_computer(request): do something on the user's computer. When the user asks for an action (\"play X\", \"open Y\", \"turn it down\", \"pause\", \"skip this song\", \"email Ron about the meeting\"), call it in this same reply instead of explaining how they could do it, and pass the whole request with every detail they gave. Questions, writing, explanations and advice are still answered normally, without it. Anything that sends, buys or deletes is only prepared: the user confirms it with Do it on a card, so never say it was sent or done. Afterwards tell the user in one short sentence what happened, from the tool's result; on a call, one short spoken sentence. Write the request in English, but keep names, titles and any words to be typed or sent exactly as the user said them. Reply in the language and script the user wrote in: Nepali written in Latin letters (\"gaana bajau\", \"gmail khola\") is Nepali, so answer in Nepali, never in Hindi.\n";
+pub const GUIDANCE: &str = "• do_on_computer(request): do something on the user's computer. When the user asks for an action (\"play X\", \"open Y\", \"turn it down\", \"pause\", \"skip this song\", \"email Ron about the meeting\"), call it in this same reply instead of explaining how they could do it, and pass the whole request with every detail they gave. Questions, writing, explanations and advice are still answered normally, without it. It carries the whole request out, sending included, so do not ask the user to confirm first; only when they asked to check or approve it first (\"let me see it before you send\", \"draft it\", \"napathau\") say that in the request, and it then waits for them on a card. Say something was sent or done only when the tool's result says so. Afterwards tell the user in one short sentence what happened, from the tool's result; on a call, one short spoken sentence. Write the request in English, but keep names, titles and any words to be typed or sent exactly as the user said them. Reply in the language and script the user wrote in: Nepali written in Latin letters (\"gaana bajau\", \"gmail khola\") is Nepali, so answer in Nepali, never in Hindi.\n";
 
 /// The `request` argument, tolerating the other names models use for it.
 pub fn parse_request(arguments: &str) -> String {

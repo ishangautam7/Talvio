@@ -3195,6 +3195,10 @@
       "key": "{{provider}} API key",
       "keyShared": "Shared with AI cleanup and the assistant."
     },
+    "confirmIrreversible": {
+      "title": "Ask before sending or deleting",
+      "info": "Off: a send, post or delete you ask for is carried out. On: it waits for you to press Do it. Either way it waits when you say so (“draft it”, “let me check first”)."
+    },
     "dryRun": {
       "title": "Dry run",
       "info": "Show what a command would do instead of doing it."

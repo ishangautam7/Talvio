@@ -308,9 +308,167 @@ pub fn needs_confirmation(role: &str, name: &str, action: &UiAction) -> bool {
         || IRREVERSIBLE_PHRASES.iter().any(|p| lower.contains(p))
 }
 
+/// Control words that always wait for the user, even when the task asked for
+/// them: money, permanent loss and security. Pressing Send on the email the
+/// user asked for is the request; paying, deleting an account or changing a
+/// password from one spoken sentence is not something to do unasked.
+const ALWAYS_ASK_WORDS: &[&str] = &[
+    "buy",
+    "pay",
+    "purchase",
+    "checkout",
+    "transfer",
+    "donate",
+    "subscribe",
+    "uninstall",
+    "kaufen",
+    "bezahlen",
+    "acheter",
+    "payer",
+    "comprar",
+    "pagar",
+    "acquista",
+    "paga",
+];
+
+/// The same, as phrases (several words, or scripts written without spaces).
+const ALWAYS_ASK_PHRASES: &[&str] = &[
+    "delete account",
+    "delete my account",
+    "delete permanently",
+    "permanently delete",
+    "delete forever",
+    "empty trash",
+    "empty bin",
+    "empty recycle",
+    "change password",
+    "reset password",
+    "accept terms",
+    "i agree",
+    "agree and",
+    "create account",
+    "sign up",
+    "place order",
+    "place your order",
+    "購入",
+    "购买",
+    "購買",
+    "구매",
+];
+
+/// Which words in a task make a control's risky word part of what was asked:
+/// a task to email someone asks for Send, one to tidy a folder asks for
+/// Delete. A risky word with no entry here (another language's) is never
+/// taken as asked for.
+const ASKED_BY: &[(&str, &[&str])] = &[
+    (
+        "send",
+        &[
+            "send", "email", "mail", "reply", "message", "text", "sms", "dm", "forward", "pathau",
+        ],
+    ),
+    ("submit", &["submit", "send", "apply", "file", "pathau"]),
+    (
+        "post",
+        &[
+            "post", "publish", "tweet", "share", "send", "comment", "reply",
+        ],
+    ),
+    ("publish", &["publish", "post"]),
+    ("tweet", &["tweet", "post"]),
+    (
+        "delete",
+        &["delete", "remove", "trash", "clear", "erase", "hatau"],
+    ),
+    (
+        "remove",
+        &["delete", "remove", "trash", "clear", "erase", "hatau"],
+    ),
+    ("erase", &["delete", "remove", "clear", "erase", "hatau"]),
+    ("discard", &["discard", "delete", "remove", "throw"]),
+    (
+        "confirm",
+        &["confirm", "send", "submit", "delete", "remove", "yes"],
+    ),
+    ("unsubscribe", &["unsubscribe"]),
+];
+
+/// Whether a control [`needs_confirmation`] flags must still wait for the
+/// user when nobody asked to review: it pays, deletes for good or touches
+/// security ([`ALWAYS_ASK_WORDS`]), or its risky word is not what `task`
+/// asked for ("Delete" while the task was to send an email).
+pub fn always_asks(name: &str, task: &str) -> bool {
+    let lower = name.to_lowercase();
+    let words: Vec<&str> = lower
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .collect();
+    if ALWAYS_ASK_WORDS.iter().any(|w| words.contains(w))
+        || ALWAYS_ASK_PHRASES.iter().any(|p| lower.contains(p))
+    {
+        return true;
+    }
+    let task = task.to_lowercase();
+    let task_words: Vec<&str> = task
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .collect();
+    let asked = |risky: &str| {
+        ASKED_BY
+            .iter()
+            .find(|(word, _)| *word == risky)
+            .is_some_and(|(_, by)| {
+                task_words
+                    .iter()
+                    .any(|t| by.iter().any(|b| t.starts_with(b)))
+            })
+    };
+    let risky: Vec<&str> = words
+        .iter()
+        .copied()
+        .filter(|w| IRREVERSIBLE_WORDS.contains(w))
+        .collect();
+    if risky.is_empty() {
+        // Only a phrase in a script without spaces flagged it: never taken
+        // as asked for.
+        return IRREVERSIBLE_PHRASES.iter().any(|p| lower.contains(p));
+    }
+    risky.iter().any(|w| !asked(w))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_risky_control_the_task_asked_for_goes_ahead() {
+        let email = "Send an email to Ron saying I'll be late";
+        assert!(!always_asks("Send", email));
+        assert!(!always_asks("Send \u{202a}(Ctrl-Enter)\u{202c}", email));
+        assert!(!always_asks("Post", "post this to the team channel"));
+        assert!(!always_asks(
+            "Delete",
+            "delete the old screenshots in Downloads"
+        ));
+        assert!(!always_asks("Send", "ram lai email pathau"));
+    }
+
+    #[test]
+    fn a_risky_control_nobody_asked_for_still_waits() {
+        assert!(always_asks("Delete", "Send an email to Ron"));
+        assert!(always_asks("Discard draft", "Send an email to Ron"));
+        assert!(always_asks("Senden", "Send an email to Ron"));
+        assert!(always_asks("送信", "Send an email to Ron"));
+    }
+
+    #[test]
+    fn money_permanent_loss_and_security_always_wait() {
+        assert!(always_asks("Buy now", "buy the book on Amazon"));
+        assert!(always_asks("Place your order", "order more coffee"));
+        assert!(always_asks("Delete account", "delete my account"));
+        assert!(always_asks("Change password", "change my password"));
+        assert!(always_asks("I agree", "sign me up"));
+    }
 
     fn element(id: u32, role: &str, name: &str) -> UiElement {
         UiElement {

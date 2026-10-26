@@ -237,6 +237,15 @@ pub trait Effects: Send + Sync {
     fn launch_app(&self, app: &AppEntry) -> Result<(), String>;
     /// Bring a window to the front and give it the keyboard.
     fn focus_window(&self, window: &WindowEntry) -> Result<(), String>;
+    /// Press the button in window `window_id` whose label's first word is
+    /// `first_word` (case-insensitive), through the accessibility tree, as a
+    /// person clicking it would; keyboard focus does not matter. `Ok(false)`:
+    /// no such enabled button (or no tree on this system). Used where a
+    /// shortcut depends on where the keyboard is, as Gmail's Ctrl+Enter only
+    /// sends from inside the compose form.
+    fn press_button(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+        press_button_in_tree(super::agent::tree().as_ref(), window_id, first_word)
+    }
     /// Put text into the focused field.
     fn type_text(&self, text: &str) -> Result<(), String>;
     fn press_keys(&self, combo: &KeyCombo) -> Result<(), String>;
@@ -276,6 +285,46 @@ impl SystemEffects {
     pub fn new(app: AppHandle) -> Self {
         Self { app }
     }
+}
+
+/// [`Effects::press_button`] over a tree. A Chromium browser switches its
+/// accessibility on at the first request and answers that one with almost
+/// nothing, so a read with no match is tried twice more a moment apart.
+pub fn press_button_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+    first_word: &str,
+) -> Result<bool, String> {
+    let wanted = first_word.to_lowercase();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(Duration::from_millis(500));
+        }
+        let snapshot = match tree.snapshot(Some(window_id)) {
+            Ok(snapshot) => snapshot,
+            Err(super::agent::tree::TreeError::Unsupported) => return Ok(false),
+            Err(e) => {
+                log::debug!("command mode: no tree for a button press yet: {e}");
+                continue;
+            }
+        };
+        let button = snapshot.elements.iter().find(|element| {
+            element.role == "button"
+                && !element.states.iter().any(|s| s == "disabled")
+                && element
+                    .name
+                    .split(|c: char| !c.is_alphanumeric())
+                    .find(|w| !w.is_empty())
+                    .is_some_and(|w| w.to_lowercase() == wanted)
+        });
+        if let Some(button) = button {
+            return tree
+                .act(button.id, &super::agent::tree::UiAction::Invoke)
+                .map(|()| true)
+                .map_err(|e| e.to_string());
+        }
+    }
+    Ok(false)
 }
 
 /// The real effects wrapped so that actions are recorded instead of run.
@@ -374,6 +423,10 @@ impl<E: Effects> Effects for DryRunEffects<E> {
             window.title, window.app
         ))
     }
+    fn press_button(&self, _window_id: i64, first_word: &str) -> Result<bool, String> {
+        self.record(format!("press the {first_word} button"))?;
+        Ok(true)
+    }
     fn type_text(&self, text: &str) -> Result<(), String> {
         self.record(format!(
             "type {} characters: {text:?}",
@@ -427,6 +480,15 @@ pub mod fake {
         /// What `media_playing` answers; `None` = a system without media
         /// sessions, where `pause_media` and `resume_media` fail.
         pub playing: Mutex<Option<bool>>,
+        /// What a send shortcut (a modifier plus Enter) turns the window in
+        /// front into, the way Gmail's draft becomes the inbox once it has
+        /// sent. `None`: the window stays as it was, as when nothing sent.
+        pub send_retitles: Option<String>,
+        /// The window a send retitled, and its new title.
+        pub retitled: Mutex<Option<(i64, String)>>,
+        /// Buttons `press_button` finds, as (window id, first word). Pressing
+        /// one of a word that sends (`send`) retitles like a send shortcut.
+        pub buttons: Vec<(i64, String)>,
     }
 
     impl FakeEffects {
@@ -452,7 +514,19 @@ pub mod fake {
             self.apps.clone()
         }
         fn open_windows(&self) -> Vec<WindowEntry> {
-            self.windows.clone()
+            let retitled = self.retitled.lock().unwrap().clone();
+            self.windows
+                .iter()
+                .cloned()
+                .map(|mut window| {
+                    if let Some((id, title)) = &retitled {
+                        if window.id == *id {
+                            window.title = title.clone();
+                        }
+                    }
+                    window
+                })
+                .collect()
         }
         fn recent_files(&self) -> Vec<PathBuf> {
             self.recent.clone()
@@ -520,11 +594,40 @@ pub mod fake {
             }
             Ok(())
         }
+        fn press_button(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+            let found = self
+                .buttons
+                .iter()
+                .any(|(id, word)| *id == window_id && word.eq_ignore_ascii_case(first_word));
+            if !found {
+                return Ok(false);
+            }
+            self.act(format!("press_button {window_id} {first_word}"))?;
+            if let Some(title) = &self.send_retitles {
+                if first_word.eq_ignore_ascii_case("send") {
+                    let mut front = self.foreground.lock().unwrap();
+                    if let Some(window) = front.as_mut().filter(|w| w.id == window_id) {
+                        window.title = title.clone();
+                    }
+                    *self.retitled.lock().unwrap() = Some((window_id, title.clone()));
+                }
+            }
+            Ok(true)
+        }
         fn type_text(&self, text: &str) -> Result<(), String> {
             self.act(format!("type_text {text}"))
         }
         fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
-            self.act(format!("press_keys {}", combo.label()))
+            self.act(format!("press_keys {}", combo.label()))?;
+            let sends = combo.key.eq_ignore_ascii_case("enter") && !combo.modifiers.is_empty();
+            if let (true, Some(title)) = (sends, &self.send_retitles) {
+                let mut front = self.foreground.lock().unwrap();
+                if let Some(window) = front.as_mut() {
+                    window.title = title.clone();
+                    *self.retitled.lock().unwrap() = Some((window.id, title.clone()));
+                }
+            }
+            Ok(())
         }
         fn media(&self, action: MediaAction) -> Result<(), String> {
             self.act(format!("media {action:?}"))

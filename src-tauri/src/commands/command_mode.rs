@@ -230,6 +230,21 @@ pub async fn change_command_dry_run_setting(app: AppHandle, enabled: bool) -> Re
     Ok(())
 }
 
+/// Whether commands hold every send, post or delete for the user's Do it
+/// ("Ask before irreversible actions"). Off: they are carried out unless the
+/// user asks to review.
+#[tauri::command]
+#[specta::specta]
+pub async fn change_command_confirm_irreversible_setting(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.command_confirm_irreversible = enabled;
+    write_settings(&app, settings);
+    Ok(())
+}
+
 /// The Google account (`authuser=`) Gmail and Calendar links open in. Empty
 /// means the browser's default account.
 #[tauri::command]

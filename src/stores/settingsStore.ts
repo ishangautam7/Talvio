@@ -306,6 +306,8 @@ const settingUpdaters: {
     commands.changeCommandRouterModelSetting(value as string),
   command_dry_run: (value) =>
     commands.changeCommandDryRunSetting(value as boolean),
+  command_confirm_irreversible: (value) =>
+    commands.changeCommandConfirmIrreversibleSetting(value as boolean),
   command_google_account: (value) =>
     commands.changeCommandGoogleAccountSetting(value as string),
   command_search_url: (value) =>

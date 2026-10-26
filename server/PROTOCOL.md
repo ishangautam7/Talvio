@@ -554,6 +554,16 @@ rules above, "Phone dictation", and the computer's command mode switch
 runs at a time per computer (`busy`); a new command replaces whatever an earlier
 one left waiting for a confirmation or an answer.
 
+A command is carried out whole, its sending step included: "email Ron that I'm
+late" sends the email and answers `done` with "Sent to Ron." It answers
+`awaiting_confirmation` only when the user's own words asked to check first
+("let me read it before you send it", "just draft it", "napathau"), when the
+computer's "Ask before sending or deleting" switch is on, or when the screen
+agent met a payment, a permanent deletion or a security change, or a risky
+control the request never mentioned. A send is reported `done` only once the
+app showed it went (Gmail closed the draft); otherwise the command `failed`
+with a sentence saying it may not have gone.
+
 ```jsonc
 // phone → computer
 { "kind": "command", "requestId": "uuid",
@@ -601,8 +611,9 @@ with its own assistant: the same provider, model, profile, memory, web search
 and tools as the quick ask on the computer. When the computer's "Voice commands"
 are on, the assistant can also **do** things there ("play Believer on YouTube",
 "open Gmail and start an email to Ron"), through the same tools commands use;
-anything that would send, buy or delete still waits for a Do it on the
-computer's card or on the phone. Gated by the approval rules and "Phone
+a send the user asked for is carried out, and only one they asked to check
+first (or one the computer's "Ask before sending or deleting" holds) waits for
+a Do it on the computer's card or on the phone. Gated by the approval rules and "Phone
 dictation" (off answers `remote_input_off`); a computer whose assistant is
 switched off answers `assistant_off`.
 
