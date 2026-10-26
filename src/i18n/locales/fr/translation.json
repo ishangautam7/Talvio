@@ -3219,6 +3219,10 @@
       "key": "Clé API {{provider}}",
       "keyShared": "Partagée avec le nettoyage IA et l'assistant."
     },
+    "confirmIrreversible": {
+      "title": "Demander avant d’envoyer ou de supprimer",
+      "info": "Désactivé : un envoi, une publication ou une suppression demandé est effectué. Activé : il attend que vous appuyiez sur Faire. Dans tous les cas, il attend si vous le dites (« juste un brouillon », « laisse-moi vérifier »)."
+    },
     "dryRun": {
       "title": "Simulation",
       "info": "Montre ce qu'une commande ferait au lieu de le faire."

@@ -3243,6 +3243,10 @@
       "key": "API klíč pro {{provider}}",
       "keyShared": "Sdílený s čištěním pomocí AI a asistentem."
     },
+    "confirmIrreversible": {
+      "title": "Zeptat se před odesláním nebo smazáním",
+      "info": "Vypnuto: odeslání, zveřejnění nebo smazání, o které požádáte, se provede. Zapnuto: počká, až stisknete Provést. Vždy počká, když to řeknete („jen koncept“, „nech mě to zkontrolovat“)."
+    },
     "dryRun": {
       "title": "Zkušební běh",
       "info": "Ukáže, co by příkaz udělal, místo aby to udělal."

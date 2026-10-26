@@ -3195,6 +3195,10 @@
       "key": "{{provider}}-API-Schlüssel",
       "keyShared": "Wird mit der KI-Bereinigung und dem Assistenten gemeinsam genutzt."
     },
+    "confirmIrreversible": {
+      "title": "Vor Senden oder Löschen fragen",
+      "info": "Aus: Senden, Posten oder Löschen, worum du bittest, wird ausgeführt. An: Es wartet, bis du auf Ausführen drückst. In jedem Fall wartet es, wenn du es sagst („nur entwerfen“, „lass mich erst prüfen“)."
+    },
     "dryRun": {
       "title": "Probelauf",
       "info": "Zeigt, was ein Befehl tun würde, statt es zu tun."

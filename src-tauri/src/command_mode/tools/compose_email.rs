@@ -70,6 +70,21 @@ const DRAFT_POLL: Duration = if cfg!(test) {
     Duration::from_millis(250)
 };
 
+/// How long [`send`] watches for the evidence that Gmail sent the draft
+/// (its window closed, or no longer the compose page), and how often it looks.
+/// Gmail answers a send within a second or two; past this the send is
+/// reported as not confirmed, never as done.
+const SENT_WAIT: Duration = if cfg!(test) {
+    Duration::from_millis(30)
+} else {
+    Duration::from_secs(8)
+};
+const SENT_POLL: Duration = if cfg!(test) {
+    Duration::from_millis(5)
+} else {
+    Duration::from_millis(250)
+};
+
 /// What every Gmail window title carries ("Compose Mail - … - Gmail"),
 /// compared lowercase. The only title fragment trusted on its own: "compose"
 /// and "new message" also name editors, Outlook and Apple Mail.
@@ -81,9 +96,10 @@ const NO_DRAFT_WINDOW: &str =
 
 pub static SPEC: ToolSpec = ToolSpec {
     name: "compose_email",
-    description: "Write an email in Gmail: opens a filled-in draft in the browser for the user \
-                  to review. The email is only sent after the user confirms. Use for any \
-                  request to email, mail or message someone by email.",
+    description: "Write and send an email in Gmail: opens a filled-in draft in the browser \
+                  and sends it. With confirm_first the draft is left open for the user to \
+                  check and send. Use for any request to email, mail or message someone by \
+                  email.",
     schema,
     risk: Risk::NeedsConfirmation,
     platforms: ALL_PLATFORMS,
@@ -418,7 +434,53 @@ fn send(ctx: &ToolCtx, payload: Value) -> ToolOutcome {
             );
         }
     }
-    press_send(ctx, &combo, name)
+    match press_send(ctx, &combo, name) {
+        ToolOutcome::Done { feedback } => {
+            if gmail_took_the_draft(ctx, &draft) {
+                info!("command mode: compose_email saw Gmail take the draft");
+                ToolOutcome::Done { feedback }
+            } else {
+                warn!("command mode: compose_email pressed send but the draft is still open");
+                ToolOutcome::failed(
+                    "I pressed Send, but Gmail still shows the draft, so it may not have gone.                      Check the draft in Gmail.",
+                    false,
+                )
+            }
+        }
+        failed => failed,
+    }
+}
+
+/// Whether Gmail took the draft after the send shortcut: its window closed,
+/// or it no longer shows the compose page (Gmail moves on to the inbox once
+/// a message is sent; a draft it refused, for a bad address say, stays with
+/// an error on it). Only evidence counts: a send is never reported done
+/// because a key was pressed. The title comes from the foreground when that
+/// is the draft's window, since on a Mac the window list names only the app.
+fn gmail_took_the_draft(ctx: &ToolCtx, draft: &WindowEntry) -> bool {
+    let deadline = Instant::now() + SENT_WAIT;
+    loop {
+        let listed = ctx
+            .effects
+            .open_windows()
+            .into_iter()
+            .find(|w| w.id == draft.id);
+        let Some(listed) = listed else {
+            return true;
+        };
+        let title = match ctx.effects.foreground_window() {
+            Some(front) if front.id == draft.id => front.title,
+            _ => listed.title,
+        };
+        let lower = title.to_lowercase();
+        if !lower.starts_with(COMPOSE_TITLE) && title != draft.title {
+            return true;
+        }
+        if Instant::now() >= deadline {
+            return false;
+        }
+        std::thread::sleep(SENT_POLL);
+    }
 }
 
 /// Press the send shortcut in whatever has the keyboard; [`send`] has
@@ -1162,6 +1224,42 @@ mod tests {
     }
 
     const DRAFT_TITLE: &str = "Compose Mail - me@example.com - Gmail - Google Chrome";
+    /// What the draft's window shows once Gmail has sent it.
+    const INBOX_TITLE: &str = "Inbox (3) - me@example.com - Gmail - Google Chrome";
+
+    /// A send is reported done only on evidence: Ctrl+Enter was pressed in
+    /// the draft, but Gmail still shows the compose page (a bad address, a
+    /// key Gmail did not take), so the user hears it may not have gone.
+    #[test]
+    fn a_send_gmail_did_not_take_is_not_reported_sent() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = Arc::new(FakeEffects {
+            windows: vec![draft.clone()],
+            foreground: std::sync::Mutex::new(Some(draft)),
+            focus_follows: true,
+            ..Default::default()
+        });
+        let ctx = ctx(&fake, book(), Platform::Windows);
+        let ToolOutcome::Failed { reason, escalate } = send(&ctx, payload()) else {
+            panic!("expected an unconfirmed send");
+        };
+        assert!(reason.contains("may not have gone"), "{reason}");
+        assert!(!escalate);
+        assert!(fake.actions().contains(&ctrl_enter()), "{:?}", fake.actions());
+    }
+
+    /// Gmail closing the draft's window is evidence too.
+    #[test]
+    fn a_draft_window_that_closes_after_the_send_counts_as_sent() {
+        let draft = window(2, DRAFT_TITLE, "chrome");
+        let fake = FakeEffects {
+            windows: vec![],
+            foreground: std::sync::Mutex::new(None),
+            ..Default::default()
+        };
+        let ctx = ctx_over(Arc::new(fake), book(), Platform::Windows);
+        assert!(gmail_took_the_draft(&ctx, &draft));
+    }
 
     fn payload_with(window: Value) -> Value {
         json!({
@@ -1194,6 +1292,7 @@ mod tests {
             windows: vec![window(1, "Spotify Premium", "Spotify"), draft.clone()],
             foreground: std::sync::Mutex::new(Some(window(1, "Spotify Premium", "Spotify"))),
             focus_follows: true,
+            send_retitles: Some(INBOX_TITLE.into()),
             ..Default::default()
         });
         let ctx = ctx_over(browser(&fake, Some(draft)), book(), Platform::Windows);
@@ -1448,6 +1547,7 @@ mod tests {
         let fake = Arc::new(FakeEffects {
             windows: vec![window(7, "Notes", "Notes"), window(9, "Safari", "Safari")],
             foreground: std::sync::Mutex::new(Some(window(9, DRAFT_TITLE, "Safari"))),
+            send_retitles: Some(INBOX_TITLE.into()),
             ..Default::default()
         });
         let ctx = ctx(&fake, book(), Platform::MacOs);

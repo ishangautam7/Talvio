@@ -3195,6 +3195,10 @@
       "key": "API-nyckel för {{provider}}",
       "keyShared": "Delas med AI-rensning och assistenten."
     },
+    "confirmIrreversible": {
+      "title": "Fråga innan skicka eller radera",
+      "info": "Av: det du ber om att skicka, publicera eller radera görs. På: det väntar tills du trycker på Gör det. Det väntar alltid om du säger det (”bara ett utkast”, ”låt mig kolla först”)."
+    },
     "dryRun": {
       "title": "Testkörning",
       "info": "Visa vad ett kommando skulle göra i stället för att göra det."

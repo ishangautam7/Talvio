@@ -3943,6 +3943,19 @@ async changeCommandRouterModelSetting(model: string) : Promise<Result<null, stri
 }
 },
 /**
+ * Whether commands hold every send, post or delete for the user's Do it
+ * ("Ask before irreversible actions"). Off: they are carried out unless the
+ * user asks to review.
+ */
+async changeCommandConfirmIrreversibleSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_confirm_irreversible_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Whether commands show what they would do instead of doing it.
  */
 async changeCommandDryRunSetting(enabled: boolean) : Promise<Result<null, string>> {
@@ -4879,6 +4892,13 @@ command_router_model?: string;
  * `--dry-run` can still override it for one command.
  */
 command_dry_run?: boolean;
+/**
+ * "Ask before irreversible actions": hold every send, post or delete for
+ * the user's Do it. Off by default: a command the user spoke is the
+ * request, so it is carried out, Send included, and waits only when the
+ * user's own words ask to review (`command_mode::review`).
+ */
+command_confirm_irreversible?: boolean;
 /**
  * The Google account Gmail and Calendar links open in, sent as
  * `authuser=`. Empty means the browser's default Google account.
