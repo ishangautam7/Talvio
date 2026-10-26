@@ -10,8 +10,6 @@ import {
 } from "@/components/shell/navigation";
 import { useModelSlots } from "@/components/shell/useModelSlots";
 import {
-  SLOT_HUES,
-  SlotGlyph,
   SlotLogo,
   useSlotStatusText,
 } from "@/components/shell/SlotVisuals";
@@ -86,23 +84,21 @@ const JobSwitcher: React.FC<{
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(slot)}
             onKeyDown={(event) => onKeyDown(event, index)}
-            data-hue={SLOT_HUES[slot]}
-            className="job-card flex min-w-0 cursor-pointer flex-col items-start gap-3 rounded-2xl border border-hairline p-3.5 text-start"
+            className="job-card flex min-w-0 cursor-pointer flex-col items-start rounded-xl px-3.5 py-3 text-start"
           >
-            <span className="flex w-full items-center justify-between gap-2">
-              <SlotGlyph slot={slot} size="md" />
-              {attention && (
-                <span
-                  className="h-2 w-2 shrink-0 rounded-full bg-warning"
-                  aria-label={t("modelsHub.needsSetup")}
-                />
-              )}
-            </span>
             <span className="w-full min-w-0">
-              <span className="job-card-name eyebrow block truncate">
-                {t(`modelsHub.slots.${slot}.name`)}
+              <span className="flex w-full items-center gap-1.5">
+                <span className="job-card-name eyebrow block min-w-0 truncate">
+                  {t(`modelsHub.slots.${slot}.name`)}
+                </span>
+                {attention && (
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning"
+                    aria-label={t("modelsHub.needsSetup")}
+                  />
+                )}
               </span>
-              <span className="mt-1 flex min-w-0 items-center gap-1.5">
+              <span className="mt-1.5 flex min-w-0 items-center gap-2">
                 <SlotLogo summary={summary} size="sm" />
                 <span className="job-card-model block truncate text-sm font-medium">
                   {model}

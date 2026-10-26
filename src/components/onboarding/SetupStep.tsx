@@ -66,9 +66,9 @@ const ModelOption: React.FC<{
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={`ob-option group flex w-full cursor-pointer items-center gap-4 rounded-2xl border px-4 py-3.5 text-start transition-[border-color,background-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+      className={`ob-option group flex w-full cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 text-start transition-[border-color,background-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
         selected
-          ? "border-accent/60 bg-accent/[0.05] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_30%,transparent)]"
+          ? "border-ink bg-surface shadow-[0_0_0_0.5px_var(--color-ink)]"
           : "border-hairline bg-surface elev-card hover:border-hairline-strong"
       }`}
     >
@@ -99,7 +99,7 @@ const ModelOption: React.FC<{
             <Badge variant="active">{t("modelSelector.active")}</Badge>
           ) : (
             recommended && (
-              <Badge variant="active">{t("onboarding.recommended")}</Badge>
+              <Badge variant="outline">{t("onboarding.recommended")}</Badge>
             )
           )}
         </span>
@@ -121,7 +121,7 @@ const ModelOption: React.FC<{
         <span
           aria-hidden="true"
           className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition-colors ${
-            selected ? "border-accent bg-accent" : "border-hairline-strong"
+            selected ? "border-ink bg-ink" : "border-hairline-strong"
           }`}
         >
           {selected && <span className="h-2 w-2 rounded-full bg-surface" />}
