@@ -93,8 +93,70 @@ CREATE TABLE secrets (
 PRAGMA user_version = 2;
 `;
 
+/**
+ * Version 3: feedback sent from the apps (feedback.ts), screenshots as BLOBs so
+ * a backup of the database is a backup of everything. Deleting an account
+ * keeps its feedback and drops the link; deleting an entry takes its images.
+ */
+const FEEDBACK_SCHEMA = `
+CREATE TABLE feedback (
+  id TEXT PRIMARY KEY,
+  created_at INTEGER NOT NULL,
+  kind TEXT,
+  message TEXT NOT NULL,
+  email TEXT,
+  system TEXT,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  device_name TEXT,
+  device_platform TEXT,
+  device_kind TEXT
+) STRICT;
+CREATE INDEX feedback_by_time ON feedback(created_at);
+CREATE TABLE feedback_screenshots (
+  feedback_id TEXT NOT NULL REFERENCES feedback(id) ON DELETE CASCADE,
+  n INTEGER NOT NULL,
+  media_type TEXT NOT NULL,
+  data BLOB NOT NULL,
+  PRIMARY KEY (feedback_id, n)
+) STRICT;
+PRAGMA user_version = 3;
+`;
+
 /** Index i takes a database at user_version i to i + 1, each in its own transaction. */
-const MIGRATIONS = [SCHEMA, SECRETS_SCHEMA];
+const MIGRATIONS = [SCHEMA, SECRETS_SCHEMA, FEEDBACK_SCHEMA];
+
+export interface FeedbackInsert {
+  kind: string | null;
+  message: string;
+  email: string | null;
+  system: string | null;
+  userId: string | null;
+  device: { name: string; platform: string; kind: string } | null;
+  screenshots: { mediaType: string; data: Uint8Array }[];
+}
+
+export interface FeedbackRow {
+  /** Insertion order: the page cursor. */
+  seq: number;
+  id: string;
+  created_at: number;
+  kind: string | null;
+  message: string;
+  email: string | null;
+  system: string | null;
+  user_id: string | null;
+  user_email: string | null;
+  device_name: string | null;
+  device_platform: string | null;
+  device_kind: string | null;
+}
+
+export interface FeedbackScreenshotInfo {
+  feedback_id: string;
+  n: number;
+  media_type: string;
+  bytes: number;
+}
 
 export interface SecretRow {
   name: string;
@@ -407,6 +469,80 @@ export class Store {
   }
 
   /** Deletes idle sessions and expired Google states and login codes. */
+  insertFeedback(entry: FeedbackInsert, now: number): string {
+    const id = crypto.randomUUID();
+    this.db.transaction(() => {
+      this.db.run(
+        `INSERT INTO feedback (id, created_at, kind, message, email, system, user_id,
+           device_name, device_platform, device_kind)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          now,
+          entry.kind,
+          entry.message,
+          entry.email,
+          entry.system,
+          entry.userId,
+          entry.device?.name ?? null,
+          entry.device?.platform ?? null,
+          entry.device?.kind ?? null,
+        ],
+      );
+      entry.screenshots.forEach((shot, n) =>
+        this.db.run(
+          "INSERT INTO feedback_screenshots (feedback_id, n, media_type, data) VALUES (?, ?, ?, ?)",
+          [id, n, shot.mediaType, shot.data],
+        ),
+      );
+    })();
+    return id;
+  }
+
+  /** Newest first, strictly before the cursor `before` (a row's `seq`) when given. */
+  listFeedback(
+    limit: number,
+    before: number | null,
+  ): { rows: FeedbackRow[]; screenshots: FeedbackScreenshotInfo[] } {
+    const rows = this.db
+      .query<FeedbackRow, [number, number]>(
+        `SELECT f.rowid AS seq, f.id, f.created_at, f.kind, f.message, f.email, f.system, f.user_id,
+                u.email AS user_email, f.device_name, f.device_platform, f.device_kind
+         FROM feedback f LEFT JOIN users u ON u.id = f.user_id
+         WHERE f.rowid < ?
+         ORDER BY f.rowid DESC LIMIT ?`,
+      )
+      .all(before ?? Number.MAX_SAFE_INTEGER, limit);
+    if (rows.length === 0) return { rows, screenshots: [] };
+    const ids = rows.map((row) => row.id);
+    const screenshots = this.db
+      .query<FeedbackScreenshotInfo, string[]>(
+        `SELECT feedback_id, n, media_type, length(data) AS bytes
+         FROM feedback_screenshots
+         WHERE feedback_id IN (${ids.map(() => "?").join(", ")})
+         ORDER BY feedback_id, n`,
+      )
+      .all(...ids);
+    return { rows, screenshots };
+  }
+
+  feedbackScreenshot(
+    id: string,
+    n: number,
+  ): { media_type: string; data: Uint8Array } | null {
+    return this.db
+      .query<
+        { media_type: string; data: Uint8Array },
+        [string, number]
+      >("SELECT media_type, data FROM feedback_screenshots WHERE feedback_id = ? AND n = ?")
+      .get(id, n);
+  }
+
+  /** False when there is no such entry. */
+  deleteFeedback(id: string): boolean {
+    return this.db.run("DELETE FROM feedback WHERE id = ?", [id]).changes > 0;
+  }
+
   deleteExpired(now: number): void {
     this.db.transaction(() => {
       this.db.run("DELETE FROM devices WHERE last_seen_at <= ?", [

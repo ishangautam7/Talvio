@@ -213,6 +213,36 @@ pub(crate) async fn ice_servers(app: &AppHandle) -> Vec<api::IceServer> {
     }
 }
 
+/// How long feedback waits for discovery when no server is known yet.
+const FEEDBACK_DISCOVERY_WAIT: Duration = Duration::from_secs(10);
+
+/// Sends a feedback form to the account server (`POST /v1/feedback`), signed
+/// with the session's token when someone is signed in, so the owner can tell
+/// whose it is; nobody has to be. With no server known yet, discovery is asked
+/// once, now, rather than on its usual schedule, since someone is waiting.
+/// Errors are the account codes (`no_server`, `network`, `rate_limited`,
+/// `payload_too_large`, `invalid_request`, `invalid_email`, `server`).
+pub(crate) async fn send_feedback(
+    app: &AppHandle,
+    body: &impl Serialize,
+    timeout: Duration,
+) -> Result<(), String> {
+    let manager = manager(app);
+    let usable = |app: &AppHandle| server_url(app).filter(|url| server_allowed(url));
+    if usable(app).is_none() {
+        let found = tokio::time::timeout(FEEDBACK_DISCOVERY_WAIT, discovery::fetch(RELEASE))
+            .await
+            .unwrap_or_else(|_| Err("timeout".into()));
+        manager.discovered(found);
+    }
+    let base = usable(app).ok_or_else(|| "no_server".to_string())?;
+    let api = Api::new(&base)?;
+    let token = manager.session().map(|(session, _)| session.token);
+    api.feedback(token.as_deref(), body, timeout)
+        .await
+        .map_err(|code| manager.reached(code))
+}
+
 /// The server discovery last found, if this build may use it; else, in
 /// development builds only, the local default. There is no other source: the
 /// address is never chosen or typed by the user, and the old Custom server

@@ -33,18 +33,36 @@ export interface FeedbackRequest {
   attachments: FeedbackAttachment[];
 }
 
-export interface FeedbackOutcome {
-  /** Screenshots the service could not store; the report arrived anyway. */
-  attachments_dropped: number;
-}
-
 export const getFeedbackSystemInfo = () =>
   invoke<FeedbackSystemInfo>("get_feedback_system_info");
 
 export const sendFeedback = (request: FeedbackRequest) =>
-  invoke<FeedbackOutcome | null>("send_feedback", { request });
+  invoke<null>("send_feedback", { request });
 
-/** Same limits as the backend and the Worker. */
+/** The codes `send_feedback` fails with; each has `feedback.errors.<code>`. */
+export const FEEDBACK_ERROR_CODES = [
+  "too_short",
+  "too_long",
+  "invalid_email",
+  "too_many_screenshots",
+  "too_large",
+  "invalid_screenshot",
+  "no_server",
+  "network",
+  "rate_limited",
+  "rejected",
+  "server",
+] as const;
+
+/** The translation key for a failed send: its code's, or the generic one. */
+export function feedbackErrorKey(error: unknown): string {
+  return typeof error === "string" &&
+    (FEEDBACK_ERROR_CODES as readonly string[]).includes(error)
+    ? `feedback.errors.${error}`
+    : "feedback.errors.generic";
+}
+
+/** Same limits as the backend and the account server. */
 export const MIN_MESSAGE_CHARS = 3;
 export const MAX_MESSAGE_CHARS = 5000;
 

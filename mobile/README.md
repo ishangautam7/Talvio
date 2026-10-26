@@ -4,8 +4,8 @@ The Android and iOS app. Sign in with the same account as Talvio on your
 computer, and the phone becomes a wireless mic and keyboard for it: speak on
 the phone, and the computer transcribes with its own speech model and pastes
 at its cursor (or sends the text back); type on the phone, and the computer
-pastes it. The account server stores accounts and devices only, never
-recordings or text. The wire format is [`server/PROTOCOL.md`](../server/PROTOCOL.md).
+pastes it. The account server stores accounts and devices (and the feedback
+sent from Account → Send feedback), never recordings or dictated text. The wire format is [`server/PROTOCOL.md`](../server/PROTOCOL.md).
 
 ## Run it
 

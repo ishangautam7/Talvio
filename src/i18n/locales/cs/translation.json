@@ -105,13 +105,20 @@
     "sentTitle": "Děkuji, už je na cestě",
     "sentBody": "Už ji mám a brzy si ji přečtu.",
     "sentWithEmail": "Pokud bude potřeba něco doplnit, ozvu se vám na {{email}}.",
-    "screenshotsDropped_one": "Snímek obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
-    "screenshotsDropped_few": "{{count}} snímky obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
-    "screenshotsDropped_many": "{{count}} snímku obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
-    "screenshotsDropped_other": "{{count}} snímků obrazovky se nepodařilo uložit, ale vaše zpráva dorazila.",
     "sendAnother": "Poslat další",
     "errors": {
-      "generic": "Zpětnou vazbu se nepodařilo odeslat. Vaše zpráva zůstala uložená tady, takže to za chvíli zkuste znovu."
+      "generic": "Zpětnou vazbu se nepodařilo odeslat. Vaše zpráva zůstala uložená tady, takže to za chvíli zkuste znovu.",
+      "too_short": "Napište pár slov, ať je z čeho vycházet.",
+      "too_long": "Je to delší než 5 000 znaků. Trochu to zkraťte a odešlete znovu.",
+      "invalid_email": "Tato e-mailová adresa nevypadá správně.",
+      "too_many_screenshots": "Můžete přiložit nejvýše 3 snímky obrazovky.",
+      "too_large": "Snímky obrazovky jsou příliš velké na odeslání. Jeden odeberte a zkuste to znovu.",
+      "invalid_screenshot": "Jeden ze snímků není obrázek PNG, JPEG ani WebP. Odeberte ho a zkuste to znovu.",
+      "no_server": "Talvio teď nemůže najít svůj server pro zpětnou vazbu. Vaše zpráva zůstala uložená tady, zkuste to tedy později.",
+      "network": "Server pro zpětnou vazbu není dostupný. Zkontrolujte připojení; vaše zpráva zůstala uložená tady.",
+      "rate_limited": "Za krátkou dobu jste poslali hodně zpětné vazby. Zkuste to znovu za chvíli.",
+      "rejected": "Zpětnou vazbu se nepodařilo přijmout. Zkuste ji zkrátit a odeslat znovu.",
+      "server": "Server pro zpětnou vazbu teď neodpovídá správně. Vaše zpráva zůstala uložená tady, zkuste to tedy později."
     },
     "aboutRow": {
       "title": "Zpětná vazba",

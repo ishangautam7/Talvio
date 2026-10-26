@@ -105,11 +105,20 @@
     "sentTitle": "Danke, es ist unterwegs",
     "sentBody": "Es ist jetzt bei mir, und ich lese es bald.",
     "sentWithEmail": "Falls es etwas nachzufragen gibt, melde ich mich unter {{email}}.",
-    "screenshotsDropped_one": "Der Screenshot konnte nicht gespeichert werden, aber deine Nachricht ist angekommen.",
-    "screenshotsDropped_other": "{{count}} Screenshots konnten nicht gespeichert werden, aber deine Nachricht ist angekommen.",
     "sendAnother": "Noch etwas senden",
     "errors": {
-      "generic": "Dein Feedback konnte nicht gesendet werden. Deine Nachricht bleibt hier gespeichert, versuche es gleich noch einmal."
+      "generic": "Dein Feedback konnte nicht gesendet werden. Deine Nachricht bleibt hier gespeichert, versuche es gleich noch einmal.",
+      "too_short": "Schreib ein paar Worte, damit es etwas gibt, woran man ansetzen kann.",
+      "too_long": "Das sind mehr als 5.000 Zeichen. Kürze es etwas und sende es erneut.",
+      "invalid_email": "Diese E-Mail-Adresse sieht nicht richtig aus.",
+      "too_many_screenshots": "Du kannst bis zu 3 Screenshots anhängen.",
+      "too_large": "Die Screenshots sind zu groß zum Senden. Entferne einen und versuche es erneut.",
+      "invalid_screenshot": "Einer der Screenshots ist kein PNG-, JPEG- oder WebP-Bild. Entferne ihn und versuche es erneut.",
+      "no_server": "Talvio findet seinen Feedback-Server gerade nicht. Deine Nachricht bleibt hier gespeichert, versuche es später noch einmal.",
+      "network": "Der Feedback-Server ist nicht erreichbar. Prüfe deine Verbindung; deine Nachricht bleibt hier gespeichert.",
+      "rate_limited": "Du hast in kurzer Zeit viel Feedback gesendet. Versuche es in einer Weile noch einmal.",
+      "rejected": "Das Feedback wurde nicht angenommen. Kürze es und sende es erneut.",
+      "server": "Der Feedback-Server antwortet gerade nicht richtig. Deine Nachricht bleibt hier gespeichert, versuche es später noch einmal."
     },
     "aboutRow": {
       "title": "Feedback",

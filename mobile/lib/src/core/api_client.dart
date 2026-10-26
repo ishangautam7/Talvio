@@ -106,6 +106,20 @@ class ApiClient {
   Future<void> removeDevice(String id) =>
       _call('DELETE', '/v1/devices/${Uri.encodeComponent(id)}', auth: true);
 
+  /// Sends what the feedback form showed (PROTOCOL.md, "Feedback"). No
+  /// sign-in is needed; when this phone is signed in, its token goes along so
+  /// the maintainer can tell whose it is.
+  Future<void> sendFeedback({
+    required String message,
+    String? email,
+    String? system,
+  }) => _call(
+    'POST',
+    '/v1/feedback',
+    body: {'message': message, 'email': ?email, 'system': ?system},
+    withSession: true,
+  );
+
   static Future<AuthResponse> _auth(Future<Map<String, Object?>?> call) async {
     final json = await call;
     try {
@@ -120,10 +134,13 @@ class ApiClient {
     String path, {
     Map<String, Object?>? body,
     bool auth = false,
+    // Signed when there is a session, sent all the same when there is none.
+    bool withSession = false,
   }) async {
     final session = _session.session;
     if (auth && session == null) throw const ApiException('unauthorized');
-    final base = auth ? session!.serverUrl : _session.serverUrl;
+    final signed = auth || (withSession && session != null);
+    final base = signed ? session!.serverUrl : _session.serverUrl;
     if (base == null) {
       // A release build that has not found its server yet.
       _session.finder.unreachable();
@@ -131,7 +148,7 @@ class ApiClient {
     }
     final request = http.Request(method, Uri.parse('$base$path'))
       ..headers['Accept'] = 'application/json';
-    if (auth) request.headers['Authorization'] = 'Bearer ${session!.token}';
+    if (signed) request.headers['Authorization'] = 'Bearer ${session!.token}';
     if (body != null) {
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(body);

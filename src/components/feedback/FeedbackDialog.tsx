@@ -19,6 +19,7 @@ import {
   canSend,
   clearDraft,
   describeSystem,
+  feedbackErrorKey,
   getFeedbackSystemInfo,
   loadDraft,
   loadEmail,
@@ -86,7 +87,6 @@ export const FeedbackDialog: React.FC = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
-  const [dropped, setDropped] = useState(0);
 
   // Restore the draft each time the dialog opens.
   useEffect(() => {
@@ -179,7 +179,7 @@ export const FeedbackDialog: React.FC = () => {
     setStatus("sending");
     setError(null);
     try {
-      const outcome = await sendFeedback({
+      await sendFeedback({
         kind,
         message,
         email: trimmedEmail || null,
@@ -193,12 +193,11 @@ export const FeedbackDialog: React.FC = () => {
       saveEmail(trimmedEmail);
       clearDraft();
       setSentTo(trimmedEmail || null);
-      setDropped(outcome?.attachments_dropped ?? 0);
       setMessage("");
       setAttachments([]);
       setStatus("sent");
     } catch (err) {
-      setError(typeof err === "string" ? err : t("feedback.errors.generic"));
+      setError(t(feedbackErrorKey(err)));
       setStatus("editing");
     }
   };
@@ -287,11 +286,6 @@ export const FeedbackDialog: React.FC = () => {
               ? t("feedback.sentWithEmail", { email: sentTo })
               : t("feedback.sentBody")}
           </p>
-          {dropped > 0 && (
-            <p className="mt-2 max-w-sm text-xs text-muted">
-              {t("feedback.screenshotsDropped", { count: dropped })}
-            </p>
-          )}
         </div>
       ) : (
         <form

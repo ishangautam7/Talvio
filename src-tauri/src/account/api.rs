@@ -27,6 +27,7 @@ const KNOWN_CODES: &[&str] = &[
     "unauthorized",
     "not_found",
     "invalid_request",
+    "payload_too_large",
 ];
 
 /// What a client says about itself when it signs in.
@@ -155,6 +156,9 @@ fn error_code(status: reqwest::StatusCode, code: Option<&str>) -> String {
     match code {
         Some(code) if KNOWN_CODES.contains(&code) => code.to_string(),
         _ if status == reqwest::StatusCode::UNAUTHORIZED => "unauthorized".to_string(),
+        // A reverse proxy in front may refuse these with a body of its own.
+        _ if status == reqwest::StatusCode::PAYLOAD_TOO_LARGE => "payload_too_large".to_string(),
+        _ if status == reqwest::StatusCode::TOO_MANY_REQUESTS => "rate_limited".to_string(),
         _ => "server".to_string(),
     }
 }
@@ -364,6 +368,26 @@ impl Api {
         self.send(request).await.map(|_| ())
     }
 
+    /// Sends what a feedback form showed (`POST /v1/feedback`), with the
+    /// session's token when there is one. Screenshots can make this a few
+    /// megabytes, so it gets longer than the usual request timeout.
+    pub async fn feedback(
+        &self,
+        token: Option<&str>,
+        body: &impl Serialize,
+        timeout: Duration,
+    ) -> Result<(), String> {
+        let mut request = self
+            .client
+            .post(self.url("/v1/feedback"))
+            .timeout(timeout)
+            .json(body);
+        if let Some(token) = token {
+            request = request.bearer_auth(token);
+        }
+        self.send(request).await.map(|_| ())
+    }
+
     /// The STUN and TURN servers a live view connects through (`GET /v1/turn`).
     pub async fn ice_servers(&self, token: &str) -> Result<Vec<IceServer>, String> {
         let request = self.client.get(self.url("/v1/turn")).bearer_auth(token);
@@ -480,8 +504,16 @@ mod tests {
             "server"
         );
         assert_eq!(
-            error_code(StatusCode::PAYLOAD_TOO_LARGE, Some("payload_too_large")),
+            error_code(StatusCode::BAD_REQUEST, Some("something_new")),
             "server"
+        );
+        assert_eq!(
+            error_code(StatusCode::PAYLOAD_TOO_LARGE, None),
+            "payload_too_large"
+        );
+        assert_eq!(
+            error_code(StatusCode::TOO_MANY_REQUESTS, None),
+            "rate_limited"
         );
         assert_eq!(error_code(StatusCode::BAD_GATEWAY, None), "server");
         // A proxy's 401 without the server's body still means the token is dead.

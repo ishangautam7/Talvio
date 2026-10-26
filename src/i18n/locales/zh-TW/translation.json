@@ -105,10 +105,20 @@
     "sentTitle": "謝謝，已經送出了",
     "sentBody": "我已經收到了，很快就會閱讀。",
     "sentWithEmail": "如果有需要進一步了解的地方，會回覆到 {{email}}。",
-    "screenshotsDropped_other": "有 {{count}} 張螢幕截圖無法儲存，但您的訊息已送達。",
     "sendAnother": "再傳送一則",
     "errors": {
-      "generic": "無法傳送您的意見回饋。訊息已保留在這裡，請稍後再試一次。"
+      "generic": "無法傳送您的意見回饋。訊息已保留在這裡，請稍後再試一次。",
+      "too_short": "請寫幾句話，讓我們有個頭緒。",
+      "too_long": "內容超過 5,000 個字元。請稍微刪減後再傳送。",
+      "invalid_email": "這個電子郵件地址看起來不對。",
+      "too_many_screenshots": "最多可以附加 3 張螢幕截圖。",
+      "too_large": "螢幕截圖太大，無法傳送。請移除一張後再試一次。",
+      "invalid_screenshot": "其中一張螢幕截圖不是 PNG、JPEG 或 WebP 圖片。請移除後再試一次。",
+      "no_server": "Talvio 暫時找不到意見回饋伺服器。訊息已保留在這裡，請稍後再試。",
+      "network": "無法連線到意見回饋伺服器。請檢查網路連線；訊息已保留在這裡。",
+      "rate_limited": "您在短時間內傳送了太多意見回饋。請過一會兒再試。",
+      "rejected": "意見回饋未被接受。請嘗試縮短內容後再傳送。",
+      "server": "意見回饋伺服器目前回應異常。訊息已保留在這裡，請稍後再試。"
     },
     "aboutRow": {
       "title": "意見回饋",

@@ -32,12 +32,9 @@ export const rateLimited = (retryAfterSeconds: number) =>
 
 const MAX_BODY_BYTES = 64 * 1024;
 
-const payloadTooLarge = () =>
-  new ApiError(
-    413,
-    "payload_too_large",
-    "The request body is larger than 64 KiB.",
-  );
+export const payloadTooLarge = (
+  message = "The request body is larger than 64 KiB.",
+) => new ApiError(413, "payload_too_large", message);
 
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -89,16 +86,22 @@ export const htmlPage = (status: number, text: string) =>
     },
   );
 
-/** Reads a JSON object body, refusing more than 64 KiB even when no Content-Length was sent. */
-export async function readJson(req: Request): Promise<Record<string, unknown>> {
-  if (Number(req.headers.get("content-length")) > MAX_BODY_BYTES)
-    throw payloadTooLarge();
+/** Reads a JSON object body, refusing more than `maxBytes` (64 KiB) even when no Content-Length was sent. */
+export async function readJson(
+  req: Request,
+  maxBytes = MAX_BODY_BYTES,
+): Promise<Record<string, unknown>> {
+  const tooLarge = () =>
+    maxBytes === MAX_BODY_BYTES
+      ? payloadTooLarge()
+      : payloadTooLarge("The request body is too large.");
+  if (Number(req.headers.get("content-length")) > maxBytes) throw tooLarge();
   const chunks: Uint8Array[] = [];
   let size = 0;
   if (req.body) {
     for await (const chunk of req.body) {
       size += chunk.byteLength;
-      if (size > MAX_BODY_BYTES) throw payloadTooLarge();
+      if (size > maxBytes) throw tooLarge();
       chunks.push(chunk);
     }
   }

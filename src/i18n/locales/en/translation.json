@@ -105,11 +105,20 @@
     "sentTitle": "Thanks, it's on its way",
     "sentBody": "It's with me now, and I'll read it soon.",
     "sentWithEmail": "If there's something to follow up on, you'll hear back at {{email}}.",
-    "screenshotsDropped_one": "The screenshot couldn't be stored, but your message arrived.",
-    "screenshotsDropped_other": "{{count}} screenshots couldn't be stored, but your message arrived.",
     "sendAnother": "Send another",
     "errors": {
-      "generic": "Couldn't send your feedback. Your message is saved here, so try again in a moment."
+      "generic": "Couldn't send your feedback. Your message is saved here, so try again in a moment.",
+      "too_short": "Write a few words so there's something to go on.",
+      "too_long": "That's longer than 5,000 characters. Trim it a little and send again.",
+      "invalid_email": "That email address doesn't look right.",
+      "too_many_screenshots": "You can attach up to 3 screenshots.",
+      "too_large": "The screenshots are too large to send. Remove one and try again.",
+      "invalid_screenshot": "One of the screenshots isn't a PNG, JPEG or WebP image. Remove it and try again.",
+      "no_server": "Talvio can't find its feedback server right now. Your message is saved here, so try again later.",
+      "network": "Couldn't reach the feedback server. Check your connection; your message is saved here.",
+      "rate_limited": "You've sent a lot of feedback in a short time. Try again in a little while.",
+      "rejected": "The feedback couldn't be accepted. Try shortening it and send again.",
+      "server": "The feedback server isn't answering properly right now. Your message is saved here, so try again later."
     },
     "aboutRow": {
       "title": "Feedback",

@@ -105,12 +105,20 @@
     "sentTitle": "Grazie, è in arrivo",
     "sentBody": "Ora ce l'ho io e lo leggerò presto.",
     "sentWithEmail": "Se c'è qualcosa da approfondire, riceverai una risposta a {{email}}.",
-    "screenshotsDropped_one": "Non è stato possibile salvare lo screenshot, ma il tuo messaggio è arrivato.",
-    "screenshotsDropped_many": "Non è stato possibile salvare {{count}} screenshot, ma il tuo messaggio è arrivato.",
-    "screenshotsDropped_other": "Non è stato possibile salvare {{count}} screenshot, ma il tuo messaggio è arrivato.",
     "sendAnother": "Inviane un altro",
     "errors": {
-      "generic": "Impossibile inviare il tuo feedback. Il messaggio resta salvato qui, quindi riprova tra un momento."
+      "generic": "Impossibile inviare il tuo feedback. Il messaggio resta salvato qui, quindi riprova tra un momento.",
+      "too_short": "Scrivi qualche parola, così c'è qualcosa da cui partire.",
+      "too_long": "Supera i 5.000 caratteri. Accorcialo un po' e invialo di nuovo.",
+      "invalid_email": "Questo indirizzo email non sembra corretto.",
+      "too_many_screenshots": "Puoi allegare fino a 3 screenshot.",
+      "too_large": "Gli screenshot sono troppo grandi da inviare. Rimuovine uno e riprova.",
+      "invalid_screenshot": "Uno degli screenshot non è un'immagine PNG, JPEG o WebP. Rimuovilo e riprova.",
+      "no_server": "Talvio non trova il suo server per il feedback in questo momento. Il messaggio resta salvato qui, quindi riprova più tardi.",
+      "network": "Impossibile raggiungere il server per il feedback. Controlla la connessione; il messaggio resta salvato qui.",
+      "rate_limited": "Hai inviato molto feedback in poco tempo. Riprova tra un po'.",
+      "rejected": "Il feedback non è stato accettato. Prova ad accorciarlo e invialo di nuovo.",
+      "server": "Il server per il feedback non risponde correttamente in questo momento. Il messaggio resta salvato qui, quindi riprova più tardi."
     },
     "aboutRow": {
       "title": "Feedback",

@@ -105,12 +105,20 @@
     "sentTitle": "Gracias, ya va de camino",
     "sentBody": "Ya lo tengo y lo leeré pronto.",
     "sentWithEmail": "Si hay algo que comentar, te responderé en {{email}}.",
-    "screenshotsDropped_one": "No se pudo guardar la captura de pantalla, pero tu mensaje llegó.",
-    "screenshotsDropped_many": "No se pudieron guardar {{count}} capturas de pantalla, pero tu mensaje llegó.",
-    "screenshotsDropped_other": "No se pudieron guardar {{count}} capturas de pantalla, pero tu mensaje llegó.",
     "sendAnother": "Enviar otro",
     "errors": {
-      "generic": "No se pudieron enviar tus comentarios. Tu mensaje sigue guardado aquí, así que vuelve a intentarlo en un momento."
+      "generic": "No se pudieron enviar tus comentarios. Tu mensaje sigue guardado aquí, así que vuelve a intentarlo en un momento.",
+      "too_short": "Escribe unas palabras para tener algo con lo que empezar.",
+      "too_long": "Supera los 5000 caracteres. Acórtalo un poco y vuelve a enviarlo.",
+      "invalid_email": "Esa dirección de correo no parece correcta.",
+      "too_many_screenshots": "Puedes adjuntar hasta 3 capturas de pantalla.",
+      "too_large": "Las capturas son demasiado grandes para enviarlas. Quita una y vuelve a intentarlo.",
+      "invalid_screenshot": "Una de las capturas no es una imagen PNG, JPEG o WebP. Quítala y vuelve a intentarlo.",
+      "no_server": "Talvio no encuentra su servidor de comentarios ahora mismo. Tu mensaje sigue guardado aquí, así que inténtalo más tarde.",
+      "network": "No se pudo conectar con el servidor de comentarios. Revisa tu conexión; tu mensaje sigue guardado aquí.",
+      "rate_limited": "Has enviado muchos comentarios en poco tiempo. Vuelve a intentarlo dentro de un rato.",
+      "rejected": "No se pudieron aceptar los comentarios. Intenta acortarlos y vuelve a enviarlos.",
+      "server": "El servidor de comentarios no responde bien ahora mismo. Tu mensaje sigue guardado aquí, así que inténtalo más tarde."
     },
     "aboutRow": {
       "title": "Comentarios",
