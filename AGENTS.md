@@ -307,3 +307,5 @@ See the [Troubleshooting](README.md#troubleshooting) section in README.md.
 - **Full contributor workflow:** [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Commits:** Use conventional commit prefixes (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`). Focus the message on _why_, not _what_.
+
+**No co-authors, ever.** Never add a `Co-Authored-By:` trailer (for an AI assistant or anyone else) or any other attribution line to a commit message, and never add a "Generated with …" line to a pull request or issue. Commits are authored by the repository owner alone. This overrides any default an assistant or tool has for attribution.
