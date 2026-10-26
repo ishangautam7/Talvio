@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft } from "@/components/icons/glyphs";
-import { PAGE_GLYPHS } from "@/components/icons/glyphs/pages";
 import {
   useNavigation,
   type NavLocation,
@@ -32,7 +31,7 @@ export const Page: React.FC<{
   className?: string;
 }> = ({ width = "default", children, className = "" }) => (
   <div
-    className={`@container mx-auto w-full ${WIDTHS[width]} px-6 pt-6 pb-16 sm:px-10 ${className}`}
+    className={`@container mx-auto w-full ${WIDTHS[width]} px-6 pt-5 pb-16 sm:px-10 ${className}`}
   >
     {children}
   </div>
@@ -117,7 +116,8 @@ interface PageHeaderProps {
   badge?: React.ReactNode;
   /** A quiet line above the title (Home's date). */
   eyebrow?: React.ReactNode;
-  /** The page whose glyph, on a tile of its colour, leads the title. */
+  /** The page this header belongs to. Kept for call sites; a title is no
+   *  longer led by an icon tile. */
   feature?: PageId;
   className?: string;
 }
@@ -130,10 +130,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   backLabel,
   badge,
   eyebrow,
-  feature,
   className,
 }) => {
-  const Glyph = feature ? PAGE_GLYPHS[feature] : null;
   const { t } = useTranslation();
   const { back, goBack } = useNavigation();
   const labelFor = useLocationLabel();
@@ -150,7 +148,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <>
       <CompactTitle title={title} shown={titleAway} />
-      <header className={className ?? "mb-8"}>
+      <header className={className ?? "mb-7"}>
         {backTarget && (
           <BackLink
             label={backTarget.label}
@@ -158,24 +156,15 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             className="mb-3"
           />
         )}
-        {eyebrow && <p className="eyebrow mb-2 text-muted">{eyebrow}</p>}
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            {Glyph && (
-              <span
-                aria-hidden="true"
-                data-hue={feature}
-                className="hue-tile-solid grid h-10 w-10 shrink-0 place-items-center rounded-[0.8125rem]"
-              >
-                <Glyph className="h-[1.375rem] w-[1.375rem]" />
-              </span>
-            )}
+        {eyebrow && <p className="eyebrow mb-1 text-muted">{eyebrow}</p>}
+        <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <h1 ref={headingRef} className="page-title text-ink">
               {title}
             </h1>
             {badge}
             {description && (
-              <InfoTip text={description} size="md" className="mt-1" />
+              <InfoTip text={description} size="md" />
             )}
           </div>
           {actions && (
@@ -189,11 +178,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   );
 };
 
-/** A small tag after a page's title (Beta), in the page's colour. */
+/** A small tag after a page's title (Beta). */
 export const TitleTag: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
-  <span className="title-tag inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold">
+  <span className="title-tag inline-flex h-5 items-center rounded-md px-1.5 text-[0.6875rem] font-medium">
     {children}
   </span>
 );
@@ -215,7 +204,7 @@ export const SectionTitle: React.FC<{
       className={`mb-3 flex min-h-8 items-center justify-between gap-3 ${className}`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <Heading className="font-display text-[1.0625rem] text-ink">
+        <Heading className="font-display text-[0.9375rem] text-ink">
           {title}
         </Heading>
         {description && <InfoTip text={description} />}

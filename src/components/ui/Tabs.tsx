@@ -83,7 +83,7 @@ export function Tabs<T extends string>({
             >
               {Icon && (
                 <Icon
-                  className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-accent-fill" : "text-muted"}`}
+                  className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-ink" : "text-muted"}`}
                 />
               )}
               {item.label}

@@ -87,7 +87,7 @@ export const TitleBar: React.FC = () => {
       data-tauri-drag-region
       onDoubleClick={handleTitleBarDoubleClick}
       className={`titlebar relative z-20 grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center text-ink ${
-        isMac ? "pl-[78px] pr-3" : "ps-5 pe-2"
+        isMac ? "pl-[78px] pr-3" : "ps-[1.375rem] pe-2"
       }`}
     >
       {/* The Wave-T mark and the wordmark. pointer-events-none keeps the strip

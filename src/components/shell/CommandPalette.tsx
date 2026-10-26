@@ -86,7 +86,7 @@ export const CommandPalette: React.FC = () => {
       onClick={() => setOpen(true)}
       aria-haspopup="dialog"
       aria-expanded={open}
-      className="palette-trigger flex h-8 w-[min(26rem,40vw)] min-w-0 cursor-pointer items-center gap-2 rounded-full ps-3 pe-1.5 text-start text-[0.8125rem] focus-visible:outline-none"
+      className="palette-trigger flex h-8 w-[min(26rem,40vw)] min-w-0 cursor-pointer items-center gap-2 rounded-lg ps-2.5 pe-1.5 text-start text-[0.8125rem] focus-visible:outline-none"
     >
       <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span className="min-w-0 flex-1 truncate">{t("palette.trigger")}</span>
@@ -256,7 +256,7 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         aria-modal="true"
         aria-label={t("palette.label")}
         onKeyDown={onKeyDown}
-        className="palette-panel relative flex max-h-[min(30rem,72vh)] w-[min(38rem,100%)] flex-col overflow-hidden rounded-[1.375rem]"
+        className="palette-panel relative flex max-h-[min(30rem,72vh)] w-[min(38rem,100%)] flex-col overflow-hidden rounded-3xl"
       >
         <div className="flex shrink-0 items-center gap-3 border-b border-hairline px-4">
           <Search className="h-[1.125rem] w-[1.125rem] shrink-0 text-muted" />
@@ -320,9 +320,9 @@ const PalettePanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         data-hue={entry.hue}
                         onMouseMove={() => setActive(n)}
                         onClick={() => run(entry)}
-                        className="palette-option flex h-11 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm text-ink"
+                        className="palette-option flex h-10 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-ink"
                       >
-                        <span className="palette-glyph grid h-7 w-7 shrink-0 place-items-center rounded-lg">
+                        <span className="palette-glyph grid h-5 w-5 shrink-0 place-items-center">
                           <Icon className="h-4 w-4" aria-hidden="true" />
                         </span>
                         <span className="min-w-0 flex-1 truncate font-medium">
