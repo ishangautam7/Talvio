@@ -119,14 +119,51 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
             Err(e) => ToolOutcome::failed(e, false),
         };
     }
-    let kind = Kind::parse(arg_str(&args, "kind"));
+    match find_file(ctx, name, arg_str(&args, "kind"), &|_| true) {
+        FileLookup::One(path) => open(ctx, &path),
+        FileLookup::Several(labels) => ToolOutcome::ask("Which file?", labels),
+        FileLookup::OnlyPrograms => {
+            log::info!("open_file: only programs matched; not opening any");
+            ToolOutcome::failed(PROGRAM_REFUSAL, false)
+        }
+        FileLookup::Nothing => {
+            ToolOutcome::failed(format!("I couldn't find a file called {name}."), false)
+        }
+    }
+}
+
+/// What a spoken file name came to ([`find_file`]).
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum FileLookup {
+    /// One clear document.
+    One(PathBuf),
+    /// Several close ones, as the labels a question offers ("Resume.pdf
+    /// (Documents)"); an answer echoing one finds it exactly.
+    Several(Vec<String>),
+    Nothing,
+    /// Only programs matched, which this search never returns.
+    OnlyPrograms,
+}
+
+/// Find the document `name` means (of `kind`, the schema's kind word when the
+/// user said one): the platform's recent files first, then a bounded walk of
+/// the known folders, keeping only documents `allowed` passes. Shared by
+/// `open_file` and `compose_email`'s attachment, so "the report" means the
+/// same file to both.
+pub(crate) fn find_file(
+    ctx: &ToolCtx,
+    name: &str,
+    kind: Option<&str>,
+    allowed: &dyn Fn(&Path) -> bool,
+) -> FileLookup {
+    let kind = Kind::parse(kind);
     let query = clean_file_query(name);
 
     let recent: Vec<Candidate> = ctx
         .effects
         .recent_files()
         .into_iter()
-        .filter(|path| path.is_file())
+        .filter(|path| path.is_file() && allowed(path))
         .map(|path| Candidate { path, recent: true })
         .collect();
     let recent_documents: Vec<Candidate> = recent
@@ -142,9 +179,13 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
             Choice::One(candidate, score)
         }
         _ => {
-            let walked = walk_files(&ctx.effects.known_folders(), MAX_DEPTH, MAX_ENTRIES);
+            let walked: Vec<PathBuf> =
+                walk_files(&ctx.effects.known_folders(), MAX_DEPTH, MAX_ENTRIES)
+                    .into_iter()
+                    .filter(|path| allowed(path))
+                    .collect();
             log::debug!(
-                "open_file: {} recent files, {} found in known folders",
+                "find_file: {} recent files, {} found in known folders",
                 recent.len(),
                 walked.len()
             );
@@ -155,8 +196,7 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
                 .partition(|candidate| is_program(&candidate.path));
             match choose(&query, kind, &documents) {
                 Choice::Nothing if choose(&query, kind, &programs) != Choice::Nothing => {
-                    log::info!("open_file: only programs matched; not opening any");
-                    return ToolOutcome::failed(PROGRAM_REFUSAL, false);
+                    return FileLookup::OnlyPrograms;
                 }
                 choice => choice,
             }
@@ -164,14 +204,11 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     };
 
     match choice {
-        Choice::One(candidate, _) => open(ctx, &candidate.path),
-        Choice::Several(options) => ToolOutcome::ask(
-            "Which file?",
-            dedupe(options.iter().map(|c| choice_label(&c.path)).collect()),
-        ),
-        Choice::Nothing => {
-            ToolOutcome::failed(format!("I couldn't find a file called {name}."), false)
-        }
+        Choice::One(candidate, _) => FileLookup::One(candidate.path),
+        Choice::Several(options) => FileLookup::Several(dedupe(
+            options.iter().map(|c| choice_label(&c.path)).collect(),
+        )),
+        Choice::Nothing => FileLookup::Nothing,
     }
 }
 
