@@ -72,6 +72,7 @@ on:
           - windows-linux
           - windows
           - linux
+          - macos
       prerelease:
         description: >-
           Mark the release as a prerelease (beta). GitHub then keeps "Latest
@@ -238,6 +239,9 @@ jobs:
               ;;
             linux)
               INCLUDE="$(jq -c '[.[] | select(.platform | startswith("ubuntu"))]' <<<"$ALL")"
+              ;;
+            macos)
+              INCLUDE="$(jq -c '[.[] | select(.platform | startswith("macos"))]' <<<"$ALL")"
               ;;
             all|"")
               INCLUDE="$(jq -c '.' <<<"$ALL")"
