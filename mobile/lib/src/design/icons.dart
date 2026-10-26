@@ -169,6 +169,7 @@ abstract final class AppIcons {
     matchTextDirection: true,
   );
   static const delete = IconData(0xe4a6, fontFamily: 'PhosphorRegular');
+  static const feedback = IconData(0xe3e8, fontFamily: 'PhosphorRegular');
   static const remove = IconData(0xe32c, fontFamily: 'PhosphorRegular');
   static const show = IconData(0xe220, fontFamily: 'PhosphorRegular');
   static const hide = IconData(0xe224, fontFamily: 'PhosphorRegular');

@@ -9,6 +9,7 @@ import '../../core/strings.dart';
 import '../../design/brand.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
+import 'feedback_screen.dart';
 import 'strings.dart';
 
 /// Who is signed in, the account's devices, the server, signing out and
@@ -121,9 +122,8 @@ class _AccountScreenState extends State<AccountScreen> {
                       IconBtn(
                         icon: ios ? AppIcons.backIos : AppIcons.backAndroid,
                         size: IconSize.large,
-                        tooltip: MaterialLocalizations.of(
-                          context,
-                        ).backButtonTooltip,
+                        tooltip: MaterialLocalizations.of(context)
+                            .backButtonTooltip,
                         onPressed: () => Navigator.maybePop(context),
                       ),
                       const SizedBox(width: Space.s4),
@@ -230,6 +230,24 @@ class _AccountScreenState extends State<AccountScreen> {
                         ),
                         const GroupFooter(AccountStrings.serverNote),
                       ],
+                      const SizedBox(height: Space.s24),
+                      Group(
+                        children: [
+                          ListRow(
+                            leading: RowGlyph(AppIcons.feedback, color: t.ink),
+                            title: AccountStrings.sendFeedback,
+                            semanticLabel: AccountStrings.sendFeedback,
+                            enabled: !busy,
+                            onTap: busy
+                                ? null
+                                : () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const FeedbackScreen(),
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: Space.s24),
                       Group(
                         children: [
