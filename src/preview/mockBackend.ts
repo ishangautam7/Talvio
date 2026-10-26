@@ -1949,9 +1949,7 @@ const handlers: Record<string, (args: Json) => unknown> = {
   }),
   // A short wait, so the preview shows the "Sending…" state like the app does.
   send_feedback: () =>
-    new Promise((resolve) =>
-      setTimeout(() => resolve({ attachments_dropped: 0 }), 600),
-    ),
+    new Promise((resolve) => setTimeout(() => resolve(null), 600)),
 
   // Setters that change what the pages show.
   set_stt_engine_mode: ({ mode }) => {

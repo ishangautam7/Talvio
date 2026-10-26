@@ -105,13 +105,20 @@
     "sentTitle": "Dzięki, już leci",
     "sentBody": "Wiadomość do mnie dotarła i wkrótce ją przeczytam.",
     "sentWithEmail": "Jeśli będzie coś do omówienia, odpiszę na adres {{email}}.",
-    "screenshotsDropped_one": "Nie udało się zapisać zrzutu ekranu, ale Twoja wiadomość dotarła.",
-    "screenshotsDropped_few": "Nie udało się zapisać {{count}} zrzutów ekranu, ale Twoja wiadomość dotarła.",
-    "screenshotsDropped_many": "Nie udało się zapisać {{count}} zrzutów ekranu, ale Twoja wiadomość dotarła.",
-    "screenshotsDropped_other": "Nie udało się zapisać {{count}} zrzutu ekranu, ale Twoja wiadomość dotarła.",
     "sendAnother": "Wyślij kolejną",
     "errors": {
-      "generic": "Nie udało się wysłać opinii. Twoja wiadomość jest tu zachowana, więc spróbuj ponownie za chwilę."
+      "generic": "Nie udało się wysłać opinii. Twoja wiadomość jest tu zachowana, więc spróbuj ponownie za chwilę.",
+      "too_short": "Napisz kilka słów, żeby było od czego zacząć.",
+      "too_long": "To więcej niż 5000 znaków. Skróć trochę i wyślij ponownie.",
+      "invalid_email": "Ten adres e-mail nie wygląda poprawnie.",
+      "too_many_screenshots": "Możesz dołączyć maksymalnie 3 zrzuty ekranu.",
+      "too_large": "Zrzuty ekranu są za duże, by je wysłać. Usuń jeden i spróbuj ponownie.",
+      "invalid_screenshot": "Jeden ze zrzutów ekranu nie jest obrazem PNG, JPEG ani WebP. Usuń go i spróbuj ponownie.",
+      "no_server": "Talvio nie może teraz znaleźć swojego serwera opinii. Twoja wiadomość jest tu zachowana, więc spróbuj później.",
+      "network": "Nie udało się połączyć z serwerem opinii. Sprawdź połączenie; Twoja wiadomość jest tu zachowana.",
+      "rate_limited": "Wysłano dużo opinii w krótkim czasie. Spróbuj ponownie za jakiś czas.",
+      "rejected": "Opinia nie została przyjęta. Spróbuj ją skrócić i wyślij ponownie.",
+      "server": "Serwer opinii nie odpowiada teraz poprawnie. Twoja wiadomość jest tu zachowana, więc spróbuj później."
     },
     "aboutRow": {
       "title": "Opinie",

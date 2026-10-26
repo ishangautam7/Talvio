@@ -105,12 +105,20 @@
     "sentTitle": "Merci, c'est envoyé",
     "sentBody": "Votre message m'est bien parvenu, je le lirai bientôt.",
     "sentWithEmail": "S'il y a une suite à donner, vous recevrez une réponse à {{email}}.",
-    "screenshotsDropped_one": "La capture d'écran n'a pas pu être enregistrée, mais votre message est bien arrivé.",
-    "screenshotsDropped_many": "{{count}} captures d'écran n'ont pas pu être enregistrées, mais votre message est bien arrivé.",
-    "screenshotsDropped_other": "{{count}} captures d'écran n'ont pas pu être enregistrées, mais votre message est bien arrivé.",
     "sendAnother": "Envoyer un autre commentaire",
     "errors": {
-      "generic": "Impossible d'envoyer votre commentaire. Votre message est conservé ici, réessayez dans un instant."
+      "generic": "Impossible d'envoyer votre commentaire. Votre message est conservé ici, réessayez dans un instant.",
+      "too_short": "Écrivez quelques mots pour qu'il y ait de quoi partir.",
+      "too_long": "Cela dépasse 5 000 caractères. Raccourcissez un peu et renvoyez.",
+      "invalid_email": "Cette adresse e-mail ne semble pas correcte.",
+      "too_many_screenshots": "Vous pouvez joindre jusqu'à 3 captures d'écran.",
+      "too_large": "Les captures d'écran sont trop lourdes à envoyer. Retirez-en une et réessayez.",
+      "invalid_screenshot": "L'une des captures n'est pas une image PNG, JPEG ou WebP. Retirez-la et réessayez.",
+      "no_server": "Talvio ne trouve pas son serveur de commentaires pour le moment. Votre message est conservé ici, réessayez plus tard.",
+      "network": "Impossible de joindre le serveur de commentaires. Vérifiez votre connexion ; votre message est conservé ici.",
+      "rate_limited": "Vous avez envoyé beaucoup de commentaires en peu de temps. Réessayez dans un moment.",
+      "rejected": "Le commentaire n'a pas pu être accepté. Essayez de le raccourcir et renvoyez-le.",
+      "server": "Le serveur de commentaires ne répond pas correctement pour le moment. Votre message est conservé ici, réessayez plus tard."
     },
     "aboutRow": {
       "title": "Commentaires",

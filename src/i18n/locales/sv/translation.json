@@ -105,11 +105,20 @@
     "sentTitle": "Tack, den är på väg",
     "sentBody": "Den har kommit fram till mig, och jag läser den snart.",
     "sentWithEmail": "Om det finns något att följa upp hör jag av mig till {{email}}.",
-    "screenshotsDropped_one": "Skärmbilden kunde inte sparas, men ditt meddelande kom fram.",
-    "screenshotsDropped_other": "{{count}} skärmbilder kunde inte sparas, men ditt meddelande kom fram.",
     "sendAnother": "Skicka en till",
     "errors": {
-      "generic": "Det gick inte att skicka din feedback. Ditt meddelande finns kvar här, så försök igen om en stund."
+      "generic": "Det gick inte att skicka din feedback. Ditt meddelande finns kvar här, så försök igen om en stund.",
+      "too_short": "Skriv några ord så att det finns något att gå på.",
+      "too_long": "Det är längre än 5 000 tecken. Korta ner det lite och skicka igen.",
+      "invalid_email": "Den e-postadressen ser inte rätt ut.",
+      "too_many_screenshots": "Du kan bifoga upp till 3 skärmbilder.",
+      "too_large": "Skärmbilderna är för stora för att skicka. Ta bort en och försök igen.",
+      "invalid_screenshot": "En av skärmbilderna är inte en PNG-, JPEG- eller WebP-bild. Ta bort den och försök igen.",
+      "no_server": "Talvio hittar inte sin feedbackserver just nu. Ditt meddelande finns kvar här, så försök igen senare.",
+      "network": "Det gick inte att nå feedbackservern. Kontrollera anslutningen; ditt meddelande finns kvar här.",
+      "rate_limited": "Du har skickat mycket feedback på kort tid. Försök igen om en stund.",
+      "rejected": "Feedbacken kunde inte tas emot. Försök korta ner den och skicka igen.",
+      "server": "Feedbackservern svarar inte som den ska just nu. Ditt meddelande finns kvar här, så försök igen senare."
     },
     "aboutRow": {
       "title": "Feedback",

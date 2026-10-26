@@ -105,10 +105,20 @@
     "sentTitle": "谢谢，已经发出",
     "sentBody": "我已经收到，很快就会阅读。",
     "sentWithEmail": "如果需要跟进，我会通过 {{email}} 回复您。",
-    "screenshotsDropped_other": "有 {{count}} 张截图未能保存，但您的消息已送达。",
     "sendAnother": "再发一条",
     "errors": {
-      "generic": "无法发送您的反馈。消息已保留在这里，请稍后重试。"
+      "generic": "无法发送您的反馈。消息已保留在这里，请稍后重试。",
+      "too_short": "请写几句话，让我们有个头绪。",
+      "too_long": "内容超过 5,000 个字符。请稍微删减后再发送。",
+      "invalid_email": "这个邮箱地址看起来不对。",
+      "too_many_screenshots": "最多可以附加 3 张截图。",
+      "too_large": "截图太大，无法发送。请移除一张后重试。",
+      "invalid_screenshot": "其中一张截图不是 PNG、JPEG 或 WebP 图片。请移除后重试。",
+      "no_server": "Talvio 暂时找不到反馈服务器。消息已保留在这里，请稍后重试。",
+      "network": "无法连接到反馈服务器。请检查网络连接；消息已保留在这里。",
+      "rate_limited": "你在短时间内发送了太多反馈。请过一会儿再试。",
+      "rejected": "反馈未被接受。请尝试缩短内容后再发送。",
+      "server": "反馈服务器目前响应异常。消息已保留在这里，请稍后重试。"
     },
     "aboutRow": {
       "title": "反馈",

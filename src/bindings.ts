@@ -1012,7 +1012,7 @@ async takeUpdateNotice() : Promise<FinishedUpdate | null> {
 async getFeedbackSystemInfo() : Promise<FeedbackSystemInfo> {
     return await TAURI_INVOKE("get_feedback_system_info");
 },
-async sendFeedback(request: FeedbackRequest) : Promise<Result<FeedbackOutcome, string>> {
+async sendFeedback(request: FeedbackRequest) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("send_feedback", { request }) };
 } catch (e) {
@@ -5734,11 +5734,6 @@ text: string }
  */
 export type FeedbackAttachment = { media_type: string; data: string }
 export type FeedbackKind = "bug" | "idea" | "question"
-/**
- * What the dialog needs to know after a successful send. Screenshots are
- * best-effort on the Worker's side, so a report can arrive without them.
- */
-export type FeedbackOutcome = { attachments_dropped: number }
 export type FeedbackRequest = { kind: FeedbackKind; message: string; email: string | null; include_system_info: boolean; attachments?: FeedbackAttachment[] }
 /**
  * The optional "about this install" block, shown verbatim in the dialog

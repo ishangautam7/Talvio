@@ -423,7 +423,7 @@ The app is [Tauri 2](https://tauri.app) with a Rust backend and a React + TypeSc
 - **Account server:** [`server/README.md`](server/README.md).
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) and [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md). Project notes: [PRIVATE_FORK.md](PRIVATE_FORK.md), [TASKS.md](TASKS.md).
 
-In-app feedback and self-update are switched off in this build (no feedback endpoint or updater key is configured).
+In-app feedback (the **?** in the sidebar, the tray menu, Settings → About, and Account in the phone app) goes to the Talvio account server, which keeps it for the maintainer; see [server/README.md](server/README.md#feedback). Self-update is switched off in this build (no updater key is configured).
 
 ## License and attribution
 

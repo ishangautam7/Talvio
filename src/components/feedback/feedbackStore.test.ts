@@ -3,6 +3,8 @@ import {
   MAX_MESSAGE_CHARS,
   canSend,
   describeSystem,
+  FEEDBACK_ERROR_CODES,
+  feedbackErrorKey,
   looksLikeEmail,
   parseDraft,
 } from "./feedbackStore";
@@ -72,4 +74,27 @@ test("describeSystem is one readable line", () => {
       install: "nsis",
     }),
   ).toBe("Talvio 1.5.0 · Windows 10.0.26100 · x86_64 · nsis");
+});
+
+describe("feedbackErrorKey", () => {
+  test("a known code has its own sentence", () => {
+    expect(feedbackErrorKey("no_server")).toBe("feedback.errors.no_server");
+    expect(feedbackErrorKey("rate_limited")).toBe(
+      "feedback.errors.rate_limited",
+    );
+  });
+
+  test("anything else is the generic sentence", () => {
+    expect(feedbackErrorKey("something_new")).toBe("feedback.errors.generic");
+    expect(feedbackErrorKey(new Error("boom"))).toBe("feedback.errors.generic");
+    expect(feedbackErrorKey(undefined)).toBe("feedback.errors.generic");
+  });
+
+  test("every code is translated in English", async () => {
+    const en = (await import("../../i18n/locales/en/translation.json"))
+      .default as { feedback: { errors: Record<string, string> } };
+    for (const code of FEEDBACK_ERROR_CODES) {
+      expect(en.feedback.errors[code]).toBeString();
+    }
+  });
 });

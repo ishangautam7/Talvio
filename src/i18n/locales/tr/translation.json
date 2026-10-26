@@ -105,11 +105,20 @@
     "sentTitle": "Teşekkürler, yola çıktı",
     "sentBody": "Artık bende, yakında okuyacağım.",
     "sentWithEmail": "Takip edilecek bir şey olursa {{email}} adresinden size dönüş yapılır.",
-    "screenshotsDropped_one": "Ekran görüntüsü saklanamadı, ancak mesajınız ulaştı.",
-    "screenshotsDropped_other": "{{count}} ekran görüntüsü saklanamadı, ancak mesajınız ulaştı.",
     "sendAnother": "Bir tane daha gönder",
     "errors": {
-      "generic": "Geri bildiriminiz gönderilemedi. Mesajınız burada kayıtlı, birazdan tekrar deneyin."
+      "generic": "Geri bildiriminiz gönderilemedi. Mesajınız burada kayıtlı, birazdan tekrar deneyin.",
+      "too_short": "Üzerinde çalışılacak bir şey olması için birkaç kelime yazın.",
+      "too_long": "Bu 5.000 karakterden uzun. Biraz kısaltıp yeniden gönderin.",
+      "invalid_email": "Bu e-posta adresi doğru görünmüyor.",
+      "too_many_screenshots": "En fazla 3 ekran görüntüsü ekleyebilirsiniz.",
+      "too_large": "Ekran görüntüleri göndermek için çok büyük. Birini kaldırıp tekrar deneyin.",
+      "invalid_screenshot": "Ekran görüntülerinden biri PNG, JPEG veya WebP görüntüsü değil. Kaldırıp tekrar deneyin.",
+      "no_server": "Talvio şu anda geri bildirim sunucusunu bulamıyor. Mesajınız burada kayıtlı, daha sonra tekrar deneyin.",
+      "network": "Geri bildirim sunucusuna ulaşılamadı. Bağlantınızı kontrol edin; mesajınız burada kayıtlı.",
+      "rate_limited": "Kısa sürede çok fazla geri bildirim gönderdiniz. Bir süre sonra tekrar deneyin.",
+      "rejected": "Geri bildirim kabul edilmedi. Kısaltmayı deneyip yeniden gönderin.",
+      "server": "Geri bildirim sunucusu şu anda düzgün yanıt vermiyor. Mesajınız burada kayıtlı, daha sonra tekrar deneyin."
     },
     "aboutRow": {
       "title": "Geri bildirim",

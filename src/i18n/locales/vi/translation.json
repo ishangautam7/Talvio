@@ -105,10 +105,20 @@
     "sentTitle": "Cảm ơn bạn, góp ý đang được gửi đi",
     "sentBody": "Tôi đã nhận được và sẽ sớm đọc.",
     "sentWithEmail": "Nếu có điều gì cần trao đổi thêm, bạn sẽ nhận được phản hồi qua {{email}}.",
-    "screenshotsDropped_other": "Không thể lưu {{count}} ảnh chụp màn hình, nhưng tin nhắn của bạn đã được gửi đến.",
     "sendAnother": "Gửi góp ý khác",
     "errors": {
-      "generic": "Không thể gửi góp ý của bạn. Tin nhắn vẫn được giữ lại ở đây, hãy thử lại sau giây lát."
+      "generic": "Không thể gửi góp ý của bạn. Tin nhắn vẫn được giữ lại ở đây, hãy thử lại sau giây lát.",
+      "too_short": "Hãy viết vài chữ để có điều gì đó mà bắt đầu.",
+      "too_long": "Nội dung dài hơn 5.000 ký tự. Hãy rút ngắn một chút rồi gửi lại.",
+      "invalid_email": "Địa chỉ email này có vẻ không đúng.",
+      "too_many_screenshots": "Bạn có thể đính kèm tối đa 3 ảnh chụp màn hình.",
+      "too_large": "Ảnh chụp màn hình quá lớn để gửi. Hãy bỏ bớt một ảnh rồi thử lại.",
+      "invalid_screenshot": "Một trong các ảnh chụp không phải ảnh PNG, JPEG hoặc WebP. Hãy bỏ ảnh đó rồi thử lại.",
+      "no_server": "Talvio hiện không tìm thấy máy chủ góp ý. Tin nhắn vẫn được giữ lại ở đây, hãy thử lại sau.",
+      "network": "Không thể kết nối tới máy chủ góp ý. Hãy kiểm tra kết nối; tin nhắn vẫn được giữ lại ở đây.",
+      "rate_limited": "Bạn đã gửi rất nhiều góp ý trong thời gian ngắn. Hãy thử lại sau một lúc.",
+      "rejected": "Góp ý không được chấp nhận. Hãy thử rút ngắn rồi gửi lại.",
+      "server": "Máy chủ góp ý hiện không phản hồi đúng cách. Tin nhắn vẫn được giữ lại ở đây, hãy thử lại sau."
     },
     "aboutRow": {
       "title": "Góp ý",

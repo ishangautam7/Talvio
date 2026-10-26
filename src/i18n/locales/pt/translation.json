@@ -105,12 +105,20 @@
     "sentTitle": "Obrigado, já está a caminho",
     "sentBody": "Já chegou até mim, e vou ler em breve.",
     "sentWithEmail": "Se houver algo para acompanhar, você vai receber uma resposta em {{email}}.",
-    "screenshotsDropped_one": "Não foi possível guardar a captura de tela, mas sua mensagem chegou.",
-    "screenshotsDropped_many": "Não foi possível guardar {{count}} capturas de tela, mas sua mensagem chegou.",
-    "screenshotsDropped_other": "Não foi possível guardar {{count}} capturas de tela, mas sua mensagem chegou.",
     "sendAnother": "Enviar outro",
     "errors": {
-      "generic": "Não foi possível enviar seu feedback. Sua mensagem continua salva aqui, então tente novamente daqui a pouco."
+      "generic": "Não foi possível enviar seu feedback. Sua mensagem continua salva aqui, então tente novamente daqui a pouco.",
+      "too_short": "Escreva algumas palavras para que haja algo por onde começar.",
+      "too_long": "Passa de 5.000 caracteres. Encurte um pouco e envie de novo.",
+      "invalid_email": "Esse endereço de e-mail não parece correto.",
+      "too_many_screenshots": "Você pode anexar até 3 capturas de tela.",
+      "too_large": "As capturas de tela são grandes demais para enviar. Remova uma e tente novamente.",
+      "invalid_screenshot": "Uma das capturas não é uma imagem PNG, JPEG ou WebP. Remova-a e tente novamente.",
+      "no_server": "O Talvio não está encontrando o servidor de feedback agora. Sua mensagem continua salva aqui, então tente mais tarde.",
+      "network": "Não foi possível alcançar o servidor de feedback. Verifique sua conexão; sua mensagem continua salva aqui.",
+      "rate_limited": "Você enviou muito feedback em pouco tempo. Tente novamente daqui a pouco.",
+      "rejected": "O feedback não pôde ser aceito. Tente encurtá-lo e envie de novo.",
+      "server": "O servidor de feedback não está respondendo direito agora. Sua mensagem continua salva aqui, então tente mais tarde."
     },
     "aboutRow": {
       "title": "Feedback",

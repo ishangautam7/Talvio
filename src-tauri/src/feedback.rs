@@ -1,21 +1,25 @@
 //! In-app feedback: a bug report, an idea, or a question, sent to the
 //! maintainer without leaving the app or needing a GitHub account.
 //!
-//! The app posts to a small Cloudflare Worker (`feedback-worker/`), which
-//! files the message as an issue in a private GitHub repository. The Worker
-//! holds the GitHub credential; nothing secret ships in the app, so the worst
-//! a copied request can do is send more feedback, which the Worker
-//! rate-limits.
+//! It goes to the Talvio account server (`POST /v1/feedback`,
+//! `server/PROTOCOL.md` "Feedback"), at the address account discovery found
+//! (`account::send_feedback`). Nobody has to be signed in; when someone is,
+//! the session token goes with it so the maintainer can tell whose it is.
+//! The server stores it, screenshots included, and rate-limits it.
 //!
-//! Sent from Rust rather than the webview so there is no CORS surface: the
-//! Worker answers no browser preflight at all, which means a web page cannot
-//! post to it on a visitor's behalf.
+//! Sent from Rust rather than the webview so there is no CORS surface and the
+//! session token never reaches the webview.
 //!
 //! What is sent is exactly what the dialog shows: the message, an email only
 //! if the person typed one, any screenshots they attached (compressed in the
-//! dialog first, since each one is committed to the feedback repository), and
-//! — only if they left the box ticked — the app version, OS and install type.
-//! No logs, no transcripts, no identifiers.
+//! dialog first), and, only if they left the box ticked, the one system line
+//! the dialog prints (`system_line`, the same text as `describeSystem` in
+//! `feedbackStore.ts`). No logs, no transcripts.
+//!
+//! Errors are codes the dialog translates (`feedback.errors.<code>`), never
+//! prose: `too_short`, `too_long`, `invalid_email`, `too_many_screenshots`,
+//! `too_large`, `invalid_screenshot`, `no_server`, `network`, `rate_limited`,
+//! `rejected`, `server`.
 
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
@@ -23,9 +27,7 @@ use specta::Type;
 use std::time::Duration;
 use tauri::AppHandle;
 
-pub const FEEDBACK_ENDPOINT: &str = "";
-
-/// Mirrors the Worker's limits so the dialog can say no before a round trip.
+/// Mirrors the server's limits so the dialog can say no before a round trip.
 pub const MIN_MESSAGE_CHARS: usize = 3;
 pub const MAX_MESSAGE_CHARS: usize = 5000;
 const MAX_EMAIL_CHARS: usize = 254;
@@ -33,6 +35,7 @@ const MAX_EMAIL_CHARS: usize = 254;
 /// a few hundred KB); these caps only catch a bypassed or broken compressor.
 pub const MAX_ATTACHMENTS: usize = 3;
 pub const MAX_ATTACHMENT_BYTES: usize = 1024 * 1024;
+pub const MAX_ATTACHMENTS_TOTAL_BYTES: usize = 3 * 1024 * 1024;
 
 #[derive(Serialize, Deserialize, Type, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -59,19 +62,6 @@ pub struct FeedbackRequest {
     pub attachments: Vec<FeedbackAttachment>,
 }
 
-/// What the dialog needs to know after a successful send. Screenshots are
-/// best-effort on the Worker's side, so a report can arrive without them.
-#[derive(Serialize, Type, Clone, Debug, Default, PartialEq, Eq)]
-pub struct FeedbackOutcome {
-    pub attachments_dropped: u32,
-}
-
-#[derive(Deserialize, Debug, Default)]
-struct WorkerReply {
-    #[serde(default)]
-    attachments_dropped: u32,
-}
-
 /// The optional "about this install" block, shown verbatim in the dialog
 /// before it is sent.
 #[derive(Serialize, Type, Clone, Debug, PartialEq, Eq)]
@@ -82,6 +72,23 @@ pub struct FeedbackSystemInfo {
     pub install: String,
 }
 
+/// The line the dialog shows ("Sent exactly as: …") and the server stores.
+pub fn system_line(info: &FeedbackSystemInfo) -> String {
+    format!(
+        "Talvio {} · {} · {} · {}",
+        info.app_version, info.os, info.arch, info.install
+    )
+}
+
+/// A screenshot under the server's field names.
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct Screenshot<'a> {
+    media_type: &'a str,
+    data: &'a str,
+}
+
+/// The request body of `POST /v1/feedback`.
 #[derive(Serialize, Debug)]
 struct FeedbackPayload<'a> {
     kind: FeedbackKind,
@@ -89,9 +96,9 @@ struct FeedbackPayload<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     email: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system: Option<FeedbackSystemInfo>,
-    #[serde(skip_serializing_if = "<[_]>::is_empty")]
-    attachments: &'a [FeedbackAttachment],
+    system: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    screenshots: Vec<Screenshot<'a>>,
 }
 
 /// A validated message and optional email, trimmed.
@@ -112,21 +119,29 @@ pub enum FeedbackError {
 }
 
 impl FeedbackError {
-    fn message(&self) -> &'static str {
+    /// The code the dialog translates.
+    fn code(&self) -> &'static str {
         match self {
-            Self::TooShort => "Write a few words so there's something to go on.",
-            Self::TooLong => {
-                "That's longer than 5,000 characters. Trim it a little and send again."
-            }
-            Self::InvalidEmail => "That email address doesn't look right.",
-            Self::TooManyAttachments => "You can attach up to 3 screenshots.",
-            Self::AttachmentTooLarge => {
-                "One of the screenshots is too large to send. Remove it and attach a smaller one."
-            }
-            Self::InvalidAttachment => {
-                "One of the attachments isn't a PNG, JPEG or WebP image. Remove it and try again."
-            }
+            Self::TooShort => "too_short",
+            Self::TooLong => "too_long",
+            Self::InvalidEmail => "invalid_email",
+            Self::TooManyAttachments => "too_many_screenshots",
+            Self::AttachmentTooLarge => "too_large",
+            Self::InvalidAttachment => "invalid_screenshot",
         }
+    }
+}
+
+/// The dialog's code for an account-server error code.
+pub fn error_from_server(code: &str) -> &'static str {
+    match code {
+        "no_server" => "no_server",
+        "network" => "network",
+        "rate_limited" => "rate_limited",
+        "payload_too_large" => "too_large",
+        "invalid_email" => "invalid_email",
+        "invalid_request" => "rejected",
+        _ => "server",
     }
 }
 
@@ -144,7 +159,7 @@ pub fn sniff_image(bytes: &[u8]) -> Option<&'static str> {
 }
 
 /// Decodes each screenshot to check it really is the image it says, and
-/// within the size cap, before anything leaves the machine. The Worker checks
+/// within the size caps, before anything leaves the machine. The server checks
 /// the same things; checking here turns a rejected upload into a sentence in
 /// the dialog instead of a generic "couldn't be accepted".
 pub fn check_attachments(attachments: &[FeedbackAttachment]) -> Result<(), FeedbackError> {
@@ -152,6 +167,7 @@ pub fn check_attachments(attachments: &[FeedbackAttachment]) -> Result<(), Feedb
     if attachments.len() > MAX_ATTACHMENTS {
         return Err(FeedbackError::TooManyAttachments);
     }
+    let mut total = 0;
     for attachment in attachments {
         // Cheap bound first, so a huge string is never decoded.
         if attachment.data.len() > MAX_ATTACHMENT_BYTES.div_ceil(3) * 4 {
@@ -161,6 +177,10 @@ pub fn check_attachments(attachments: &[FeedbackAttachment]) -> Result<(), Feedb
             .decode(attachment.data.as_bytes())
             .map_err(|_| FeedbackError::InvalidAttachment)?;
         if bytes.len() > MAX_ATTACHMENT_BYTES {
+            return Err(FeedbackError::AttachmentTooLarge);
+        }
+        total += bytes.len();
+        if total > MAX_ATTACHMENTS_TOTAL_BYTES {
             return Err(FeedbackError::AttachmentTooLarge);
         }
         if sniff_image(&bytes) != Some(attachment.media_type.as_str()) {
@@ -265,80 +285,49 @@ pub fn get_feedback_system_info(app: AppHandle) -> FeedbackSystemInfo {
     system_info(&app)
 }
 
-/// What the person sees when sending fails, keyed on how it failed.
-pub fn describe_http_failure(status: u16) -> &'static str {
-    match status {
-        429 => "You've sent a lot of feedback in a short time. Try again in a minute.",
-        413 => "The screenshots are too large to send. Remove one and try again.",
-        400 | 415 | 422 => "The feedback couldn't be accepted. Try shortening it and send again.",
-        _ => "The feedback service isn't answering right now. Your message is saved here, so try again later.",
-    }
+/// Long enough for three screenshots (up to ~4 MB) on a slow uplink.
+fn request_timeout(has_attachments: bool) -> Duration {
+    Duration::from_secs(if has_attachments { 90 } else { 25 })
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn send_feedback(
-    app: AppHandle,
-    request: FeedbackRequest,
-) -> Result<FeedbackOutcome, String> {
-    if FEEDBACK_ENDPOINT.is_empty() {
-        return Err("Feedback is not configured for this private build.".into());
-    }
+pub async fn send_feedback(app: AppHandle, request: FeedbackRequest) -> Result<(), String> {
     let clean = clean_feedback(&request.message, request.email.as_deref())
-        .map_err(|e| e.message().to_string())?;
-    check_attachments(&request.attachments).map_err(|e| e.message().to_string())?;
+        .map_err(|e| e.code().to_string())?;
+    check_attachments(&request.attachments).map_err(|e| e.code().to_string())?;
     let payload = FeedbackPayload {
         kind: request.kind,
         message: &clean.message,
         email: clean.email.as_deref(),
-        system: request.include_system_info.then(|| system_info(&app)),
-        attachments: &request.attachments,
+        system: request
+            .include_system_info
+            .then(|| system_line(&system_info(&app))),
+        screenshots: request
+            .attachments
+            .iter()
+            .map(|a| Screenshot {
+                media_type: &a.media_type,
+                data: &a.data,
+            })
+            .collect(),
     };
-
-    let client = reqwest::Client::builder()
-        .user_agent(concat!("Talvio/", env!("CARGO_PKG_VERSION")))
-        .connect_timeout(Duration::from_secs(10))
-        // Screenshots mean up to ~4 MB of upload and one GitHub commit each
-        // on the Worker's side before the issue is filed.
-        .timeout(Duration::from_secs(if request.attachments.is_empty() {
-            25
-        } else {
-            60
-        }))
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    let response = client
-        .post(FEEDBACK_ENDPOINT)
-        .json(&payload)
-        .send()
-        .await
-        .map_err(|e| {
-            warn!("Feedback send failed: {e}");
-            "Couldn't reach the feedback service. Check your connection; your message is saved here.".to_string()
-        })?;
-
-    let status = response.status();
-    if status.is_success() {
-        let reply: WorkerReply = response.json().await.unwrap_or_default();
-        info!(
-            "Feedback sent ({:?}, {} chars, {} screenshot(s), {} not stored)",
-            request.kind,
-            clean.message.chars().count(),
-            request.attachments.len(),
-            reply.attachments_dropped
-        );
-        return Ok(FeedbackOutcome {
-            attachments_dropped: reply.attachments_dropped,
-        });
+    let timeout = request_timeout(!request.attachments.is_empty());
+    match crate::account::send_feedback(&app, &payload, timeout).await {
+        Ok(()) => {
+            info!(
+                "Feedback sent ({:?}, {} chars, {} screenshot(s))",
+                request.kind,
+                clean.message.chars().count(),
+                request.attachments.len(),
+            );
+            Ok(())
+        }
+        Err(code) => {
+            warn!("Feedback was not sent ({code})");
+            Err(error_from_server(&code).to_string())
+        }
     }
-    let body = response.text().await.unwrap_or_default();
-    warn!(
-        "Feedback rejected: HTTP {} {}",
-        status.as_u16(),
-        body.chars().take(200).collect::<String>()
-    );
-    Err(describe_http_failure(status.as_u16()).to_string())
 }
 
 #[cfg(test)]
@@ -400,12 +389,27 @@ mod tests {
             message: "dark mode for the overlay",
             email: None,
             system: None,
-            attachments: &[],
+            screenshots: vec![],
         };
         let json = serde_json::to_value(&payload).unwrap();
         assert_eq!(
             json,
             serde_json::json!({ "kind": "idea", "message": "dark mode for the overlay" })
+        );
+    }
+
+    #[test]
+    fn the_system_line_is_the_one_the_dialog_shows() {
+        // Must match `describeSystem` in src/components/feedback/feedbackStore.ts.
+        let info = FeedbackSystemInfo {
+            app_version: "2.3.0".into(),
+            os: "Windows 10.0.26100".into(),
+            arch: "x86_64".into(),
+            install: "nsis".into(),
+        };
+        assert_eq!(
+            system_line(&info),
+            "Talvio 2.3.0 · Windows 10.0.26100 · x86_64 · nsis"
         );
     }
 
@@ -424,19 +428,28 @@ mod tests {
     }
 
     #[test]
-    fn screenshots_travel_under_the_workers_field_names() {
-        let attachments = [png()];
+    fn the_payload_uses_the_servers_field_names() {
+        let data = b64(PNG);
         let payload = FeedbackPayload {
             kind: FeedbackKind::Bug,
             message: "the overlay is clipped",
-            email: None,
-            system: None,
-            attachments: &attachments,
+            email: Some("me@example.com"),
+            system: Some("Talvio 2.3.0 · Windows 11 · x86_64 · nsis".into()),
+            screenshots: vec![Screenshot {
+                media_type: "image/png",
+                data: &data,
+            }],
         };
         let json = serde_json::to_value(&payload).unwrap();
         assert_eq!(
-            json["attachments"],
-            serde_json::json!([{ "media_type": "image/png", "data": b64(PNG) }])
+            json,
+            serde_json::json!({
+                "kind": "bug",
+                "message": "the overlay is clipped",
+                "email": "me@example.com",
+                "system": "Talvio 2.3.0 · Windows 11 · x86_64 · nsis",
+                "screenshots": [{ "mediaType": "image/png", "data": b64(PNG) }],
+            })
         );
     }
 
@@ -487,13 +500,16 @@ mod tests {
             Err(FeedbackError::AttachmentTooLarge)
         );
 
-        // Exactly at the cap is fine.
+        // Exactly at the cap is fine, three times over too (the 3 MiB total).
         big.truncate(MAX_ATTACHMENT_BYTES);
         let at_cap = FeedbackAttachment {
             media_type: "image/png".into(),
             data: b64(&big),
         };
-        assert_eq!(check_attachments(&[at_cap]), Ok(()));
+        assert_eq!(
+            check_attachments(&[at_cap.clone(), at_cap.clone(), at_cap]),
+            Ok(())
+        );
     }
 
     #[test]
@@ -507,17 +523,21 @@ mod tests {
     }
 
     #[test]
-    fn a_worker_reply_names_dropped_screenshots_or_nothing() {
-        let reply: WorkerReply =
-            serde_json::from_str(r#"{"ok":true,"attachments_dropped":2}"#).unwrap();
-        assert_eq!(reply.attachments_dropped, 2);
-        let reply: WorkerReply = serde_json::from_str(r#"{"ok":true}"#).unwrap();
-        assert_eq!(reply.attachments_dropped, 0);
+    fn server_errors_become_the_dialogs_codes() {
+        assert_eq!(error_from_server("no_server"), "no_server");
+        assert_eq!(error_from_server("network"), "network");
+        assert_eq!(error_from_server("rate_limited"), "rate_limited");
+        assert_eq!(error_from_server("payload_too_large"), "too_large");
+        assert_eq!(error_from_server("invalid_email"), "invalid_email");
+        assert_eq!(error_from_server("invalid_request"), "rejected");
+        assert_eq!(error_from_server("invalid_url"), "server");
+        assert_eq!(error_from_server("server"), "server");
     }
 
     #[test]
-    fn rate_limiting_reads_as_a_pause_not_a_failure() {
-        assert!(describe_http_failure(429).contains("minute"));
-        assert!(describe_http_failure(503).contains("saved"));
+    fn local_refusals_have_codes_too() {
+        assert_eq!(FeedbackError::TooShort.code(), "too_short");
+        assert_eq!(FeedbackError::AttachmentTooLarge.code(), "too_large");
+        assert_eq!(FeedbackError::InvalidAttachment.code(), "invalid_screenshot");
     }
 }
