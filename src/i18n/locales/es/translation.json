@@ -3219,6 +3219,10 @@
       "key": "Clave API de {{provider}}",
       "keyShared": "Se comparte con la limpieza con IA y el asistente."
     },
+    "confirmIrreversible": {
+      "title": "Preguntar antes de enviar o eliminar",
+      "info": "Desactivado: se envía, publica o elimina lo que pidas. Activado: espera a que pulses Hazlo. En ambos casos espera si lo dices («solo un borrador», «déjame revisarlo»)."
+    },
     "dryRun": {
       "title": "Simulación",
       "info": "Muestra lo que haría un comando en lugar de hacerlo."

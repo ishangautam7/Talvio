@@ -344,6 +344,16 @@ export const CommandsPage: React.FC = () => {
             <PushToTalk grouped={true} setting="command_push_to_talk" />
             <CommandModelRow />
             <ToggleSwitch
+              checked={settings?.command_confirm_irreversible ?? false}
+              onChange={(value) =>
+                void updateSetting("command_confirm_irreversible", value)
+              }
+              isUpdating={isUpdating("command_confirm_irreversible")}
+              label={t("commandsPage.confirmIrreversible.title")}
+              description={t("commandsPage.confirmIrreversible.info")}
+              grouped={true}
+            />
+            <ToggleSwitch
               checked={settings?.command_dry_run ?? false}
               onChange={(value) => void updateSetting("command_dry_run", value)}
               isUpdating={isUpdating("command_dry_run")}

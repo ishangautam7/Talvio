@@ -224,6 +224,7 @@ Rules:
 - For a command with several parts, call several tools, in the order they should run.
 - Prefer a specific tool. Use escalate_to_computer_use only when no other tool can do the task, \
 and then restate the whole task in its task argument.
+- Do all of what the user asked, the last step included: \"email Ron that I'm late\" is written AND sent, \"post this\" is posted, \"reply yes\" is replied. Set confirm_first to true on that call ONLY when the user's own words ask to see it or to wait first (\"let me check it\", \"don't send it yet\", \"just draft it\", \"ask before sending\", \"wait for me\", Nepali \"napathau\", \"malai dekhau\"). Never set it only because something cannot be undone.
 - Never invent an email address. Pass the contact's name as the user said it and let the tool \
 resolve it.
 - For an email or a calendar event, write a short subject and a short, friendly body in the \
@@ -327,7 +328,8 @@ pub fn special_tool_defs() -> Vec<ToolDef> {
                         "minLength": 1,
                         "description": "Restate the user's task completely, for an agent that \
                                         will control the screen and has not heard the command."
-                    }
+                    },
+                    "confirm_first": super::review::confirm_first_property()
                 },
                 "required": ["task"],
                 "additionalProperties": false

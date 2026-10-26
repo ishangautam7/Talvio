@@ -3219,6 +3219,10 @@
       "key": "Chiave API di {{provider}}",
       "keyShared": "Condivisa con la pulizia IA e l'assistente."
     },
+    "confirmIrreversible": {
+      "title": "Chiedi prima di inviare o eliminare",
+      "info": "Disattivato: un invio, una pubblicazione o un’eliminazione richiesti vengono eseguiti. Attivato: attende che premi Fallo. In ogni caso attende se lo dici («solo una bozza», «fammi controllare»)."
+    },
     "dryRun": {
       "title": "Simulazione",
       "info": "Mostra cosa farebbe un comando invece di farlo."

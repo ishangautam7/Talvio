@@ -427,6 +427,12 @@ pub mod fake {
         /// What `media_playing` answers; `None` = a system without media
         /// sessions, where `pause_media` and `resume_media` fail.
         pub playing: Mutex<Option<bool>>,
+        /// What a send shortcut (a modifier plus Enter) turns the window in
+        /// front into, the way Gmail's draft becomes the inbox once it has
+        /// sent. `None`: the window stays as it was, as when nothing sent.
+        pub send_retitles: Option<String>,
+        /// The window a send retitled, and its new title.
+        pub retitled: Mutex<Option<(i64, String)>>,
     }
 
     impl FakeEffects {
@@ -452,7 +458,19 @@ pub mod fake {
             self.apps.clone()
         }
         fn open_windows(&self) -> Vec<WindowEntry> {
-            self.windows.clone()
+            let retitled = self.retitled.lock().unwrap().clone();
+            self.windows
+                .iter()
+                .cloned()
+                .map(|mut window| {
+                    if let Some((id, title)) = &retitled {
+                        if window.id == *id {
+                            window.title = title.clone();
+                        }
+                    }
+                    window
+                })
+                .collect()
         }
         fn recent_files(&self) -> Vec<PathBuf> {
             self.recent.clone()
@@ -524,7 +542,16 @@ pub mod fake {
             self.act(format!("type_text {text}"))
         }
         fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
-            self.act(format!("press_keys {}", combo.label()))
+            self.act(format!("press_keys {}", combo.label()))?;
+            let sends = combo.key.eq_ignore_ascii_case("enter") && !combo.modifiers.is_empty();
+            if let (true, Some(title)) = (sends, &self.send_retitles) {
+                let mut front = self.foreground.lock().unwrap();
+                if let Some(window) = front.as_mut() {
+                    window.title = title.clone();
+                    *self.retitled.lock().unwrap() = Some((window.id, title.clone()));
+                }
+            }
+            Ok(())
         }
         fn media(&self, action: MediaAction) -> Result<(), String> {
             self.act(format!("media {action:?}"))

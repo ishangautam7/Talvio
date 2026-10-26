@@ -3195,6 +3195,10 @@
       "key": "{{provider}} API anahtarı",
       "keyShared": "Yapay zekâ temizleme ve asistan ile paylaşılır."
     },
+    "confirmIrreversible": {
+      "title": "Göndermeden veya silmeden önce sor",
+      "info": "Kapalı: istediğiniz gönderme, paylaşma veya silme yapılır. Açık: Yap düğmesine basana kadar bekler. Her iki durumda da siz söylerseniz bekler (“sadece taslak”, “önce bir bakayım”)."
+    },
     "dryRun": {
       "title": "Deneme çalıştırması",
       "info": "Bir komutun ne yapacağını, yapmadan gösterir."
