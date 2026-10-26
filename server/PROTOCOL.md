@@ -61,9 +61,13 @@ message for a code they don't know.
 | 401  | `unauthorized`        | missing, unknown, or revoked bearer token               |
 | 404  | `not_found`           | device id not on this account, unknown route            |
 | 409  | `email_taken`         | sign-up with an email that already has an account       |
+| 402  | `credit_exhausted`    | free credit used up, or too little left (Free credit)   |
 | 409  | `stale`               | secret write older than the stored record (see Secrets) |
-| 413  | `payload_too_large`   | HTTP body over 64 KiB                                   |
+| 413  | `payload_too_large`   | HTTP body over 64 KiB (Free credit: see its limits)     |
 | 429  | `rate_limited`        | too many attempts; `Retry-After` header in seconds      |
+| 4xx  | `upstream_error`      | the free-credit AI provider refused the request         |
+| 502  | `upstream_error`      | the free-credit AI provider failed or did not answer    |
+| 503  | `free_disabled`       | free credit is not configured on this server            |
 | 503  | `google_unavailable`  | server has no Google credentials configured             |
 | 500  | `internal`            | anything else                                           |
 
@@ -133,6 +137,7 @@ Authenticated routes take `Authorization: Bearer <token>`.
 | `PUT /v1/secrets/{name}`       | ✓    | `{ value, updatedAt }` → `{ secret: Secret }`                       |
 | `DELETE /v1/secrets/{name}`    | ✓    | query `updatedAt` → `{ secret: Secret }` (a tombstone)              |
 | `GET /v1/ws`                   | ✓    | WebSocket upgrade, see below                                        |
+| `/v1/free/…`                   | ✓    | OpenAI-compatible AI on the server's keys, see Free credit          |
 
 Emails are trimmed and lower-cased. A token that has not been used for 180 days
 is deleted and answers `unauthorized`. Rate limits (per server instance): 20
@@ -183,6 +188,78 @@ the bearer token's account; one account can never read or write another's.
 - **Transport:** on a LAN deployment the server URL is plain `http://`, so API
   keys cross the network unencrypted, exactly like passwords and tokens. Until
   https is in front of the server, the network it runs on must be trusted.
+
+### Free credit: AI on the server's keys (`/v1/free`, authenticated)
+
+Every account gets a small allowance of AI usage (`limitUsd`, $1.00 by default)
+paid with the server operator's provider keys, so a new user can dictate with
+cloud transcription, ask the assistant and hear spoken answers before adding a
+key of their own. One balance covers all three. The keys stay on the server:
+clients never see them, and the server never stores them or puts them in a log
+or an error.
+
+The routes are OpenAI-compatible under the base `{server}/v1/free`, so a client
+treats it as one more OpenAI-compatible provider whose API key is the session
+token (`Authorization: Bearer <token>`).
+
+| Method & path                         | Body → Response                                                                    |
+| ------------------------------------- | ---------------------------------------------------------------------------------- |
+| `GET /v1/free/balance`                | → `{ "limitUsd": 1, "usedUsd": 0.0123, "remainingUsd": 0.9877, "enabled": true }`  |
+| `GET /v1/free/models`                 | → OpenAI model list of the configured ones (below)                                 |
+| `POST /v1/free/chat/completions`      | OpenAI chat completions request → its response, or SSE with `"stream": true`       |
+| `POST /v1/free/audio/transcriptions`  | OpenAI multipart (`file`, `model`, `language?`, `prompt?`, `response_format?`) → `{ "text": "…" }` |
+| `POST /v1/free/audio/speech`          | `{ input, voice?, model?, response_format?, speed? }` → MP3 bytes (`audio/mpeg`)   |
+
+- Model ids: `talvio-free-chat`, `talvio-free-transcribe`, `talvio-free-speech`.
+  The `model` a request names is ignored: the server always uses its
+  configured upstream model for that kind. `/models` lists only the kinds this
+  server has configured.
+- `enabled` is false when the server has no upstream configured at all; then
+  `remainingUsd` still reports the account's balance and every other
+  `/v1/free` route answers 503 `free_disabled`. A kind that is not configured
+  (say, speech) answers `free_disabled` while the others work.
+- Chat passes through `messages` (images as `image_url` data URLs included),
+  `tools`, `tool_choice`, `response_format`, `reasoning_effort`, `temperature`
+  and the rest unchanged. `n` is dropped (always one answer), and
+  `max_tokens` / `max_completion_tokens` are capped by the server (8192 by
+  default, lower when the balance cannot cover more). A streamed answer is the
+  upstream's SSE as it arrives, with `stream_options.include_usage` forced on,
+  so the last chunk before `[DONE]` carries `usage` and has an empty `choices`.
+- Transcription: `response_format` is `json` (default) → `{ "text": "…" }`, or
+  `text` → the text as `text/plain`. WAV and MP3 are what the apps send; other
+  formats the upstream accepts work too.
+- Speech always answers MP3. `voice` is an OpenAI voice name or, when the
+  server's upstream is ElevenLabs, an ElevenLabs voice id; anything the
+  upstream would not know falls back to the server's default voice.
+- Metering: chat by the upstream's reported `usage` (prompt and completion
+  tokens; when a reply carries none, estimated as characters / 4),
+  transcription by audio duration (the upstream's reported duration, else the
+  WAV header, else the size at 48 kbit/s; the upstream's minimum billed length
+  applies), speech by characters of `input`. Prices are the server operator's
+  (see the server README).
+- Before a request goes upstream the server reserves its worst-case cost and
+  refuses it with 402 `credit_exhausted` if that is more than what is left;
+  after the answer it charges the real cost and gives the rest back. A request
+  that fails upstream costs nothing. Because the real cost can exceed the
+  estimate, `usedUsd` may end slightly above `limitUsd`; `remainingUsd` never
+  goes below 0.
+- Every metered response (success or 402) carries
+  `X-Talvio-Credit-Remaining: <usd>`, the balance after this request. For a
+  streamed answer the header is sent before the answer, so it is the balance
+  before it; read `/balance` afterwards for the exact figure.
+- The balance belongs to the account's email address, not its id: deleting an
+  account and signing up again with the same address does not renew it.
+- Limits: 60 metered requests per minute per account (429 `rate_limited` with
+  `Retry-After`); bodies at most 4 MiB for chat, 25 MiB for an audio upload,
+  and 4096 characters of speech `input` (413 `payload_too_large`, or 400
+  `invalid_request` for the text).
+- Errors: 401 `unauthorized`, 402 `credit_exhausted` (message: "Your free $1 is
+  used up. Add your own API key in Talvio to keep going."), 503
+  `free_disabled`, and `upstream_error`: a request the upstream refused as
+  malformed keeps its 4xx status and the upstream's own `message` and `param`
+  (so a client can drop an unsupported parameter and retry); anything else the
+  upstream does (its own auth, its outages, timeouts) is 502 with a generic
+  message.
 
 ### Google sign-in (both apps, same flow)
 
