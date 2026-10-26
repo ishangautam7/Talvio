@@ -23,6 +23,7 @@ import {
 } from "./recommend";
 import { useSetupQueue } from "./setupQueue";
 import { useHardwareFacts } from "./useHardwareFacts";
+import { FreeCreditSetupOffer } from "@/components/freeCredit/FreeCredit";
 
 interface Option {
   model: ModelInfo;
@@ -302,6 +303,13 @@ export function SetupStep({
           {options.map(renderOption)}
         </div>
       )}
+
+      {/* Signed in already: the account's free credit transcribes in the
+          cloud, so nothing has to download before the first dictation. */}
+      <FreeCreditSetupOffer
+        className="mt-4"
+        onChosen={() => onContinue({ skippedModels: true })}
+      />
 
       <p className="mt-6 px-1 text-[0.8125rem] text-muted">
         {t("onboarding.speech.anytime")}

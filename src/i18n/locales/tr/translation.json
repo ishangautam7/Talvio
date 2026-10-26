@@ -3557,6 +3557,27 @@
       "model": "Model (isteğe bağlı)"
     }
   },
+  "freeCredit": {
+    "title": "Ücretsiz kredi",
+    "explain": "Her Talvio hesabı, konuşmayı metne dönüştürme, yapay zekâ düzeltmesi, asistan, sesli komutlar ve sesli yanıtlar arasında paylaşılan {{amount}} yapay zekâ kullanımı içerir. API anahtarı gerekmez.",
+    "balance": "Ücretsiz kredi: {{limit}} kredinin {{remaining}} kadarı kaldı",
+    "checking": "Ücretsiz krediniz kontrol ediliyor…",
+    "option": "Talvio free kullan ({{amount}} dahil)",
+    "use": "Talvio free kullan",
+    "inUse": "Kullanımda",
+    "exhausted": "Ücretsiz krediniz bitti. Bulut özelliklerini kullanmaya devam etmek için kendi API anahtarınızı ekleyin.",
+    "disabled": "Talvio free şu anda kullanılamıyor. Bulut özelliklerini kullanmaya devam etmek için kendi API anahtarınızı ekleyin.",
+    "addKey": "Kendi anahtarını ekle",
+    "failed": "Talvio free'ye geçilemedi.",
+    "setupHint": "Oturum açtınız; hiçbir şey indirmeden ücretsiz kredinizle bulutta yazıya dökebilirsiniz.",
+    "jobs": {
+      "stt": "Konuşmadan metne",
+      "cleanup": "Yapay zekâ düzeltmesi",
+      "assistant": "Asistan",
+      "command": "Sesli komutlar",
+      "voice": "Sesli yanıtlar"
+    }
+  },
   "catalog": {
     "recommended": "Önerilen",
     "searchHuggingFace": "Hugging Face'te ara",

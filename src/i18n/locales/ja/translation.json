@@ -3528,6 +3528,27 @@
       "model": "モデル（任意）"
     }
   },
+  "freeCredit": {
+    "title": "無料クレジット",
+    "explain": "Talvio アカウントには {{amount}} 分の AI 利用枠が含まれ、音声入力、AI クリーンアップ、アシスタント、音声コマンド、読み上げ回答で共有されます。API キーは不要です。",
+    "balance": "無料クレジット: 残り {{remaining}} / {{limit}}",
+    "checking": "無料クレジットを確認しています…",
+    "option": "Talvio free を使う（{{amount}} 付き）",
+    "use": "Talvio free を使う",
+    "inUse": "使用中",
+    "exhausted": "無料クレジットを使い切りました。クラウド機能を使い続けるには、ご自身の API キーを追加してください。",
+    "disabled": "現在 Talvio free は利用できません。クラウド機能を使い続けるには、ご自身の API キーを追加してください。",
+    "addKey": "自分のキーを追加",
+    "failed": "Talvio free に切り替えられませんでした。",
+    "setupHint": "サインイン済みなので、無料クレジットでクラウド文字起こしを使えます。ダウンロードは不要です。",
+    "jobs": {
+      "stt": "音声入力",
+      "cleanup": "AI クリーンアップ",
+      "assistant": "アシスタント",
+      "command": "音声コマンド",
+      "voice": "読み上げ回答"
+    }
+  },
   "catalog": {
     "recommended": "おすすめ",
     "searchHuggingFace": "Hugging Faceを検索",

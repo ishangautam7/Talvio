@@ -155,6 +155,15 @@ export const TTS_ENGINES: readonly TtsEngineSpec[] = [
     speed: [0.5, 1.5],
   },
   {
+    // Talvio free: the account server speaks, on the account's free credit.
+    // No address and no key: both come from the signed-in session.
+    id: "talvio_free",
+    key: "none",
+    model: { example: "talvio-free-speech" },
+    voice: { required: false, example: "alloy" },
+    speed: [0.25, 4],
+  },
+  {
     id: "custom",
     url: { required: true, example: "http://localhost:8880/v1" },
     key: "optional",

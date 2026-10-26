@@ -3615,6 +3615,27 @@
       "model": "Model (opcjonalnie)"
     }
   },
+  "freeCredit": {
+    "title": "Darmowy kredyt",
+    "explain": "Każde konto Talvio obejmuje {{amount}} na korzystanie z AI, wspólne dla zamiany mowy na tekst, porządkowania przez AI, asystenta, poleceń głosowych i odpowiedzi czytanych na głos. Klucz API nie jest potrzebny.",
+    "balance": "Darmowy kredyt: zostało {{remaining}} z {{limit}}",
+    "checking": "Sprawdzanie darmowego kredytu…",
+    "option": "Użyj Talvio free ({{amount}} w zestawie)",
+    "use": "Użyj Talvio free",
+    "inUse": "W użyciu",
+    "exhausted": "Darmowy kredyt się wyczerpał. Dodaj własny klucz API, aby dalej korzystać z funkcji w chmurze.",
+    "disabled": "Talvio free jest teraz niedostępne. Dodaj własny klucz API, aby dalej korzystać z funkcji w chmurze.",
+    "addKey": "Dodaj własny klucz",
+    "failed": "Nie udało się przełączyć na Talvio free.",
+    "setupHint": "Jesteś zalogowany, więc możesz transkrybować w chmurze z darmowego kredytu, bez pobierania czegokolwiek.",
+    "jobs": {
+      "stt": "Mowa na tekst",
+      "cleanup": "Porządkowanie przez AI",
+      "assistant": "Asystent",
+      "command": "Polecenia głosowe",
+      "voice": "Odpowiedzi na głos"
+    }
+  },
   "catalog": {
     "recommended": "Polecane",
     "searchHuggingFace": "Szukaj w Hugging Face",

@@ -30,6 +30,7 @@ const IDS: Record<ProviderKind, string[]> = {
     "apple_intelligence",
     "bedrock_mantle",
     "builtin",
+    "talvio_free",
     "local",
     "custom",
   ],
@@ -40,6 +41,7 @@ const IDS: Record<ProviderKind, string[]> = {
     "openrouter",
     "deepgram",
     "mistral",
+    "talvio_free",
     "custom",
   ],
   tts: [
@@ -58,6 +60,7 @@ const IDS: Record<ProviderKind, string[]> = {
     "xai",
     "mistral",
     "inworld",
+    "talvio_free",
     "custom",
   ],
   search: ["serper", "brave", "tavily", "exa", "serpapi", "tinyfish"],
@@ -69,6 +72,7 @@ const IDS: Record<ProviderKind, string[]> = {
  *  glyph, so a grid of search backends never shows three identical tiles. */
 const GLYPHS: Record<string, string> = {
   builtin: "glyph-cpu",
+  talvio_free: "glyph-gift",
   custom: "glyph-plug",
   kokoro: "glyph-audio-lines",
   kitten: "glyph-cat",

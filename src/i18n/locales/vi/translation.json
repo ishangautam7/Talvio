@@ -3528,6 +3528,27 @@
       "model": "Mô hình (không bắt buộc)"
     }
   },
+  "freeCredit": {
+    "title": "Tín dụng miễn phí",
+    "explain": "Mỗi tài khoản Talvio có {{amount}} dùng AI, dùng chung cho chuyển giọng nói thành văn bản, dọn dẹp bằng AI, trợ lý, lệnh thoại và câu trả lời đọc thành tiếng. Không cần khóa API.",
+    "balance": "Tín dụng miễn phí: còn {{remaining}} trên {{limit}}",
+    "checking": "Đang kiểm tra tín dụng miễn phí…",
+    "option": "Dùng Talvio free (kèm {{amount}})",
+    "use": "Dùng Talvio free",
+    "inUse": "Đang dùng",
+    "exhausted": "Bạn đã dùng hết tín dụng miễn phí. Hãy thêm khóa API của riêng bạn để tiếp tục dùng các tính năng đám mây.",
+    "disabled": "Talvio free hiện không khả dụng. Hãy thêm khóa API của riêng bạn để tiếp tục dùng các tính năng đám mây.",
+    "addKey": "Thêm khóa của bạn",
+    "failed": "Không thể chuyển sang Talvio free.",
+    "setupHint": "Bạn đã đăng nhập nên có thể chép lời trên đám mây bằng tín dụng miễn phí mà không cần tải gì về.",
+    "jobs": {
+      "stt": "Giọng nói thành văn bản",
+      "cleanup": "Dọn dẹp bằng AI",
+      "assistant": "Trợ lý",
+      "command": "Lệnh thoại",
+      "voice": "Câu trả lời đọc to"
+    }
+  },
   "catalog": {
     "recommended": "Đề xuất",
     "searchHuggingFace": "Tìm trên Hugging Face",

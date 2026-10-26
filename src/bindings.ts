@@ -4074,6 +4074,26 @@ async commandCardDismiss(seq: number) : Promise<void> {
 async accountGetStatus() : Promise<AccountStatus> {
     return await TAURI_INVOKE("account_get_status");
 },
+async getFreeCreditStatus() : Promise<FreeCreditStatus> {
+    return await TAURI_INVOKE("get_free_credit_status");
+},
+/**
+ * Ask the server for the balance again (the main window regaining focus).
+ */
+async refreshFreeCredit() : Promise<FreeCreditStatus> {
+    return await TAURI_INVOKE("refresh_free_credit");
+},
+/**
+ * "Use Talvio free" for one job.
+ */
+async chooseFreeCredit(job: FreeCreditJob) : Promise<Result<FreeCreditStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("choose_free_credit", { job }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async accountSignUp(email: string, password: string, name: string | null) : Promise<Result<AccountStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("account_sign_up", { email, password, name }) };
@@ -5479,7 +5499,11 @@ export type CloudSttUnavailableReason = "not_enabled" | "selected_provider_missi
  * sending the audio to another language's model instead would paste a
  * confident transcript in the wrong language.
  */
-"unsupported_language"
+"unsupported_language" | 
+/**
+ * Talvio free is chosen and nobody is signed in to a Talvio account.
+ */
+"sign_in_required"
 /**
  * Where a command came from.
  */
@@ -5749,6 +5773,30 @@ export type FeedbackSystemInfo = { app_version: string; os: string; arch: string
  * A text-like file attached to a turn as context (content extracted in the
  * webview or by `assistant_read_file`).
  */
+/**
+ * The free allowance as the server reports it.
+ */
+export type FreeCreditBalance = { limit_usd: number; used_usd: number; remaining_usd: number; enabled: boolean }
+/**
+ * A job the UI can point at Talvio free.
+ */
+export type FreeCreditJob = "assistant" | "cleanup" | "command" | "stt" | "voice"
+/**
+ * Which jobs run on Talvio free right now, chosen or as the fallback.
+ */
+export type FreeCreditJobs = { assistant: boolean; cleanup: boolean; command: boolean; stt: boolean; voice: boolean }
+/**
+ * Everything the UI shows about the free credit.
+ */
+export type FreeCreditStatus = { signed_in: boolean; 
+/**
+ * `None` until the server has answered `/v1/free/balance`.
+ */
+balance: FreeCreditBalance | null; 
+/**
+ * The server answered `402 credit_exhausted` (or reported nothing left).
+ */
+exhausted: boolean; serving: FreeCreditJobs }
 export type FileAttachment = { name: string; content: string }
 export type FinishedUpdate = { from: string; to: string }
 /**
@@ -6345,7 +6393,11 @@ export type PaginatedSegments = { segments: MeetingSegment[]; has_more: boolean;
 total: number }
 export type PasteMethod = "ctrl_v" | "direct" | "none" | "shift_insert" | "ctrl_shift_v" | "external_script"
 export type PermissionAccess = "allowed" | "denied" | "unknown"
-export type PostProcessConfigSource = "dedicated_cleanup_selection" | "assistant_fallback"
+export type PostProcessConfigSource = "dedicated_cleanup_selection" | "assistant_fallback" | 
+/**
+ * Neither selection can run and the account's free credit serves it.
+ */
+"free_credit"
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null; supports_structured_output?: boolean }
 export type PostProcessReadiness = { state: "ready"; source: PostProcessConfigSource; provider_id: string; provider_label: string; model: string } | { state: "unavailable"; reason: PostProcessUnavailableReason; source: PostProcessConfigSource | null; provider_id: string | null; provider_label: string | null }
 /**
@@ -6356,7 +6408,11 @@ export type PostProcessReadiness = { state: "ready"; source: PostProcessConfigSo
  * field is absent, migration uses this legacy value.
  */
 export type PostProcessTone = "none" | "formal" | "casual" | "professional" | "friendly" | "concise"
-export type PostProcessUnavailableReason = "no_providers" | "selected_provider_missing" | "no_model_configured" | "no_prompt_selected" | "selected_prompt_missing" | "selected_prompt_empty" | "missing_api_key"
+export type PostProcessUnavailableReason = "no_providers" | "selected_provider_missing" | "no_model_configured" | "no_prompt_selected" | "selected_prompt_missing" | "selected_prompt_empty" | "missing_api_key" | 
+/**
+ * Talvio free is chosen and nobody is signed in to a Talvio account.
+ */
+"sign_in_required"
 /**
  * How long unstarred dictation/Flow recordings are kept.
  * 

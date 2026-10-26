@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { withoutTalvioFree } from "@/lib/freeCredit";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
@@ -245,7 +246,7 @@ export const AssistantSettings: React.FC<AssistantSettingsProps> = ({
     updatePostProcessBaseUrl,
   } = useSettings();
 
-  const providers = settings?.post_process_providers || [];
+  const providers = withoutTalvioFree(settings?.post_process_providers || []);
   const selectedProviderId = settings?.assistant_provider_id || "custom";
   const selectedProvider = providers.find((p) => p.id === selectedProviderId);
 
@@ -1516,7 +1517,9 @@ export const AssistantSettings: React.FC<AssistantSettingsProps> = ({
                       },
                       {
                         key: "cloud",
-                        engines: TTS_ENGINES.filter((e) => !e.local),
+                        engines: withoutTalvioFree(
+                          TTS_ENGINES.filter((e) => !e.local),
+                        ),
                       },
                     ] as const
                   ).map(({ key, engines }) => {

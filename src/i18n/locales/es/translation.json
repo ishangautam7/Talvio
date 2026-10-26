@@ -3586,6 +3586,27 @@
       "model": "Modelo (opcional)"
     }
   },
+  "freeCredit": {
+    "title": "Crédito gratuito",
+    "explain": "Cada cuenta de Talvio incluye {{amount}} de uso de IA, compartido entre voz a texto, limpieza con IA, el asistente, los comandos de voz y las respuestas habladas. No hace falta clave de API.",
+    "balance": "Crédito gratuito: quedan {{remaining}} de {{limit}}",
+    "checking": "Comprobando tu crédito gratuito…",
+    "option": "Usar Talvio free ({{amount}} incluido)",
+    "use": "Usar Talvio free",
+    "inUse": "En uso",
+    "exhausted": "Has gastado tu crédito gratuito. Añade tu propia clave de API para seguir usando las funciones en la nube.",
+    "disabled": "Talvio free no está disponible ahora mismo. Añade tu propia clave de API para seguir usando las funciones en la nube.",
+    "addKey": "Añadir tu propia clave",
+    "failed": "No se pudo cambiar a Talvio free.",
+    "setupHint": "Has iniciado sesión, así que puedes transcribir en la nube con tu crédito gratuito, sin descargar nada.",
+    "jobs": {
+      "stt": "Voz a texto",
+      "cleanup": "Limpieza con IA",
+      "assistant": "Asistente",
+      "command": "Comandos de voz",
+      "voice": "Respuestas habladas"
+    }
+  },
   "catalog": {
     "recommended": "Recomendado",
     "searchHuggingFace": "Buscar en Hugging Face",

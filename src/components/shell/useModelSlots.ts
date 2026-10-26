@@ -22,6 +22,13 @@ import {
   splitLocalModelName,
 } from "@/lib/utils/prettyModelName";
 import type { ProviderKind } from "@/components/icons/ProviderLogos";
+import { useFreeCredit } from "@/stores/freeCreditStore";
+import {
+  FREE_CHAT_MODEL,
+  FREE_PROVIDER_ID,
+  FREE_PROVIDER_LABEL,
+  isTalvioFree,
+} from "@/lib/freeCredit";
 import type { ModelSlot } from "./navigation";
 import { useSlotDataStore } from "./slotData";
 
@@ -73,6 +80,7 @@ const KEYLESS_LLM_PROVIDERS = new Set([
   "local",
   "custom",
   "apple_intelligence",
+  "talvio_free",
 ]);
 
 const findLocal = (models: ModelInfo[], id: string | null | undefined) =>
@@ -115,9 +123,12 @@ export const summarizeStt = (
       providerLabel: provider?.label ?? id,
       // A provider with one fixed model (Amazon Transcribe's "standard") is
       // named by the provider; the model id would tell the user nothing.
-      modelLabel: cloudSttFixedModel(provider)
-        ? (provider?.label ?? null)
-        : prettyModelName(model) || null,
+      // One fixed model (Amazon Transcribe's "standard", Talvio free's own)
+      // is named by the provider.
+      modelLabel:
+        cloudSttFixedModel(provider) || isTalvioFree(id)
+          ? (provider?.label ?? null)
+          : prettyModelName(model) || null,
       modelId: model || null,
       localModel: null,
       borrowsAssistant: false,
@@ -185,7 +196,9 @@ const summarizeLlm = (
     providerLabel: isDevice ? null : llmProviderLabel(settings, providerId),
     modelLabel: local
       ? localModelLabel(local, t)
-      : prettyModelName(modelId) || null,
+      : isTalvioFree(providerId)
+        ? FREE_PROVIDER_LABEL
+        : prettyModelName(modelId) || null,
     modelId: modelId.trim() || null,
     localModel: local,
     borrowsAssistant,
@@ -207,14 +220,20 @@ export const summarizeAssistant = (
   settings: AppSettings | null,
   models: ModelInfo[],
   t: TFunction,
+  /** Rust runs the assistant on Talvio free (its choice cannot run). */
+  onFreeCredit = false,
 ): SlotSummary => {
-  const providerId = settings?.assistant_provider_id ?? "custom";
+  const providerId = onFreeCredit
+    ? FREE_PROVIDER_ID
+    : (settings?.assistant_provider_id ?? "custom");
   return summarizeLlm(
     "assistant",
     settings,
     models,
     providerId,
-    settings?.assistant_models?.[providerId] ?? "",
+    onFreeCredit
+      ? FREE_CHAT_MODEL
+      : (settings?.assistant_models?.[providerId] ?? ""),
     settings?.assistant_enabled ?? true,
     t,
   );
@@ -290,15 +309,19 @@ export const summarizeVoice = (
     where: onThisComputer ? "device" : "cloud",
     providerId: engine,
     providerKind: "tts",
-    providerLabel: t(`settings.assistant.tts.engines.${engine}`, {
-      defaultValue: engine,
-    }),
+    providerLabel: isTalvioFree(engine)
+      ? FREE_PROVIDER_LABEL
+      : t(`settings.assistant.tts.engines.${engine}`, {
+          defaultValue: engine,
+        }),
     modelLabel:
       engine === "kokoro"
         ? t("modelsHub.voice.kokoroModel")
-        : pack
-          ? getTranslatedModelName(pack, t)
-          : prettyModelName(model) || null,
+        : isTalvioFree(engine)
+          ? FREE_PROVIDER_LABEL
+          : pack
+            ? getTranslatedModelName(pack, t)
+            : prettyModelName(model) || null,
     modelId: packId ?? (isDevice ? engine : model),
     localModel: null,
     borrowsAssistant: false,
@@ -322,11 +345,22 @@ export const useModelSlots = (): Record<ModelSlot, SlotSummary> => {
   const currentModel = useModelStore((state) => state.currentModel);
   const cloudProviders = useSlotDataStore((state) => state.cloudProviders);
   const cloudKeys = useSlotDataStore((state) => state.cloudKeys);
+  const serving = useFreeCredit().status?.serving;
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    // A job Rust runs on Talvio free because the user's own choice cannot
+    // run is shown as what it really is.
+    const sttSettings =
+      settings && serving?.stt
+        ? { ...settings, cloud_stt_provider_id: FREE_PROVIDER_ID }
+        : settings;
+    const voiceSettings =
+      settings && serving?.voice
+        ? { ...settings, assistant_tts_engine: FREE_PROVIDER_ID }
+        : settings;
+    return {
       stt: summarizeStt(
-        settings,
+        sttSettings,
         models,
         currentModel,
         cloudProviders,
@@ -334,17 +368,23 @@ export const useModelSlots = (): Record<ModelSlot, SlotSummary> => {
         t,
       ),
       cleanup: summarizeCleanup(settings, models, postProcessReadiness, t),
-      assistant: summarizeAssistant(settings, models, t),
-      voice: summarizeVoice(settings, t, models),
-    }),
-    [
-      settings,
-      models,
-      currentModel,
-      cloudProviders,
-      cloudKeys,
-      postProcessReadiness,
-      t,
-    ],
-  );
+      assistant: summarizeAssistant(
+        settings,
+        models,
+        t,
+        !!serving?.assistant &&
+          settings?.assistant_provider_id !== FREE_PROVIDER_ID,
+      ),
+      voice: summarizeVoice(voiceSettings, t, models),
+    };
+  }, [
+    settings,
+    models,
+    currentModel,
+    cloudProviders,
+    cloudKeys,
+    postProcessReadiness,
+    serving,
+    t,
+  ]);
 };

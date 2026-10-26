@@ -1561,6 +1561,32 @@ const readiness = (): Json => {
 
 const accountMode = params.get("account") ?? "out";
 const DAY_MS = 86_400_000;
+// `&credit=0.73` (what is left of $1), `&credit=0` (used up) or
+// `&credit=off` (switched off on the server); only shown signed in.
+const creditParam = params.get("credit") ?? "0.73";
+const freeCreditServing = {
+  assistant: false,
+  cleanup: false,
+  command: false,
+  stt: false,
+  voice: false,
+};
+const freeCreditStatus = (): Json => {
+  const remaining =
+    creditParam === "off" ? 1 : Math.max(0, Number(creditParam) || 0);
+  return {
+    signed_in: accountMode !== "out",
+    balance: {
+      limit_usd: 1,
+      used_usd: 1 - remaining,
+      remaining_usd: remaining,
+      enabled: creditParam !== "off",
+    },
+    exhausted: remaining <= 0,
+    serving: { ...freeCreditServing },
+  };
+};
+
 const accountStatus = (): Json => ({
   signed_in: accountMode !== "out",
   server_url: "https://sync.example.com",
@@ -1637,6 +1663,13 @@ const accountStatus = (): Json => ({
 
 const handlers: Record<string, (args: Json) => unknown> = {
   account_get_status: () => accountStatus(),
+  get_free_credit_status: () => freeCreditStatus(),
+  refresh_free_credit: () => freeCreditStatus(),
+  choose_free_credit: (args) => {
+    const job = (args as { job: keyof typeof freeCreditServing }).job;
+    freeCreditServing[job] = true;
+    return freeCreditStatus();
+  },
   get_app_settings: () => structuredClone(settings),
   // The floating windows preview (windows.html).
   list_waiting_reminders: () => [

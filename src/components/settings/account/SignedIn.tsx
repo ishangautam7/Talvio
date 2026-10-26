@@ -14,6 +14,7 @@ import { SettingsGroup } from "@/components/ui/SettingsGroup";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { avatarLetter, displayName, isPhone } from "./account";
 import { DeviceList } from "./DeviceList";
+import { FreeCreditGroup } from "@/components/freeCredit/FreeCredit";
 import { useAccountAction } from "./useAccountAction";
 
 const CONNECTION_DOT: Record<AccountConnection, string> = {
@@ -81,6 +82,8 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
             : t("settings.account.signOut")}
         </Button>
       </section>
+
+      <FreeCreditGroup />
 
       <SettingsGroup title={t("settings.account.phone.title")}>
         <ToggleSwitch
