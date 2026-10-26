@@ -31,9 +31,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   http: ^1.6.0
   web_socket_channel: ^3.0.3
   flutter_secure_storage: ^11.2.0
@@ -67,28 +64,42 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Talvio's type (docs/talvio-brand.md): Inter for everything you read and
-  # operate, Plus Jakarta Sans for display. Static instances of the OFL
-  # variable fonts, so every weight renders the same on every engine; the
-  # licences sit beside them.
+  # Talvio's type (docs/talvio-brand.md, Studio): Geist for everything you
+  # read and operate, Geist Mono for figures that line up, Plus Jakarta Sans
+  # 800 for the wordmark only. Static instances from the official releases;
+  # the licences sit beside them. Then the Phosphor icon fonts.
   assets:
-    - assets/fonts/OFL-Inter.txt
+    - assets/fonts/OFL-Geist.txt
     - assets/fonts/OFL-PlusJakartaSans.txt
+    - assets/fonts/LICENSE-Phosphor.txt
 
   fonts:
-    - family: Inter
+    - family: Geist
       fonts:
-        - asset: assets/fonts/Inter-400.ttf
+        - asset: assets/fonts/Geist-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Inter-500.ttf
+        - asset: assets/fonts/Geist-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Inter-600.ttf
+        - asset: assets/fonts/Geist-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Inter-700.ttf
-          weight: 700
+    - family: GeistMono
+      fonts:
+        - asset: assets/fonts/GeistMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/GeistMono-Medium.ttf
+          weight: 500
+    # Phosphor icons (MIT), the official fonts of phosphor_flutter 2.1.0;
+    # lib/src/design/icons.dart names the glyphs.
+    - family: PhosphorRegular
+      fonts:
+        - asset: assets/fonts/Phosphor-Regular.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: assets/fonts/Phosphor-Fill.ttf
+    - family: PhosphorDuotone
+      fonts:
+        - asset: assets/fonts/Phosphor-Duotone.ttf
     - family: PlusJakartaSans
       fonts:
-        - asset: assets/fonts/PlusJakartaSans-700.ttf
-          weight: 700
         - asset: assets/fonts/PlusJakartaSans-800.ttf
           weight: 800
