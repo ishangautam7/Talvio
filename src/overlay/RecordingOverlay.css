@@ -1068,3 +1068,119 @@
     animation: none;
   }
 }
+
+/* ── The live ellipse ───────────────────────────────────────────────────────
+ * Live dictation is drawn as a one-line ellipse, the meeting pill's shape,
+ * not a card: the bars, then the words on one line with the newest at the
+ * end and the older ones fading off the start, then Copy and the hands-free
+ * ✕ / ✓ on hover. The card's own parts stay (the header flattens into the
+ * row with `display: contents`), so copying, selecting and the hands-free
+ * controls behave exactly as they did. The state word shows only when there
+ * are no words to show: while recording the body says "Listening…" itself,
+ * and once the words are in the filling bars say it is working. */
+.overlay-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+  max-width: 100%;
+  min-width: 220px;
+  height: 44px;
+  max-height: calc(100vh - 6px);
+  margin-inline: auto;
+  padding: 0 16px 0 14px;
+  border-radius: 999px;
+}
+.overlay-root[data-justify="left"] > .overlay-card {
+  margin-inline: 0 auto;
+}
+.overlay-root[data-justify="right"] > .overlay-card {
+  margin-inline: auto 0;
+}
+.overlay-card .card-header {
+  display: contents;
+}
+.overlay-card .card-status {
+  order: 0;
+  flex: 0 0 auto;
+  gap: 9px;
+}
+.overlay-card .card-wave {
+  flex-basis: 36px;
+  height: 20px;
+}
+.overlay-card .card-label {
+  white-space: nowrap;
+  font-size: 13px;
+}
+.overlay-card.is-recording .card-label,
+.overlay-card.has-text:not(.has-notice) .card-label {
+  display: none;
+}
+.overlay-card .card-body {
+  --ov-fade-start: 28px;
+  order: 1;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+  max-width: 300px;
+  height: 22px;
+  padding: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--ov-fade-start),
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--ov-fade-start),
+    #000 100%
+  );
+}
+[dir="rtl"] .overlay-card .card-body {
+  -webkit-mask-image: linear-gradient(
+    to left,
+    transparent 0,
+    #000 var(--ov-fade-start),
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to left,
+    transparent 0,
+    #000 var(--ov-fade-start),
+    #000 100%
+  );
+}
+.overlay-card:not(.has-text) .card-body {
+  justify-content: flex-start;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.overlay-card.has-notice .card-body,
+.overlay-card:not(.has-text):not(.is-recording) .card-body {
+  display: none;
+}
+.overlay-card .card-text {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 13.5px;
+  line-height: 22px;
+}
+.overlay-card .card-actions {
+  order: 2;
+  gap: 2px;
+}
+.overlay-card .overlay-copy {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+}
+.overlay-card .card-copied {
+  white-space: nowrap;
+}

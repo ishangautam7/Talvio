@@ -339,8 +339,8 @@ test("transcription and cleanup fill the same bars, and the end is those bars, f
     tentative: "",
   });
   expect(renderer.root.findAllByProps({ role: "progressbar" })).toHaveLength(0);
-  // Five bars while listening, not a barcode of fourteen.
-  expect(renderer.root.findAllByType("line")).toHaveLength(5);
+  // The oval's seven bars while listening, not a barcode of fourteen.
+  expect(renderer.root.findAllByType("line")).toHaveLength(7);
   const listening = renderer.root
     .findAllByType("svg")
     .find((node) => node.props.className?.includes("audio-waveform"));
@@ -350,13 +350,13 @@ test("transcription and cleanup fill the same bars, and the end is those bars, f
     const working = renderer.root.findByProps({ role: "progressbar" });
     expect(working.props["aria-valuenow"]).toBeUndefined();
     expect(working.props["aria-label"]).toBe(`overlay.${state}`);
-    // The same five bars, now in working mode — no dots, no sweeping bar.
+    // The same seven bars, now in working mode — no dots, no sweeping bar.
     const shown = waves();
     expect(shown).toHaveLength(1);
     expect(shown[0].props.className).toContain("working");
     // An estimated fill, not the looping ripple.
     expect(shown[0].props.className).toContain("progress");
-    expect(renderer.root.findAllByType("line")).toHaveLength(5);
+    expect(renderer.root.findAllByType("line")).toHaveLength(7);
     expect(
       renderer.root.findAllByProps({ className: "overlay-working-dot" }),
     ).toHaveLength(0);
@@ -367,7 +367,7 @@ test("transcription and cleanup fill the same bars, and the end is those bars, f
   // ending. Screen readers still hear that it is done.
   expect(waves()).toHaveLength(1);
   expect(waves()[0].props.className).toContain("progress");
-  expect(renderer.root.findAllByType("line")).toHaveLength(5);
+  expect(renderer.root.findAllByType("line")).toHaveLength(7);
   expect(doneMarks()).toHaveLength(1);
   // No "Done" word beside the bars either.
   expect(
