@@ -1,4 +1,5 @@
-/* A developer preview of every Talvio glyph, never shipped. */
+/* A developer preview of every main-window icon (Lucide at the window's one
+ * stroke), never shipped. */
 import React from "react";
 import ReactDOM from "react-dom/client";
 import * as Glyphs from "@/components/icons/glyphs";
@@ -6,7 +7,7 @@ import type { Glyph } from "@/components/icons/glyphs";
 
 const entries = Object.entries(Glyphs).filter(
   (entry): entry is [string, Glyph] =>
-    typeof entry[1] === "function" && entry[0] !== "glyph",
+    typeof entry[1] === "object" && entry[1] !== null,
 );
 
 const themes = [
