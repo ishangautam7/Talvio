@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,11 +26,12 @@ import 'watch_controller.dart';
 String screenLabel(RemoteScreen screen) =>
     screen.name.isEmpty ? ScreenStrings.untitledScreen : screen.name;
 
-/// The live view, full screen: the same watch as the small view, bigger.
-/// Pinch and drag move around the picture; nothing on the computer is
-/// clicked or scrolled from here. Under the picture (beside it on its side)
-/// are the assistant bar and, on demand, the keys. Back returns to the small
-/// view; Stop ends the watch.
+/// The live view, full screen (design spec §4.8): the same watch as the
+/// small view, bigger. Pinch and drag move around the picture; nothing on
+/// the computer is clicked or scrolled from here, only the keys pressed on
+/// the pad are sent. Under the picture (beside it on its side) are the
+/// latest answer, the keys on demand, the assistant's composer and the
+/// toolbar. Back returns to the small view; Stop ends the watch.
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
     super.key,
@@ -74,10 +76,6 @@ class _WatchScreenState extends State<WatchScreen>
 
   /// The key pad is open.
   var _keysOpen = false;
-
-  /// On its side: the assistant's panel is open. Upright the bar is always
-  /// there.
-  var _assistantOpen = false;
 
   /// The latest answer's card is open, and the turn it shows. Only turns
   /// asked after the viewer opened are shown over the picture.
@@ -272,28 +270,58 @@ class _WatchScreenState extends State<WatchScreen>
             AppServices.of(context).relay.devices,
           ]),
           builder: (context, _) => Scaffold(
-            backgroundColor: Colors.black,
+            backgroundColor: TalvioColors.mediaBg,
             body: MediaQuery.orientationOf(context) == Orientation.landscape
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(child: _buildStage(context)),
-                      _buildSide(context),
+                      SizedBox(
+                        width: 360,
+                        child: _glass(
+                          context,
+                          SafeArea(
+                            left: false,
+                            child: Column(
+                              children: [
+                                if (_answer(context) case final answer?)
+                                  Expanded(child: answer)
+                                else
+                                  const Spacer(),
+                                ..._controls(context),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   )
                 : Column(
                     children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) => Stack(
-                            children: [
-                              Positioned.fill(child: _buildStage(context)),
-                              ?_answerOverlay(context, constraints),
-                            ],
+                      Expanded(child: _buildStage(context)),
+                      _glass(
+                        context,
+                        SafeArea(
+                          top: false,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) => Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (_answer(context) case final answer?)
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxHeight:
+                                          MediaQuery.sizeOf(context).height *
+                                          0.4,
+                                    ),
+                                    child: answer,
+                                  ),
+                                ..._controls(context),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                      _buildBar(context),
                     ],
                   ),
           ),
@@ -302,9 +330,45 @@ class _WatchScreenState extends State<WatchScreen>
     );
   }
 
+  /// The bottom (or side) area: graphite at 92% over a blur.
+  Widget _glass(BuildContext context, Widget child) => ClipRect(
+    child: BackdropFilter(
+      filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+      child: ColoredBox(
+        color: context.talvio.canvas.withValues(alpha: 0.92),
+        child: child,
+      ),
+    ),
+  );
+
+  /// The keys when open, the composer, and the toolbar.
+  List<Widget> _controls(BuildContext context) => [
+    if (_keysOpen)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+        child: KeyPad(
+          platform: _computer.platform,
+          onPress: _watch.channelOpen ? _pressKeys : null,
+        ),
+      ),
+    if (_canAsk)
+      AssistantInput(
+        controller: widget.assistant!,
+        enabled: _assistantReady,
+        dense: true,
+        margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      ),
+    _toolbar(context),
+  ];
+
   Widget _buildStage(BuildContext context) {
     final w = _watch;
     final link = w.link;
+    final notice = switch (w.watched?.state) {
+      'minimized' => ScreenStrings.minimized,
+      'covered' => ScreenStrings.covered,
+      _ => null,
+    };
     return Stack(
       children: [
         Positioned.fill(
@@ -327,7 +391,7 @@ class _WatchScreenState extends State<WatchScreen>
                 child: SizedBox.fromSize(
                   size: viewport,
                   child: link == null || !w.foreground
-                      ? const ColoredBox(color: Colors.black)
+                      ? const ColoredBox(color: TalvioColors.mediaBg)
                       : ValueListenableBuilder(
                           valueListenable: link.videoSize,
                           builder: (context, size, child) {
@@ -359,26 +423,9 @@ class _WatchScreenState extends State<WatchScreen>
             computerName: _name,
             status: watchStatus(w),
             live: w.phase == WatchPhase.live && !w.reconnecting,
-            follow: _follow,
-            onFollow: w.caret == null ? null : () => _setFollow(!_follow),
             onBack: _back,
-            filled: _filled,
-            // Only a picture that leaves bars can fill the view.
-            onFill:
-                _filled ||
-                    (link != null &&
-                        !_viewport.isEmpty &&
-                        fillScale(_picture, _viewport) >= 1.05)
-                ? _toggleFill
-                : null,
-            sideways:
-                MediaQuery.orientationOf(context) == Orientation.landscape,
-            onRotate: () => _rotate(MediaQuery.orientationOf(context)),
-            notice: switch (w.watched?.state) {
-              'minimized' => ScreenStrings.minimized,
-              'covered' => ScreenStrings.covered,
-              _ => null,
-            },
+            onMore: () => _openOptions(context),
+            notice: notice,
           ),
         ),
         if (w.phase == WatchPhase.ended)
@@ -386,6 +433,73 @@ class _WatchScreenState extends State<WatchScreen>
         else if (w.phase != WatchPhase.live)
           Center(child: _waiting(context)),
       ],
+    );
+  }
+
+  /// Only a picture that leaves bars can fill the view.
+  bool get _canFill =>
+      _filled ||
+      (_watch.link != null &&
+          !_viewport.isEmpty &&
+          fillScale(_picture, _viewport) >= 1.05);
+
+  /// Fit or Fill, sideways or upright, and Follow, in a sheet.
+  Future<void> _openOptions(BuildContext context) {
+    Haptic.tick();
+    final orientation = MediaQuery.orientationOf(context);
+    final sideways = orientation == Orientation.landscape;
+    return showTalvioSheet<void>(
+      context,
+      title: ScreenStrings.moreOptions,
+      builder: (sheet) {
+        final t = sheet.talvio;
+        Widget? check(bool on) =>
+            on ? Icon(AppIcons.check, size: 20, color: t.accent) : null;
+        return SingleChildScrollView(
+          child: SheetRows(
+            children: [
+              ListRow(
+                leading: RowGlyph(_filled ? AppIcons.fit : AppIcons.fill),
+                title: _filled ? ScreenStrings.fit : ScreenStrings.fill,
+                semanticLabel: _filled ? ScreenStrings.fit : ScreenStrings.fill,
+                enabled: _canFill,
+                onTap: () {
+                  Navigator.pop(sheet);
+                  _toggleFill();
+                },
+              ),
+              ListRow(
+                leading: const RowGlyph(AppIcons.rotate),
+                title: sideways ? ScreenStrings.unrotate : ScreenStrings.rotate,
+                semanticLabel: sideways
+                    ? ScreenStrings.unrotate
+                    : ScreenStrings.rotate,
+                onTap: () {
+                  Navigator.pop(sheet);
+                  _rotate(orientation);
+                },
+              ),
+              ListRow(
+                leading: RowGlyph(
+                  _follow ? AppIcons.followOn : AppIcons.follow,
+                  color: _follow ? t.ink : null,
+                ),
+                title: ScreenStrings.follow,
+                semanticLabel: _follow
+                    ? ScreenStrings.following
+                    : ScreenStrings.follow,
+                selected: _follow,
+                enabled: _watch.caret != null,
+                trailing: check(_follow),
+                onTap: () {
+                  Navigator.pop(sheet);
+                  _setFollow(!_follow);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -399,19 +513,26 @@ class _WatchScreenState extends State<WatchScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: Space.lg),
+            SizedBox.square(
+              dimension: 20,
+              child: approval
+                  ? Icon(AppIcons.waiting, size: 20, color: t.ink)
+                  : Spinner(color: t.ink),
+            ),
+            const SizedBox(height: Space.s8),
             Text(
               approval ? DictateStrings.approval(_name) : watchStatus(_watch),
               textAlign: TextAlign.center,
-              style: context.text.titleMedium,
+              style: TalvioType.rowTitle.copyWith(color: t.ink),
             ),
-            if (approval)
+            if (approval) ...[
+              const SizedBox(height: Space.s4),
               Text(
                 ScreenStrings.approvalDetail,
                 textAlign: TextAlign.center,
-                style: context.text.bodyMedium?.copyWith(color: t.muted),
+                style: TalvioType.footnote.copyWith(color: t.muted),
               ),
+            ],
           ],
         ),
       ),
@@ -420,224 +541,143 @@ class _WatchScreenState extends State<WatchScreen>
 
   Widget _endedCard(BuildContext context) {
     final error = _watch.endError;
+    final t = context.talvio;
     return Padding(
-      padding: const EdgeInsets.all(Space.xxl),
-      child: Notice(
-        tone: error == null ? Tone.info : Tone.warning,
-        message: error == null
-            ? ScreenStrings.stoppedByYou
-            : ScreenStrings.error(error, _name),
-        actions: [
-          TextButton(onPressed: _stop, child: const Text(ScreenStrings.close)),
-          if (error != 'target_gone')
-            FilledButton(
-              onPressed: _watch.start,
-              child: const Text(ScreenStrings.watchAgain),
+      padding: const EdgeInsets.all(Space.s24),
+      child: Container(
+        padding: const EdgeInsets.all(Space.s16),
+        constraints: const BoxConstraints(maxWidth: 360),
+        decoration: BoxDecoration(
+          color: t.card,
+          borderRadius: BorderRadius.circular(Radii.lg),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                ScreenStrings.ended,
+                style: TalvioType.rowTitle.copyWith(color: t.ink),
+              ),
             ),
-        ],
+            const SizedBox(height: Space.s4),
+            Text(
+              error == null
+                  ? ScreenStrings.stoppedByYou
+                  : ScreenStrings.error(error, _name),
+              textAlign: TextAlign.center,
+              style: TalvioType.footnote.copyWith(color: t.muted),
+            ),
+            const SizedBox(height: Space.s12),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: Space.s8,
+              children: [
+                Btn(
+                  ScreenStrings.close,
+                  kind: BtnKind.ghostNeutral,
+                  compact: true,
+                  onPressed: _stop,
+                ),
+                if (error != 'target_gone')
+                  Btn(
+                    ScreenStrings.watchAgain,
+                    kind: BtnKind.secondary,
+                    compact: true,
+                    onPressed: _watch.start,
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// Sound on or off.
-  Widget _sound() {
+  /// Sound, Keys, the answer, and Stop.
+  Widget _toolbar(BuildContext context) {
+    final t = context.talvio;
     final w = _watch;
-    return IconButton(
-      tooltip: w.soundOn ? ScreenStrings.soundOff : ScreenStrings.soundOn,
-      isSelected: w.soundOn,
-      onPressed: w.phase == WatchPhase.ended
-          ? null
-          : () => w.setSound(!w.soundOn),
-      icon: const Icon(Icons.volume_off_rounded),
-      selectedIcon: const Icon(Icons.volume_up_rounded),
+    final ended = w.phase == WatchPhase.ended;
+    final hasAnswer = _canAsk && _shownTurn != null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: SizedBox(
+        height: 52,
+        child: Row(
+          children: [
+            IconBtn(
+              tooltip: w.soundOn
+                  ? ScreenStrings.soundOff
+                  : ScreenStrings.soundOn,
+              selected: w.soundOn,
+              icon: w.soundOn ? AppIcons.soundOn : AppIcons.soundOff,
+              onPressed: ended ? null : () => w.setSound(!w.soundOn),
+            ),
+            IconBtn(
+              tooltip: _keysOpen
+                  ? AssistantStrings.hideKeys
+                  : AssistantStrings.keys,
+              selected: _keysOpen,
+              icon: _keysOpen ? AppIcons.keyboardFill : AppIcons.keyboard,
+              onPressed: ended
+                  ? null
+                  : () {
+                      Haptic.tick();
+                      setState(() => _keysOpen = !_keysOpen);
+                    },
+            ),
+            if (_canAsk)
+              IconBtn(
+                tooltip: _answerOpen && hasAnswer
+                    ? AssistantStrings.hideAnswer
+                    : AssistantStrings.showAnswer,
+                selected: _answerOpen && hasAnswer,
+                icon: _answerOpen && hasAnswer
+                    ? AppIcons.answerOn
+                    : AppIcons.answer,
+                onPressed: hasAnswer
+                    ? () {
+                        Haptic.tick();
+                        setState(() => _answerOpen = !_answerOpen);
+                      }
+                    : null,
+              ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: Btn(
+                ScreenStrings.stop,
+                kind: BtnKind.secondary,
+                compact: true,
+                icon: AppIcons.stop,
+                foreground: t.danger,
+                borderColor: t.danger,
+                onPressed: _stop,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
-
-  /// Keys open or closed.
-  Widget _keysToggle() => IconButton(
-    tooltip: _keysOpen ? AssistantStrings.hideKeys : AssistantStrings.keys,
-    isSelected: _keysOpen,
-    onPressed: _watch.phase == WatchPhase.ended
-        ? null
-        : () => setState(() => _keysOpen = !_keysOpen),
-    icon: const Icon(Icons.keyboard_outlined),
-    selectedIcon: const Icon(Icons.keyboard_rounded),
-  );
-
-  Widget _stopButton(BuildContext context) => FilledButton.tonalIcon(
-    onPressed: _stop,
-    style: FilledButton.styleFrom(
-      backgroundColor: context.talvio.raised,
-      foregroundColor: context.talvio.ink,
-      minimumSize: const Size(64, 44),
-    ),
-    icon: const Icon(Icons.stop_rounded),
-    label: const Text(ScreenStrings.stop),
-  );
-
-  Widget _keyPad() => Padding(
-    padding: const EdgeInsets.only(bottom: Space.sm),
-    child: KeyPad(
-      platform: _computer.platform,
-      onPress: _watch.channelOpen ? _pressKeys : null,
-    ),
-  );
 
   /// The assistant can be asked now.
   bool get _assistantReady =>
       _computer.online &&
       AppServices.of(context).relay.status.value == RelayStatus.connected;
 
-  Widget _assistantInput() => AssistantInput(
-    controller: widget.assistant!,
-    enabled: _assistantReady,
-    dense: true,
-  );
-
-  /// Upright: the latest answer over the bottom of the picture, at most
-  /// about a third of it; a small button once it is hidden.
-  Widget? _answerOverlay(BuildContext context, BoxConstraints constraints) {
+  /// The latest answer's card, while there is one and it is open.
+  Widget? _answer(BuildContext context) {
     final turn = _shownTurn;
-    if (!_canAsk || turn == null) return null;
-    if (!_answerOpen) {
-      return Positioned(
-        right: Space.sm,
-        bottom: Space.sm,
-        child: FilledButton.tonalIcon(
-          onPressed: () => setState(() => _answerOpen = true),
-          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-          label: const Text(AssistantStrings.showAnswer),
-        ),
-      );
-    }
-    return Positioned(
-      left: Space.sm,
-      right: Space.sm,
-      bottom: Space.sm,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: constraints.maxHeight * 0.35),
-        child: _AnswerCard(
-          turn: turn,
-          controller: widget.assistant!,
-          onHide: () => setState(() => _answerOpen = false),
-        ),
-      ),
-    );
-  }
-
-  /// Upright: the keys when open, the assistant bar, then sound, Keys and
-  /// Stop.
-  Widget _buildBar(BuildContext context) {
-    return Material(
-      color: context.talvio.canvas,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.md,
-            Space.sm,
-            Space.md,
-            Space.sm,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_keysOpen) _keyPad(),
-              if (_canAsk) ...[
-                _assistantInput(),
-                const SizedBox(height: Space.xs),
-              ],
-              Row(
-                children: [
-                  _sound(),
-                  _keysToggle(),
-                  const Spacer(),
-                  _stopButton(context),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// On its side: a slim column of buttons beside the picture, and beside
-  /// it, while open, a panel with the latest answer, the keys and the
-  /// assistant bar.
-  Widget _buildSide(BuildContext context) {
-    final asking = _canAsk && _assistantOpen;
-    final turn = asking ? _shownTurn : null;
-    final width = MediaQuery.sizeOf(context).width;
-    return Material(
-      color: context.talvio.canvas,
-      child: SafeArea(
-        left: false,
-        child: Row(
-          children: [
-            if (asking || _keysOpen)
-              SizedBox(
-                width: (width * 0.45).clamp(KeyPad.minWidth + 16, 400),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.sm,
-                    Space.sm,
-                    0,
-                    Space.sm,
-                  ),
-                  child: Column(
-                    children: [
-                      if (turn != null)
-                        Expanded(
-                          child: _AnswerCard(
-                            turn: turn,
-                            controller: widget.assistant!,
-                            onHide: null,
-                          ),
-                        )
-                      else
-                        const Spacer(),
-                      const SizedBox(height: Space.sm),
-                      if (_keysOpen) _keyPad(),
-                      if (asking) _assistantInput(),
-                    ],
-                  ),
-                ),
-              ),
-            SizedBox(
-              width: 64,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(Space.sm),
-                child: Column(
-                  children: [
-                    _sound(),
-                    const SizedBox(height: Space.sm),
-                    _keysToggle(),
-                    if (_canAsk) ...[
-                      const SizedBox(height: Space.sm),
-                      IconButton(
-                        tooltip: _assistantOpen
-                            ? AssistantStrings.hideAssistant
-                            : AssistantStrings.askHere,
-                        isSelected: _assistantOpen,
-                        onPressed: () =>
-                            setState(() => _assistantOpen = !_assistantOpen),
-                        icon: const Icon(Icons.chat_bubble_outline_rounded),
-                        selectedIcon: const Icon(Icons.chat_bubble_rounded),
-                      ),
-                    ],
-                    const SizedBox(height: Space.sm),
-                    IconButton.filledTonal(
-                      tooltip: ScreenStrings.stop,
-                      onPressed: _stop,
-                      icon: const Icon(Icons.stop_rounded),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+    if (!_canAsk || turn == null || !_answerOpen) return null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      child: _AnswerCard(
+        turn: turn,
+        controller: widget.assistant!,
+        onHide: () => setState(() => _answerOpen = false),
       ),
     );
   }
@@ -654,59 +694,56 @@ class _AnswerCard extends StatelessWidget {
 
   final AssistantTurn turn;
   final AssistantController controller;
-  final VoidCallback? onHide;
+  final VoidCallback onHide;
 
   @override
   Widget build(BuildContext context) {
     final t = context.talvio;
-    return Material(
-      color: t.card.withValues(alpha: 0.97),
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: t.card,
         borderRadius: BorderRadius.circular(Radii.lg),
-        side: BorderSide(color: t.hairline),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              const SizedBox(width: Space.md),
-              Icon(Icons.auto_awesome_rounded, size: 16, color: t.accent),
-              const SizedBox(width: Space.sm),
-              Expanded(
-                child: Text(
-                  AssistantStrings.assistantOn(turn.computerName),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.labelLarge,
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
+            child: Row(
+              children: [
+                Icon(AppIcons.sparkleFill, size: 16, color: t.accent),
+                const SizedBox(width: Space.s8),
+                Expanded(
+                  child: Semantics(
+                    label: AssistantStrings.assistantOn(turn.computerName),
+                    child: Text(
+                      turn.question ?? AssistantStrings.voiceQuestion,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TalvioType.footnote.copyWith(color: t.muted),
+                    ),
+                  ),
                 ),
-              ),
-              if (onHide != null)
-                IconButton(
+                IconBtn(
                   tooltip: AssistantStrings.hideAnswer,
-                  visualDensity: VisualDensity.compact,
                   onPressed: onHide,
-                  icon: const Icon(Icons.expand_more_rounded),
-                )
-              else
-                const SizedBox(height: 40),
-            ],
+                  color: t.muted,
+                  icon: AppIcons.caretDown,
+                ),
+              ],
+            ),
           ),
           Flexible(
             child: SingleChildScrollView(
               reverse: true,
-              padding: const EdgeInsets.fromLTRB(
-                Space.md,
-                0,
-                Space.md,
-                Space.md,
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: TurnView(
                 turn: turn,
                 controller: controller,
                 compact: true,
+                showQuestion: false,
               ),
             ),
           ),
@@ -722,145 +759,112 @@ class _TopBar extends StatelessWidget {
     required this.computerName,
     required this.status,
     required this.live,
-    required this.follow,
-    required this.onFollow,
     required this.onBack,
+    required this.onMore,
     required this.notice,
-    required this.filled,
-    required this.onFill,
-    required this.sideways,
-    required this.onRotate,
   });
 
   final String title;
   final String computerName;
   final String status;
   final bool live;
-  final bool follow;
-
-  /// Null while there is no text cursor to follow.
-  final VoidCallback? onFollow;
   final VoidCallback onBack;
+  final VoidCallback onMore;
   final String? notice;
-
-  /// The picture fills the view; [onFill] toggles it, null while there are
-  /// no bars to fill.
-  final bool filled;
-  final VoidCallback? onFill;
-
-  /// The viewer is on its side; [onRotate] turns it.
-  final bool sideways;
-  final VoidCallback onRotate;
 
   @override
   Widget build(BuildContext context) {
     final t = context.talvio;
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xCC000000), Color(0x00000000)],
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 8, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    tooltip: ScreenStrings.exitFullScreen,
-                    onPressed: onBack,
-                    icon: const Icon(Icons.close_fullscreen_rounded),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.text.titleSmall,
-                        ),
-                        Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0x99000000), Color(0x00000000)],
+            ),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: SizedBox(
+              height: 72,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconBtn(
+                      tooltip: ScreenStrings.exitFullScreen,
+                      onPressed: onBack,
+                      color: Colors.white,
+                      icon: AppIcons.exitFullScreen,
+                    ),
+                    const SizedBox(width: Space.s4),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            StatusDot(
-                              color: live ? t.live : t.muted,
-                              pulse: live,
-                            ),
-                            const SizedBox(width: 4),
-                            Semantics(
-                              liveRegion: true,
-                              child: Text(
-                                status,
-                                style: context.text.bodySmall?.copyWith(
-                                  color: live ? Colors.white : t.muted,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TalvioType.rowTitle.copyWith(
+                                color: Colors.white,
                               ),
                             ),
-                            Flexible(
-                              child: Text(
-                                ' · $computerName',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.text.bodySmall?.copyWith(
-                                  color: t.muted,
+                            const SizedBox(height: Space.s2),
+                            Row(
+                              children: [
+                                StatusDot(
+                                  color: live ? t.live : t.faint,
+                                  blink: live,
                                 ),
-                              ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Semantics(
+                                    liveRegion: true,
+                                    child: Text(
+                                      '$status · $computerName',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TalvioType.footnote.copyWith(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  if (onFill case final onFill?)
-                    IconButton(
-                      tooltip: filled ? ScreenStrings.fit : ScreenStrings.fill,
-                      isSelected: filled,
-                      onPressed: onFill,
-                      icon: const Icon(Icons.fit_screen_outlined),
-                      selectedIcon: const Icon(Icons.fit_screen),
+                    IconBtn(
+                      tooltip: ScreenStrings.moreOptions,
+                      onPressed: onMore,
+                      color: Colors.white,
+                      icon: AppIcons.more,
                     ),
-                  IconButton(
-                    tooltip: sideways
-                        ? ScreenStrings.unrotate
-                        : ScreenStrings.rotate,
-                    onPressed: onRotate,
-                    icon: Icon(
-                      sideways
-                          ? Icons.stay_current_portrait_rounded
-                          : Icons.stay_current_landscape_rounded,
-                    ),
-                  ),
-                  if (onFollow != null)
-                    IconButton(
-                      tooltip: follow
-                          ? ScreenStrings.following
-                          : ScreenStrings.follow,
-                      isSelected: follow,
-                      onPressed: onFollow,
-                      icon: const Icon(Icons.center_focus_weak),
-                      selectedIcon: const Icon(Icons.center_focus_strong),
-                    ),
-                ],
-              ),
-              if (notice case final notice?)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                  child: Text(notice, style: context.text.bodySmall),
+                  ],
                 ),
-            ],
+              ),
+            ),
           ),
         ),
-      ),
+        if (notice case final notice?)
+          InlineBanner(
+            message: notice,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          ),
+      ],
     );
   }
 }

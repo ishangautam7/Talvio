@@ -24,6 +24,7 @@ abstract final class DictateStrings {
   static String offlineTitle(String name) => '$name is offline';
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to dictate from your phone.';
+  static String updateTitle(String name) => 'Update Talvio on $name';
   static String updateNote(String name) =>
       'Update Talvio on $name to dictate from your phone.';
   static String hintPaste(String name) =>
@@ -35,6 +36,9 @@ abstract final class DictateStrings {
   static const hideKeys = 'Hide keys';
 
   static const pasteOnComputer = 'Paste there';
+  static String pastesOn(String name) => 'Pastes on $name';
+  static const keepOnPhoneTitle = 'Keep on this phone';
+  static const textComesBack = 'Text comes back here';
   static const keepOnPhone = 'Keep on phone';
   static const startRecording = 'Start dictating';
   static const stopAndSend = 'Stop and send';
@@ -110,6 +114,12 @@ abstract final class DictateStrings {
   static String keyPaste(String mod) => '$mod + V (paste)';
   static String keyUndo(String mod) => '$mod + Z (undo)';
   static String keySelectAll(String mod) => '$mod + A (select all)';
+  static const newLine = 'New line';
+  static const paste = 'Paste';
+  static const undo = 'Undo';
+  static const selectAll = 'Select all';
+  static const shiftEnter = 'Shift + Enter';
+  static String combo(String mod, String key) => '$mod + $key';
   static String modifier(String platform) =>
       platform == 'macos' ? 'Cmd' : 'Ctrl';
 
