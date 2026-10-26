@@ -143,6 +143,11 @@ export class Store {
     this.db.close();
   }
 
+  /** The connection, for a feature that keeps its own tables (free credit's ledger). */
+  get database(): Database {
+    return this.db;
+  }
+
   userById(id: string): UserRow | null {
     return this.db
       .query<UserRow, [string]>("SELECT * FROM users WHERE id = ?")

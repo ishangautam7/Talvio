@@ -10,6 +10,8 @@ import {
   signup,
 } from "./account";
 import { Store } from "./db";
+import { Free } from "./free";
+import type { FreeConfig } from "./free/config";
 import {
   callback,
   exchange,
@@ -46,6 +48,8 @@ export interface Options {
   secretsKey?: string;
   /** Where live-view TURN credentials come from (PROTOCOL.md, "TURN"); null offers STUN only. */
   turn?: TurnConfig | null;
+  /** Free credit upstreams and prices (PROTOCOL.md, "Free credit"); null or absent turns it off. */
+  free?: FreeConfig | null;
   /** Seconds without a byte from a client before its socket is dropped (75; tests shorten it). */
   idleSeconds?: number;
   now?: () => number;
@@ -62,6 +66,7 @@ export interface Ctx {
   loginFailures: RateLimit;
   secrets: SecretBox;
   turn: TurnConfig | null;
+  free: Free;
 }
 
 type Route = (
@@ -146,6 +151,17 @@ export function startServer(options: Options) {
     loginFailures,
     secrets: new SecretBox(secretsKey.key),
     turn: options.turn ?? null,
+    free: new Free(
+      options.free ?? {
+        limitUsd: 1,
+        perMinute: 60,
+        chat: null,
+        stt: null,
+        tts: null,
+      },
+      store.database,
+      { store, now, log },
+    ),
   };
 
   function clientIp(req: Request, server: Server<SocketData>): string {
@@ -192,6 +208,8 @@ export function startServer(options: Options) {
       return putSecret(req, ctx, secretName);
     if (secretName && req.method === "DELETE")
       return deleteSecret(req, ctx, url, secretName);
+    if (url.pathname.startsWith("/v1/free/"))
+      return ctx.free.route(req, url, server);
     throw notFound();
   }
 
@@ -241,6 +259,7 @@ export function startServer(options: Options) {
         store.deleteExpired(now());
         perIp.prune();
         loginFailures.prune();
+        ctx.free.prune();
       }),
     10 * 60 * 1000,
   );
