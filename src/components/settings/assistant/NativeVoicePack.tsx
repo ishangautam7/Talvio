@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Download, Loader2, X } from "lucide-react";
+import { Check, Download, Loader2, X } from "@/components/icons/glyphs";
 import { useModelStore } from "@/stores/modelStore";
 import { SettingContainer } from "@/components/ui/SettingContainer";
 import { Dropdown } from "@/components/ui/Dropdown";

@@ -121,7 +121,76 @@ pub async fn change_command_mode_enabled_setting(
     let mut settings = get_settings(&app);
     settings.command_mode_enabled = enabled;
     write_settings(&app, settings);
+    // The command shortcut is only registered while command mode is on.
+    crate::shortcut::sync_command_binding(&app);
     Ok(())
+}
+
+/// The model commands run on right now, for the Commands page: the one chosen
+/// for command mode, or the assistant's when the chosen provider has no key
+/// (`command_mode::llm::effective`).
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, specta::Type)]
+pub struct CommandModelInUse {
+    pub provider_id: String,
+    /// The provider's name as the app shows it; the id when it is unknown.
+    pub provider_label: String,
+    pub model: String,
+    /// The assistant's provider and model stand in for the chosen ones.
+    pub borrowed: bool,
+    /// The provider in use can take a request: it has a key or needs none.
+    pub ready: bool,
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn command_model_in_use(app: AppHandle) -> CommandModelInUse {
+    model_in_use(&get_settings(&app))
+}
+
+fn model_in_use(settings: &crate::settings::AppSettings) -> CommandModelInUse {
+    use crate::command_mode::llm;
+    let chosen = settings.command_router_provider_id.trim();
+    let (provider_id, model) = llm::effective(settings, settings.command_router_model.trim());
+    let provider_label = settings
+        .post_process_provider(&provider_id)
+        .map(|provider| provider.label.clone())
+        .unwrap_or_else(|| provider_id.clone());
+    CommandModelInUse {
+        borrowed: provider_id != chosen,
+        ready: llm::usable(settings, &provider_id) && !model.trim().is_empty(),
+        provider_id,
+        provider_label,
+        model,
+    }
+}
+
+/// The spoken command's card in the corner, for a window that just loaded.
+#[tauri::command]
+#[specta::specta]
+pub fn command_card() -> Option<crate::command_mode::voice::CommandCard> {
+    crate::command_mode::voice::current_card()
+}
+
+/// Send (`true`) or Cancel on a command card that waits for confirmation.
+#[tauri::command]
+#[specta::specta]
+pub async fn command_card_confirm(app: AppHandle, seq: u32, accept: bool) {
+    crate::command_mode::voice::confirm_from_card(&app, seq, accept).await;
+}
+
+/// One of a command card's choices, as the answer to its question.
+#[tauri::command]
+#[specta::specta]
+pub async fn command_card_answer(app: AppHandle, seq: u32, answer: String) {
+    crate::command_mode::voice::answer_from_card(&app, seq, &answer).await;
+}
+
+/// Close a command card: its own timer ran out, or Cancel on a question. A
+/// confirmation it held is declined.
+#[tauri::command]
+#[specta::specta]
+pub async fn command_card_dismiss(app: AppHandle, seq: u32) {
+    crate::command_mode::voice::dismiss_card(&app, seq).await;
 }
 
 /// The provider (a `post_process_providers` id) that routes commands. Empty
@@ -157,6 +226,21 @@ pub async fn change_command_router_model_setting(
 pub async fn change_command_dry_run_setting(app: AppHandle, enabled: bool) -> Result<(), String> {
     let mut settings = get_settings(&app);
     settings.command_dry_run = enabled;
+    write_settings(&app, settings);
+    Ok(())
+}
+
+/// Whether commands hold every send, post or delete for the user's Do it
+/// ("Ask before irreversible actions"). Off: they are carried out unless the
+/// user asks to review.
+#[tauri::command]
+#[specta::specta]
+pub async fn change_command_confirm_irreversible_setting(
+    app: AppHandle,
+    enabled: bool,
+) -> Result<(), String> {
+    let mut settings = get_settings(&app);
+    settings.command_confirm_irreversible = enabled;
     write_settings(&app, settings);
     Ok(())
 }
@@ -368,6 +452,50 @@ mod tests {
             normalize_search_url("HTTPS://www.bing.com/search?q={query}"),
             "HTTPS://www.bing.com/search?q={query}"
         );
+    }
+
+    /// The page says which model commands really run on: the chosen one when
+    /// its provider has a key, the assistant's when it does not.
+    #[test]
+    fn the_model_in_use_falls_back_to_the_assistants() {
+        let mut settings = crate::settings::get_default_settings();
+        settings.command_router_provider_id = "anthropic".into();
+        settings.command_router_model = "claude-haiku-5-5".into();
+        settings.post_process_api_keys.clear();
+        settings.assistant_provider_id = "openai".into();
+        settings
+            .assistant_models
+            .insert("openai".into(), "gpt-5-mini".into());
+        settings
+            .post_process_api_keys
+            .insert("openai".into(), "sk-test".into());
+        let used = model_in_use(&settings);
+        assert!(used.borrowed);
+        assert!(used.ready);
+        assert_eq!(used.provider_id, "openai");
+        assert_eq!(used.model, "gpt-5-mini");
+
+        settings
+            .post_process_api_keys
+            .insert("anthropic".into(), "sk-ant".into());
+        let used = model_in_use(&settings);
+        assert!(!used.borrowed);
+        assert!(used.ready);
+        assert_eq!(used.provider_id, "anthropic");
+        assert_eq!(used.model, "claude-haiku-5-5");
+    }
+
+    /// With no key anywhere the chosen provider is shown, as not ready.
+    #[test]
+    fn the_model_in_use_without_any_key_is_not_ready() {
+        let mut settings = crate::settings::get_default_settings();
+        settings.command_router_provider_id = "anthropic".into();
+        settings.post_process_api_keys.clear();
+        settings.assistant_provider_id = "anthropic".into();
+        let used = model_in_use(&settings);
+        assert!(!used.borrowed);
+        assert!(!used.ready);
+        assert_eq!(used.provider_id, "anthropic");
     }
 
     /// The template a new contacts file starts from must load as one contact,

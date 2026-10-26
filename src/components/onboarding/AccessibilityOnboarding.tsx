@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { Keyboard, Mic, Check, Loader2 } from "lucide-react";
+import { Keyboard, Mic, Check, Loader2 } from "@/components/icons/glyphs";
 import { Button } from "@/components/ui/Button";
 import { StepHeading } from "./OnboardingFrame";
 import "./onboarding.css";
@@ -420,7 +420,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
           title={t("onboarding.permissions.title")}
           body={t("onboarding.permissions.description")}
         />
-        <ul className="mt-8 divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+        <ul className="mt-8 rows rounded-2xl border border-hairline bg-surface elev-card">
           {showMicrophonePermission && (
             <li className="px-5 py-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -536,8 +536,8 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
 const PermissionsSheet: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
-  <div className="flex h-full min-h-0 flex-col bg-canvas-soft">
-    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-t-[1.25rem] border-t border-hairline bg-canvas px-6 elev-pane sm:px-10">
+  <div className="flex h-full min-h-0 flex-col bg-frame">
+    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-t-[1.25rem] bg-canvas px-6 sm:px-10">
       {children}
     </main>
   </div>

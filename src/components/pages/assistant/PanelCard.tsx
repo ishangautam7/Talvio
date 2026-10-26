@@ -220,7 +220,7 @@ export const PanelCard: React.FC = () => {
               onChange={(event) => setOpacity(parseFloat(event.target.value))}
               onPointerUp={commitOpacity}
               onKeyUp={commitOpacity}
-              className="h-1.5 w-full cursor-pointer appearance-none rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              className="range-input h-1.5 w-full cursor-pointer appearance-none rounded-full focus:outline-none"
               style={{
                 background: `linear-gradient(to right, var(--color-accent-fill) ${fill}%, var(--color-hairline-strong) ${fill}%)`,
               }}

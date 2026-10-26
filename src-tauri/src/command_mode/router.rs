@@ -224,6 +224,7 @@ Rules:
 - For a command with several parts, call several tools, in the order they should run.
 - Prefer a specific tool. Use escalate_to_computer_use only when no other tool can do the task, \
 and then restate the whole task in its task argument.
+- Do all of what the user asked, the last step included: \"email Ron that I'm late\" is written AND sent, \"post this\" is posted, \"reply yes\" is replied. Set confirm_first to true on that call ONLY when the user's own words ask to see it or to wait first (\"let me check it\", \"don't send it yet\", \"just draft it\", \"ask before sending\", \"wait for me\", Nepali \"napathau\", \"malai dekhau\"). Never set it only because something cannot be undone.
 - Never invent an email address. Pass the contact's name as the user said it and let the tool \
 resolve it.
 - For an email or a calendar event, write a short subject and a short, friendly body in the \
@@ -232,6 +233,39 @@ user's own voice, from what they said. No placeholders such as [Your name], and 
 line of the context, in the user's time zone.
 - Use ask_user only when the command is genuinely ambiguous and no tool could settle it. Do not \
 ask about things a tool resolves itself, such as which contact, app or file is meant.
+- \"Open <name>\" is open_app with the name as said, also for a website (\"open YouTube\", \
+\"open Gmail\"): it opens the site's app when one is installed and the website otherwise. Use \
+open_url for an address or \"go to <site>\". Never web_search a site's name to open it.
+- \"Switch to\", \"go to\" or \"show\" an app (\"switch to Chrome\", \"go to Word\", Nepali \
+\"Chrome ma jau\") is switch_to_app: it brings the open window forward and opens the app when \
+it is not running.
+- To open an app and write in it (\"open Notepad and type hello\", \"Notepad khola ani hello \
+lekha\"), call open_app and then type_text with the words, both in this one response: the \
+executor waits for the app's window before typing. type_text types into any app, Calculator \
+included (\"calculator khola ani <a sum> lekha\" is open_app then type_text with the sum), so typing \
+words, numbers or a sum is never a reason for escalate_to_computer_use.
+- Everyday editing in the app in front (save, undo, redo, copy, paste, select all, new tab, \
+reload) is press_keys with its usual shortcut, using \"primary\" for Ctrl or Cmd (\"save this \
+file\" is primary+s). Do not ask which file: the app in front knows.
+- A file, or the Documents, Downloads or Desktop folder, is open_file (\"open my downloads \
+folder\").
+- To email or send a file from this computer (\"email me the project report\", \"send the \
+invoice PDF to Ron\", \"send me this file\", Nepali \"mero report mail ma pathau\"), use \
+compose_email alone with attach set to the file as the user named it; do not open_file first. \
+\"Me\", \"myself\" or \"malai\" is to=\"me\". \"This file\" is the file open in the window in \
+front: take its name from that window's title. Write a short subject and body naming the file. \
+When you asked for the user's own email address and they answered with it, set \
+remember_as_mine to true.
+- Closing or quitting an app or window is never done for the user (unsaved work could be lost): \
+use say to tell them to close it themselves. Do not ask a question about it.
+- To play a song, video, artist or playlist by name (\"play Believer\", \"play some lo-fi\", \
+\"open YouTube and play Believer\"), use play_media alone: it opens YouTube or Spotify itself, so \
+do not also open the site. To pause, resume, skip or stop what is already playing, use \
+media_control.
+- The user may speak Nepali, or mix Nepali and English (\"bajau\" play, \"khola\" open, \
+\"roka\" stop or pause, \"ghatau\" lower, \"badhau\" raise, \"lekha\" type or write, \"khoja\" \
+search, \"pathau\" send). Write typed text, email and event text in the language the user \
+used for it.
 - Use say for a question that needs no action (for example \"what time is it\"), with a \
 one-sentence answer.
 - When the user message lists steps as already done, they have run. Never call them again; \
@@ -303,7 +337,8 @@ pub fn special_tool_defs() -> Vec<ToolDef> {
                         "minLength": 1,
                         "description": "Restate the user's task completely, for an agent that \
                                         will control the screen and has not heard the command."
-                    }
+                    },
+                    "confirm_first": super::review::confirm_first_property()
                 },
                 "required": ["task"],
                 "additionalProperties": false
@@ -629,7 +664,7 @@ fn describe_problems(calls: &[RoutedCall], problems: &[Option<String>]) -> Strin
 /// round replaces the whole list rather than adding to it), so a repeat is
 /// the model's plan, not an echo.
 fn plan(response: RouteResponse, usage: Usage, llm_calls: u32) -> RoutePlan {
-    let mut calls: Vec<PlannedCall> = response
+    let calls: Vec<PlannedCall> = response
         .calls
         .into_iter()
         .map(|call| PlannedCall {
@@ -637,6 +672,7 @@ fn plan(response: RouteResponse, usage: Usage, llm_calls: u32) -> RoutePlan {
             args: call.input,
         })
         .collect();
+    let mut calls = without_openers_play_media_covers(calls);
     let dropped = if calls.len() > MAX_PLAN_CALLS {
         warn!(
             "command router: the plan had {} calls, running the first {MAX_PLAN_CALLS}",
@@ -653,6 +689,63 @@ fn plan(response: RouteResponse, usage: Usage, llm_calls: u32) -> RoutePlan {
         usage,
         llm_calls,
     }
+}
+
+/// The streaming services `play_media` opens itself.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Player {
+    YouTube,
+    Spotify,
+}
+
+/// The player an `open_app` / `open_url` call opens, if it is one.
+fn opens_player(call: &PlannedCall) -> Option<Player> {
+    let target = match call.name.as_str() {
+        "open_app" => registry::arg_str(&call.args, "name")?,
+        "open_url" => registry::arg_str(&call.args, "url")?,
+        _ => return None,
+    }
+    .to_lowercase();
+    if target.contains("spotify") {
+        Some(Player::Spotify)
+    } else if target.contains("youtube") || target.contains("youtu.be") || target == "yt" {
+        Some(Player::YouTube)
+    } else {
+        None
+    }
+}
+
+/// The player a `play_media` call plays on.
+fn plays_on(call: &PlannedCall) -> Option<Player> {
+    (call.name == "play_media").then(|| match registry::arg_str(&call.args, "service") {
+        Some("spotify") => Player::Spotify,
+        _ => Player::YouTube,
+    })
+}
+
+/// "Open YouTube and play Believer" is planned as open_url youtube.com, then
+/// play_media; but play_media opens the song's own page, so the first call
+/// only left an extra tab behind it. An opener of the player a later
+/// play_media uses is dropped.
+fn without_openers_play_media_covers(calls: Vec<PlannedCall>) -> Vec<PlannedCall> {
+    let players: Vec<Player> = calls.iter().filter_map(plays_on).collect();
+    if players.is_empty() {
+        return calls;
+    }
+    let mut kept = Vec::with_capacity(calls.len());
+    for (index, call) in calls.iter().enumerate() {
+        let covered = opens_player(call).is_some_and(|player| {
+            calls[index + 1..]
+                .iter()
+                .any(|later| plays_on(later) == Some(player))
+        });
+        if covered {
+            debug!("command router: dropped {}, play_media opens it", call.name);
+        } else {
+            kept.push(call.clone());
+        }
+    }
+    kept
 }
 
 fn truncate(text: &str, max_chars: usize) -> String {
@@ -672,6 +765,59 @@ mod tests {
     use futures_util::future::BoxFuture;
     use std::collections::VecDeque;
     use std::sync::Mutex;
+
+    fn planned(name: &str, args: Value) -> PlannedCall {
+        PlannedCall {
+            name: name.into(),
+            args,
+        }
+    }
+
+    #[test]
+    fn an_opener_play_media_covers_is_dropped() {
+        let calls = vec![
+            planned("open_url", json!({"url": "youtube.com"})),
+            planned(
+                "play_media",
+                json!({"query": "Believer", "service": "auto"}),
+            ),
+        ];
+        let kept = without_openers_play_media_covers(calls);
+        assert_eq!(kept.len(), 1);
+        assert_eq!(kept[0].name, "play_media");
+
+        let spotify = vec![
+            planned("open_app", json!({"name": "Spotify"})),
+            planned(
+                "play_media",
+                json!({"query": "Arijit", "service": "spotify"}),
+            ),
+        ];
+        assert_eq!(without_openers_play_media_covers(spotify).len(), 1);
+    }
+
+    #[test]
+    fn other_openers_are_kept() {
+        // Another service, an opener after the song, and no song at all.
+        for calls in [
+            vec![
+                planned("open_app", json!({"name": "Spotify"})),
+                planned("play_media", json!({"query": "Believer"})),
+            ],
+            vec![
+                planned("play_media", json!({"query": "Believer"})),
+                planned("open_url", json!({"url": "https://www.youtube.com"})),
+            ],
+            vec![
+                planned("open_app", json!({"name": "notepad"})),
+                planned("play_media", json!({"query": "Believer"})),
+            ],
+            vec![planned("open_app", json!({"name": "YouTube"}))],
+        ] {
+            let before = calls.len();
+            assert_eq!(without_openers_play_media_covers(calls).len(), before);
+        }
+    }
 
     /// A router model that answers from a script and keeps every request.
     /// A `None` entry never answers, for the deadline tests.
@@ -1607,5 +1753,33 @@ mod tests {
             let b: Vec<&str> = offered.iter().map(|s| s.name).collect();
             assert_eq!(a, b);
         }
+    }
+
+    /// Emailing a file, in English or Nepali, is compose_email's job: its
+    /// words reach it when the tools are narrowed, and the prompt and its
+    /// schema say how (attach, "me", remember_as_mine).
+    #[test]
+    fn emailing_a_file_is_routed_to_compose_email() {
+        let email = registry::all()
+            .iter()
+            .find(|s| s.name == "compose_email")
+            .expect("compose_email");
+        for spoken in [
+            "email me the project report",
+            "send the invoice pdf to Ron",
+            "mero report mail ma pathau",
+        ] {
+            assert!(
+                relevance(email, &word_set(spoken)) > 0,
+                "{spoken} should reach compose_email"
+            );
+        }
+        let schema = (email.schema)();
+        for field in ["attach", "attach_kind", "remember_as_mine"] {
+            assert!(schema["properties"].get(field).is_some(), "{field}");
+        }
+        let prompt = system_prompt();
+        assert!(prompt.contains("attach set to the file"), "{prompt}");
+        assert!(prompt.contains("remember_as_mine"), "{prompt}");
     }
 }

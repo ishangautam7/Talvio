@@ -147,7 +147,19 @@ impl ToolSpec {
         ToolDef {
             name: self.name.to_string(),
             description: self.description.to_string(),
-            input_schema: (self.schema)(),
+            input_schema: self.input_schema(),
+        }
+    }
+
+    /// The tool's schema as the model sees it and calls are checked against:
+    /// a tool with an irreversible step also takes
+    /// [`super::review::CONFIRM_FIRST`], which says the user asked to review
+    /// it before it is carried out.
+    pub fn input_schema(&self) -> Value {
+        let schema = (self.schema)();
+        match self.risk {
+            Risk::NeedsConfirmation => super::review::with_confirm_first(schema),
+            Risk::Safe => schema,
         }
     }
 }
@@ -200,6 +212,14 @@ impl Feedback {
 
     pub fn render_en(&self) -> &str {
         &self.text
+    }
+
+    /// Whether this is the message made from template `key` (the name given
+    /// to [`Feedback::new`], without the namespace it is stored under).
+    pub fn is(&self, key: &str) -> bool {
+        self.key
+            .strip_prefix("commandMode.feedback.")
+            .is_some_and(|own| own == key)
     }
 }
 
@@ -291,7 +311,7 @@ pub fn tool_defs(tools: &[&ToolSpec]) -> Vec<ToolDef> {
 /// Check a call's arguments against the tool's schema. The error lists every
 /// problem, phrased so it can be handed back to the model for a repair.
 pub fn validate_args(spec: &ToolSpec, args: &Value) -> Result<(), String> {
-    super::schema::validate(&(spec.schema)(), args).map_err(|problems| problems.join("; "))
+    super::schema::validate(&spec.input_schema(), args).map_err(|problems| problems.join("; "))
 }
 
 /// Read a string argument, trimmed; `None` when absent or blank.

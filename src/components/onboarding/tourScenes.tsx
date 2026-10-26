@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, Mic, SquarePen, Volume2, X } from "lucide-react";
+import { Loader2, Mic, SquarePen, Volume2, X } from "@/components/icons/glyphs";
 import AudioWaveform from "@/components/shared/AudioWaveform";
 import { Keycaps } from "@/components/ui/Keycaps";
 import QuickAsk from "@/assistant/QuickAsk";
@@ -496,7 +496,13 @@ const EXAMPLES: Example[] = [
 ];
 
 type AskBeat =
-  "select" | "listen" | "think" | "answer" | "read" | "click" | "applied";
+  | "select"
+  | "listen"
+  | "think"
+  | "answer"
+  | "read"
+  | "click"
+  | "applied";
 const ASK_BEAT_MS: Record<AskBeat, number> = {
   select: 1300,
   listen: 1800,

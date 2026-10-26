@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons/glyphs";
 import "./onboarding.css";
 
 export type FlowStep = "setup" | "tour";
@@ -24,8 +24,9 @@ export const OnboardingFrame: React.FC<{
   const index = STEPS.indexOf(step);
   const column = width === "wide" ? "max-w-7xl" : "max-w-3xl";
   return (
-    <div className="flex h-full min-h-0 flex-col bg-canvas-soft">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[1.25rem] border-t border-hairline bg-canvas elev-pane">
+    <div className="flex h-full min-h-0 flex-col bg-frame">
+      <div className="relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[1.25rem] bg-canvas">
+        <div aria-hidden="true" className="sheet-glow" />
         <header className="ob-header shrink-0 px-6 sm:px-10">
           <ol
             className={`mx-auto flex w-full ${column} items-center gap-2`}
@@ -46,16 +47,16 @@ export const OnboardingFrame: React.FC<{
                   {i > 0 && (
                     <span
                       aria-hidden="true"
-                      className={`h-px w-6 ${i <= index ? "bg-accent/40" : "bg-hairline-strong"}`}
+                      className={`h-px w-6 ${i <= index ? "bg-ink/30" : "bg-hairline-strong"}`}
                     />
                   )}
                   <span
                     aria-hidden="true"
                     className={`grid h-5 w-5 place-items-center rounded-full text-[0.6875rem] font-semibold tabular-nums ${
                       state === "current"
-                        ? "bg-accent text-on-primary"
+                        ? "bg-ink text-surface"
                         : state === "done"
-                          ? "bg-accent/12 text-accent"
+                          ? "bg-surface-strong text-ink"
                           : "bg-surface-strong text-muted"
                     }`}
                   >

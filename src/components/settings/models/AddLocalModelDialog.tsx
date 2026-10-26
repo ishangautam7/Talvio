@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
-import { FilePlus2, FolderOpen, Loader2, RefreshCw, X } from "lucide-react";
+import {
+  FilePlus2,
+  FolderOpen,
+  Loader2,
+  RefreshCw,
+  X,
+} from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useModelStore } from "@/stores/modelStore";
@@ -238,7 +244,7 @@ export const AddLocalModelDialog: React.FC<AddLocalModelDialogProps> = ({
               {t("settings.models.localModel.foldersEmptyShort")}
             </p>
           ) : (
-            <ul className="divide-y divide-hairline overflow-hidden rounded-xl border border-hairline">
+            <ul className="rows overflow-hidden rounded-xl border border-hairline">
               {folders.map((folder) => (
                 <li
                   key={folder}

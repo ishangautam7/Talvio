@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search } from "@/components/icons/glyphs";
 import { usePortalTarget } from "./portal";
 
 /**
@@ -247,7 +247,7 @@ export const LogoSelect: React.FC<LogoSelectProps> = ({
             setOpen(true);
           }
         }}
-        className={`flex h-10 min-w-[13rem] cursor-pointer items-center gap-2.5 rounded-lg border border-hairline-strong bg-surface ps-2 pe-2.5 text-start text-sm text-ink shadow-[0_1px_1px_rgba(43,28,20,0.04)] transition-colors hover:border-ink/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`control control-raised flex h-[2.375rem] min-w-[13rem] cursor-pointer items-center gap-2.5 rounded-lg ps-2 pe-2.5 text-start text-sm text-ink disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {selected?.icon && <span className="shrink-0">{selected.icon}</span>}
         <span
@@ -277,7 +277,7 @@ export const LogoSelect: React.FC<LogoSelectProps> = ({
                 ? { top: position.top }
                 : { bottom: window.innerHeight - position.top }),
             }}
-            className="elev-float z-[70] flex flex-col overflow-hidden rounded-xl border border-hairline bg-surface"
+            className="elev-float menu-in z-[70] flex flex-col overflow-hidden rounded-xl bg-surface"
           >
             {showSearch && (
               <div className="relative shrink-0 border-b border-hairline p-1.5">
@@ -304,7 +304,7 @@ export const LogoSelect: React.FC<LogoSelectProps> = ({
                   }}
                   placeholder={t("common.search")}
                   aria-label={t("common.search")}
-                  className="h-8 w-full rounded-lg bg-surface-strong/70 ps-8 pe-2 text-sm text-ink placeholder:text-muted-soft focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  className="h-8 w-full rounded-lg bg-surface-strong/70 ps-8 pe-2 text-sm text-ink placeholder:text-muted-soft focus:outline-none focus:shadow-[var(--focus-ring)]"
                 />
               </div>
             )}

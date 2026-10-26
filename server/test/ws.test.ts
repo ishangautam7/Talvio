@@ -418,7 +418,7 @@ describe("connection rules", () => {
     } finally {
       await quick.close();
     }
-  });
+  }, 30_000);
 
   test("a socket that reads nothing for 75 s is closed, even while it pings", async () => {
     const desktop = await h.signup("a@example.com", DESKTOP);

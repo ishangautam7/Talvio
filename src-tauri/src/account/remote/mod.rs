@@ -30,9 +30,13 @@
 //! minutes run out, even when nothing waits on it any more, so a phone cannot
 //! flash it on and off with a request and a cancel.
 
+mod assistant;
+mod command;
 mod dictate;
 mod host;
+pub(super) mod screen;
 mod text;
+mod windows;
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -48,10 +52,23 @@ use specta::Type;
 use tokio::sync::{mpsc, watch};
 
 use super::api;
+pub use command::{outcome_of, Ask, CommandFuture, CommandOutcome};
 pub use host::{AppHost, Host, Pasted};
+pub use screen::session::Viewing;
 
-/// The kinds this computer handles, announced in `hello`.
-pub const CAPABILITIES: &[&str] = &["dictate", "text"];
+/// The kinds this computer handles, announced in `hello`. `screen` (live view)
+/// only where a window can be captured.
+#[cfg(target_os = "windows")]
+pub const CAPABILITIES: &[&str] = &[
+    "dictate",
+    "text",
+    "windows",
+    "screen",
+    "command",
+    "assistant",
+];
+#[cfg(not(target_os = "windows"))]
+pub const CAPABILITIES: &[&str] = &["dictate", "text", "windows", "command", "assistant"];
 
 /// How long the question about a new phone waits for an answer.
 pub const APPROVAL_TIMEOUT: Duration = Duration::from_secs(120);
@@ -73,6 +90,19 @@ fn handler(kind: &str) -> Option<Handler> {
     match kind {
         "dictate" => Some(|router, body, reply| dictate::handle(router, body, reply).boxed()),
         "text" => Some(|router, body, reply| text::handle(router, body, reply).boxed()),
+        "windows.list" => Some(|router, body, reply| windows::list(router, body, reply).boxed()),
+        "command" => Some(|router, body, reply| command::run(router, body, reply).boxed()),
+        "command.confirm" => {
+            Some(|router, body, reply| command::confirm(router, body, reply).boxed())
+        }
+        "command.answer" => {
+            Some(|router, body, reply| command::answer(router, body, reply).boxed())
+        }
+        "windows.keys" => Some(|router, body, reply| windows::keys(router, body, reply).boxed()),
+        "assistant.ask" => Some(|router, body, reply| assistant::ask(router, body, reply).boxed()),
+        "screen.watch" if windows::CAN_WATCH => {
+            Some(|router, body, reply| screen::session::watch(router, body, reply).boxed())
+        }
         // A kind with no input slot, like the agent feature's, so the tests show
         // the gate holds for any kind. Outside `agent.`, which that feature owns.
         #[cfg(test)]
@@ -129,6 +159,8 @@ struct InFlight {
     /// Its phone lost access while it ran: it stops as a cancel does, and
     /// answers `not_approved`.
     revoked: AtomicBool,
+    /// The latest progress sent for it, which a heartbeat repeats.
+    last_progress: Mutex<Option<Map<String, Value>>>,
 }
 
 /// Turns relayed bodies into handled requests and their replies into frames
@@ -143,6 +175,22 @@ pub struct Router {
     /// Open approval questions, by phone id.
     questions: Mutex<HashMap<String, Question>>,
     question_serial: AtomicU64,
+    /// The windows each phone was last offered (`windows.list`), by phone id.
+    offered: Mutex<HashMap<String, windows::Offered>>,
+    /// A live view is running (one at a time).
+    watching: AtomicBool,
+    /// Stop was pressed on this computer's "Phone is viewing" notice.
+    stop_watch: AtomicBool,
+    /// The phone watching asked to watch again: its running view ends.
+    replace_watch: AtomicBool,
+    /// This account's phones that are connected now, from the latest
+    /// `devices` snapshot.
+    online: Mutex<Option<std::collections::HashSet<String>>>,
+    /// Where a running live view hears its phone's `rtc.*` messages, by the
+    /// watch's `requestId`: the phone that asked, and the session's inbox.
+    watches: Mutex<HashMap<String, (String, mpsc::Sender<Value>)>>,
+    /// Phones whose question to the assistant is being answered (one each).
+    asking: Mutex<std::collections::HashSet<String>>,
 }
 
 impl Router {
@@ -158,6 +206,13 @@ impl Router {
             phones: Mutex::default(),
             questions: Mutex::default(),
             question_serial: AtomicU64::new(0),
+            offered: Mutex::default(),
+            watching: AtomicBool::new(false),
+            stop_watch: AtomicBool::new(false),
+            replace_watch: AtomicBool::new(false),
+            online: Mutex::default(),
+            watches: Mutex::default(),
+            asking: Mutex::default(),
         });
         (router, frames)
     }
@@ -184,6 +239,11 @@ impl Router {
             .filter(|id| is_request_id(id));
         match (kind, request_id) {
             ("cancel", Some(id)) => return self.cancel(from, id),
+            // A live view's handshake: never a request of its own.
+            (kind, Some(id)) if kind.starts_with("rtc.") => {
+                let id = id.to_string();
+                return self.signal(from, &id, body.clone());
+            }
             // Replies are never requests; answering one could start a loop
             // between two devices.
             ("progress" | "result", _) => return,
@@ -216,6 +276,7 @@ impl Router {
             from: from.to_string(),
             cancelled: AtomicBool::new(false),
             revoked: AtomicBool::new(false),
+            last_progress: Mutex::new(None),
         });
         let mut requests = self.requests.lock().unwrap_or_else(|e| e.into_inner());
         if requests.contains_key(request_id) {
@@ -241,6 +302,44 @@ impl Router {
         }
     }
 
+    /// Hand a relayed `rtc.*` body to the live view it belongs to: the
+    /// running watch with that `requestId`, from the same device. Anything
+    /// else is ignored without a reply.
+    fn signal(&self, from: &str, request_id: &str, body: Value) {
+        let watches = self.watches();
+        let Some((phone, inbox)) = watches.get(request_id) else {
+            return;
+        };
+        if phone == from && inbox.try_send(body).is_err() {
+            debug!("A live view's handshake message was dropped");
+        }
+    }
+
+    fn watches(&self) -> MutexGuard<'_, HashMap<String, (String, mpsc::Sender<Value>)>> {
+        self.watches.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Stop on this computer's "Phone is viewing" notice: the running live
+    /// view ends with `stopped`.
+    pub fn stop_watching(&self) {
+        if self.watching.load(Ordering::Acquire) {
+            self.stop_watch.store(true, Ordering::Release);
+        }
+    }
+
+    /// Whether `phone` is connected to the account server, as far as the
+    /// latest devices snapshot says. Before any snapshot it is taken as
+    /// connected, so a first moment never ends a view.
+    fn phone_online(&self, phone: &str) -> bool {
+        let online = self.online.lock().unwrap_or_else(|e| e.into_inner());
+        online.as_ref().is_none_or(|online| online.contains(phone))
+    }
+
+    /// What the approval card calls a phone, for the viewing notice.
+    fn phone_name(&self, id: &str) -> String {
+        self.phone(id).map(|phone| phone.name).unwrap_or_default()
+    }
+
     /// Stop the requests already past the gate whose sender `lost_access`.
     fn revoke_running(&self, lost_access: impl Fn(&str) -> bool) {
         let requests = self.requests.lock().unwrap_or_else(|e| e.into_inner());
@@ -254,6 +353,13 @@ impl Router {
     /// A phone that left the account is answered `not_approved`, waiting or
     /// running.
     pub fn devices_changed(&self, devices: &[api::Device]) {
+        *self.online.lock().unwrap_or_else(|e| e.into_inner()) = Some(
+            devices
+                .iter()
+                .filter(|device| device.kind == "mobile" && device.online)
+                .map(|device| device.id.clone())
+                .collect(),
+        );
         self.set_phones(
             devices
                 .iter()
@@ -331,6 +437,10 @@ impl Router {
             .unwrap_or_else(|e| e.into_inner())
             .get(id)
             .cloned()
+    }
+
+    fn offered(&self) -> MutexGuard<'_, HashMap<String, windows::Offered>> {
+        self.offered.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     fn questions(&self) -> MutexGuard<'_, HashMap<String, Question>> {
@@ -492,6 +602,11 @@ pub struct Reply {
 }
 
 impl Reply {
+    /// Its phone lost access (rather than cancelling).
+    pub fn revoked(&self) -> bool {
+        self.state.revoked.load(Ordering::Acquire)
+    }
+
     /// Cancelled by its phone, or its phone lost access.
     pub fn is_cancelled(&self) -> bool {
         self.state.cancelled.load(Ordering::Acquire) || self.state.revoked.load(Ordering::Acquire)
@@ -566,7 +681,29 @@ impl Reply {
     }
 
     /// Send a reply body to the requester, under this request's id.
+    /// Say again what it is doing, so a long step reads as busy rather than
+    /// lost (the phone gives up on a request that goes quiet). It repeats the
+    /// latest progress exactly, which changes nothing on the phone.
+    pub fn heartbeat(&self) {
+        let last = self
+            .state
+            .last_progress
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
+        if let Some(body) = last {
+            self.send(body);
+        }
+    }
+
     fn send(&self, mut body: Map<String, Value>) {
+        if body.get("kind").and_then(Value::as_str) == Some("progress") {
+            *self
+                .state
+                .last_progress
+                .lock()
+                .unwrap_or_else(|e| e.into_inner()) = Some(body.clone());
+        }
         body.insert("requestId".into(), self.request_id.clone().into());
         let frame = json!({ "type": "relay", "to": self.to, "body": body }).to_string();
         if self.router.outbox.try_send(frame).is_err() {
@@ -581,11 +718,63 @@ impl Drop for Reply {
     }
 }
 
+/// How often a long step repeats its progress to the phone.
+#[cfg(not(test))]
+pub(super) const HEARTBEAT: Duration = Duration::from_secs(5);
+#[cfg(test)]
+pub(super) const HEARTBEAT: Duration = Duration::from_millis(50);
+
+/// Await `work`, repeating the latest progress every [`HEARTBEAT`] so a slow
+/// step (a transcription, a command that opens apps and waits for windows) is
+/// never taken for a lost one. If the phone cancels meanwhile, `on_cancel`
+/// runs once and the work is still awaited, since it reports how it ended.
+pub(super) async fn with_heartbeat<T>(
+    reply: &Reply,
+    work: impl std::future::Future<Output = T>,
+    mut on_cancel: impl FnMut(),
+) -> T {
+    tokio::pin!(work);
+    let mut tick = tokio::time::interval_at(tokio::time::Instant::now() + HEARTBEAT, HEARTBEAT);
+    let mut cancelled = false;
+    loop {
+        tokio::select! {
+            out = &mut work => return out,
+            _ = tick.tick() => {
+                if reply.is_cancelled() {
+                    if !cancelled {
+                        cancelled = true;
+                        on_cancel();
+                    }
+                } else {
+                    reply.heartbeat();
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod testing {
-    use super::{AccountPhone, Host, Pasted, Router, APPROVAL_TIMEOUT};
+    use super::host::AssistantFuture;
+    use super::host::{AudioStart, VideoStart};
+    use super::screen::audio::StartError as AudioStartError;
+    use super::screen::input::{Button, ControlInfo, Rect};
+    use super::screen::rtc::IceServer;
+    use super::screen::session::Viewing;
+    use super::screen::video::{
+        CaptureTarget, EncodedFrame, Ended, Geometry, ScreenInfo, StartError, VideoSettings,
+        VideoStream,
+    };
+    use super::{
+        AccountPhone, Ask, CommandFuture, CommandOutcome, Host, Pasted, Router, APPROVAL_TIMEOUT,
+    };
+    use crate::assistant::phone::{
+        PhoneAction, PhoneAnswer, PhoneAsk, PhoneAskError, PhonePending, PhoneProgress,
+    };
+    use crate::command_mode::effects::{KeyCombo, WindowEntry};
     use futures_util::future::BoxFuture;
     use std::collections::HashSet;
+    use std::sync::atomic::AtomicUsize;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, Mutex};
     use std::time::Duration;
@@ -613,6 +802,78 @@ pub(crate) mod testing {
         /// Run once by `refused`, after it has read its answer: what happens
         /// while a request is being judged.
         pub while_judging: Mutex<Option<Box<dyn FnOnce() + Send>>>,
+        /// "Let phones see and use windows".
+        pub windows_on: AtomicBool,
+        /// Every phone counts as allowed (a live test serving a real phone).
+        pub approve_all: bool,
+        /// Views capture this machine for real (a live test).
+        pub capture_for_real: bool,
+        /// The open windows, and the id of the one in front.
+        pub windows: Mutex<Vec<WindowEntry>>,
+        pub front: Mutex<Option<i64>>,
+        /// Every window brought forward, in order.
+        pub focused: Mutex<Vec<i64>>,
+        pub focus_fails: Mutex<bool>,
+        /// Every combo pressed, as its label.
+        pub pressed: Mutex<Vec<String>>,
+        /// The window in front at each paste.
+        pub pasted_into: Mutex<Vec<Option<i64>>>,
+        /// Live view: the screens offered, the capture `start_video` hands
+        /// out (taken once), every click and scroll, the control under a
+        /// point, and every viewing notice shown (`None` = taken down).
+        pub screens: Vec<ScreenInfo>,
+        pub video: Mutex<Option<FakeVideo>>,
+        pub clicks: Mutex<Vec<(i32, i32, Button, u8)>>,
+        pub scrolls: Mutex<Vec<(i32, i32, i32, i32)>>,
+        pub control: Mutex<Option<ControlInfo>>,
+        pub notices: Mutex<Vec<Option<Viewing>>>,
+        /// Commands: the switch, every request as text ("run …", "confirm 7
+        /// true", "answer 7 …"), and how the fake answers.
+        pub command_on: Mutex<bool>,
+        pub commands: Mutex<Vec<String>>,
+        pub command_waits: Mutex<bool>,
+        /// Holds the next command until it is sent.
+        pub command_gate: Mutex<Option<tokio::sync::oneshot::Receiver<()>>>,
+        pub command_cancels: Mutex<u32>,
+        pub command_unconfigured: Mutex<bool>,
+        /// The assistant: the switch, every question as `phone: text (conversation)`,
+        /// a gate that holds the answer until released, an error to answer
+        /// with, and whether the answer leaves a command waiting.
+        pub assistant_on: Mutex<bool>,
+        pub asks: Mutex<Vec<String>>,
+        pub assistant_gate: Mutex<Option<tokio::sync::oneshot::Receiver<()>>>,
+        pub assistant_error: Mutex<Option<PhoneAskError>>,
+        pub assistant_pending: Mutex<bool>,
+    }
+
+    /// A capture the test drives: frames go in through `frames`.
+    pub struct FakeVideo {
+        pub frames: Option<mpsc::Receiver<EncodedFrame>>,
+        pub geometry: Option<Geometry>,
+        pub keyframes: Arc<AtomicUsize>,
+        pub stopped: Arc<AtomicBool>,
+    }
+
+    struct FakeStream {
+        geometry: Option<Geometry>,
+        keyframes: Arc<AtomicUsize>,
+        stopped: Arc<AtomicBool>,
+    }
+
+    impl VideoStream for FakeStream {
+        fn request_keyframe(&self) {
+            self.keyframes.fetch_add(1, Ordering::SeqCst);
+        }
+        fn set_bitrate(&self, _bps: u32) {}
+        fn geometry(&self) -> Option<Geometry> {
+            self.geometry
+        }
+        fn ended(&self) -> Option<Ended> {
+            Some(Ended::TargetGone)
+        }
+        fn stop(&self) {
+            self.stopped.store(true, Ordering::SeqCst);
+        }
     }
 
     impl Default for FakeHost {
@@ -631,6 +892,32 @@ pub(crate) mod testing {
                 open: Mutex::default(),
                 approval_timeout: APPROVAL_TIMEOUT,
                 while_judging: Mutex::default(),
+                windows_on: AtomicBool::new(true),
+                approve_all: false,
+                capture_for_real: false,
+                windows: Mutex::default(),
+                front: Mutex::default(),
+                focused: Mutex::default(),
+                focus_fails: Mutex::default(),
+                pressed: Mutex::default(),
+                pasted_into: Mutex::default(),
+                screens: Vec::new(),
+                video: Mutex::default(),
+                clicks: Mutex::default(),
+                scrolls: Mutex::default(),
+                control: Mutex::default(),
+                notices: Mutex::default(),
+                command_on: Mutex::new(true),
+                commands: Mutex::default(),
+                command_waits: Mutex::default(),
+                command_gate: Mutex::default(),
+                command_cancels: Mutex::default(),
+                command_unconfigured: Mutex::default(),
+                assistant_on: Mutex::new(true),
+                asks: Mutex::default(),
+                assistant_gate: Mutex::default(),
+                assistant_error: Mutex::default(),
+                assistant_pending: Mutex::default(),
             }
         }
     }
@@ -654,6 +941,8 @@ pub(crate) mod testing {
         }
         fn paste(&self, text: String) -> BoxFuture<'static, Pasted> {
             self.pasted.lock().unwrap().push(text);
+            let front = *self.front.lock().unwrap();
+            self.pasted_into.lock().unwrap().push(front);
             let pasted = self.paste;
             Box::pin(async move { pasted })
         }
@@ -661,7 +950,7 @@ pub(crate) mod testing {
             self.saved.lock().unwrap().push(text);
         }
         fn approved(&self, phone: &str) -> bool {
-            self.approved.lock().unwrap().contains(phone)
+            self.approve_all || self.approved.lock().unwrap().contains(phone)
         }
         fn refused(&self, phone: &str) -> bool {
             let refused = self.refused.lock().unwrap().contains(phone);
@@ -688,6 +977,177 @@ pub(crate) mod testing {
         }
         fn approval_timeout(&self) -> Duration {
             self.approval_timeout
+        }
+        fn windows_enabled(&self) -> bool {
+            self.windows_on.load(Ordering::SeqCst)
+        }
+        fn open_windows(&self) -> Vec<WindowEntry> {
+            self.windows.lock().unwrap().clone()
+        }
+        fn foreground_window(&self) -> Option<WindowEntry> {
+            let front = (*self.front.lock().unwrap())?;
+            self.open_windows().into_iter().find(|w| w.id == front)
+        }
+        fn focus_window(&self, window: WindowEntry) -> BoxFuture<'static, Result<(), String>> {
+            let result = if *self.focus_fails.lock().unwrap() {
+                Err("refused".to_string())
+            } else {
+                self.focused.lock().unwrap().push(window.id);
+                *self.front.lock().unwrap() = Some(window.id);
+                Ok(())
+            };
+            Box::pin(async move { result })
+        }
+        fn press_keys(&self, combos: Vec<KeyCombo>) -> BoxFuture<'static, Result<(), String>> {
+            self.pressed
+                .lock()
+                .unwrap()
+                .extend(combos.iter().map(KeyCombo::label));
+            Box::pin(async { Ok(()) })
+        }
+        fn screens(&self) -> Vec<ScreenInfo> {
+            self.screens.clone()
+        }
+        fn start_video(&self, target: CaptureTarget, settings: VideoSettings) -> VideoStart {
+            if self.capture_for_real {
+                let target = match target {
+                    CaptureTarget::Window(_) => CaptureTarget::Screen(
+                        super::screen::video::list_screens()
+                            .into_iter()
+                            .next()
+                            .map(|screen| screen.id)
+                            .unwrap_or_default(),
+                    ),
+                    screen => screen,
+                };
+                return super::screen::video::start(target, settings);
+            }
+            let Some(mut video) = self.video.lock().unwrap().take() else {
+                return Err(StartError::Unsupported("no fake capture".into()));
+            };
+            let frames = video.frames.take().expect("frames");
+            Ok((
+                Box::new(FakeStream {
+                    geometry: video.geometry,
+                    keyframes: video.keyframes,
+                    stopped: video.stopped,
+                }),
+                frames,
+            ))
+        }
+        fn start_audio(&self) -> AudioStart {
+            Err(AudioStartError::Unsupported("no sound in tests".into()))
+        }
+        fn ice_servers(&self) -> BoxFuture<'static, Vec<IceServer>> {
+            Box::pin(async { Vec::new() })
+        }
+        fn click(
+            &self,
+            x: i32,
+            y: i32,
+            button: Button,
+            count: u8,
+        ) -> BoxFuture<'static, Result<(), String>> {
+            self.clicks.lock().unwrap().push((x, y, button, count));
+            Box::pin(async { Ok(()) })
+        }
+        fn scroll(
+            &self,
+            x: i32,
+            y: i32,
+            dx: i32,
+            dy: i32,
+        ) -> BoxFuture<'static, Result<(), String>> {
+            self.scrolls.lock().unwrap().push((x, y, dx, dy));
+            Box::pin(async { Ok(()) })
+        }
+        fn control_at(&self, _x: i32, _y: i32) -> BoxFuture<'static, Option<ControlInfo>> {
+            let control = self.control.lock().unwrap().clone();
+            Box::pin(async move { control })
+        }
+        fn focused_is_password(&self) -> BoxFuture<'static, bool> {
+            Box::pin(async { false })
+        }
+        fn caret(&self) -> BoxFuture<'static, Option<Rect>> {
+            Box::pin(async { None })
+        }
+        fn viewing(&self, notice: Option<Viewing>) {
+            self.notices.lock().unwrap().push(notice);
+        }
+        fn command_enabled(&self) -> bool {
+            *self.command_on.lock().unwrap()
+        }
+        fn command(&self, ask: Ask) -> CommandFuture {
+            let (line, transcript) = match &ask {
+                Ask::Run(text) => (format!("run {text}"), text.clone()),
+                Ask::Confirm { id, accept } => (format!("confirm {id} {accept}"), String::new()),
+                Ask::Answer { id, answer } => (format!("answer {id} {answer}"), String::new()),
+            };
+            self.commands.lock().unwrap().push(line);
+            let waits = *self.command_waits.lock().unwrap();
+            let outcome = CommandOutcome {
+                feedback: format!("Did: {transcript}"),
+                transcript,
+                status: if waits {
+                    "awaiting_confirmation"
+                } else {
+                    "done"
+                }
+                .into(),
+                id: waits.then_some(7),
+                pending: waits.then(|| "Send the email".to_string()),
+                question: None,
+                choices: Vec::new(),
+                not_configured: *self.command_unconfigured.lock().unwrap(),
+            };
+            let gate = self.command_gate.lock().unwrap().take();
+            Box::pin(async move {
+                if let Some(gate) = gate {
+                    let _ = gate.await;
+                }
+                outcome
+            })
+        }
+        fn cancel_command(&self) {
+            *self.command_cancels.lock().unwrap() += 1;
+        }
+        fn assistant_enabled(&self) -> bool {
+            *self.assistant_on.lock().unwrap()
+        }
+        fn assistant_ask(&self, ask: PhoneAsk) -> AssistantFuture {
+            self.asks.lock().unwrap().push(format!(
+                "{}: {} ({})",
+                ask.phone,
+                ask.text,
+                ask.conversation.as_deref().unwrap_or("new")
+            ));
+            let gate = self.assistant_gate.lock().unwrap().take();
+            let error = self.assistant_error.lock().unwrap().take();
+            let pending = *self.assistant_pending.lock().unwrap();
+            Box::pin(async move {
+                let _ = ask
+                    .progress
+                    .send(PhoneProgress::Tool("Play believer".into()));
+                let _ = ask.progress.send(PhoneProgress::Answer("Answer".into()));
+                if let Some(gate) = gate {
+                    let _ = gate.await;
+                }
+                if let Some(error) = error {
+                    return Err(error);
+                }
+                Ok(PhoneAnswer {
+                    answer: format!("Answer to: {}", ask.text),
+                    conversation: ask.conversation.unwrap_or_else(|| "c1".into()),
+                    actions: vec![PhoneAction {
+                        label: "Played it".into(),
+                        status: "done".into(),
+                    }],
+                    pending: pending.then(|| PhonePending {
+                        id: 7,
+                        summary: "Send the email".into(),
+                    }),
+                })
+            })
         }
     }
 

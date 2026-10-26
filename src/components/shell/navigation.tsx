@@ -28,6 +28,7 @@ export type PageId =
   | "insights"
   | "history"
   | "assistant"
+  | "commands"
   | "meetings"
   | "cleanup"
   | "dictionary"

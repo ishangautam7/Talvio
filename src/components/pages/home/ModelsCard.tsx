@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons/glyphs";
 import { SectionTitle, TextLink } from "@/components/ui/Page";
 import { MODEL_SLOTS, useNavigation } from "@/components/shell/navigation";
 import {
@@ -24,16 +24,16 @@ const SetupRow: React.FC<{ summary: SlotSummary }> = ({ summary }) => {
     .join(" · ");
 
   return (
-    <li>
+    <li className="min-w-0">
       <button
         type="button"
         onClick={() => openModelSlot(summary.slot)}
         title={tooltip || undefined}
-        className="group flex w-full cursor-pointer items-center gap-3 px-5 py-3 text-start transition-colors hover:bg-surface-muted focus-visible:bg-surface-muted focus-visible:outline-none"
+        className="group elev-card elev-hover flex h-full w-full cursor-pointer items-center gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-start hover:border-hairline-strong focus-visible:outline-none focus-visible:shadow-[var(--focus-ring)]"
       >
         <SlotLogo summary={summary} size="md" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[0.8125rem] text-muted">
+          <span className="block truncate text-[0.75rem] font-medium text-muted">
             {t(`modelsHub.slots.${summary.slot}.name`)}
           </span>
           <span
@@ -56,7 +56,7 @@ const SetupRow: React.FC<{ summary: SlotSummary }> = ({ summary }) => {
           </span>
         </span>
         <ChevronRight
-          className="h-4 w-4 shrink-0 text-muted-soft transition-transform group-hover:translate-x-0.5 rtl:rotate-180"
+          className="h-4 w-4 shrink-0 text-muted-soft transition-[translate,color] group-hover:translate-x-0.5 group-hover:text-muted rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
           aria-hidden="true"
         />
       </button>
@@ -79,7 +79,7 @@ export const ModelsCard: React.FC = () => {
           </TextLink>
         }
       />
-      <ul className="divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
+      <ul className="grid grid-cols-1 gap-2.5 @xl:grid-cols-2 @4xl:grid-cols-1">
         {MODEL_SLOTS.map((slot) => (
           <SetupRow key={slot} summary={slots[slot]} />
         ))}

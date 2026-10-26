@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons/glyphs";
 
 export interface LogoChoiceOption {
   value: string;
@@ -98,8 +98,8 @@ export const LogoChoice: React.FC<{
             onKeyDown={(event) => onKeyDown(event, option.value)}
             className={`group relative flex min-w-0 cursor-pointer items-center gap-2.5 rounded-xl border px-2.5 py-2 text-start transition-[border-color,background-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed ${
               selected
-                ? "border-accent/55 bg-accent/[0.06] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_28%,transparent)]"
-                : "border-hairline bg-surface hover:border-hairline-strong hover:bg-surface-muted"
+                ? "border-ink bg-surface shadow-[0_0_0_0.5px_var(--color-ink)]"
+                : "border-hairline bg-surface shadow-[var(--shadow-card)] hover:border-hairline-strong hover:bg-surface-muted"
             }`}
           >
             <span className="shrink-0">{option.icon}</span>
@@ -113,10 +113,15 @@ export const LogoChoice: React.FC<{
                 </span>
               )}
             </span>
-            {/* Corner marks, so neither costs the name any width. */}
+            {/* Corner marks inside the card's padding, so neither costs the
+                name any width and neither hangs over the edge. */}
             {selected ? (
-              <span className="absolute -top-1.5 -end-1.5 grid h-[1.125rem] w-[1.125rem] place-items-center rounded-full bg-accent text-on-primary ring-2 ring-surface">
-                <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
+              <span className="absolute top-1.5 end-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-ink text-surface">
+                <Check
+                  className="h-2.5 w-2.5"
+                  strokeWidth={3}
+                  aria-hidden="true"
+                />
               </span>
             ) : (
               option.ready && (

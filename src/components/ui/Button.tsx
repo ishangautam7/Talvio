@@ -15,55 +15,40 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * One button vocabulary for the whole window.
  *
- * `primary` is Talvio's coral: the text-safe `--color-accent` (#C2402A with
- * white text on the light theme, #FF6A52 with ink-navy text on the dark), so
- * the one action a view asks for reads as the brand. Keep it to one per view;
- * everything else is `secondary` or `ghost`. `accent` is the same fill, kept
- * for older call sites.
+ * `primary` is Talvio's ember, a flat fill with 8px corners (`.btn-primary` in
+ * App.css): the text-safe ember with white text on the light theme, `#FF6A52`
+ * with graphite text on the dark, so the one action a view asks for reads as
+ * the brand. Keep it to one per view; everything else is `secondary` or `ghost`.
+ * `accent` is the same fill, kept for older call sites, and `primary-soft` a
+ * quiet filled button.
  */
+const VARIANT_CLASSES: Record<NonNullable<ButtonProps["variant"]>, string> = {
+  primary: "btn-primary",
+  accent: "btn-primary",
+  "primary-soft": "btn-soft",
+  secondary: "btn-secondary",
+  danger: "btn-danger",
+  "danger-ghost": "btn-danger-ghost",
+  ghost: "btn-ghost",
+};
+
+const SIZE_CLASSES = {
+  sm: "h-7 px-3 text-[0.8125rem] rounded-lg",
+  md: "h-8 px-3.5 text-sm rounded-lg",
+  lg: "h-10 px-5 text-[0.9375rem] rounded-lg",
+};
+
 export const Button: React.FC<ButtonProps> = ({
   children,
   className = "",
   variant = "primary",
   size = "md",
   ...props
-}) => {
-  // The border colour lives in each variant, never in the base: a base
-  // `border-transparent` is emitted later in the stylesheet than
-  // `border-hairline-strong`, so it silently won and every secondary button
-  // rendered with no visible edge.
-  const baseClasses =
-    "inline-flex shrink-0 items-center justify-center gap-1.5 font-medium whitespace-nowrap border rounded-lg transition-[background-color,border-color,opacity,box-shadow,transform] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer";
-
-  const variantClasses = {
-    // Disabled, a coral fill at 40% read as a washed-out pink (a dim maroon
-    // on the dark theme), so it turns neutral instead.
-    primary:
-      "bg-accent text-on-primary border-transparent shadow-[0_1px_2px_rgba(43,28,20,0.16)] hover:bg-accent-strong disabled:bg-surface-strong disabled:text-muted disabled:opacity-100 disabled:shadow-none disabled:hover:bg-surface-strong",
-    accent:
-      "bg-accent text-on-primary border-transparent hover:bg-accent-strong disabled:bg-surface-strong disabled:text-muted disabled:opacity-100 disabled:hover:bg-surface-strong",
-    "primary-soft":
-      "bg-surface-strong text-ink border-transparent hover:bg-hairline-strong/70",
-    secondary:
-      "bg-surface text-ink border-hairline-strong shadow-[0_1px_1px_rgba(43,28,20,0.04)] hover:bg-surface-strong",
-    danger: "text-white bg-error border-transparent hover:opacity-90",
-    "danger-ghost":
-      "text-error border-transparent hover:bg-error/10 focus-visible:ring-error/30",
-    ghost: "text-ink border-transparent hover:bg-ink/[0.05]",
-  };
-
-  const sizeClasses = {
-    sm: "h-8 px-3 text-[0.8125rem]",
-    md: "h-9 px-4 text-sm",
-    lg: "h-10 px-5 text-[0.9375rem]",
-  };
-
-  return (
-    <button
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
+}) => (
+  <button
+    className={`btn inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);

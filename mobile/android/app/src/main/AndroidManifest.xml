@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- WebRTC (live view) reads the network state when a connection starts;
+         without this it throws inside native code and the app aborts. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <!-- No backups: the session token is encrypted with a key that stays in
          this device's keystore, so a restored copy could never be read.
          Cleartext allowed: the account server discovery names is a plain

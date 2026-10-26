@@ -644,6 +644,10 @@
             "name": "Sohbet başlat",
             "description": "Asistanla elleriniz serbest konuşun ve yanıtlarını dinleyin. Bitirmek için yine basın."
           },
+          "command": {
+            "name": "Sesli komut",
+            "description": "Ne yapılmasını istediğinizi söyleyin, örneğin “YouTube'u aç”, Talvio yapar."
+          },
           "hands_free": {
             "name": "Eller serbest",
             "description": "Dikte tuşlarını basılı tutarken basın; tuşları bıraktıktan sonra da kayıt devam eder. Bitirmek için dikte tuşlarına yeniden basın."
@@ -680,7 +684,9 @@
         "dictation": "Açık: tuşları basılı tuttuğunuz sürece kayıt devam eder. Kapalı: bir basış başlatır, sonraki durdurur; böylece her dikte eller serbest olur.",
         "assistant": "Açık: tuşları basılı tuttuğunuz sürece dinler. Kapalı: bir basış başlatır, sonraki gönderir.",
         "dictationLabel": "Konuşmak için basılı tut",
-        "assistantLabel": "Sormak için basılı tut"
+        "assistantLabel": "Sormak için basılı tut",
+        "command": "Açık: tuşları basılı tuttuğunuz sürece dinler. Kapalı: bir basış başlatır, sonraki komutu çalıştırır.",
+        "commandLabel": "Komut söylemek için basılı tut"
       },
       "handsFree": {
         "unavailableKeys": "Dikte yalnızca Ctrl + Win gibi değiştirici tuşlardan oluştuğunda çalışır. {{keys}} ile bunun yerine “Konuşmak için basılı tut” seçeneğini kapatın: her dikte, tuşlara yeniden basana kadar sürer.",
@@ -2106,6 +2112,8 @@
         "title": "Telefon",
         "remoteInput": "Telefondan dikte",
         "remoteInputHint": "Telefonunuzun bu bilgisayarda dikte etmesine ve yazmasına izin verir.",
+        "remoteWindows": "Telefonların pencereleri görmesine ve kullanmasına izin ver",
+        "remoteWindowsHint": "Telefonunuz açık pencereleri listeleyebilir, birini canlı izleyebilir ve içinde yazabilir, tuşlara basabilir veya tıklayabilir. Bir telefon izlerken burada Durdur düğmesiyle bir kart görünür.",
         "install": "Telefonunuza Talvio uygulamasını yükleyin ve {{email}} ile oturum açın."
       },
       "keys": {
@@ -2463,6 +2471,7 @@
     "processing": "Temizleniyor…",
     "generating": "Flow ile yazılıyor…",
     "vision": "Ekranınıza bakılıyor…",
+    "command": "Üzerinde çalışılıyor…",
     "notices": {
       "flowNotConfigured": "Flow bir asistan modeline ihtiyaç duyuyor — dikte olarak yapıştırıldı",
       "flowFailed": "Flow oluşturamadı — hiçbir şey yapıştırılmadı",
@@ -2471,7 +2480,8 @@
       "cleanupFallback": "Yapay zekâ temizleme çalışmadı — ham metin yapıştırıldı",
       "cleanupModelRejected": "Temizleme sağlayıcınız bu modeli reddetti — Ayarlar'da modeli kontrol edin",
       "cloudSttFellBack": "Bulut transkripsiyonu başarısız oldu — cihazdaki model kullanıldı",
-      "noSpeechModel": "Henüz konuşma modeli yok. Modeller sayfasından bir tane seçin"
+      "noSpeechModel": "Henüz konuşma modeli yok. Modeller sayfasından bir tane seçin",
+      "commandTranscriptionFailed": "Komut duyulamadı — yeniden deneyin"
     },
     "listening": "Dinleniyor…",
     "locked": "Eller serbest kaydediliyor — durdurmak için kısayola tekrar basın",
@@ -2530,6 +2540,20 @@
     "body": "Bu bilgisayardaki uygulamalarda dikte etmek ve yazmak istiyor, bu yüzden yalnızca size ait telefonlara izin verin.",
     "allow": "İzin ver",
     "deny": "İzin verme"
+  },
+  "phoneViewing": {
+    "title": "Telefon izliyor",
+    "body": "{{phone}}, {{title}} penceresini görebilir.",
+    "unnamedPhone": "Telefonunuz",
+    "stop": "Durdur"
+  },
+  "commandCard": {
+    "heading": "Sesli komut",
+    "confirm": "Yap",
+    "cancel": "İptal",
+    "working": "Üzerinde çalışılıyor…",
+    "dryRun": "Deneme çalıştırması: hiçbir şey yapılmadı.",
+    "sayAgain": "Cevabınızı komut tuşlarıyla söyleyin."
   },
   "assistant": {
     "conversation": {
@@ -2691,6 +2715,7 @@
       "screen": "Ekranınıza bakılıyor…",
       "meetingSearch": "Toplantıda aranıyor",
       "meetingRead": "Toplantı okunuyor",
+      "computer": "Bilgisayarınızda yapılıyor…",
       "working": "Üzerinde çalışılıyor",
       "elapsed": "{{seconds}} sn"
     },
@@ -2752,7 +2777,12 @@
     },
     "quick": {
       "selection": "Seçim",
-      "copied": "Kopyalandı"
+      "copied": "Kopyalandı",
+      "newConversation": "Yeni sohbet"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Ses hazırlanıyor · %{{percent}}"
     }
   },
   "nav": {
@@ -2760,6 +2790,7 @@
     "home": "Ana Sayfa",
     "history": "Geçmiş",
     "assistant": "Asistan",
+    "commands": "Komutlar",
     "meetings": "Toplantılar",
     "cleanup": "Yapay zekâ temizleme",
     "dictionary": "Sözlük",
@@ -2800,7 +2831,9 @@
       "assistant": "Asistan",
       "mouse": "Fare",
       "cleanupOff": "Bu kısayolu kullanmak için yapay zekâ temizlemeyi açın.",
-      "assistantOff": "Asistan kapalı, bu yüzden kısayolları hiçbir şey yapmaz."
+      "assistantOff": "Asistan kapalı, bu yüzden kısayolları hiçbir şey yapmaz.",
+      "commands": "Sesli komutlar",
+      "commandsOff": "Sesli komutlar kapalı, bu yüzden bu kısayol hiçbir şey yapmaz."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3141,6 +3174,50 @@
     },
     "addWord": "Kelime ekle"
   },
+  "commandsPage": {
+    "description": "Ne yapılmasını istediğinizi söyleyin, Talvio bu bilgisayarda yapsın: bir site açmak, şarkı çalmak, uygulama değiştirmek, e-posta yazmak.",
+    "enable": "Sesli komutlar",
+    "offNotice": "Sesli komutlar kapalı. Kısayollarının bir işe yaraması için açın; söyledikleriniz o zaman komutları çalıştıran modele gider.",
+    "shortcut": {
+      "title": "Komut söyle",
+      "whatHold": "Basılı tutun, ne yapılmasını istediğinizi söyleyin, bırakın.",
+      "whatTap": "Dokunun, ne yapılmasını istediğinizi söyleyin, yeniden dokunun."
+    },
+    "model": {
+      "title": "Çalıştığı model",
+      "info": "Söylediklerinizi bir eyleme dönüştüren model. Küçük ve hızlı bir model en iyisidir: her komut ona yapılan tek bir istektir.",
+      "provider": "Sağlayıcı",
+      "model": "Model",
+      "using": "Komutlar {{model}} · {{provider}} üzerinde çalışıyor.",
+      "borrowed": "{{chosen}} için anahtar olmadığından {{provider}} · {{model}} kullanılıyor.",
+      "needsKey": "Komutların çalışabilmesi için {{provider}} bir anahtar gerektiriyor.",
+      "setUp": "Bir model ayarla",
+      "key": "{{provider}} API anahtarı",
+      "keyShared": "Yapay zekâ temizleme ve asistan ile paylaşılır."
+    },
+    "confirmIrreversible": {
+      "title": "Göndermeden veya silmeden önce sor",
+      "info": "Kapalı: istediğiniz gönderme, paylaşma veya silme yapılır. Açık: Yap düğmesine basana kadar bekler. Her iki durumda da siz söylerseniz bekler (“sadece taslak”, “önce bir bakayım”)."
+    },
+    "dryRun": {
+      "title": "Deneme çalıştırması",
+      "info": "Bir komutun ne yapacağını, yapmadan gösterir."
+    },
+    "test": {
+      "group": "Deneyin",
+      "title": "Bir komut yazın",
+      "info": "Söyleyeceğiniz şeyi yazın; neyin seçildiğini ve her adımın ne yaptığını görün."
+    },
+    "examples": {
+      "title": "Söyleyebilecekleriniz",
+      "items": {
+        "youtube": "“YouTube'u aç”",
+        "song": "“Imagine Dragons'tan Believer'ı çal”",
+        "volume": "“Sesi kıs”",
+        "switch": "“Chrome'a geç”"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Her uygulamadan sesle her şeyi sorun. Asistan ekranınızı görebilir, web'de arama yapabilir ve sizin için önemli olanı hatırlayabilir.",
     "offNotice": "Asistan kapalı. Siz yeniden açana kadar kısayolları hiçbir şey yapmaz ve bellek kullanmaz.",
@@ -3289,6 +3366,17 @@
       "screen": {
         "ask": "Sorular için ekran görüşü",
         "call": "Sohbetlerde ekran görüşü"
+      },
+      "quickAskMemory": {
+        "title": "Sohbeti hatırla",
+        "cleared": "Sonraki soru yeni bir sohbet başlatır",
+        "options": {
+          "off": "Kapalı",
+          "five_minutes": "5 dakika",
+          "ten_minutes": "10 dakika",
+          "thirty_minutes": "30 dakika",
+          "until_cleared": "Ben temizleyene kadar"
+        }
       }
     },
     "tips": {
@@ -3306,6 +3394,7 @@
       "profiles": "Kendi adı, talimatları ve yanıt stili olan kişilikler.",
       "replyLength": "Yanıtların genellikle ne kadar uzun olduğu.",
       "history": "Son mesajlardan kaç tanesini aklında tuttuğu.",
+      "quickAskMemory": "Hızlı bir sorunun bir öncekini ne kadar süre hatırlayacağı; böylece devam sorusu sorabilirsiniz. Sesli sohbetler kendi geçmişlerini tutar.",
       "summarize": "Uzun sohbetleri özetler, böylece başını unutmaz.",
       "opacity": "Düşük değerde masaüstünüz arkadan görünür.",
       "position": "Ekranda bir noktaya tıklayın.",
@@ -3801,13 +3890,22 @@
       "contactNoDetails": "{{name}} kişilerinizde var, ancak kayıtlı bir e-posta adresi veya telefon numarası yok.",
       "contactNotFound": "{{name}} adında bir kişi bulamadım.",
       "emailDraft": "{{name}} için taslak açık. Gönder ya da iptal deyin.",
+      "emailDraftFile": "{{name}} için {{file}} ekli taslak açık. Gönder veya iptal de.",
       "emailDraftTruncated": "{{name}} için taslak açık. İleti Gmail'e aktarmak için çok uzundu, bu yüzden kısaltıldı; göndermeden önce sonunu kontrol edin. Gönder ya da iptal deyin.",
       "emailSent": "{{name}} kişisine gönderildi.",
+      "emailSentFile": "{{file}}, {{name}} kişisine gönderildi.",
       "empty": "Bir komut anlayamadım.",
       "failed": "{{reason}}",
       "mediaNext": "Sonraki parçaya geçildi.",
       "mediaPlayPause": "Oynat/duraklat tuşuna basıldı.",
+      "mediaPaused": "Duraklatıldı.",
+      "mediaNothingPlaying": "Hiçbir şey çalmıyor.",
+      "mediaResumed": "Devam ettirildi.",
+      "mediaAlreadyPlaying": "Zaten çalıyor.",
+      "windowNotReady": "Uygulama zamanında açılmadı, bu yüzden hiçbir şey yazmadım.",
+      "mediaPlaying": "“{{title}}” {{service}} üzerinde çalınıyor.",
       "mediaPrevious": "Önceki parçaya dönüldü.",
+      "mediaResultsOpened": "{{service}} üzerinde “{{query}}” sonuçları açıldı.",
       "mediaStop": "Oynatma durduruldu.",
       "needsComputerUse": "Araçlarımın hiçbiri bunu henüz yapamıyor. Bunun için ekranı kontrol etme özelliği sonraki bir sürümde gelecek.",
       "notConfigured": "Komut modu ayarlanmamış: {{why}}",
@@ -3824,6 +3922,7 @@
       "routeFailed": "Ne yapacağımı çıkaramadım: {{why}}",
       "say": "{{text}}",
       "searchOpened": "{{query}} aranıyor.",
+      "spotifyResultsOpened": "Spotify'da “{{query}}” sonuçları açıldı. Spotify kendi başına arama başlatamaz, bu yüzden ne çalınacağını siz seçin.",
       "superseded": "Daha yeni bir komut bunun yerini aldı, bu yüzden artık beklemiyor.",
       "switchedTo": "{{title}} penceresine geçildi.",
       "tooManyQuestions": "Hâlâ ne yapacağımı çıkaramadım. Farklı bir şekilde söylemeyi deneyin.",
@@ -3837,6 +3936,23 @@
       "volumeUp": "Ses düzeyi artırıldı.",
       "waitingForAnswer": "Bu komut onay değil, yanıt bekliyor.",
       "waitingForConfirmation": "Bu komut yanıt değil, onaylamanızı bekliyor."
+    }
+  },
+  "palette": {
+    "trigger": "Ara veya şuraya git…",
+    "placeholder": "Sayfalarda, modellerde ve ayarlarda ara",
+    "label": "Komut paleti",
+    "empty": "“{{query}}” ile eşleşen bir şey yok",
+    "groups": {
+      "pages": "Sayfalar",
+      "models": "Modeller",
+      "settings": "Ayarlar",
+      "actions": "Eylemler"
+    },
+    "hints": {
+      "move": "Gezin",
+      "open": "Aç",
+      "close": "Kapat"
     }
   }
 }

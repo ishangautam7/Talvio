@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Clock, Flame, Gauge, Type } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Flame,
+  Gauge,
+  Type,
+} from "@/components/icons/glyphs";
 import { commands, type UsageStats } from "@/bindings";
 import { useNavigation } from "@/components/shell/navigation";
 import { useInsights } from "../insights/useInsights";

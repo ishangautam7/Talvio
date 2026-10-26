@@ -184,6 +184,24 @@
  * Assistant page's preview uses. The app window sits on it, and the real
  * overlay / quick ask / call float above it where they would on screen. */
 
+/* The tour's wallpaper: graphite lit by the brand's ember from one corner and
+ * the assistant's violet from the other, the main window's own light. */
+.ob-stage.assistant-desktop {
+  background:
+    radial-gradient(
+      70% 80% at 88% 0%,
+      rgba(255, 106, 82, 0.34),
+      transparent 62%
+    ),
+    radial-gradient(
+      70% 90% at 0% 100%,
+      rgba(122, 85, 238, 0.36),
+      transparent 64%
+    ),
+    #16151d;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
 .ob-stage {
   position: relative;
   /* As tall as the window leaves room for under the title bar, the step list,

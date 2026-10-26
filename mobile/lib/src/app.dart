@@ -5,9 +5,9 @@ import 'core/api_client.dart';
 import 'core/app_services.dart';
 import 'core/relay_client.dart';
 import 'core/session_store.dart';
+import 'design/theme.dart' show systemBars;
 import 'features/auth/sign_in_screen.dart';
 import 'shell/features.dart';
-import 'shell/home_shell.dart';
 import 'theme.dart';
 
 class TalvioApp extends StatefulWidget {
@@ -83,14 +83,24 @@ class _TalvioAppState extends State<TalvioApp> {
       prefs: widget.prefs,
       child: MaterialApp(
         navigatorKey: _navigator,
+        debugShowCheckedModeBanner: false,
         title: 'Talvio',
         theme: buildTheme(Brightness.light),
         darkTheme: buildTheme(Brightness.dark),
+        // Text grows with the system setting, up to 130%; the status and
+        // navigation bars follow the theme.
+        builder: (context, child) => MediaQuery.withClampedTextScaling(
+          minScaleFactor: 1,
+          maxScaleFactor: 1.3,
+          child: AnnotatedRegion(
+            value: systemBars(Theme.of(context).brightness),
+            child: child!,
+          ),
+        ),
         home: ListenableBuilder(
           listenable: widget.session,
-          builder: (context, _) => widget.session.signedIn
-              ? HomeShell(tabs: featureTabs)
-              : const SignInScreen(),
+          builder: (context, _) =>
+              widget.session.signedIn ? signedInHome() : const SignInScreen(),
         ),
       ),
     );

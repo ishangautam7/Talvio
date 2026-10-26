@@ -8,10 +8,9 @@ import React, {
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
-import { Mic } from "lucide-react";
-import { PageHeader, SectionTitle } from "@/components/ui/Page";
-import Badge from "@/components/ui/Badge";
-import { Hero, HeroTitle } from "@/components/ui/Hero";
+import { PageHeader, SectionTitle, TitleTag } from "@/components/ui/Page";
+import { HeroTitle, Stage } from "@/components/ui/Stage";
+import { MeetingLanes } from "./MeetingLanes";
 import { usePageReset } from "@/components/shell/navigation";
 import {
   deleteMeeting,
@@ -309,7 +308,8 @@ export const MeetingsSection: React.FC<{
     <div ref={rootRef} className="w-full">
       <PageHeader
         title={t("sidebar.meetings")}
-        badge={<Badge variant="outline">{t("common.beta")}</Badge>}
+        feature="meetings"
+        badge={<TitleTag>{t("common.beta")}</TitleTag>}
         description={t("sectionSubtitles.meetings")}
       />
 
@@ -334,8 +334,7 @@ export const MeetingsSection: React.FC<{
               <SystemAudioNotice live={false} detail={systemAudioHelp} />
             </div>
           )}
-          <Hero
-            art="meetings"
+          <Stage
             title={<HeroTitle i18nKey="meetingsPage.hero.title" />}
             subtitle={t("meetingsPage.hero.subtitle")}
             actions={
@@ -343,14 +342,18 @@ export const MeetingsSection: React.FC<{
                 type="button"
                 onClick={start}
                 disabled={busy !== null}
-                className="hero-button inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full ps-5 pe-6 text-[0.9375rem] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink focus-visible:ring-offset-2 focus-visible:ring-offset-hero-surface disabled:cursor-wait disabled:opacity-70"
+                className="stage-cta inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg ps-3.5 pe-4 text-sm font-medium disabled:cursor-wait disabled:opacity-70"
               >
-                <Mic className="h-4 w-4" aria-hidden="true" />
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-current"
+                />
                 {busy === "starting"
                   ? t("meetings.recorder.starting")
                   : t("meetings.recorder.start")}
               </button>
             }
+            picture={<MeetingLanes />}
           />
           {settings && <div className="mt-6">{settings}</div>}
         </>

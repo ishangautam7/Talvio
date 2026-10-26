@@ -1,5 +1,6 @@
 import { startServer } from "../src/app";
 import { randomToken } from "../src/crypto";
+import type { TurnConfig } from "../src/turn";
 
 // Test messages are loosely typed on purpose: each assertion states the shape it expects.
 export type Json = Record<string, any>;
@@ -35,6 +36,7 @@ export async function harness(
     idleSeconds?: number;
     databasePath?: string;
     secretsKey?: string;
+    turn?: TurnConfig | null;
   } = {},
 ) {
   let time = Date.UTC(2026, 0, 1);
@@ -44,6 +46,7 @@ export async function harness(
     hostname: "127.0.0.1",
     databasePath: options.databasePath ?? ":memory:",
     secretsKey: options.secretsKey,
+    turn: options.turn ?? null,
     publicUrl: PUBLIC_URL,
     google: google && {
       clientId: CLIENT_ID,

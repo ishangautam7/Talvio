@@ -646,6 +646,10 @@
             "name": "Iniciar uma conversa",
             "description": "Converse com o assistente sem usar as mãos e ouça as respostas dele. Pressione de novo para encerrar."
           },
+          "command": {
+            "name": "Comando de voz",
+            "description": "Diga o que você quer fazer, como “abra o YouTube”, e o Talvio faz."
+          },
           "hands_free": {
             "name": "Mãos livres",
             "description": "Pressione enquanto segura as teclas de ditado para continuar gravando depois de soltá-las. Pressione as teclas de ditado de novo para terminar."
@@ -682,7 +686,9 @@
         "dictation": "Ligado: grava enquanto você segura as teclas. Desligado: um toque começa, o próximo para, então todo ditado é mãos livres.",
         "assistant": "Ligado: escuta enquanto você segura as teclas. Desligado: um toque começa, o próximo envia.",
         "dictationLabel": "Segurar para falar",
-        "assistantLabel": "Segurar para perguntar"
+        "assistantLabel": "Segurar para perguntar",
+        "command": "Ligado: escuta enquanto você segura as teclas. Desligado: um toque começa, o próximo executa o comando.",
+        "commandLabel": "Segurar para dizer um comando"
       },
       "handsFree": {
         "unavailableKeys": "Funciona quando o ditado usa só teclas modificadoras, como Ctrl + Win. Com {{keys}}, desligue “Segurar para falar”: cada ditado continua até você pressionar as teclas de novo.",
@@ -2115,6 +2121,8 @@
         "title": "Celular",
         "remoteInput": "Ditado pelo celular",
         "remoteInputHint": "Permite que seu celular dite e digite neste computador.",
+        "remoteWindows": "Permitir que celulares vejam e usem janelas",
+        "remoteWindowsHint": "Seu celular pode listar as janelas abertas, assistir a uma ao vivo e digitar, pressionar teclas ou clicar nela. Um cartão aqui avisa quando um celular está assistindo, com Parar.",
         "install": "Instale o app Talvio no celular e entre como {{email}}."
       },
       "keys": {
@@ -2475,6 +2483,7 @@
     "processing": "Limpando…",
     "generating": "Escrevendo com o Flow…",
     "vision": "Olhando sua tela…",
+    "command": "Trabalhando nisso…",
     "notices": {
       "flowNotConfigured": "O Flow precisa de um modelo de assistente — colado como ditado",
       "flowFailed": "O Flow não conseguiu gerar — nada foi colado",
@@ -2483,7 +2492,8 @@
       "cleanupFallback": "A limpeza com IA não rodou — o texto bruto foi colado",
       "cleanupModelRejected": "Seu provedor de limpeza recusou esse modelo — verifique o modelo nas Configurações",
       "cloudSttFellBack": "Falha na transcrição na nuvem — foi usado o modelo do dispositivo",
-      "noSpeechModel": "Nenhum modelo de voz ainda. Escolha um na página Modelos"
+      "noSpeechModel": "Nenhum modelo de voz ainda. Escolha um na página Modelos",
+      "commandTranscriptionFailed": "Não deu para ouvir o comando — tente de novo"
     },
     "listening": "Ouvindo…",
     "locked": "Gravando mãos livres — pressione a tecla de atalho novamente para parar",
@@ -2544,6 +2554,20 @@
     "body": "Ele quer ditar e digitar nos apps deste computador, então só permita celulares que sejam seus.",
     "allow": "Permitir",
     "deny": "Não permitir"
+  },
+  "phoneViewing": {
+    "title": "Celular assistindo",
+    "body": "{{phone}} pode ver {{title}}.",
+    "unnamedPhone": "Seu celular",
+    "stop": "Parar"
+  },
+  "commandCard": {
+    "heading": "Comando de voz",
+    "confirm": "Fazer",
+    "cancel": "Cancelar",
+    "working": "Trabalhando nisso…",
+    "dryRun": "Simulação: nada foi feito.",
+    "sayAgain": "Diga sua resposta com as teclas de comando."
   },
   "assistant": {
     "conversation": {
@@ -2709,6 +2733,7 @@
       "screen": "Olhando sua tela…",
       "meetingSearch": "Pesquisando na reunião",
       "meetingRead": "Lendo a reunião",
+      "computer": "Fazendo isso no seu computador…",
       "working": "Trabalhando nisso",
       "elapsed": "{{seconds}}s"
     },
@@ -2770,7 +2795,12 @@
     },
     "quick": {
       "selection": "Seleção",
-      "copied": "Copiado"
+      "copied": "Copiado",
+      "newConversation": "Nova conversa"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "A preparar a voz · {{percent}}%"
     }
   },
   "nav": {
@@ -2778,6 +2808,7 @@
     "home": "Início",
     "history": "Histórico",
     "assistant": "Assistente",
+    "commands": "Comandos",
     "meetings": "Reuniões",
     "cleanup": "Limpeza com IA",
     "dictionary": "Dicionário",
@@ -2818,7 +2849,9 @@
       "assistant": "Assistente",
       "mouse": "Mouse",
       "cleanupOff": "Ative a limpeza com IA para ter este atalho.",
-      "assistantOff": "O assistente está desativado, então os atalhos dele não fazem nada."
+      "assistantOff": "O assistente está desativado, então os atalhos dele não fazem nada.",
+      "commands": "Comandos de voz",
+      "commandsOff": "Os comandos de voz estão desativados, então este atalho não faz nada."
     },
     "audio": {
       "microphone": "Microfone",
@@ -3165,6 +3198,50 @@
     },
     "addWord": "Adicionar palavra"
   },
+  "commandsPage": {
+    "description": "Diga o que você quer fazer e o Talvio faz neste computador: abrir um site, tocar uma música, trocar de app, escrever um e-mail.",
+    "enable": "Comandos de voz",
+    "offNotice": "Os comandos de voz estão desativados. Ative-os para que o atalho deles faça algo; o que você disser vai então para o modelo que executa os comandos.",
+    "shortcut": {
+      "title": "Dizer um comando",
+      "whatHold": "Segure, diga o que quer fazer e solte.",
+      "whatTap": "Toque, diga o que quer fazer e toque de novo."
+    },
+    "model": {
+      "title": "Executado por",
+      "info": "O modelo que transforma o que você diz em uma ação. Um pequeno e rápido é o ideal: cada comando é uma única solicitação a ele.",
+      "provider": "Provedor",
+      "model": "Modelo",
+      "using": "Os comandos usam {{model}} · {{provider}}.",
+      "borrowed": "Usando {{provider}} · {{model}}, já que {{chosen}} não tem chave.",
+      "needsKey": "{{provider}} precisa de uma chave para executar comandos.",
+      "setUp": "Configurar um modelo",
+      "key": "Chave de API do {{provider}}",
+      "keyShared": "Compartilhada com a limpeza com IA e o assistente."
+    },
+    "confirmIrreversible": {
+      "title": "Perguntar antes de enviar ou excluir",
+      "info": "Desligado: um envio, publicação ou exclusão que você pedir é feito. Ligado: espera você tocar em Fazer. Em ambos os casos espera se você pedir (“só um rascunho”, “deixa eu conferir”)."
+    },
+    "dryRun": {
+      "title": "Simulação",
+      "info": "Mostra o que um comando faria em vez de fazê-lo."
+    },
+    "test": {
+      "group": "Experimente",
+      "title": "Digite um comando",
+      "info": "Digite o que você diria e veja o que foi escolhido e o que cada etapa fez."
+    },
+    "examples": {
+      "title": "O que dizer",
+      "items": {
+        "youtube": "“Abra o YouTube”",
+        "song": "“Toque Believer do Imagine Dragons”",
+        "volume": "“Abaixe o volume”",
+        "switch": "“Mude para o Chrome”"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Pergunte qualquer coisa por voz, em qualquer app. O assistente pode ver sua tela, buscar na web e lembrar o que importa para você.",
     "offNotice": "O assistente está desativado. Os atalhos dele não fazem nada e ele não usa memória até você ativá-lo de novo.",
@@ -3316,6 +3393,17 @@
       "screen": {
         "ask": "Visão de tela nas perguntas",
         "call": "Visão de tela nas conversas"
+      },
+      "quickAskMemory": {
+        "title": "Lembrar a conversa",
+        "cleared": "A próxima pergunta começa uma nova conversa",
+        "options": {
+          "off": "Desativado",
+          "five_minutes": "5 minutos",
+          "ten_minutes": "10 minutos",
+          "thirty_minutes": "30 minutos",
+          "until_cleared": "Até eu limpar"
+        }
       }
     },
     "tips": {
@@ -3333,6 +3421,7 @@
       "profiles": "Personas com nome, instruções e estilo de resposta próprios.",
       "replyLength": "O tamanho habitual das respostas.",
       "history": "Quantas mensagens recentes ele tem em mente.",
+      "quickAskMemory": "Por quanto tempo uma pergunta rápida lembra a anterior, para você poder fazer uma pergunta de acompanhamento. As conversas mantêm o próprio histórico.",
       "summarize": "Resume conversas longas para não esquecer o começo.",
       "opacity": "Mais baixa deixa sua área de trabalho aparecer por trás.",
       "position": "Clique em um ponto da tela.",
@@ -3855,13 +3944,22 @@
       "contactNoDetails": "{{name}} está nos seus contatos, mas não tem endereço de e-mail nem número de telefone salvos.",
       "contactNotFound": "Não tenho um contato chamado {{name}}.",
       "emailDraft": "O rascunho para {{name}} está aberto. Diga enviar ou cancelar.",
+      "emailDraftFile": "O rascunho para {{name}} com {{file}} está aberto. Diga enviar ou cancelar.",
       "emailDraftTruncated": "O rascunho para {{name}} está aberto. A mensagem era longa demais para passar ao Gmail, então foi cortada; confira o final antes de enviar. Diga enviar ou cancelar.",
       "emailSent": "Enviado para {{name}}.",
+      "emailSentFile": "{{file}} enviado para {{name}}.",
       "empty": "Não entendi nenhum comando.",
       "failed": "{{reason}}",
       "mediaNext": "Pulei para a próxima faixa.",
       "mediaPlayPause": "Reproduzir/pausar pressionado.",
+      "mediaPaused": "Pausado.",
+      "mediaNothingPlaying": "Nada está tocando.",
+      "mediaResumed": "Retomado.",
+      "mediaAlreadyPlaying": "Já está tocando.",
+      "windowNotReady": "O app não abriu a tempo, então não digitei nada.",
+      "mediaPlaying": "Tocando “{{title}}” no {{service}}.",
       "mediaPrevious": "Voltei para a faixa anterior.",
+      "mediaResultsOpened": "Abri os resultados do {{service}} para “{{query}}”.",
       "mediaStop": "Reprodução parada.",
       "needsComputerUse": "Nenhuma das minhas ferramentas consegue fazer isso ainda. Controlar a tela para isso vem em uma versão futura.",
       "notConfigured": "O modo de comando não está configurado: {{why}}",
@@ -3878,6 +3976,7 @@
       "routeFailed": "Não consegui entender o que fazer: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Pesquisando {{query}}.",
+      "spotifyResultsOpened": "Abri os resultados do Spotify para “{{query}}”. O Spotify não consegue iniciar uma busca sozinho, então escolha o que tocar.",
       "superseded": "Um comando mais recente substituiu este, então ele não está mais aguardando.",
       "switchedTo": "Mudei para {{title}}.",
       "tooManyQuestions": "Ainda não consegui entender o que fazer. Tente dizer de outra forma.",
@@ -3891,6 +3990,23 @@
       "volumeUp": "Aumentei o volume.",
       "waitingForAnswer": "Esse comando está aguardando uma resposta, não uma confirmação.",
       "waitingForConfirmation": "Esse comando está aguardando sua confirmação, não uma resposta."
+    }
+  },
+  "palette": {
+    "trigger": "Pesquisar ou ir para…",
+    "placeholder": "Pesquise páginas, modelos e definições",
+    "label": "Paleta de comandos",
+    "empty": "Nada corresponde a “{{query}}”",
+    "groups": {
+      "pages": "Páginas",
+      "models": "Modelos",
+      "settings": "Definições",
+      "actions": "Ações"
+    },
+    "hints": {
+      "move": "Mover",
+      "open": "Abrir",
+      "close": "Fechar"
     }
   }
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Cloud, Cpu } from "lucide-react";
+import { Cloud, Cpu } from "@/components/icons/glyphs";
 import { Segmented } from "../../ui/Segmented";
 
 export type ProviderMode = "device" | "cloud";

@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Trash2 } from "@/components/icons/glyphs";
 import { commands, type CustomPostProcessTone } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { Button } from "@/components/ui/Button";
@@ -243,7 +243,7 @@ const BuiltinPreview: React.FC<{ tone: BuiltinTone }> = ({ tone }) => {
           </p>
         </div>
         <div className="bg-surface px-4 py-3.5">
-          <p className="text-xs font-medium text-accent">
+          <p className="text-xs font-medium text-ink">
             {t("cleanup.styles.preview.itTypes")}
           </p>
           <p
@@ -381,9 +381,9 @@ export const WritingStyleCard: React.FC<{ disabled?: boolean }> = ({
         aria-checked={id === selectedId}
         disabled={disabled}
         onClick={() => void select(id)}
-        className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 text-[0.8125rem] font-medium transition-[background-color,border-color,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-[0.8125rem] font-medium transition-[background-color,border-color,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50 ${
           selected
-            ? "border-accent bg-accent text-on-primary"
+            ? "border-ink bg-ink text-surface"
             : "border-hairline-strong bg-surface text-body hover:border-ink/25 hover:text-ink"
         }`}
       >
@@ -413,10 +413,10 @@ export const WritingStyleCard: React.FC<{ disabled?: boolean }> = ({
           aria-pressed={creating}
           onClick={() => setEditor(creating ? null : { mode: "create" })}
           disabled={disabled}
-          className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-dashed px-3.5 text-[0.8125rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-dashed px-3 text-[0.8125rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50 ${
             creating
-              ? "border-accent text-accent"
-              : "border-hairline-strong text-muted hover:border-accent/50 hover:text-accent"
+              ? "border-ink text-ink"
+              : "border-hairline-strong text-muted hover:border-ink/30 hover:text-ink"
           }`}
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />

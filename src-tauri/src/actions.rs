@@ -52,8 +52,11 @@ impl Drop for FinishGuard {
         // generation) is done, so drop the cancel shortcut here rather than at
         // recording-stop. Keeping it registered through generation is what lets
         // Esc abort a streaming assistant answer or Flow generation, not just a
-        // recording.
-        shortcut::unregister_cancel_shortcut(&self.0);
+        // recording. A quick ask whose answer is still being spoken keeps it
+        // until the answer ends (`assistant::end_spoken_ask`).
+        if !crate::assistant::spoken_ask_active() {
+            shortcut::unregister_cancel_shortcut(&self.0);
+        }
         crate::flow::stop_prewarm_watch();
         if let Some(c) = self.0.try_state::<TranscriptionCoordinator>() {
             c.notify_processing_finished();
@@ -4248,6 +4251,139 @@ impl ShortcutAction for AssistantCallAction {
     }
 }
 
+/// A spoken command (command mode): record, transcribe like an ask (local or
+/// cloud, never cleaned up, never pasted), then carry the transcript out as a
+/// command (`command_mode::voice`). Routed through the coordinator like the
+/// ask, so a command is never dictation and Esc stops it at every stage.
+struct CommandAction;
+
+impl ShortcutAction for CommandAction {
+    fn start(&self, app: &AppHandle, binding_id: &str, shortcut_str: &str) {
+        debug!("CommandAction::start called for binding: {}", binding_id);
+        let settings = get_settings(app);
+        if !crate::settings::command_binding_active(&settings) {
+            return;
+        }
+        // A spoken command needs the speech model as much as a dictation does.
+        if !crate::speech_readiness::allow_voice_input(app) {
+            return;
+        }
+
+        // The window the command was spoken over is the one a typed answer or
+        // a key press is meant for (`CommandOrigin::keeps_dictation_target`).
+        crate::input::remember_paste_target();
+        // Forget any earlier Esc, and capture the context (the app in front,
+        // its window title) while that app is still in front.
+        crate::command_mode::voice::begin();
+
+        // Held to talk, a press of keys another live shortcut extends keeps
+        // its pill back until the press has settled (`shortcut::chord`).
+        let hold_back = shortcut::chord::holds_back(&settings, binding_id, shortcut_str);
+
+        let tm = app.state::<Arc<TranscriptionManager>>();
+        let rm = app.state::<Arc<AudioRecordingManager>>();
+        // As for the ask: open the cloud route or load the local model while
+        // the user speaks. Each is a no-op when the other engine is in use.
+        crate::stt_cloud::prewarm_cloud_stt(&settings);
+        tm.initiate_model_load();
+        let rm_clone = Arc::clone(&rm);
+        std::thread::spawn(move || {
+            if let Err(e) = rm_clone.preload_vad() {
+                debug!("VAD pre-load failed: {}", e);
+            }
+        });
+
+        change_tray_icon(app, TrayIconState::Recording);
+        shortcut::chord::reveal_when_settled(app, hold_back, show_recording_overlay);
+
+        // A command is transcribed in one batch run when it ends, never
+        // streamed: it is short, and nothing is shown while it is spoken.
+        match rm.try_start_recording(binding_id, VadTail::Offline) {
+            Ok(()) => {
+                let app_clone = app.clone();
+                let rm_clone = Arc::clone(&rm);
+                std::thread::spawn(move || {
+                    rm_clone.wait_for_capture_ready(std::time::Duration::from_millis(1500));
+                    play_feedback_sound_blocking(&app_clone, SoundType::Start);
+                    rm_clone.quiet_other_audio();
+                });
+                shortcut::register_cancel_shortcut(app);
+            }
+            Err(err) => {
+                debug!("Failed to start command recording: {}", err);
+                shortcut::chord::forget();
+                utils::hide_recording_overlay(app);
+                change_tray_icon(app, TrayIconState::Idle);
+                let error_type = if is_microphone_access_denied(&err) {
+                    "microphone_permission_denied"
+                } else if is_no_input_device_error(&err) {
+                    "no_input_device"
+                } else {
+                    "unknown"
+                };
+                let _ = app.emit(
+                    "recording-error",
+                    RecordingErrorEvent {
+                        error_type: error_type.to_string(),
+                        detail: Some(err),
+                    },
+                );
+            }
+        }
+    }
+
+    fn stop(&self, app: &AppHandle, binding_id: &str, _shortcut_str: &str) {
+        // The cancel shortcut stays registered until the command is done (the
+        // pipeline's FinishGuard drops it), so Esc stops the command as well
+        // as the recording.
+        debug!("CommandAction::stop called for binding: {}", binding_id);
+        // Let go before the press settled: it was this shortcut after all.
+        shortcut::chord::reveal_now(app);
+        // Raised before anything else, so an Esc from here on finds it.
+        let busy = crate::command_mode::voice::Busy::begin();
+
+        let ah = app.clone();
+        let rm = Arc::clone(&app.state::<Arc<AudioRecordingManager>>());
+        let tm = Arc::clone(&app.state::<Arc<TranscriptionManager>>());
+
+        change_tray_icon(app, TrayIconState::Transcribing);
+        show_transcribing_overlay(app, false);
+        play_stop_cue_after(app, &rm);
+
+        let binding_id = binding_id.to_string();
+        tauri::async_runtime::spawn(async move {
+            let _guard = FinishGuard(ah.clone());
+            let _busy = busy;
+
+            let samples = match rm.stop_recording(&binding_id) {
+                Some(samples) if !samples.is_empty() => samples,
+                _ => {
+                    debug!("Command recording produced no audio samples");
+                    utils::hide_recording_overlay(&ah);
+                    change_tray_icon(&ah, TrayIconState::Idle);
+                    return;
+                }
+            };
+
+            // Off the async worker, as for the ask: a local transcription can
+            // wait on a model load in the transcription worker.
+            let transcribed = tauri::async_runtime::spawn_blocking(move || tm.transcribe(samples))
+                .await
+                .unwrap_or_else(|e| Err(anyhow::anyhow!("Transcription task panicked: {e}")));
+            change_tray_icon(&ah, TrayIconState::Idle);
+            match transcribed {
+                Ok(transcript) => crate::command_mode::voice::run_spoken(&ah, transcript).await,
+                // Esc during the transcription has already taken the pill down.
+                Err(_) if crate::command_mode::voice::cancelled() => {}
+                Err(err) => {
+                    error!("Command transcription error: {}", err);
+                    utils::show_overlay_notice(&ah, "commandTranscriptionFailed");
+                }
+            }
+        });
+    }
+}
+
 // Test Action
 struct TestAction;
 
@@ -4295,6 +4431,10 @@ pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::ne
     map.insert(
         "assistant_call".to_string(),
         Arc::new(AssistantCallAction) as Arc<dyn ShortcutAction>,
+    );
+    map.insert(
+        crate::settings::COMMAND_BINDING_ID.to_string(),
+        Arc::new(CommandAction) as Arc<dyn ShortcutAction>,
     );
     map.insert(
         "test".to_string(),

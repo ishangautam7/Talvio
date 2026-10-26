@@ -7,6 +7,10 @@ export class ConversationAudio {
   private sources = new Set<AudioBufferSourceNode>();
   private decoding: Promise<void> = Promise.resolve();
   private gain: GainNode;
+  /** Taps the voice before the volume, so the orb moves with the assistant's
+   *  speech however loud the user has set it. */
+  private analyser: AnalyserNode | null = null;
+  private samples: Float32Array | null = null;
 
   constructor(
     private context: AudioContext,
@@ -15,7 +19,24 @@ export class ConversationAudio {
   ) {
     this.gain = context.createGain();
     this.gain.connect(context.destination);
+    if (typeof context.createAnalyser === "function") {
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      this.analyser = analyser;
+      this.samples = new Float32Array(analyser.fftSize);
+    }
     this.setVolume(volume);
+  }
+
+  /** The loudness of what is playing right now, as an RMS (0 when silent). */
+  level(): number {
+    const analyser = this.analyser;
+    const samples = this.samples;
+    if (!analyser || !samples || this.sources.size === 0) return 0;
+    analyser.getFloatTimeDomainData(samples);
+    let sum = 0;
+    for (const sample of samples) sum += sample * sample;
+    return Math.sqrt(sum / samples.length);
   }
 
   /**
@@ -47,6 +68,7 @@ export class ConversationAudio {
       const source = this.context.createBufferSource();
       source.buffer = buffer;
       source.connect(this.gain);
+      if (this.analyser) source.connect(this.analyser);
       this.sources.add(source);
       source.onended = () => {
         source.disconnect();

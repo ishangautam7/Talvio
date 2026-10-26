@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Share2 } from "lucide-react";
+import { ArrowRight, Share2 } from "@/components/icons/glyphs";
 import type { Insights } from "@/bindings";
 import { Page, PageHeader } from "@/components/ui/Page";
 import { Button } from "@/components/ui/Button";
@@ -32,8 +32,7 @@ import {
   type HeatCell,
   type HeatLevel,
 } from "./insights/insightsMath";
-import type { FlowSpec } from "./insights/flowGeometry";
-import { FlowArt } from "./insights/FlowArt";
+
 import {
   fullNumber,
   NOVEL_WORDS,
@@ -48,29 +47,11 @@ const WEEKS = 26;
 
 const LEVEL_CLASSES: Record<HeatLevel, string> = {
   0: "bg-surface-strong",
-  1: "bg-accent-fill/22",
-  2: "bg-accent-fill/45",
-  3: "bg-accent-fill/72",
-  4: "bg-accent-fill",
+  1: "bg-ink/15",
+  2: "bg-ink/30",
+  3: "bg-ink/55",
+  4: "bg-ink/85",
 };
-
-/** The ribbon behind the summary: the share cards' bands as one wave across
- *  the right half, so the figure on the left stays on a quiet ground. */
-const SUMMARY_FLOW: FlowSpec = {
-  spine: [
-    [0.42, 1.3],
-    [0.62, -0.5],
-    [0.8, 1.5],
-    [1.05, -0.3],
-  ],
-  edges: [-0.4, -0.13, 0.13, 0.4],
-  fan: [1, 1],
-};
-const SUMMARY_FILLS = [
-  "var(--insights-flow-1)",
-  "var(--insights-flow-2)",
-  "var(--insights-flow-3)",
-];
 
 /**
  * What an (i) beside a figure says: the extra fact about it first ("4.3×
@@ -104,23 +85,16 @@ const Summary: React.FC<{
   /** Behind the (i) beside the label, e.g. today's words. */
   extra?: string;
 }> = ({ label, value, note, extra }) => (
-  <section className="insights-summary relative overflow-hidden rounded-3xl border border-hairline elev-card">
-    <FlowArt
-      spec={SUMMARY_FLOW}
-      width={960}
-      height={260}
-      fills={SUMMARY_FILLS}
-      className="absolute inset-0 h-full w-full"
-    />
-    <div className="relative px-8 pt-8 pb-9">
-      <h2 className="flex items-center gap-1 text-sm font-medium text-ink/75">
+  <section className="insights-summary relative overflow-hidden rounded-2xl border border-hairline elev-card">
+    <div className="relative px-6 pt-6 pb-7">
+      <h2 className="flex items-center gap-1 text-[0.8125rem] text-muted">
         {label}
         {extra && <InfoTip text={extra} />}
       </h2>
-      <p className="insights-figure mt-2 text-[3.75rem] leading-none text-ink tabular-nums">
+      <p className="insights-figure mt-2 text-[3rem] leading-none text-ink tabular-nums">
         {value}
       </p>
-      {note && <p className="mt-3.5 text-[0.9375rem] text-body">{note}</p>}
+      {note && <p className="mt-3 text-sm text-muted">{note}</p>}
     </div>
   </section>
 );
@@ -165,7 +139,7 @@ const Figures: React.FC<{ figures: Figure[] }> = ({ figures }) => {
                   <FigureTip note={figure.note} info={figure.info} />
                 </h3>
                 <p
-                  className="mt-1.5 truncate text-[1.625rem] leading-tight font-semibold tracking-[-0.02em] text-ink tabular-nums"
+                  className="mt-1 truncate font-display text-[1.5rem] leading-tight text-ink tabular-nums"
                   title={figure.value}
                 >
                   {figure.value}
@@ -448,7 +422,7 @@ const ActivityCard: React.FC<{
                         cell.future
                           ? "bg-transparent"
                           : `${LEVEL_CLASSES[cell.level]} hover:shadow-[0_0_0_1.5px_var(--color-ink)]`
-                      } ${cell.isToday ? "shadow-[0_0_0_1.5px_var(--color-accent)]" : ""}`}
+                      } ${cell.isToday ? "shadow-[0_0_0_1.5px_var(--color-accent-fill)]" : ""}`}
                       style={
                         {
                           gridRow: row + 2,
@@ -538,9 +512,11 @@ export const InsightsPage: React.FC = () => {
   const header = (
     <PageHeader
       title={t("nav.insights")}
+      feature="insights"
       description={t("insights.about")}
       actions={
         <Button
+          variant="secondary"
           onClick={() => setSharing(true)}
           disabled={used.length === 0}
           title={used.length === 0 ? t("insights.share.nothingYet") : undefined}

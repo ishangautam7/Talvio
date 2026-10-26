@@ -10,6 +10,9 @@ interface LogoLockupProps {
   iconClassName?: string;
   /** Accessible label for the whole lockup. */
   title?: string;
+  /** Text colour class for the wordmark (`text-ink` on the page, the
+   *  frame's ink on the title bar). */
+  toneClass?: string;
 }
 
 /**
@@ -25,11 +28,12 @@ export const LogoLockup: React.FC<LogoLockupProps> = ({
   className = "",
   iconClassName = "h-6 w-auto",
   title,
+  toneClass = "text-ink",
 }) => {
   const { t } = useTranslation();
   return (
     <div
-      className={`flex items-center gap-2 text-ink select-none ${className}`}
+      className={`flex items-center gap-2 select-none ${toneClass} ${className}`}
       role="img"
       aria-label={title ?? t("settingsDialog.about.appName")}
     >

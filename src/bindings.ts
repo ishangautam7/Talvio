@@ -69,6 +69,18 @@ async changeAssistantPttSetting(enabled: boolean) : Promise<Result<null, string>
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Hold to talk or Tap to toggle for the command shortcut, its own setting
+ * like the ask's (`settings::holds_to_record`).
+ */
+async changeCommandPttSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_ptt_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async changeAudioFeedbackSetting(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("change_audio_feedback_setting", { enabled }) };
@@ -3011,6 +3023,25 @@ async setAssistantSearchDepth(depth: AssistantSearchDepth) : Promise<Result<null
 }
 },
 /**
+ * Set how long a quick ask remembers the one before it. Off forgets the kept
+ * conversation now (unless a call owns it), so the next ask starts empty.
+ */
+async setAssistantQuickAskMemory(memory: QuickAskMemory) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_assistant_quick_ask_memory", { memory }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Start the quick ask over: forget the conversation it would continue. A
+ * no-op during a call, which owns the conversation.
+ */
+async assistantNewQuickAsk() : Promise<void> {
+    await TAURI_INVOKE("assistant_new_quick_ask");
+},
+/**
  * Set how much a reasoning model may think before answering an ask or a call.
  */
 async setAssistantThinking(level: ThinkingLevel) : Promise<Result<null, string>> {
@@ -3912,6 +3943,19 @@ async changeCommandRouterModelSetting(model: string) : Promise<Result<null, stri
 }
 },
 /**
+ * Whether commands hold every send, post or delete for the user's Do it
+ * ("Ask before irreversible actions"). Off: they are carried out unless the
+ * user asks to review.
+ */
+async changeCommandConfirmIrreversibleSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_command_confirm_irreversible_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Whether commands show what they would do instead of doing it.
  */
 async changeCommandDryRunSetting(enabled: boolean) : Promise<Result<null, string>> {
@@ -3999,6 +4043,34 @@ async changeCommandAgentMaxCostUsdSetting(usd: number) : Promise<Result<null, st
 async commandCancel() : Promise<void> {
     await TAURI_INVOKE("command_cancel");
 },
+async commandModelInUse() : Promise<CommandModelInUse> {
+    return await TAURI_INVOKE("command_model_in_use");
+},
+/**
+ * The spoken command's card in the corner, for a window that just loaded.
+ */
+async commandCard() : Promise<CommandCard | null> {
+    return await TAURI_INVOKE("command_card");
+},
+/**
+ * Send (`true`) or Cancel on a command card that waits for confirmation.
+ */
+async commandCardConfirm(seq: number, accept: boolean) : Promise<void> {
+    await TAURI_INVOKE("command_card_confirm", { seq, accept });
+},
+/**
+ * One of a command card's choices, as the answer to its question.
+ */
+async commandCardAnswer(seq: number, answer: string) : Promise<void> {
+    await TAURI_INVOKE("command_card_answer", { seq, answer });
+},
+/**
+ * Close a command card: its own timer ran out, or Cancel on a question. A
+ * confirmation it held is declined.
+ */
+async commandCardDismiss(seq: number) : Promise<void> {
+    await TAURI_INVOKE("command_card_dismiss", { seq });
+},
 async accountGetStatus() : Promise<AccountStatus> {
     return await TAURI_INVOKE("account_get_status");
 },
@@ -4079,6 +4151,18 @@ async accountAnswerApproval(deviceId: string, allow: boolean) : Promise<void> {
     await TAURI_INVOKE("account_answer_approval", { deviceId, allow });
 },
 /**
+ * "Phone is viewing": who is watching what, for the popup that just loaded.
+ */
+async accountViewing() : Promise<ViewingCard | null> {
+    return await TAURI_INVOKE("account_viewing");
+},
+/**
+ * Stop on "Phone is viewing": the live view ends with `stopped`.
+ */
+async accountStopViewing() : Promise<void> {
+    await TAURI_INVOKE("account_stop_viewing");
+},
+/**
  * The approval popup measured its content; the window takes that height.
  */
 async fitAccountApproval(height: number) : Promise<void> {
@@ -4087,6 +4171,17 @@ async fitAccountApproval(height: number) : Promise<void> {
 async setRemoteInputEnabled(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_remote_input_enabled", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Settings → Account → Let phones see and use windows.
+ */
+async setRemoteWindowsEnabled(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_remote_windows_enabled", { enabled }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -4727,6 +4822,11 @@ assistant_web_search_fetch_content?: boolean;
  */
 assistant_search_depth?: AssistantSearchDepth; 
 /**
+ * How long a quick ask remembers the one before it (see
+ * [`QuickAskMemory`]).
+ */
+assistant_quick_ask_memory?: QuickAskMemory; 
+/**
  * How much a reasoning model may think before answering an ask or a call.
  * See [`ThinkingLevel`]; `Off` keeps replies on the fast path.
  */
@@ -4772,6 +4872,12 @@ main_window_width?: number | null; main_window_height?: number | null;
  */
 command_mode_enabled?: boolean;
 /**
+ * Hold to talk (true) or Tap to toggle (false) for the command shortcut
+ * ([`COMMAND_BINDING_ID`]), its own setting like the ask's. See
+ * [`holds_to_record`].
+ */
+command_push_to_talk?: boolean;
+/**
  * The provider (an id from `post_process_providers`) that routes a
  * command to a tool. Its key is the one already saved for that provider.
  */
@@ -4786,6 +4892,13 @@ command_router_model?: string;
  * `--dry-run` can still override it for one command.
  */
 command_dry_run?: boolean;
+/**
+ * "Ask before irreversible actions": hold every send, post or delete for
+ * the user's Do it. Off by default: a command the user spoke is the
+ * request, so it is carried out, Send included, and waits only when the
+ * user's own words ask to review (`command_mode::review`).
+ */
+command_confirm_irreversible?: boolean;
 /**
  * The Google account Gmail and Calendar links open in, sent as
  * `authuser=`. Empty means the browser's default Google account.
@@ -4837,6 +4950,12 @@ account_discovered_server?: string;
  * dictate or type into this computer.
  */
 remote_input_enabled?: boolean; 
+/**
+ * "Let phones see and use windows": an allowed phone may list this computer's
+ * windows, aim its dictation and text at one, and press keys there
+ * (`account/remote/windows.rs`). Off by default: window titles say a lot.
+ */
+remote_windows_enabled?: boolean; 
 /**
  * "Sync API keys": provider keys added on this computer are kept in the
  * user's account and arrive on their other signed-in computers
@@ -5028,6 +5147,19 @@ export type AssistantResponseLength =
  * No length directive — use the system prompt as-is.
  */
 "default" | "short" | "medium" | "long"
+/**
+ * How long a quick ask remembers the one before it ("Remember the
+ * conversation").
+ */
+export type QuickAskMemory = 
+/**
+ * Every quick ask starts empty.
+ */
+"off" | "five_minutes" | "ten_minutes" | "thirty_minutes" | 
+/**
+ * Until the user starts a new conversation (or the app restarts).
+ */
+"until_cleared"
 /**
  * How thorough a web search should be. This is the single dial that replaces
  * the old raw "max results" number. It reaches the provider request (Tavily
@@ -5351,6 +5483,29 @@ export type CloudSttUnavailableReason = "not_enabled" | "selected_provider_missi
 /**
  * Where a command came from.
  */
+/**
+ * One command's report, as the corner card shows it. `seq` changes every
+ * time the card does, so an answer or a timer for an earlier card is ignored.
+ */
+export type CommandCard = { seq: number; report: CommandReport }
+/**
+ * The model commands run on right now, for the Commands page: the one chosen
+ * for command mode, or the assistant's when the chosen provider has no key
+ * (`command_mode::llm::effective`).
+ */
+export type CommandModelInUse = { provider_id: string; 
+/**
+ * The provider's name as the app shows it; the id when it is unknown.
+ */
+provider_label: string; model: string; 
+/**
+ * The assistant's provider and model stand in for the chosen ones.
+ */
+borrowed: boolean; 
+/**
+ * The provider in use can take a request: it has a key or needs none.
+ */
+ready: boolean }
 export type CommandOrigin =
 /**
  * Settings → Debug text box.
@@ -5363,7 +5518,15 @@ export type CommandOrigin =
 /**
  * The command-mode hotkey (Phase 2).
  */
-"voice"
+"voice" | 
+/**
+ * The assistant's `do_on_computer` tool, from the quick ask or a call.
+ */
+"assistant" | 
+/**
+ * A phone: its `command` request, or its assistant's `do_on_computer`.
+ */
+"phone"
 /**
  * Everything about one command, for the UI, the CLI and the log.
  */
@@ -6618,6 +6781,10 @@ about_you?: string;
  * Durable facts, selected by relevance within the detail budget.
  */
 notes?: MemoryNote[] }
+/**
+ * Who is watching what.
+ */
+export type ViewingCard = { phone: string; title: string }
 /**
  * When the frame an assistant turn might look at is grabbed.
  * 

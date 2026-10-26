@@ -53,15 +53,23 @@ pub mod agent;
 pub mod contacts;
 pub mod context;
 pub mod effects;
+pub(crate) mod files;
 pub mod fuzzy;
 pub mod llm;
 pub mod registry;
+pub mod review;
 pub mod router;
 pub mod schema;
+pub mod sites;
 pub mod tools;
+pub mod voice;
+
+#[cfg(test)]
+pub(crate) mod live_tests;
 
 use log::{debug, info, warn};
 use serde::Serialize;
+use serde_json::Value;
 use specta::Type;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -131,24 +139,31 @@ pub enum CommandOrigin {
     Cli,
     /// The command-mode hotkey (Phase 2).
     Voice,
+    /// The assistant's `do_on_computer` tool, from the quick ask or a call.
+    Assistant,
+    /// A phone: its `command` request, or its assistant's `do_on_computer`.
+    Phone,
 }
 
 impl CommandOrigin {
     /// Whether this command may paste into the window a dictation remembered
-    /// (`input::remember_paste_target`). Only a spoken command, which will
-    /// remember its own target at recording start (Phase 2), may. A typed or
-    /// CLI command must not: the target is left over from the last dictation,
-    /// possibly hours ago, and `type_text` would bring that window forward
-    /// and paste into it.
+    /// (`input::remember_paste_target`). A spoken command and an ask remember
+    /// their own target when they start (the ask does, for its Insert), so they
+    /// may. A typed, CLI or phone command must not: the target is left over
+    /// from the last dictation, possibly hours ago, and `type_text` would bring
+    /// that window forward and paste into it.
     fn keeps_dictation_target(self) -> bool {
-        self == CommandOrigin::Voice
+        matches!(self, CommandOrigin::Voice | CommandOrigin::Assistant)
     }
 
     /// How long a confirmation from this origin stays valid.
     fn confirm_ttl(self) -> Duration {
         match self {
             CommandOrigin::Voice => VOICE_CONFIRM_TTL,
-            CommandOrigin::Typed | CommandOrigin::Cli => CONFIRM_TTL,
+            CommandOrigin::Typed
+            | CommandOrigin::Cli
+            | CommandOrigin::Assistant
+            | CommandOrigin::Phone => CONFIRM_TTL,
         }
     }
 }
@@ -428,6 +443,47 @@ fn effects_for(
     }
 }
 
+/// The settings a command runs with: the user's own, with their email
+/// address taken from the signed-in Talvio account when they never gave one,
+/// so "email me this file" has somewhere to go.
+fn command_settings(app: &AppHandle) -> crate::settings::AppSettings {
+    let mut settings = crate::settings::get_settings(app);
+    if settings.command_own_email.trim().is_empty() {
+        if let Some(email) = crate::account::signed_in_email(app) {
+            settings.command_own_email = email;
+        }
+    }
+    settings
+}
+
+/// Keep an address the user just gave as their own (an email whose
+/// `remember_as_mine` is set, after "what's your email address?"), so "email
+/// me" never asks again. A dry run changes nothing.
+fn remember_own_address(
+    app: &AppHandle,
+    routed: &Result<router::RoutePlan, RouteError>,
+    dry_run: bool,
+) {
+    let Ok(plan) = routed else {
+        return;
+    };
+    if dry_run {
+        return;
+    }
+    for call in &plan.calls {
+        let Some(address) = tools::compose_email::address_to_remember(&call.name, &call.args)
+        else {
+            continue;
+        };
+        let mut settings = crate::settings::get_settings(app);
+        if settings.command_own_email.trim() != address {
+            settings.command_own_email = address;
+            crate::settings::write_settings(app, settings);
+            info!("command mode: remembered the user's own email address");
+        }
+    }
+}
+
 fn load_contacts(app: &AppHandle) -> ContactBook {
     match ContactBook::path(app) {
         Ok(path) => ContactBook::load(&path),
@@ -466,6 +522,51 @@ impl Scope<'_> {
     }
 }
 
+/// Whether this command waits for the user before anything irreversible:
+/// the "Ask before irreversible actions" switch is on, or the user's words
+/// ask to review (`review::asks_to_review`). A call can ask for itself too
+/// ([`review::call_wants_review`]); see [`waits_for_review`].
+fn reviews_first(scope: &Scope<'_>) -> bool {
+    scope.ctx.settings.command_confirm_irreversible || review::asks_to_review(&scope.transcript)
+}
+
+/// Whether one call's irreversible step waits for the user: the command
+/// does, or the router marked this call ([`review::CONFIRM_FIRST`]).
+fn waits_for_review(scope: &Scope<'_>, args: &Value) -> bool {
+    reviews_first(scope) || review::call_wants_review(args)
+}
+
+/// Carry out the irreversible half a tool held ([`ToolOutcome::NeedsConfirmation`])
+/// right away, because nobody asked to review it: the tool's `on_confirm`,
+/// or for a control the agent held, [`agent::confirm_element`]. The outcome
+/// is what the user hears ("Sent to Ron."), or an honest failure.
+pub(crate) async fn carry_out_pending(ctx: &Arc<ToolCtx>, pending: &PendingAction) -> ToolOutcome {
+    info!(
+        "command mode: carrying out {} without waiting (nobody asked to review it)",
+        pending.tool
+    );
+    if pending.tool == agent::CONFIRM_TOOL {
+        let payload = pending.payload.clone();
+        if ctx.dry_run {
+            return agent::confirm_element(ctx, &agent::tree::Unsupported, &payload);
+        }
+        let run_ctx = ctx.clone();
+        return run_blocking(TOOL_TIMEOUT, pending.tool, move || {
+            agent::confirm_element(&run_ctx, agent::tree().as_ref(), &payload)
+        })
+        .await;
+    }
+    let Some(on_confirm) = registry::find(pending.tool).and_then(|spec| spec.on_confirm) else {
+        return ToolOutcome::failed("That can no longer be done.", false);
+    };
+    let payload = pending.payload.clone();
+    let run_ctx = ctx.clone();
+    run_blocking(TOOL_TIMEOUT, pending.tool, move || {
+        on_confirm(&run_ctx, payload)
+    })
+    .await
+}
+
 /// The steps that changed something, as `tool(args)`: done, or done up to
 /// their confirmation. The special tools change nothing and are left out.
 fn completed_steps(steps: &[StepReport]) -> Vec<String> {
@@ -492,7 +593,7 @@ pub async fn run_command(
     let started = Instant::now();
     reset_cancel();
     release_dictation_target(origin);
-    let settings = crate::settings::get_settings(app);
+    let settings = command_settings(app);
     let dry_run = dry_run_override.unwrap_or(settings.command_dry_run);
     let context = match context {
         Some(context) => context,
@@ -556,8 +657,17 @@ pub async fn run_command(
         route_deadline(),
     )
     .await;
+    remember_own_address(app, &routed, dry_run);
 
-    let report = finish(&scope, report, llm.label(), routed, started).await;
+    let report = finish(
+        &scope,
+        report,
+        Some(llm.as_ref()),
+        llm.label(),
+        routed,
+        started,
+    )
+    .await;
     log_report(&report);
     report
 }
@@ -602,7 +712,7 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
         .exchanges
         .push((question, answer.trim().to_string()));
 
-    let settings = crate::settings::get_settings(app);
+    let settings = command_settings(app);
     let new_id = state.begin();
     let report = CommandReport::new(new_id, origin, &transcript, dry_run);
     let llm = match llm::router_for(&settings) {
@@ -643,8 +753,17 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
         route_deadline(),
     )
     .await;
+    remember_own_address(app, &routed, dry_run);
 
-    let report = finish(&scope, report, llm.label(), routed, started).await;
+    let report = finish(
+        &scope,
+        report,
+        Some(llm.as_ref()),
+        llm.label(),
+        routed,
+        started,
+    )
+    .await;
     log_report(&report);
     report
 }
@@ -846,10 +965,13 @@ where
     }
 }
 
-/// Run a routed plan's calls in order and fill in the report.
+/// Run a routed plan's calls in order and fill in the report. With `llm`, a
+/// multi-part command whose plan stopped after opening something is routed
+/// once more for what is left ([`continue_plan`]).
 async fn finish(
     scope: &Scope<'_>,
     mut report: CommandReport,
+    llm: Option<&dyn llm::RouterLlm>,
     model: String,
     routed: Result<router::RoutePlan, RouteError>,
     started: Instant,
@@ -875,22 +997,20 @@ async fn finish(
     report.llm_calls = plan.llm_calls;
     report.usage = plan.usage;
 
-    let mut calls = plan.calls.into_iter();
-    while let Some(call) = calls.next() {
-        let stop = run_call(scope, &mut report, call).await;
-        if stop {
-            for skipped in calls.by_ref() {
-                report.steps.push(StepReport {
-                    tool: skipped.name,
-                    args_json: skipped.args.to_string(),
-                    result: "skipped".into(),
-                    detail: "An earlier step is waiting or failed.".into(),
-                });
-            }
-            break;
+    let planned: Vec<String> = plan.calls.iter().map(|call| call.name.clone()).collect();
+    // What was on screen before an app was opened, while a later step may
+    // still have to type into it.
+    let mut opened: Option<WindowsBefore> = None;
+    let stopped = run_plan(scope, &mut report, plan.calls, &mut opened).await;
+    report_dropped(&mut report, plan.dropped);
+    if let Some(llm) = llm {
+        if !stopped
+            && report.status == CommandStatus::Done
+            && wants_continuation(&scope.transcript, &planned)
+        {
+            continue_plan(scope, &mut report, llm, &mut opened).await;
         }
     }
-    report_dropped(&mut report, plan.dropped);
 
     if let Some(dry) = &scope.dry {
         // What the tools' effects recorded, then the agent's element actions
@@ -902,6 +1022,262 @@ async fn finish(
     }
     report.latency_ms = started.elapsed().as_millis() as u32;
     report
+}
+
+/// Words that join the parts of a spoken command, English and Nepali.
+const PART_JOINERS: &[&str] = &["and", "then", "after", "ani", "ra", "pachi"];
+
+/// Whether a command looks like it has a part the plan left out: it joins
+/// parts ("open Notepad and type hello", "Notepad khola ani hello lekha"), and
+/// its plan was a single step that only opened or switched to something. The
+/// router model reliably plans "open X" and leaves what is done in X for a
+/// later turn, because it cannot see the app come up; measured on the live
+/// sweep, it dropped the typing in 7 of 8 runs.
+fn wants_continuation(transcript: &str, planned: &[String]) -> bool {
+    let [only] = planned else {
+        return false;
+    };
+    let opener = opens_window(only) || matches!(only.as_str(), "open_url" | "switch_to_app");
+    let lower = transcript.to_lowercase();
+    let joined = lower.contains(',')
+        || lower
+            .split(|c: char| !c.is_alphanumeric())
+            .any(|word| PART_JOINERS.contains(&word));
+    opener && joined
+}
+
+/// Route the command once more, with what already ran, and run what is left.
+/// A plan that only answers (`say`) or repeats a step that ran adds nothing.
+/// A failure here leaves the report as it was: the part that ran did run.
+async fn continue_plan(
+    scope: &Scope<'_>,
+    report: &mut CommandReport,
+    llm: &dyn llm::RouterLlm,
+    opened: &mut Option<WindowsBefore>,
+) {
+    let followup = scope.followup_after(report);
+    let plan = match router::route(
+        llm,
+        scope.ctx.platform,
+        &scope.transcript,
+        &scope.ctx.context,
+        &followup,
+        route_deadline(),
+    )
+    .await
+    {
+        Ok(plan) => plan,
+        Err(e) => {
+            debug!("command mode: no continuation for the rest of the command: {e}");
+            return;
+        }
+    };
+    report.llm_calls += plan.llm_calls;
+    report.usage.add(plan.usage);
+    let done: Vec<String> = followup
+        .already_done
+        .iter()
+        .map(|step| step.to_lowercase())
+        .collect();
+    let calls: Vec<PlannedCall> = plan
+        .calls
+        .into_iter()
+        .filter(|call| call.name != router::SAY)
+        .filter(|call| !done.contains(&format!("{}({})", call.name, call.args).to_lowercase()))
+        .filter(|call| {
+            !(opens_window(&call.name) && report.steps.iter().any(|s| s.tool == call.name))
+        })
+        .collect();
+    if calls.is_empty() {
+        return;
+    }
+    info!(
+        "command mode: carrying out {} more step(s) of the command",
+        calls.len()
+    );
+    run_plan(scope, report, calls, opened).await;
+    report_dropped(report, plan.dropped);
+}
+
+/// Run `calls` in order. `true` when the plan stopped early: a step waits for
+/// the user or failed, and the rest are listed as skipped.
+async fn run_plan(
+    scope: &Scope<'_>,
+    report: &mut CommandReport,
+    calls: Vec<PlannedCall>,
+    opened: &mut Option<WindowsBefore>,
+) -> bool {
+    let mut calls = calls.into_iter();
+    while let Some(call) = calls.next() {
+        if types_into_front(&call.name) {
+            if let Some(before) = opened.take() {
+                if !scope.ctx.dry_run
+                    && !wait_for_new_window(scope.ctx.effects.as_ref(), &before, NEW_WINDOW_WAIT)
+                        .await
+                {
+                    window_not_ready(report, &call);
+                    skip_rest(report, calls);
+                    return true;
+                }
+            }
+        }
+        let before =
+            opens_window(&call.name).then(|| WindowsBefore::now(scope.ctx.effects.as_ref(), &call));
+        let stop = run_call(scope, report, call).await;
+        if let Some(before) = before {
+            if report
+                .steps
+                .last()
+                .is_some_and(|last| last.result == "done")
+            {
+                *opened = Some(before);
+            }
+        }
+        if stop {
+            skip_rest(report, calls);
+            return true;
+        }
+    }
+    false
+}
+
+/// List the calls left after a step that stopped the plan as skipped.
+fn skip_rest(report: &mut CommandReport, rest: impl Iterator<Item = PlannedCall>) {
+    for skipped in rest {
+        report.steps.push(StepReport {
+            tool: skipped.name,
+            args_json: skipped.args.to_string(),
+            result: "skipped".into(),
+            detail: "An earlier step is waiting or failed.".into(),
+        });
+    }
+}
+
+// How long typing waits for the window of an app an earlier step opened.
+const NEW_WINDOW_WAIT: Duration = Duration::from_secs(10);
+/// How often it looks.
+const NEW_WINDOW_POLL: Duration = Duration::from_millis(150);
+/// Once the window is in front, before the first key: its text field takes
+/// the keyboard a moment after the window itself does.
+const NEW_WINDOW_SETTLE: Duration = Duration::from_millis(600);
+
+/// Steps that open a new window: launching an app or a file.
+fn opens_window(tool: &str) -> bool {
+    matches!(tool, "open_app" | "open_file")
+}
+
+/// Steps that act on whatever window is in front.
+fn types_into_front(tool: &str) -> bool {
+    matches!(tool, "type_text" | "press_keys")
+}
+
+/// The screen before an app was opened: the window in front and every
+/// window open.
+struct WindowsBefore {
+    front: Option<i64>,
+    open: std::collections::HashSet<i64>,
+    /// The name the app was opened by ("notepad"), lowercase.
+    opened: String,
+}
+
+impl WindowsBefore {
+    fn now(effects: &dyn Effects, call: &PlannedCall) -> Self {
+        let opened = registry::arg_str(&call.args, "name")
+            .unwrap_or_default()
+            .to_lowercase();
+        Self {
+            front: effects.foreground_window().map(|window| window.id),
+            open: effects
+                .open_windows()
+                .iter()
+                .map(|window| window.id)
+                .collect(),
+            opened,
+        }
+    }
+
+    /// Whether `window` belongs to the app that was opened: opening an app
+    /// that was already in front (Notepad opens a new tab in its own window)
+    /// changes no window.
+    fn is_opened_app(&self, window: &effects::WindowEntry) -> bool {
+        let first = self
+            .opened
+            .split_whitespace()
+            .next()
+            .unwrap_or_default()
+            .to_lowercase();
+        !first.is_empty()
+            && (window.app.to_lowercase().contains(&first)
+                || window.title.to_lowercase().contains(&first))
+    }
+}
+
+/// How long the app already in front gets to open its new tab or document
+/// before typing goes into it.
+const SAME_APP_GRACE: Duration = Duration::from_millis(1500);
+
+/// Wait until a window other than the one in front before the app was
+/// opened has the keyboard. A launch returns before the app's window exists,
+/// and typing straight after it went into whatever the user had in front. A
+/// new window that opened behind (Windows does not always let a launched app
+/// take the foreground) is brought forward. `false` when nothing came up in
+/// `timeout`: the typing is then not done at all.
+async fn wait_for_new_window(
+    effects: &dyn Effects,
+    before: &WindowsBefore,
+    timeout: Duration,
+) -> bool {
+    let started = Instant::now();
+    let deadline = started + timeout;
+    let mut focused: Option<i64> = None;
+    loop {
+        if let Some(front) = effects.foreground_window() {
+            let same_app_settled =
+                started.elapsed() >= SAME_APP_GRACE.min(timeout) && before.is_opened_app(&front);
+            if Some(front.id) != before.front || same_app_settled {
+                tokio::time::sleep(NEW_WINDOW_SETTLE).await;
+                return true;
+            }
+        }
+        if focused.is_none() {
+            if let Some(new) = effects
+                .open_windows()
+                .into_iter()
+                .find(|window| !before.open.contains(&window.id))
+            {
+                debug!("command mode: the opened app's window is behind; bringing it forward");
+                focused = Some(new.id);
+                if let Err(e) = effects.focus_window(&new) {
+                    warn!("command mode: could not bring the new window forward: {e}");
+                }
+            }
+        }
+        if Instant::now() >= deadline {
+            warn!(
+                "command mode: no new window came up within {} s; not typing",
+                timeout.as_secs()
+            );
+            return false;
+        }
+        tokio::time::sleep(NEW_WINDOW_POLL).await;
+    }
+}
+
+/// The typing step after an app that never came up: refused, and said so,
+/// rather than typed into the window the user had in front.
+fn window_not_ready(report: &mut CommandReport, call: &PlannedCall) {
+    report.steps.push(step(
+        &call.name,
+        &call.args.to_string(),
+        "failed",
+        "the app's window did not come up",
+    ));
+    report.status = CommandStatus::Failed;
+    let reason = "The app didn't come up in time, so I didn't type anything.";
+    report.error = Some(reason.to_string());
+    report
+        .feedback
+        .push(Feedback::new("windowNotReady", reason, &[]));
 }
 
 /// List the calls the plan cap cut off as skipped, and say so: a command
@@ -962,7 +1338,8 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
                     "done",
                     "handed to the screen agent",
                 ));
-                escalate(scope, report, task).await;
+                let review = waits_for_review(scope, &call.args);
+                escalate(scope, report, task, review).await;
                 return true;
             }
             report.steps.push(step(
@@ -1007,6 +1384,16 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
             let run_ctx = scope.ctx.clone();
             let args = call.args.clone();
             let outcome = run_blocking(TOOL_TIMEOUT, name, move || handler(&run_ctx, args)).await;
+            // What the tool held for a Do it runs now, unless someone asked
+            // to review it (`review`).
+            let outcome = match outcome {
+                ToolOutcome::NeedsConfirmation { pending, .. }
+                    if !waits_for_review(scope, &call.args) =>
+                {
+                    carry_out_pending(&scope.ctx, &pending).await
+                }
+                other => other,
+            };
             report.steps.push(step(name, &args_json, "", ""));
             let stop = apply_outcome(scope, report, outcome);
             // A failure another approach could fix goes to the agent, with
@@ -1018,11 +1405,22 @@ async fn run_call(scope: &Scope<'_>, report: &mut CommandReport, call: PlannedCa
                     .escalation
                     .clone()
                     .unwrap_or_else(|| scope.transcript.clone());
-                escalate(scope, report, task).await;
+                let task = with_steps_done(task, &completed_steps(&report.steps));
+                escalate(scope, report, task, reviews_first(scope)).await;
             }
             stop
         }
     }
+}
+
+/// The agent's task after a tool failed partway through a plan: the whole
+/// command, plus the steps that already ran, so it does not open the app or
+/// type the text a second time.
+fn with_steps_done(task: String, done: &[String]) -> String {
+    if done.is_empty() {
+        return task;
+    }
+    format!("{task}\nAlready done, do not repeat: {}", done.join("; "))
 }
 
 /// Whether an escalation goes to the agent: the user allows it and this
@@ -1052,7 +1450,7 @@ fn computer_use_unavailable(settings: &crate::settings::AppSettings) -> Feedback
 /// Hand `task` to the agent on `command_agent_model`. A model that cannot be
 /// built (no key, no provider) leaves the command at `NeedsComputerUse` with
 /// the reason.
-async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String) {
+async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String, review: bool) {
     report.escalation = Some(task.clone());
     let llm = match llm::agent_llm_for(&scope.ctx.settings) {
         Ok(llm) => llm,
@@ -1067,7 +1465,16 @@ async fn escalate(scope: &Scope<'_>, report: &mut CommandReport, task: String) {
             return;
         }
     };
-    run_agent_into(scope, report, &task, llm.as_ref(), agent::tree(), &CANCEL).await;
+    run_agent_into(
+        scope,
+        report,
+        &task,
+        llm.as_ref(),
+        agent::tree(),
+        &CANCEL,
+        review,
+    )
+    .await;
 }
 
 /// Run the agent and fold what it did into the report: its steps, its
@@ -1081,8 +1488,10 @@ async fn run_agent_into(
     llm: &dyn llm::RouterLlm,
     tree: Arc<dyn agent::tree::AccessibilityTree>,
     cancel: &AtomicBool,
+    review: bool,
 ) {
-    let limits = agent::Limits::from_settings(&scope.ctx.settings);
+    let mut limits = agent::Limits::from_settings(&scope.ctx.settings);
+    limits.review_first = review;
     let outcome = agent::run(task, scope.ctx.clone(), llm, tree, limits, cancel).await;
 
     report.feedback.push(match outcome.app.as_deref() {
@@ -1339,6 +1748,82 @@ mod tests {
     use chrono::{FixedOffset, TimeZone};
     use serde_json::json;
 
+    fn window(id: i64, app: &str) -> effects::WindowEntry {
+        effects::WindowEntry {
+            id,
+            title: format!("{app} window"),
+            app: app.into(),
+        }
+    }
+
+    fn before(front: i64, open: &[i64], opened: &str) -> WindowsBefore {
+        WindowsBefore {
+            front: Some(front),
+            open: open.iter().copied().collect(),
+            opened: opened.into(),
+        }
+    }
+
+    /// Typing after a launch waits for the launched app's window, brings it
+    /// forward when it opened behind, and gives up rather than type into the
+    /// window the user had in front.
+    #[test]
+    fn typing_waits_for_the_opened_window() {
+        let short = Duration::from_millis(300);
+        let wait = |fake: &FakeEffects, before: &WindowsBefore| {
+            tauri::async_runtime::block_on(wait_for_new_window(fake, before, short))
+        };
+
+        // The new window came to the front.
+        let fake = FakeEffects::default();
+        *fake.foreground.lock().unwrap() = Some(window(2, "notepad"));
+        assert!(wait(&fake, &before(1, &[1], "notepad")));
+
+        // It opened behind: brought forward, then typed into.
+        let fake = FakeEffects {
+            windows: vec![window(1, "chrome"), window(5, "notepad")],
+            focus_follows: true,
+            ..Default::default()
+        };
+        *fake.foreground.lock().unwrap() = Some(window(1, "chrome"));
+        assert!(wait(&fake, &before(1, &[1], "notepad")));
+        assert_eq!(fake.actions(), vec!["focus_window 5".to_string()]);
+
+        // Nothing came up: no typing.
+        let fake = FakeEffects::default();
+        *fake.foreground.lock().unwrap() = Some(window(1, "chrome"));
+        assert!(!wait(&fake, &before(1, &[1], "notepad")));
+
+        // The app was already in front and opened its new tab in place.
+        let fake = FakeEffects::default();
+        *fake.foreground.lock().unwrap() = Some(window(1, "notepad"));
+        assert!(wait(&fake, &before(1, &[1], "Notepad")));
+    }
+
+    #[test]
+    fn only_launches_are_waited_for_and_only_typing_waits() {
+        assert!(opens_window("open_app") && opens_window("open_file"));
+        assert!(!opens_window("open_url") && !opens_window("switch_to_app"));
+        assert!(types_into_front("type_text") && types_into_front("press_keys"));
+        assert!(!types_into_front("play_media"));
+    }
+
+    #[test]
+    fn an_escalated_task_names_the_steps_already_done() {
+        assert_eq!(
+            with_steps_done("open notepad and type hi".into(), &[]),
+            "open notepad and type hi"
+        );
+        let steps = vec![
+            step("open_app", r#"{"name":"notepad"}"#, "done", ""),
+            step("type_text", r#"{"text":"hi"}"#, "failed", "no field"),
+        ];
+        let task = with_steps_done("open notepad and type hi".into(), &completed_steps(&steps));
+        assert!(task.starts_with("open notepad and type hi\n"));
+        assert!(task.contains(r#"open_app({"name":"notepad"})"#));
+        assert!(!task.contains("type_text"));
+    }
+
     fn tool_ctx(fake: &Arc<FakeEffects>) -> Arc<ToolCtx> {
         let now = FixedOffset::east_opt(0)
             .unwrap()
@@ -1367,6 +1852,177 @@ mod tests {
             transcript: "email Ron".into(),
             followup,
         }
+    }
+
+    /// Runs one `press_keys enter` plan for `transcript` with `args`, in a
+    /// chat window that stays in front; the report and what was pressed.
+    fn run_enter(transcript: &str, args: Value, ask_setting: bool) -> (CommandReport, Vec<String>) {
+        let chat = effects::WindowEntry {
+            id: 5,
+            app: "Slack".into(),
+            title: "general | Slack".into(),
+        };
+        let fake = Arc::new(FakeEffects {
+            windows: vec![chat.clone()],
+            foreground: std::sync::Mutex::new(Some(chat)),
+            ..Default::default()
+        });
+        let state = CommandModeState::default();
+        let id = state.begin();
+        let mut scope = scope(&state, &fake, Followup::default());
+        scope.transcript = transcript.into();
+        if ask_setting {
+            let mut settings = crate::settings::get_default_settings();
+            settings.command_confirm_irreversible = true;
+            scope.ctx = Arc::new(ToolCtx {
+                settings,
+                context: scope.ctx.context.clone(),
+                effects: fake.clone(),
+                contacts: Arc::new(ContactBook::default()),
+                platform: Platform::Windows,
+                dry_run: false,
+            });
+        }
+        let plan = router::RoutePlan {
+            calls: vec![PlannedCall {
+                name: "press_keys".into(),
+                args,
+            }],
+            dropped: Vec::new(),
+            text: String::new(),
+            usage: Usage::default(),
+            llm_calls: 1,
+        };
+        let report = CommandReport::new(id, CommandOrigin::Typed, transcript, false);
+        let report = tauri::async_runtime::block_on(finish(
+            &scope,
+            report,
+            None,
+            "mock/router".into(),
+            Ok(plan),
+            Instant::now(),
+        ));
+        (report, fake.actions())
+    }
+
+    /// What the user asked for is carried out, the step that sends included:
+    /// no card, no Do it.
+    #[test]
+    fn a_held_step_is_carried_out_when_nobody_asked_to_review() {
+        let (report, pressed) = run_enter("press enter", json!({"keys": "enter"}), false);
+        assert_eq!(report.status, CommandStatus::Done, "{:?}", report.feedback);
+        assert_eq!(report.pending_summary, None);
+        assert_eq!(pressed, vec!["press_keys Enter".to_string()]);
+        assert_eq!(report.steps[0].result, "done");
+    }
+
+    /// It waits when the user's words ask, when the router marks the call, or
+    /// when "Ask before sending or deleting" is on.
+    #[test]
+    fn a_held_step_waits_when_review_was_asked_for() {
+        for (transcript, args, setting) in [
+            (
+                "press enter but ask before sending",
+                json!({"keys": "enter"}),
+                false,
+            ),
+            (
+                "press enter",
+                json!({"keys": "enter", "confirm_first": true}),
+                false,
+            ),
+            ("press enter", json!({"keys": "enter"}), true),
+        ] {
+            let (report, pressed) = run_enter(transcript, args, setting);
+            assert_eq!(
+                report.status,
+                CommandStatus::AwaitingConfirmation,
+                "{transcript}: {:?}",
+                report.feedback
+            );
+            assert!(pressed.is_empty(), "{transcript}: {pressed:?}");
+        }
+    }
+
+    #[test]
+    fn only_a_joined_command_that_stopped_at_an_opener_is_continued() {
+        let one = |name: &str| vec![name.to_string()];
+        assert!(wants_continuation(
+            "open notepad and type hello",
+            &one("open_app")
+        ));
+        assert!(wants_continuation(
+            "notepad khola ani hello lekha",
+            &one("open_app")
+        ));
+        assert!(wants_continuation(
+            "go to gmail, then search for invoices",
+            &one("open_url")
+        ));
+        // One part, a plan of the whole thing, or no opener.
+        assert!(!wants_continuation("open notepad", &one("open_app")));
+        assert!(!wants_continuation(
+            "open youtube and play believer",
+            &one("play_media")
+        ));
+        assert!(!wants_continuation(
+            "open notepad and type hello",
+            &["open_app".to_string(), "type_text".to_string()]
+        ));
+        // "ra" is a word of its own, not part of one ("random").
+        assert!(!wants_continuation("open random app", &one("open_app")));
+    }
+
+    /// "Open Notepad and type hello" planned as the open alone: the rest is
+    /// routed again, told what ran, and only the new step runs.
+    #[test]
+    fn the_rest_of_a_joined_command_is_routed_and_run() {
+        use agent::testing::{answer, ScriptedLlm};
+        let fake = Arc::new(FakeEffects {
+            apps: vec![effects::AppEntry {
+                name: "Notepad".into(),
+                launch: "notepad.lnk".into(),
+            }],
+            ..Default::default()
+        });
+        let state = CommandModeState::default();
+        let id = state.begin();
+        let mut scope = scope(&state, &fake, Followup::default());
+        scope.transcript = "open notepad and type hello".into();
+        let plan = router::RoutePlan {
+            calls: vec![PlannedCall {
+                name: "open_app".into(),
+                args: json!({"name": "notepad"}),
+            }],
+            dropped: Vec::new(),
+            text: String::new(),
+            usage: Usage::default(),
+            llm_calls: 1,
+        };
+        let llm = ScriptedLlm::new(vec![answer(vec![
+            ("open_app", json!({"name": "notepad"})),
+            ("type_text", json!({"text": "hello"})),
+        ])]);
+        let report = CommandReport::new(id, CommandOrigin::Typed, &scope.transcript, false);
+        let report = tauri::async_runtime::block_on(finish(
+            &scope,
+            report,
+            Some(&llm),
+            "mock/router".into(),
+            Ok(plan),
+            Instant::now(),
+        ));
+        // The second request listed the open as done.
+        let requests = llm.requests();
+        assert_eq!(requests.len(), 1);
+        assert!(format!("{:?}", requests[0].turns).contains("Already done"));
+        // The open ran once; the typing came next and, since no window came
+        // up in the fake, was refused rather than typed elsewhere.
+        let tools: Vec<&str> = report.steps.iter().map(|s| s.tool.as_str()).collect();
+        assert_eq!(tools, vec!["open_app", "type_text"]);
+        assert_eq!(report.llm_calls, 2);
+        assert_eq!(keys(&report).last(), Some(&"windowNotReady"));
+        assert!(!fake.actions().iter().any(|a| a.starts_with("type_text")));
     }
 
     fn pending_action() -> PendingAction {
@@ -1584,10 +2240,12 @@ mod tests {
 
     /// Only a spoken command may use the window a dictation remembered.
     #[test]
-    fn only_a_voice_command_keeps_the_dictation_target() {
+    fn only_a_command_that_remembered_its_own_target_keeps_it() {
         assert!(CommandOrigin::Voice.keeps_dictation_target());
+        assert!(CommandOrigin::Assistant.keeps_dictation_target());
         assert!(!CommandOrigin::Typed.keeps_dictation_target());
         assert!(!CommandOrigin::Cli.keeps_dictation_target());
+        assert!(!CommandOrigin::Phone.keeps_dictation_target());
     }
 
     #[test]
@@ -1595,6 +2253,11 @@ mod tests {
         assert_eq!(CommandOrigin::Typed.confirm_ttl(), Duration::from_secs(120));
         assert_eq!(CommandOrigin::Cli.confirm_ttl(), Duration::from_secs(120));
         assert_eq!(CommandOrigin::Voice.confirm_ttl(), Duration::from_secs(30));
+        assert_eq!(
+            CommandOrigin::Assistant.confirm_ttl(),
+            Duration::from_secs(120)
+        );
+        assert_eq!(CommandOrigin::Phone.confirm_ttl(), Duration::from_secs(120));
     }
 
     /// "Send" long after the draft opened runs nothing: the draft and the
@@ -1704,6 +2367,7 @@ mod tests {
         let report = tauri::async_runtime::block_on(finish(
             &scope,
             report,
+            None,
             "mock/router".into(),
             Ok(plan),
             Instant::now(),
@@ -1750,6 +2414,7 @@ mod tests {
         let report = tauri::async_runtime::block_on(finish(
             &scope,
             report,
+            None,
             "mock/router".into(),
             Err(RouteError::OutputLimit {
                 llm_calls: 2,
@@ -1795,6 +2460,7 @@ mod tests {
             &llm,
             tree.clone(),
             &AtomicBool::new(false),
+            false,
         ));
         assert_eq!(report.status, CommandStatus::Done);
         assert_eq!(report.error, None);
@@ -1832,6 +2498,7 @@ mod tests {
             &llm,
             tree.clone(),
             &AtomicBool::new(false),
+            true,
         ));
         assert_eq!(report.status, CommandStatus::AwaitingConfirmation);
         assert!(report.pending_summary.as_deref().unwrap().contains("Send"));
@@ -1873,6 +2540,7 @@ mod tests {
             &llm,
             agent_tree(),
             &AtomicBool::new(true),
+            false,
         ));
         assert_eq!(report.status, CommandStatus::Cancelled);
         assert_eq!(keys(&report), vec!["agentWorkingNoApp", "agentCancelled"]);

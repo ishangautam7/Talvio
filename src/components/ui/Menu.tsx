@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons/glyphs";
 import { usePortalTarget } from "./portal";
 
 export interface MenuItem {
@@ -198,7 +198,7 @@ export const MenuButton: React.FC<{
                 ? { top: position.top }
                 : { bottom: window.innerHeight - position.top }),
             }}
-            className="elev-float menu-in z-[70] rounded-xl border border-hairline bg-surface p-1"
+            className="elev-float menu-in z-[70] rounded-xl bg-surface p-1"
           >
             {items.map((item) => {
               const Icon = item.icon;

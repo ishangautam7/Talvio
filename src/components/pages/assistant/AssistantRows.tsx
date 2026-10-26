@@ -2,12 +2,19 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
-import { Check, ChevronDown, ChevronUp, Loader2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  X,
+} from "@/components/icons/glyphs";
 import {
   commands,
   type AssistantCharacter,
   type AssistantResponseLength,
   type AssistantSearchDepth,
+  type QuickAskMemory,
   type Reminder,
   type VisionCaptureTiming,
 } from "@/bindings";
@@ -442,7 +449,7 @@ export const RemindersRow: React.FC = () => {
                 className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-muted"
               >
                 <span
-                  className="w-[5.75rem] shrink-0 truncate text-xs font-medium text-accent tabular-nums"
+                  className="w-[5.75rem] shrink-0 truncate text-xs font-medium text-muted tabular-nums"
                   title={new Date(reminder.due_at).toLocaleString(
                     i18n.language,
                   )}
@@ -583,6 +590,68 @@ export const MemoryRow: React.FC = () => {
 
 /* ────────────────────────────── replies ────────────────────────────── */
 
+/** "Remember the conversation", shortest first. */
+const QUICK_ASK_MEMORY: QuickAskMemory[] = [
+  "off",
+  "five_minutes",
+  "ten_minutes",
+  "thirty_minutes",
+  "until_cleared",
+];
+
+/**
+ * How long a quick ask remembers the one before it, so "and in French?" is a
+ * follow-up; and a way to start over now. Calls and a phone's questions keep
+ * their own conversations, whatever this says.
+ */
+const QuickAskMemoryRow: React.FC = () => {
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+  const run = useSettingCommand();
+  const memory = settings?.assistant_quick_ask_memory ?? "ten_minutes";
+
+  const startOver = async () => {
+    try {
+      await commands.assistantNewQuickAsk();
+      toast.success(t("assistantPage.rows.quickAskMemory.cleared"));
+    } catch (error) {
+      console.error("Failed to start a new conversation:", error);
+      toast.error(t("common.saveFailed"));
+    }
+  };
+
+  return (
+    <SettingContainer
+      title={t("assistantPage.rows.quickAskMemory.title")}
+      description={t("assistantPage.tips.quickAskMemory")}
+      grouped
+    >
+      <div className="flex items-center gap-2">
+        {memory !== "off" && (
+          <Button variant="secondary" onClick={() => void startOver()}>
+            {t("assistant.quick.newConversation")}
+          </Button>
+        )}
+        <LogoSelect
+          options={QUICK_ASK_MEMORY.map((value) => ({
+            value,
+            label: t(`assistantPage.rows.quickAskMemory.options.${value}`),
+          }))}
+          value={memory}
+          onChange={(next) =>
+            void run(
+              commands.setAssistantQuickAskMemory(next as QuickAskMemory),
+            )
+          }
+          className="w-[11rem]"
+          ariaLabel={t("assistantPage.rows.quickAskMemory.title")}
+          searchable={false}
+        />
+      </div>
+    </SettingContainer>
+  );
+};
+
 const LENGTHS: AssistantResponseLength[] = [
   "default",
   "short",
@@ -627,6 +696,7 @@ export const RepliesRows: React.FC = () => {
           }))}
         />
       </SettingContainer>
+      <QuickAskMemoryRow />
       <SettingContainer
         title={t("assistantPage.cards.replies.history")}
         description={t("assistantPage.tips.history")}

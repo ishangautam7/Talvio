@@ -115,9 +115,7 @@ export function Segmented<T extends string>({
   };
 
   const glass = tone === "glass";
-  const track = glass
-    ? "border border-white/20 bg-white/10"
-    : "border border-hairline bg-surface-strong";
+  const track = glass ? "border border-white/20 bg-white/10" : "bg-ink/[0.05]";
 
   return (
     <div
@@ -125,12 +123,12 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={label}
       aria-disabled={disabled || undefined}
-      className={`relative isolate ${fill ? "flex w-full" : "inline-flex"} rounded-lg p-0.5 ${track} ${disabled ? "opacity-50" : ""} ${className}`}
+      className={`relative isolate ${fill ? "flex w-full" : "inline-flex"} rounded-lg p-[3px] ${track} ${disabled ? "opacity-50" : ""} ${className}`}
     >
       {thumb && (
         <span
           aria-hidden="true"
-          className={`absolute top-0.5 bottom-0.5 -z-10 rounded-md ${
+          className={`absolute top-[3px] bottom-[3px] -z-10 rounded-md ${
             glass
               ? "bg-white/95 shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
               : "segmented-pill"
@@ -175,7 +173,7 @@ export function Segmented<T extends string>({
           >
             {Icon && (
               <Icon
-                className={`h-3.5 w-3.5 shrink-0 ${selected && !glass ? "text-accent" : ""}`}
+                className={`h-3.5 w-3.5 shrink-0 ${selected && !glass ? "text-ink" : ""}`}
               />
             )}
             <span className={fill ? "truncate" : undefined}>

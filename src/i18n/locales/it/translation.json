@@ -646,6 +646,10 @@
             "name": "Avvia una conversazione",
             "description": "Parla con l'assistente a mani libere e ascolta le sue risposte. Premi di nuovo per terminare."
           },
+          "command": {
+            "name": "Comando vocale",
+            "description": "Di' cosa vuoi fare, ad esempio “apri YouTube”, e Talvio lo fa."
+          },
           "hands_free": {
             "name": "A mani libere",
             "description": "Premilo mentre tieni premuti i tasti di dettatura per continuare a registrare dopo averli rilasciati. Premi di nuovo i tasti di dettatura per finire."
@@ -682,7 +686,9 @@
         "dictation": "Attivo: registri finché tieni premuti i tasti. Disattivo: una pressione avvia, la successiva ferma, quindi ogni dettatura è a mani libere.",
         "assistant": "Attivo: ascolta finché tieni premuti i tasti. Disattivo: una pressione avvia, la successiva invia.",
         "dictationLabel": "Tieni premuto per parlare",
-        "assistantLabel": "Tieni premuto per chiedere"
+        "assistantLabel": "Tieni premuto per chiedere",
+        "command": "Attivo: ascolta finché tieni premuti i tasti. Disattivo: una pressione avvia, la successiva esegue il comando.",
+        "commandLabel": "Tieni premuto per dire un comando"
       },
       "handsFree": {
         "unavailableKeys": "Funziona quando la dettatura usa solo tasti modificatori, come Ctrl + Win. Con {{keys}}, disattiva invece «Tieni premuto per parlare»: ogni dettatura continua finché non premi di nuovo i tasti.",
@@ -2115,6 +2121,8 @@
         "title": "Telefono",
         "remoteInput": "Dettatura dal telefono",
         "remoteInputHint": "Permette al telefono di dettare e scrivere su questo computer.",
+        "remoteWindows": "Lascia vedere e usare le finestre ai telefoni",
+        "remoteWindowsHint": "Il telefono può elencare le finestre aperte, guardarne una dal vivo e scriverci, premere tasti o fare clic. Quando un telefono sta guardando, qui compare una scheda con Ferma.",
         "install": "Installa l'app Talvio sul telefono e accedi come {{email}}."
       },
       "keys": {
@@ -2475,6 +2483,7 @@
     "processing": "Pulizia in corso…",
     "generating": "Scrittura con Flow…",
     "vision": "Lettura dello schermo…",
+    "command": "Ci sto lavorando…",
     "notices": {
       "flowNotConfigured": "Flow richiede un modello per l'assistente — incollato come dettatura",
       "flowFailed": "Flow non è riuscito a generare — non è stato incollato nulla",
@@ -2483,7 +2492,8 @@
       "cleanupFallback": "La pulizia IA non è stata eseguita — incollato il testo grezzo",
       "cleanupModelRejected": "Il tuo provider di pulizia ha rifiutato quel modello: controlla il modello nelle Impostazioni",
       "cloudSttFellBack": "Trascrizione cloud non riuscita — usato il modello sul dispositivo",
-      "noSpeechModel": "Ancora nessun modello vocale. Scegline uno nella pagina Modelli"
+      "noSpeechModel": "Ancora nessun modello vocale. Scegline uno nella pagina Modelli",
+      "commandTranscriptionFailed": "Comando non capito — riprova"
     },
     "listening": "In ascolto…",
     "locked": "Registrazione a mani libere — premi di nuovo la scorciatoia per fermarti",
@@ -2544,6 +2554,20 @@
     "body": "Vuole dettare e scrivere nelle app di questo computer, quindi consenti solo telefoni che ti appartengono.",
     "allow": "Consenti",
     "deny": "Non consentire"
+  },
+  "phoneViewing": {
+    "title": "Un telefono sta guardando",
+    "body": "{{phone}} può vedere {{title}}.",
+    "unnamedPhone": "Il tuo telefono",
+    "stop": "Ferma"
+  },
+  "commandCard": {
+    "heading": "Comando vocale",
+    "confirm": "Procedi",
+    "cancel": "Annulla",
+    "working": "Ci sto lavorando…",
+    "dryRun": "Simulazione: non è stato fatto nulla.",
+    "sayAgain": "Di' la tua risposta con i tasti dei comandi."
   },
   "assistant": {
     "conversation": {
@@ -2709,6 +2733,7 @@
       "screen": "Sto guardando lo schermo…",
       "meetingSearch": "Ricerca nella riunione",
       "meetingRead": "Lettura della riunione",
+      "computer": "Lo sto facendo sul tuo computer…",
       "working": "Elaborazione in corso",
       "elapsed": "{{seconds}} s"
     },
@@ -2770,7 +2795,12 @@
     },
     "quick": {
       "selection": "Selezione",
-      "copied": "Copiato"
+      "copied": "Copiato",
+      "newConversation": "Nuova conversazione"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Preparo la voce · {{percent}}%"
     }
   },
   "nav": {
@@ -2778,6 +2808,7 @@
     "home": "Home",
     "history": "Cronologia",
     "assistant": "Assistente",
+    "commands": "Comandi",
     "meetings": "Riunioni",
     "cleanup": "Pulizia IA",
     "dictionary": "Dizionario",
@@ -2818,7 +2849,9 @@
       "assistant": "Assistente",
       "mouse": "Mouse",
       "cleanupOff": "Attiva la pulizia IA per avere questa scorciatoia.",
-      "assistantOff": "L'assistente è disattivato, quindi le sue scorciatoie non fanno nulla."
+      "assistantOff": "L'assistente è disattivato, quindi le sue scorciatoie non fanno nulla.",
+      "commands": "Comandi vocali",
+      "commandsOff": "I comandi vocali sono disattivati, quindi questa scorciatoia non fa nulla."
     },
     "audio": {
       "microphone": "Microfono",
@@ -3165,6 +3198,50 @@
     },
     "addWord": "Aggiungi parola"
   },
+  "commandsPage": {
+    "description": "Di' cosa vuoi fare e Talvio lo fa su questo computer: aprire un sito, riprodurre una canzone, cambiare app, scrivere un'email.",
+    "enable": "Comandi vocali",
+    "offNotice": "I comandi vocali sono disattivati. Attivali per dare un compito alla loro scorciatoia; ciò che dici verrà poi inviato al modello che esegue i comandi.",
+    "shortcut": {
+      "title": "Pronuncia un comando",
+      "whatHold": "Tieni premuto, di' cosa vuoi fare, rilascia.",
+      "whatTap": "Tocca, di' cosa vuoi fare, tocca di nuovo."
+    },
+    "model": {
+      "title": "Eseguito da",
+      "info": "Il modello che trasforma ciò che dici in un'azione. Meglio uno piccolo e veloce: ogni comando è una sola richiesta.",
+      "provider": "Fornitore",
+      "model": "Modello",
+      "using": "I comandi usano {{model}} · {{provider}}.",
+      "borrowed": "Uso {{provider}} · {{model}}, perché {{chosen}} non ha una chiave.",
+      "needsKey": "{{provider}} ha bisogno di una chiave prima di poter eseguire comandi.",
+      "setUp": "Configura un modello",
+      "key": "Chiave API di {{provider}}",
+      "keyShared": "Condivisa con la pulizia IA e l'assistente."
+    },
+    "confirmIrreversible": {
+      "title": "Chiedi prima di inviare o eliminare",
+      "info": "Disattivato: un invio, una pubblicazione o un’eliminazione richiesti vengono eseguiti. Attivato: attende che premi Fallo. In ogni caso attende se lo dici («solo una bozza», «fammi controllare»)."
+    },
+    "dryRun": {
+      "title": "Simulazione",
+      "info": "Mostra cosa farebbe un comando invece di farlo."
+    },
+    "test": {
+      "group": "Provalo",
+      "title": "Scrivi un comando",
+      "info": "Scrivi ciò che diresti e guarda cosa è stato scelto e cosa ha fatto ogni passaggio."
+    },
+    "examples": {
+      "title": "Cose da dire",
+      "items": {
+        "youtube": "“Apri YouTube”",
+        "song": "“Riproduci Believer degli Imagine Dragons”",
+        "volume": "“Abbassa il volume”",
+        "switch": "“Passa a Chrome”"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Chiedi qualsiasi cosa a voce, da qualsiasi app. L'assistente può vedere il tuo schermo, cercare sul web e ricordare ciò che conta per te.",
     "offNotice": "L'assistente è disattivato. Le sue scorciatoie non fanno nulla e non usa la memoria finché non lo riattivi.",
@@ -3316,6 +3393,17 @@
       "screen": {
         "ask": "Visione dello schermo per le domande",
         "call": "Visione dello schermo nelle conversazioni"
+      },
+      "quickAskMemory": {
+        "title": "Ricorda la conversazione",
+        "cleared": "La prossima domanda inizia una nuova conversazione",
+        "options": {
+          "off": "Disattivato",
+          "five_minutes": "5 minuti",
+          "ten_minutes": "10 minuti",
+          "thirty_minutes": "30 minuti",
+          "until_cleared": "Finché non la cancello"
+        }
       }
     },
     "tips": {
@@ -3333,6 +3421,7 @@
       "profiles": "Personalità con nome, istruzioni e stile di risposta propri.",
       "replyLength": "Quanto sono lunghe di solito le risposte.",
       "history": "Quanti messaggi recenti tiene a mente.",
+      "quickAskMemory": "Per quanto tempo una domanda rapida ricorda quella precedente, così puoi fare una domanda di approfondimento. Le conversazioni mantengono la propria cronologia.",
       "summarize": "Riassume le chat lunghe per non dimenticarne l'inizio.",
       "opacity": "Con valori più bassi il desktop traspare.",
       "position": "Fai clic su un punto dello schermo.",
@@ -3855,13 +3944,22 @@
       "contactNoDetails": "{{name}} è nei tuoi contatti, ma non ha un indirizzo email né un numero di telefono salvato.",
       "contactNotFound": "Non ho un contatto di nome {{name}}.",
       "emailDraft": "La bozza per {{name}} è aperta. Di' invia o annulla.",
+      "emailDraftFile": "La bozza per {{name}} con {{file}} è aperta. Di' invia o annulla.",
       "emailDraftTruncated": "La bozza per {{name}} è aperta. Il messaggio era troppo lungo da passare a Gmail, quindi è stato troncato; controlla la fine prima di inviarlo. Di' invia o annulla.",
       "emailSent": "Inviata a {{name}}.",
+      "emailSentFile": "Inviato {{file}} a {{name}}.",
       "empty": "Non ho capito nessun comando.",
       "failed": "{{reason}}",
       "mediaNext": "Passato al brano successivo.",
       "mediaPlayPause": "Riproduci/pausa premuto.",
+      "mediaPaused": "In pausa.",
+      "mediaNothingPlaying": "Non c'è niente in riproduzione.",
+      "mediaResumed": "Ripreso.",
+      "mediaAlreadyPlaying": "È già in riproduzione.",
+      "windowNotReady": "L'app non si è aperta in tempo, quindi non ho scritto niente.",
+      "mediaPlaying": "Riproduco “{{title}}” su {{service}}.",
       "mediaPrevious": "Tornato al brano precedente.",
+      "mediaResultsOpened": "Aperti i risultati di {{service}} per “{{query}}”.",
       "mediaStop": "Riproduzione interrotta.",
       "needsComputerUse": "Nessuno dei miei strumenti può ancora farlo. Il controllo dello schermo per questo arriverà in una versione successiva.",
       "notConfigured": "La modalità comandi non è configurata: {{why}}",
@@ -3878,6 +3976,7 @@
       "routeFailed": "Non sono riuscito a capire cosa fare: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Cerco {{query}}.",
+      "spotifyResultsOpened": "Aperti i risultati di Spotify per “{{query}}”. Spotify non può avviare una ricerca da solo, quindi scegli cosa riprodurre.",
       "superseded": "Un comando più recente ha sostituito questo, quindi non è più in attesa.",
       "switchedTo": "Passato a {{title}}.",
       "tooManyQuestions": "Non riesco ancora a capire cosa fare. Prova a dirlo in un altro modo.",
@@ -3891,6 +3990,23 @@
       "volumeUp": "Volume alzato.",
       "waitingForAnswer": "Quel comando aspetta una risposta, non una conferma.",
       "waitingForConfirmation": "Quel comando aspetta la tua conferma, non una risposta."
+    }
+  },
+  "palette": {
+    "trigger": "Cerca o vai a…",
+    "placeholder": "Cerca pagine, modelli e impostazioni",
+    "label": "Tavolozza dei comandi",
+    "empty": "Nessun risultato per «{{query}}»",
+    "groups": {
+      "pages": "Pagine",
+      "models": "Modelli",
+      "settings": "Impostazioni",
+      "actions": "Azioni"
+    },
+    "hints": {
+      "move": "Sposta",
+      "open": "Apri",
+      "close": "Chiudi"
     }
   }
 }

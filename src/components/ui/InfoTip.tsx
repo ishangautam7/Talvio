@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Info } from "lucide-react";
+import { Info } from "@/components/icons/glyphs";
 import { Tooltip } from "./Tooltip";
 import { splitTip } from "./tipText";
 

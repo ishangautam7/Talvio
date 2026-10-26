@@ -644,6 +644,10 @@
             "name": "Gespräch starten",
             "description": "Sprich freihändig mit dem Assistenten und hör seine Antworten. Zum Beenden erneut drücken."
           },
+          "command": {
+            "name": "Sprachbefehl",
+            "description": "Sag, was erledigt werden soll, etwa „öffne YouTube“, und Talvio erledigt es."
+          },
           "hands_free": {
             "name": "Freihändig",
             "description": "Drücke sie, während du die Diktiertasten hältst, damit die Aufnahme nach dem Loslassen weiterläuft. Drücke die Diktiertasten erneut, um zu beenden."
@@ -680,7 +684,9 @@
         "dictation": "An: Die Aufnahme läuft, solange du die Tasten hältst. Aus: Ein Druck startet, der nächste stoppt, also ist jedes Diktat freihändig.",
         "assistant": "An: Hört zu, solange du die Tasten hältst. Aus: Ein Druck startet, der nächste sendet.",
         "dictationLabel": "Zum Sprechen halten",
-        "assistantLabel": "Zum Fragen halten"
+        "assistantLabel": "Zum Fragen halten",
+        "command": "An: Hört zu, solange du die Tasten hältst. Aus: Ein Druck startet, der nächste führt den Befehl aus.",
+        "commandLabel": "Zum Sprechen eines Befehls halten"
       },
       "handsFree": {
         "unavailableKeys": "Geht, wenn Diktieren nur aus Sondertasten besteht, etwa Ctrl + Win. Schalte mit {{keys}} stattdessen „Zum Sprechen halten“ aus: Dann läuft jedes Diktat weiter, bis du die Tasten erneut drückst.",
@@ -2106,6 +2112,8 @@
         "title": "Smartphone",
         "remoteInput": "Diktieren vom Smartphone",
         "remoteInputHint": "Erlaubt deinem Smartphone, auf diesem Computer zu diktieren und zu tippen.",
+        "remoteWindows": "Smartphones dürfen Fenster sehen und bedienen",
+        "remoteWindowsHint": "Dein Smartphone kann offene Fenster auflisten, eines live ansehen und darin tippen, Tasten drücken oder klicken. Eine Karte hier zeigt, wenn ein Smartphone zusieht, mit „Beenden“.",
         "install": "Installiere die Talvio-App auf deinem Smartphone und melde dich als {{email}} an."
       },
       "keys": {
@@ -2463,6 +2471,7 @@
     "processing": "Wird bereinigt…",
     "generating": "Flow schreibt…",
     "vision": "Schaut auf deinen Bildschirm…",
+    "command": "Wird erledigt…",
     "notices": {
       "flowNotConfigured": "Flow braucht ein Assistenzmodell — als Diktat eingefügt",
       "flowFailed": "Flow konnte nichts generieren — es wurde nichts eingefügt",
@@ -2471,7 +2480,8 @@
       "cleanupFallback": "KI-Bereinigung lief nicht — Rohtext eingefügt",
       "cleanupModelRejected": "Dein Bereinigungs-Anbieter hat dieses Modell abgelehnt – prüfe das Modell in den Einstellungen",
       "cloudSttFellBack": "Cloud-Transkription fehlgeschlagen — Modell auf dem Gerät verwendet",
-      "noSpeechModel": "Noch kein Sprachmodell. Wähle eines auf der Seite „Modelle“"
+      "noSpeechModel": "Noch kein Sprachmodell. Wähle eines auf der Seite „Modelle“",
+      "commandTranscriptionFailed": "Befehl nicht verstanden — versuch es noch einmal"
     },
     "listening": "Hört zu…",
     "locked": "Freihändige Aufnahme — drücke das Tastenkürzel erneut zum Stoppen",
@@ -2530,6 +2540,20 @@
     "body": "Es möchte in den Apps auf diesem Computer diktieren und tippen, also erlaube nur Smartphones, die dir gehören.",
     "allow": "Erlauben",
     "deny": "Nicht erlauben"
+  },
+  "phoneViewing": {
+    "title": "Smartphone sieht zu",
+    "body": "{{phone}} kann {{title}} sehen.",
+    "unnamedPhone": "Dein Smartphone",
+    "stop": "Beenden"
+  },
+  "commandCard": {
+    "heading": "Sprachbefehl",
+    "confirm": "Ausführen",
+    "cancel": "Abbrechen",
+    "working": "Wird erledigt…",
+    "dryRun": "Probelauf: Es wurde nichts ausgeführt.",
+    "sayAgain": "Sag deine Antwort mit den Befehlstasten."
   },
   "assistant": {
     "conversation": {
@@ -2691,6 +2715,7 @@
       "screen": "Schaut auf deinen Bildschirm…",
       "meetingSearch": "Durchsucht das Meeting",
       "meetingRead": "Liest das Meeting",
+      "computer": "Erledigt es auf deinem Computer…",
       "working": "Arbeitet daran",
       "elapsed": "{{seconds}} s"
     },
@@ -2752,7 +2777,12 @@
     },
     "quick": {
       "selection": "Auswahl",
-      "copied": "Kopiert"
+      "copied": "Kopiert",
+      "newConversation": "Neue Unterhaltung"
+    },
+    "orb": {
+      "doing": "{{action}} …",
+      "voiceLoading": "Stimme wird vorbereitet · {{percent}} %"
     }
   },
   "nav": {
@@ -2760,6 +2790,7 @@
     "home": "Start",
     "history": "Verlauf",
     "assistant": "Assistent",
+    "commands": "Befehle",
     "meetings": "Meetings",
     "cleanup": "KI-Bereinigung",
     "dictionary": "Wörterbuch",
@@ -2800,7 +2831,9 @@
       "assistant": "Assistent",
       "mouse": "Maus",
       "cleanupOff": "Schalte die KI-Bereinigung ein, um dieses Tastenkürzel zu nutzen.",
-      "assistantOff": "Der Assistent ist ausgeschaltet, daher bewirken seine Tastenkürzel nichts."
+      "assistantOff": "Der Assistent ist ausgeschaltet, daher bewirken seine Tastenkürzel nichts.",
+      "commands": "Sprachbefehle",
+      "commandsOff": "Sprachbefehle sind ausgeschaltet, daher bewirkt dieses Tastenkürzel nichts."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3141,6 +3174,50 @@
     },
     "addWord": "Wort hinzufügen"
   },
+  "commandsPage": {
+    "description": "Sag, was erledigt werden soll, und Talvio erledigt es auf diesem Computer: eine Website öffnen, ein Lied abspielen, die App wechseln, eine E-Mail schreiben.",
+    "enable": "Sprachbefehle",
+    "offNotice": "Sprachbefehle sind ausgeschaltet. Schalte sie ein, damit ihr Tastenkürzel etwas tut; was du sagst, geht dann an das Modell, das die Befehle ausführt.",
+    "shortcut": {
+      "title": "Befehl sprechen",
+      "whatHold": "Halten, sagen, was erledigt werden soll, loslassen.",
+      "whatTap": "Kurz drücken, sagen, was erledigt werden soll, erneut drücken."
+    },
+    "model": {
+      "title": "Läuft auf",
+      "info": "Das Modell, das aus dem Gesagten eine Aktion macht. Ein kleines, schnelles ist am besten: Jeder Befehl ist eine einzige Anfrage daran.",
+      "provider": "Anbieter",
+      "model": "Modell",
+      "using": "Befehle laufen auf {{model}} · {{provider}}.",
+      "borrowed": "{{provider}} · {{model}} wird verwendet, da {{chosen}} keinen Schlüssel hat.",
+      "needsKey": "{{provider}} braucht einen Schlüssel, bevor Befehle laufen können.",
+      "setUp": "Modell einrichten",
+      "key": "{{provider}}-API-Schlüssel",
+      "keyShared": "Wird mit der KI-Bereinigung und dem Assistenten gemeinsam genutzt."
+    },
+    "confirmIrreversible": {
+      "title": "Vor Senden oder Löschen fragen",
+      "info": "Aus: Senden, Posten oder Löschen, worum du bittest, wird ausgeführt. An: Es wartet, bis du auf Ausführen drückst. In jedem Fall wartet es, wenn du es sagst („nur entwerfen“, „lass mich erst prüfen“)."
+    },
+    "dryRun": {
+      "title": "Probelauf",
+      "info": "Zeigt, was ein Befehl tun würde, statt es zu tun."
+    },
+    "test": {
+      "group": "Ausprobieren",
+      "title": "Befehl eintippen",
+      "info": "Tippe ein, was du sagen würdest, und sieh, was gewählt wurde und was jeder Schritt getan hat."
+    },
+    "examples": {
+      "title": "Was du sagen kannst",
+      "items": {
+        "youtube": "„Öffne YouTube“",
+        "song": "„Spiel Believer von Imagine Dragons“",
+        "volume": "„Mach die Lautstärke leiser“",
+        "switch": "„Wechsle zu Chrome“"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Frag per Stimme alles, aus jeder App. Der Assistent kann deinen Bildschirm sehen, im Web suchen und sich merken, was dir wichtig ist.",
     "offNotice": "Der Assistent ist ausgeschaltet. Seine Tastenkürzel tun nichts, und er belegt keinen Speicher, bis du ihn wieder einschaltest.",
@@ -3289,6 +3366,17 @@
       "screen": {
         "ask": "Bildschirmansicht bei Fragen",
         "call": "Bildschirmansicht in Gesprächen"
+      },
+      "quickAskMemory": {
+        "title": "Unterhaltung merken",
+        "cleared": "Die nächste Frage beginnt eine neue Unterhaltung",
+        "options": {
+          "off": "Aus",
+          "five_minutes": "5 Minuten",
+          "ten_minutes": "10 Minuten",
+          "thirty_minutes": "30 Minuten",
+          "until_cleared": "Bis ich sie lösche"
+        }
       }
     },
     "tips": {
@@ -3306,6 +3394,7 @@
       "profiles": "Personas mit eigenem Namen, eigenen Anweisungen und eigenem Antwortstil.",
       "replyLength": "Wie lang Antworten normalerweise sind.",
       "history": "Wie viele der letzten Nachrichten er im Blick behält.",
+      "quickAskMemory": "Wie lange sich eine schnelle Frage an die vorherige erinnert, damit du nachfragen kannst. Gespräche behalten ihren eigenen Verlauf.",
       "summarize": "Fasst lange Chats zusammen, damit er den Anfang nicht vergisst.",
       "opacity": "Ein niedrigerer Wert lässt deinen Desktop durchscheinen.",
       "position": "Klicke auf eine Stelle des Bildschirms.",
@@ -3801,13 +3890,22 @@
       "contactNoDetails": "{{name}} ist in deinen Kontakten, hat aber keine E-Mail-Adresse oder Telefonnummer gespeichert.",
       "contactNotFound": "Ich habe keinen Kontakt namens {{name}}.",
       "emailDraft": "Entwurf an {{name}} ist offen. Sag „Senden“ oder „Abbrechen“.",
+      "emailDraftFile": "Der Entwurf an {{name}} mit {{file}} ist geöffnet. Sag „Senden“ oder „Abbrechen“.",
       "emailDraftTruncated": "Entwurf an {{name}} ist offen. Die Nachricht war zu lang für Gmail und wurde gekürzt; prüfe das Ende vor dem Senden. Sag „Senden“ oder „Abbrechen“.",
       "emailSent": "An {{name}} gesendet.",
+      "emailSentFile": "{{file}} wurde an {{name}} gesendet.",
       "empty": "Ich habe keinen Befehl verstanden.",
       "failed": "{{reason}}",
       "mediaNext": "Zum nächsten Titel gesprungen.",
       "mediaPlayPause": "Wiedergabe/Pause gedrückt.",
+      "mediaPaused": "Pausiert.",
+      "mediaNothingPlaying": "Gerade läuft nichts.",
+      "mediaResumed": "Fortgesetzt.",
+      "mediaAlreadyPlaying": "Es läuft bereits.",
+      "windowNotReady": "Die App ist nicht rechtzeitig erschienen, deshalb habe ich nichts getippt.",
+      "mediaPlaying": "„{{title}}“ wird auf {{service}} abgespielt.",
       "mediaPrevious": "Zurück zum vorherigen Titel.",
+      "mediaResultsOpened": "Ergebnisse für „{{query}}“ auf {{service}} geöffnet.",
       "mediaStop": "Wiedergabe gestoppt.",
       "needsComputerUse": "Keines meiner Werkzeuge kann das bisher. Die Bildschirmsteuerung dafür kommt in einer späteren Version.",
       "notConfigured": "Der Befehlsmodus ist nicht eingerichtet: {{why}}",
@@ -3824,6 +3922,7 @@
       "routeFailed": "Ich konnte nicht herausfinden, was zu tun ist: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Suche nach {{query}}.",
+      "spotifyResultsOpened": "Spotify-Ergebnisse für „{{query}}“ geöffnet. Spotify kann eine Suche nicht selbst starten, also wähle aus, was abgespielt werden soll.",
       "superseded": "Ein neuerer Befehl hat diesen ersetzt, deshalb wartet er nicht mehr.",
       "switchedTo": "Zu {{title}} gewechselt.",
       "tooManyQuestions": "Ich weiß immer noch nicht, was zu tun ist. Versuch es anders zu formulieren.",
@@ -3837,6 +3936,23 @@
       "volumeUp": "Lautstärke erhöht.",
       "waitingForAnswer": "Dieser Befehl wartet auf eine Antwort, nicht auf eine Bestätigung.",
       "waitingForConfirmation": "Dieser Befehl wartet auf deine Bestätigung, nicht auf eine Antwort."
+    }
+  },
+  "palette": {
+    "trigger": "Suchen oder springen zu…",
+    "placeholder": "Seiten, Modelle und Einstellungen durchsuchen",
+    "label": "Befehlspalette",
+    "empty": "Nichts passt zu „{{query}}“",
+    "groups": {
+      "pages": "Seiten",
+      "models": "Modelle",
+      "settings": "Einstellungen",
+      "actions": "Aktionen"
+    },
+    "hints": {
+      "move": "Bewegen",
+      "open": "Öffnen",
+      "close": "Schließen"
     }
   }
 }

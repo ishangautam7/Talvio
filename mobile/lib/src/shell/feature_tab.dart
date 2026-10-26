@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/models.dart';
 
-/// One tab of the home shell.
+/// One page of the home shell, as its navigation lists it. The first
+/// available one is home.
 class FeatureTab {
   const FeatureTab({
     required this.id,
@@ -11,6 +12,8 @@ class FeatureTab {
     required this.selectedIcon,
     required this.builder,
     this.requires,
+    this.actions,
+    this.composer = false,
   });
 
   final String id;
@@ -22,6 +25,13 @@ class FeatureTab {
   /// The capability a computer must advertise for this tab to show; null for
   /// a tab that is always there.
   final String? requires;
+
+  /// Buttons for the top bar while this page is on screen (New chat).
+  final List<Widget> Function(BuildContext context)? actions;
+
+  /// The page ends in a composer, so nothing scrolls under the navigation
+  /// bar and it never needs its top line.
+  final bool composer;
 
   /// Hidden only when computers are online and none of them advertises
   /// [requires]. A computer that advertises nothing is unknown, not lacking:

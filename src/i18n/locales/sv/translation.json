@@ -644,6 +644,10 @@
             "name": "Starta en konversation",
             "description": "Prata med assistenten handsfree och hör dess svar. Tryck igen för att avsluta."
           },
+          "command": {
+            "name": "Röstkommando",
+            "description": "Säg vad du vill få gjort, till exempel ”öppna YouTube”, så gör Talvio det."
+          },
           "hands_free": {
             "name": "Handsfree",
             "description": "Tryck på den medan du håller dikteringstangenterna, så fortsätter inspelningen när du släpper. Tryck på dikteringstangenterna igen för att avsluta."
@@ -680,7 +684,9 @@
         "dictation": "På: inspelningen pågår medan du håller ned tangenterna. Av: en tryckning startar, nästa stoppar, så varje diktering blir handsfree.",
         "assistant": "På: lyssnar medan du håller ned tangenterna. Av: en tryckning startar, nästa skickar.",
         "dictationLabel": "Håll för att prata",
-        "assistantLabel": "Håll för att fråga"
+        "assistantLabel": "Håll för att fråga",
+        "command": "På: lyssnar medan du håller ned tangenterna. Av: en tryckning startar, nästa kör kommandot.",
+        "commandLabel": "Håll för att säga ett kommando"
       },
       "handsFree": {
         "unavailableKeys": "Fungerar när diktering bara består av modifierartangenter, som Ctrl + Win. Med {{keys}}, stäng av ”Håll för att prata” i stället: varje diktering fortsätter då tills du trycker på tangenterna igen.",
@@ -2106,6 +2112,8 @@
         "title": "Telefon",
         "remoteInput": "Diktering från telefonen",
         "remoteInputHint": "Låter telefonen diktera och skriva på den här datorn.",
+        "remoteWindows": "Låt telefoner se och använda fönster",
+        "remoteWindowsHint": "Telefonen kan lista öppna fönster, titta på ett live och skriva, trycka på tangenter eller klicka i det. Ett kort här visar när en telefon tittar, med Stoppa.",
         "install": "Installera Talvio-appen på telefonen och logga in som {{email}}."
       },
       "keys": {
@@ -2463,6 +2471,7 @@
     "processing": "Rensar…",
     "generating": "Skriver med Flow…",
     "vision": "Tittar på din skärm…",
+    "command": "Jobbar på det…",
     "notices": {
       "flowNotConfigured": "Flow behöver en assistentmodell — inklistrat som diktering",
       "flowFailed": "Flow kunde inte generera — inget klistrades in",
@@ -2471,7 +2480,8 @@
       "cleanupFallback": "AI-rensningen kördes inte — klistrade in råtexten",
       "cleanupModelRejected": "Leverantören för rensning avvisade modellen — kontrollera modellen i Inställningar",
       "cloudSttFellBack": "Molntranskriberingen misslyckades — använde modellen på enheten",
-      "noSpeechModel": "Ingen talmodell än. Välj en på sidan Modeller"
+      "noSpeechModel": "Ingen talmodell än. Välj en på sidan Modeller",
+      "commandTranscriptionFailed": "Kunde inte höra kommandot — försök igen"
     },
     "listening": "Lyssnar…",
     "locked": "Spelar in handsfree — tryck på kortkommandot igen för att stoppa",
@@ -2530,6 +2540,20 @@
     "body": "Den vill diktera och skriva i apparna på den här datorn, så tillåt bara telefoner som du äger.",
     "allow": "Tillåt",
     "deny": "Tillåt inte"
+  },
+  "phoneViewing": {
+    "title": "Telefonen tittar",
+    "body": "{{phone}} kan se {{title}}.",
+    "unnamedPhone": "Din telefon",
+    "stop": "Stoppa"
+  },
+  "commandCard": {
+    "heading": "Röstkommando",
+    "confirm": "Gör det",
+    "cancel": "Avbryt",
+    "working": "Jobbar på det…",
+    "dryRun": "Testkörning: inget gjordes.",
+    "sayAgain": "Säg ditt svar med kommandotangenterna."
   },
   "assistant": {
     "conversation": {
@@ -2691,6 +2715,7 @@
       "screen": "Tittar på din skärm…",
       "meetingSearch": "Söker i mötet",
       "meetingRead": "Läser mötet",
+      "computer": "Gör det på din dator…",
       "working": "Jobbar på det",
       "elapsed": "{{seconds}} s"
     },
@@ -2752,7 +2777,12 @@
     },
     "quick": {
       "selection": "Markering",
-      "copied": "Kopierat"
+      "copied": "Kopierat",
+      "newConversation": "Ny konversation"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Förbereder rösten · {{percent}} %"
     }
   },
   "nav": {
@@ -2760,6 +2790,7 @@
     "home": "Hem",
     "history": "Historik",
     "assistant": "Assistent",
+    "commands": "Kommandon",
     "meetings": "Möten",
     "cleanup": "AI-rensning",
     "dictionary": "Ordlista",
@@ -2800,7 +2831,9 @@
       "assistant": "Assistent",
       "mouse": "Mus",
       "cleanupOff": "Slå på AI-rensning för att få det här kortkommandot.",
-      "assistantOff": "Assistenten är avstängd, så dess kortkommandon gör ingenting."
+      "assistantOff": "Assistenten är avstängd, så dess kortkommandon gör ingenting.",
+      "commands": "Röstkommandon",
+      "commandsOff": "Röstkommandon är avstängda, så det här kortkommandot gör ingenting."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3141,6 +3174,50 @@
     },
     "addWord": "Lägg till ord"
   },
+  "commandsPage": {
+    "description": "Säg vad du vill få gjort, så gör Talvio det på den här datorn: öppnar en webbplats, spelar en låt, byter app, skriver ett mejl.",
+    "enable": "Röstkommandon",
+    "offNotice": "Röstkommandon är avstängda. Slå på dem för att ge deras kortkommando något att göra; det du säger skickas då till modellen som kör kommandona.",
+    "shortcut": {
+      "title": "Säg ett kommando",
+      "whatHold": "Håll ned, säg vad du vill få gjort, släpp.",
+      "whatTap": "Tryck, säg vad du vill få gjort, tryck igen."
+    },
+    "model": {
+      "title": "Körs på",
+      "info": "Modellen som gör om det du säger till en handling. En liten, snabb modell är bäst: varje kommando är en förfrågan till den.",
+      "provider": "Leverantör",
+      "model": "Modell",
+      "using": "Kommandon körs på {{model}} · {{provider}}.",
+      "borrowed": "Använder {{provider}} · {{model}}, eftersom {{chosen}} saknar nyckel.",
+      "needsKey": "{{provider}} behöver en nyckel innan kommandon kan köras.",
+      "setUp": "Konfigurera en modell",
+      "key": "API-nyckel för {{provider}}",
+      "keyShared": "Delas med AI-rensning och assistenten."
+    },
+    "confirmIrreversible": {
+      "title": "Fråga innan skicka eller radera",
+      "info": "Av: det du ber om att skicka, publicera eller radera görs. På: det väntar tills du trycker på Gör det. Det väntar alltid om du säger det (”bara ett utkast”, ”låt mig kolla först”)."
+    },
+    "dryRun": {
+      "title": "Testkörning",
+      "info": "Visa vad ett kommando skulle göra i stället för att göra det."
+    },
+    "test": {
+      "group": "Prova",
+      "title": "Skriv ett kommando",
+      "info": "Skriv det du skulle säga och se vad som valdes och vad varje steg gjorde."
+    },
+    "examples": {
+      "title": "Saker att säga",
+      "items": {
+        "youtube": "”Öppna YouTube”",
+        "song": "”Spela Believer med Imagine Dragons”",
+        "volume": "”Sänk volymen”",
+        "switch": "”Byt till Chrome”"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Fråga vad som helst med rösten, från vilken app som helst. Assistenten kan se din skärm, söka på webben och minnas det som är viktigt för dig.",
     "offNotice": "Assistenten är avstängd. Dess kortkommandon gör ingenting och den använder inget minne förrän du slår på den igen.",
@@ -3289,6 +3366,17 @@
       "screen": {
         "ask": "Skärmvisning för frågor",
         "call": "Skärmvisning i konversationer"
+      },
+      "quickAskMemory": {
+        "title": "Kom ihåg konversationen",
+        "cleared": "Nästa fråga startar en ny konversation",
+        "options": {
+          "off": "Av",
+          "five_minutes": "5 minuter",
+          "ten_minutes": "10 minuter",
+          "thirty_minutes": "30 minuter",
+          "until_cleared": "Tills jag rensar den"
+        }
       }
     },
     "tips": {
@@ -3306,6 +3394,7 @@
       "profiles": "Personligheter med eget namn, egna instruktioner och egen svarsstil.",
       "replyLength": "Hur långa svaren brukar vara.",
       "history": "Hur många av de senaste meddelandena den har i minnet.",
+      "quickAskMemory": "Hur länge en snabb fråga minns den förra, så att du kan ställa en följdfråga. Konversationer har sin egen historik.",
       "summarize": "Sammanfattar långa chattar så att den inte glömmer början.",
       "opacity": "Lägre låter skrivbordet synas igenom.",
       "position": "Klicka på en plats på skärmen.",
@@ -3801,13 +3890,22 @@
       "contactNoDetails": "{{name}} finns i dina kontakter men har ingen sparad e-postadress eller telefonnummer.",
       "contactNotFound": "Jag har ingen kontakt som heter {{name}}.",
       "emailDraft": "Utkastet till {{name}} är öppet. Säg skicka eller avbryt.",
+      "emailDraftFile": "Utkastet till {{name}} med {{file}} är öppet. Säg skicka eller avbryt.",
       "emailDraftTruncated": "Utkastet till {{name}} är öppet. Meddelandet var för långt för att skickas till Gmail, så det kortades av; kontrollera slutet innan du skickar. Säg skicka eller avbryt.",
       "emailSent": "Skickat till {{name}}.",
+      "emailSentFile": "Skickade {{file}} till {{name}}.",
       "empty": "Jag uppfattade inget kommando.",
       "failed": "{{reason}}",
       "mediaNext": "Hoppade till nästa spår.",
       "mediaPlayPause": "Tryckte på spela/pausa.",
+      "mediaPaused": "Pausad.",
+      "mediaNothingPlaying": "Inget spelas.",
+      "mediaResumed": "Återupptogs.",
+      "mediaAlreadyPlaying": "Det spelas redan.",
+      "windowNotReady": "Appen kom inte upp i tid, så jag skrev ingenting.",
+      "mediaPlaying": "Spelar ”{{title}}” på {{service}}.",
       "mediaPrevious": "Tillbaka till föregående spår.",
+      "mediaResultsOpened": "Öppnade resultaten för ”{{query}}” på {{service}}.",
       "mediaStop": "Stoppade uppspelningen.",
       "needsComputerUse": "Inget av mina verktyg kan göra det än. Att styra skärmen för det kommer i en senare version.",
       "notConfigured": "Kommandoläget är inte konfigurerat: {{why}}",
@@ -3824,6 +3922,7 @@
       "routeFailed": "Jag kunde inte lista ut vad jag skulle göra: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Söker efter {{query}}.",
+      "spotifyResultsOpened": "Öppnade Spotifys resultat för ”{{query}}”. Spotify kan inte starta en sökning själv, så välj vad som ska spelas.",
       "superseded": "Ett nyare kommando ersatte det här, så det väntar inte längre.",
       "switchedTo": "Bytte till {{title}}.",
       "tooManyQuestions": "Jag kunde fortfarande inte lista ut vad jag skulle göra. Försök säga det på ett annat sätt.",
@@ -3837,6 +3936,23 @@
       "volumeUp": "Höjde volymen.",
       "waitingForAnswer": "Det kommandot väntar på ett svar, inte en bekräftelse.",
       "waitingForConfirmation": "Det kommandot väntar på att du bekräftar, inte på ett svar."
+    }
+  },
+  "palette": {
+    "trigger": "Sök eller gå till…",
+    "placeholder": "Sök bland sidor, modeller och inställningar",
+    "label": "Kommandopalett",
+    "empty": "Inget matchar ”{{query}}”",
+    "groups": {
+      "pages": "Sidor",
+      "models": "Modeller",
+      "settings": "Inställningar",
+      "actions": "Åtgärder"
+    },
+    "hints": {
+      "move": "Flytta",
+      "open": "Öppna",
+      "close": "Stäng"
     }
   }
 }

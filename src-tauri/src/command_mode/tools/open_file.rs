@@ -35,8 +35,9 @@ use crate::command_mode::registry::{arg_str, Risk, ToolCtx, ToolOutcome, ToolSpe
 pub static SPEC: ToolSpec = ToolSpec {
     name: "open_file",
     description: "Open a file on this computer by name with its default app (\"open my resume\", \
-        \"open the budget spreadsheet\"). Searches recent files and the Documents, Downloads and \
-        Desktop folders. Asks when several files match.",
+        \"open the budget spreadsheet\"), or one of the Documents, Downloads and Desktop folders \
+        themselves (\"open my downloads folder\"). Searches recent files and those folders. Asks \
+        when several files match.",
     schema,
     risk: Risk::Safe,
     platforms: ALL_PLATFORMS,
@@ -106,14 +107,63 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     let Some(name) = arg_str(&args, "name") else {
         return ToolOutcome::failed("Which file should I open?", false);
     };
-    let kind = Kind::parse(arg_str(&args, "kind"));
+    // "Open my Downloads folder": the folder itself, which the walk below
+    // never offers (it lists the files in it).
+    if let Some(folder) = known_folder_named(name, &ctx.effects.known_folders()) {
+        return match ctx.effects.open_path(&folder) {
+            Ok(()) => ToolOutcome::done(
+                "openingFile",
+                "Opening {{file}}.",
+                &[("file", &file_name(&folder))],
+            ),
+            Err(e) => ToolOutcome::failed(e, false),
+        };
+    }
+    match find_file(ctx, name, arg_str(&args, "kind"), &|_| true) {
+        FileLookup::One(path) => open(ctx, &path),
+        FileLookup::Several(labels) => ToolOutcome::ask("Which file?", labels),
+        FileLookup::OnlyPrograms => {
+            log::info!("open_file: only programs matched; not opening any");
+            ToolOutcome::failed(PROGRAM_REFUSAL, false)
+        }
+        FileLookup::Nothing => {
+            ToolOutcome::failed(format!("I couldn't find a file called {name}."), false)
+        }
+    }
+}
+
+/// What a spoken file name came to ([`find_file`]).
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum FileLookup {
+    /// One clear document.
+    One(PathBuf),
+    /// Several close ones, as the labels a question offers ("Resume.pdf
+    /// (Documents)"); an answer echoing one finds it exactly.
+    Several(Vec<String>),
+    Nothing,
+    /// Only programs matched, which this search never returns.
+    OnlyPrograms,
+}
+
+/// Find the document `name` means (of `kind`, the schema's kind word when the
+/// user said one): the platform's recent files first, then a bounded walk of
+/// the known folders, keeping only documents `allowed` passes. Shared by
+/// `open_file` and `compose_email`'s attachment, so "the report" means the
+/// same file to both.
+pub(crate) fn find_file(
+    ctx: &ToolCtx,
+    name: &str,
+    kind: Option<&str>,
+    allowed: &dyn Fn(&Path) -> bool,
+) -> FileLookup {
+    let kind = Kind::parse(kind);
     let query = clean_file_query(name);
 
     let recent: Vec<Candidate> = ctx
         .effects
         .recent_files()
         .into_iter()
-        .filter(|path| path.is_file())
+        .filter(|path| path.is_file() && allowed(path))
         .map(|path| Candidate { path, recent: true })
         .collect();
     let recent_documents: Vec<Candidate> = recent
@@ -129,9 +179,13 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
             Choice::One(candidate, score)
         }
         _ => {
-            let walked = walk_files(&ctx.effects.known_folders(), MAX_DEPTH, MAX_ENTRIES);
+            let walked: Vec<PathBuf> =
+                walk_files(&ctx.effects.known_folders(), MAX_DEPTH, MAX_ENTRIES)
+                    .into_iter()
+                    .filter(|path| allowed(path))
+                    .collect();
             log::debug!(
-                "open_file: {} recent files, {} found in known folders",
+                "find_file: {} recent files, {} found in known folders",
                 recent.len(),
                 walked.len()
             );
@@ -142,8 +196,7 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
                 .partition(|candidate| is_program(&candidate.path));
             match choose(&query, kind, &documents) {
                 Choice::Nothing if choose(&query, kind, &programs) != Choice::Nothing => {
-                    log::info!("open_file: only programs matched; not opening any");
-                    return ToolOutcome::failed(PROGRAM_REFUSAL, false);
+                    return FileLookup::OnlyPrograms;
                 }
                 choice => choice,
             }
@@ -151,15 +204,37 @@ fn handler(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     };
 
     match choice {
-        Choice::One(candidate, _) => open(ctx, &candidate.path),
-        Choice::Several(options) => ToolOutcome::ask(
-            "Which file?",
-            dedupe(options.iter().map(|c| choice_label(&c.path)).collect()),
-        ),
-        Choice::Nothing => {
-            ToolOutcome::failed(format!("I couldn't find a file called {name}."), false)
-        }
+        Choice::One(candidate, _) => FileLookup::One(candidate.path),
+        Choice::Several(options) => FileLookup::Several(dedupe(
+            options.iter().map(|c| choice_label(&c.path)).collect(),
+        )),
+        Choice::Nothing => FileLookup::Nothing,
     }
+}
+
+/// The known folder (Documents, Downloads, Desktop, home) a spoken name means
+/// on its own: "Downloads", "my downloads folder", "the desktop". Only the
+/// whole name: "the budget in downloads" is a file, and is left to the walk.
+fn known_folder_named(spoken: &str, folders: &[PathBuf]) -> Option<PathBuf> {
+    const FILLER: &[&str] = &["my", "the", "folder", "directory", "dir", "files"];
+    let words: Vec<String> = spoken
+        .split_whitespace()
+        .map(|word| word.to_lowercase())
+        .filter(|word| !FILLER.contains(&word.as_str()))
+        .collect();
+    let [word] = words.as_slice() else {
+        return None;
+    };
+    let singular = word.trim_end_matches('s');
+    folders
+        .iter()
+        .find(|folder| {
+            folder
+                .file_name()
+                .map(|name| name.to_string_lossy().to_lowercase())
+                .is_some_and(|name| name == *word || name.trim_end_matches('s') == singular)
+        })
+        .cloned()
 }
 
 fn open(ctx: &ToolCtx, path: &Path) -> ToolOutcome {
@@ -321,10 +396,46 @@ fn file_score(query: &str, path: &Path) -> f64 {
     } else {
         0.0
     };
-    [stem, file_name(path)]
+    let best = [stem.clone(), file_name(path)]
         .iter()
         .map(|name| fuzzy::score(query, name))
-        .fold(echoed, f64::max)
+        .fold(echoed, f64::max);
+    // Below a whole-word match the score is a spelling likeness of the whole
+    // string, and a long request that shares one word with a short name
+    // ("Talvio demo project report" against "talvio-orig") reads as close:
+    // the shared start alone lifts it. So it is scaled by how many of the
+    // request's words the name actually holds; a typo still counts as held.
+    if best >= 0.95 {
+        return best;
+    }
+    best * (0.6 + 0.4 * word_coverage(query, &stem))
+}
+
+/// The share of `query`'s meaningful words (three letters or more) that the
+/// name holds, as a whole word, a prefix either way, or a near spelling.
+fn word_coverage(query: &str, name: &str) -> f64 {
+    let name_words: Vec<String> = fuzzy::normalize(name)
+        .split(' ')
+        .map(str::to_string)
+        .collect();
+    let query = fuzzy::normalize(query);
+    let words: Vec<&str> = query.split(' ').filter(|w| w.chars().count() >= 3).collect();
+    if words.is_empty() {
+        return 1.0;
+    }
+    let held = words
+        .iter()
+        .filter(|word| {
+            name_words.iter().any(|n| {
+                n.chars().count() >= 3
+                    && (n == *word
+                        || n.starts_with(*word)
+                        || word.starts_with(n.as_str())
+                        || fuzzy::score(word, n) >= 0.9)
+            })
+        })
+        .count();
+    held as f64 / words.len() as f64
 }
 
 /// Whether opening `path` would run something rather than show it: a program,
@@ -581,6 +692,29 @@ mod tests {
         vec![format!("open_path {}", path.display())]
     }
 
+    /// "Open my Downloads folder" opens the folder, which the walk never
+    /// lists; a file named with the folder in it is still searched for.
+    #[test]
+    fn a_known_folder_said_by_name_is_opened_itself() {
+        let folders = vec![
+            PathBuf::from(r"C:\Users\u\Documents"),
+            PathBuf::from(r"C:\Users\u\Downloads"),
+        ];
+        for spoken in ["Downloads", "my downloads folder", "the download folder"] {
+            assert_eq!(
+                known_folder_named(spoken, &folders),
+                Some(folders[1].clone()),
+                "{spoken}"
+            );
+        }
+        assert_eq!(known_folder_named("budget in downloads", &folders), None);
+        assert_eq!(known_folder_named("resume", &folders), None);
+
+        let (outcome, actions) = run(vec![], folders.clone(), json!({"name": "my documents"}));
+        assert_eq!(actions, opened(&folders[0]));
+        assert!(matches!(outcome, ToolOutcome::Done { .. }));
+    }
+
     #[test]
     fn a_unique_name_in_a_known_folder_is_opened() {
         let home = tempfile::tempdir().unwrap();
@@ -593,6 +727,27 @@ mod tests {
         };
         assert_eq!(feedback.key, "commandMode.feedback.openingFile");
         assert_eq!(feedback.render_en(), "Opening Resume.pdf.");
+    }
+
+    /// A name that shares only its first word with a long request does not
+    /// beat the file the request spells out (a weak "talvio" match once sent
+    /// the wrong attachment).
+    #[test]
+    fn one_shared_word_does_not_beat_the_named_file() {
+        let home = tempfile::tempdir().unwrap();
+        let report = touch(home.path(), "Documents/Talvio Demo Project Report.pdf");
+        touch(home.path(), "Desktop/video/talvio-orig.txt");
+        let (_, actions) = run(
+            vec![],
+            vec![home.path().into()],
+            json!({"name": "the Talvio demo project report"}),
+        );
+        assert_eq!(actions, opened(&report));
+        let candidate = |p: &str| file_score("talvio demo project report", Path::new(p));
+        assert!(candidate("x/talvio-orig.txt") < DEFAULT_MIN_SCORE);
+        assert!(candidate("x/Talvio Demo Project Report.pdf") >= 0.95);
+        // A typo in one word still finds the file.
+        assert!(candidate("x/Talvio Demo Projcet Report.pdf") >= DEFAULT_MIN_SCORE);
     }
 
     /// Two files of one name in different folders are a question whose

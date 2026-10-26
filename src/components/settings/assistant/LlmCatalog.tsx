@@ -10,7 +10,7 @@ import {
   Search,
   Trash2,
   Wand2,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import { commands, type ModelInfo, type Result } from "@/bindings";
 import { formatModelSize } from "@/lib/utils/format";
 import { getModelCategory } from "@/lib/utils/modelCategory";
@@ -583,7 +583,7 @@ export const LlmCatalog: React.FC<{ role?: LlmCatalogRole }> = ({
             {t("settings.assistant.brain.catalogEmpty")}
           </p>
         ) : (
-          <div className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+          <div className="rows rounded-2xl border border-hairline bg-surface elev-card">
             {recommendedModels.map(({ model, meta }) =>
               renderModel(model, meta.isRecommended),
             )}
@@ -598,7 +598,7 @@ export const LlmCatalog: React.FC<{ role?: LlmCatalogRole }> = ({
             title={t("settings.assistant.brain.huggingFaceTitle")}
             info={t("catalog.yoursInfo")}
           />
-          <div className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+          <div className="rows rounded-2xl border border-hairline bg-surface elev-card">
             {savedModels.map((model) => renderModel(model))}
           </div>
         </section>

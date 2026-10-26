@@ -644,6 +644,10 @@
             "name": "Start a conversation",
             "description": "Talk with the assistant hands-free and hear its replies. Press again to end."
           },
+          "command": {
+            "name": "Voice command",
+            "description": "Say what you want done, such as \"open YouTube\", and Talvio does it."
+          },
           "hands_free": {
             "name": "Hands-free",
             "description": "Press while holding the dictation keys to keep recording after you let go. Press the dictation keys again to finish."
@@ -680,7 +684,9 @@
         "dictation": "On: it records while you hold the keys. Off: one press starts and the next one stops, so every dictation is hands-free.",
         "assistant": "On: it listens while you hold the keys. Off: one press starts and the next one sends.",
         "dictationLabel": "Hold to talk",
-        "assistantLabel": "Hold to ask"
+        "assistantLabel": "Hold to ask",
+        "command": "On: it listens while you hold the keys. Off: one press starts and the next one runs the command.",
+        "commandLabel": "Hold to speak a command"
       },
       "handsFree": {
         "unavailableKeys": "Works when Dictate is modifier keys alone, like Ctrl + Win. With {{keys}}, turn off Hold to talk instead: every dictation then keeps going until you press the keys again.",
@@ -2106,6 +2112,8 @@
         "title": "Phone",
         "remoteInput": "Phone dictation",
         "remoteInputHint": "Lets your phone dictate and type on this computer.",
+        "remoteWindows": "Let phones see and use windows",
+        "remoteWindowsHint": "Your phone can list open windows, watch one live, and type, press keys or click in it. A card here says when a phone is watching, with Stop.",
         "install": "Get the Talvio app on your phone and sign in as {{email}}."
       },
       "keys": {
@@ -2463,6 +2471,7 @@
     "processing": "Cleaning up…",
     "generating": "Writing with Flow…",
     "vision": "Looking at your screen…",
+    "command": "Working on it…",
     "notices": {
       "flowNotConfigured": "Flow needs an assistant model — pasted as dictation",
       "flowFailed": "Flow couldn't generate — nothing was pasted",
@@ -2471,7 +2480,8 @@
       "cleanupFallback": "AI cleanup didn't run — pasted the raw text",
       "cleanupModelRejected": "Your cleanup provider rejected that model — check the model in Settings",
       "cloudSttFellBack": "Cloud transcription failed — used the on-device model",
-      "noSpeechModel": "No speech model yet. Pick one on the Models page"
+      "noSpeechModel": "No speech model yet. Pick one on the Models page",
+      "commandTranscriptionFailed": "Couldn't hear the command — try again"
     },
     "listening": "Listening…",
     "locked": "Recording hands-free — press your shortcut again to finish",
@@ -2530,6 +2540,20 @@
     "body": "It wants to dictate and type into the apps on this computer, so only allow phones you own.",
     "allow": "Allow",
     "deny": "Don't allow"
+  },
+  "phoneViewing": {
+    "title": "Phone is viewing",
+    "body": "{{phone}} can see {{title}}.",
+    "unnamedPhone": "Your phone",
+    "stop": "Stop"
+  },
+  "commandCard": {
+    "heading": "Voice command",
+    "confirm": "Do it",
+    "cancel": "Cancel",
+    "working": "Working on it…",
+    "dryRun": "Dry run: nothing was done.",
+    "sayAgain": "Say your answer with the command keys."
   },
   "assistant": {
     "conversation": {
@@ -2691,6 +2715,7 @@
       "screen": "Looking at your screen…",
       "meetingSearch": "Searching the meeting",
       "meetingRead": "Reading the meeting",
+      "computer": "Doing it on your computer…",
       "working": "Working on it",
       "elapsed": "{{seconds}}s"
     },
@@ -2752,7 +2777,12 @@
     },
     "quick": {
       "selection": "Selection",
-      "copied": "Copied"
+      "copied": "Copied",
+      "newConversation": "New conversation"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Getting the voice ready · {{percent}}%"
     }
   },
   "nav": {
@@ -2760,6 +2790,7 @@
     "home": "Home",
     "history": "History",
     "assistant": "Assistant",
+    "commands": "Commands",
     "meetings": "Meetings",
     "cleanup": "AI cleanup",
     "dictionary": "Dictionary",
@@ -2800,7 +2831,9 @@
       "assistant": "Assistant",
       "mouse": "Mouse",
       "cleanupOff": "Turn on AI cleanup to get this shortcut.",
-      "assistantOff": "The assistant is turned off, so its shortcuts do nothing."
+      "assistantOff": "The assistant is turned off, so its shortcuts do nothing.",
+      "commands": "Voice commands",
+      "commandsOff": "Voice commands are turned off, so this shortcut does nothing."
     },
     "audio": {
       "microphone": "Microphone",
@@ -3141,6 +3174,50 @@
     },
     "addWord": "Add word"
   },
+  "commandsPage": {
+    "description": "Say what you want done, and Talvio does it on this computer: open a site, play a song, switch apps, write an email.",
+    "enable": "Voice commands",
+    "offNotice": "Voice commands are turned off. Turn them on to give their shortcut a job; what you say then goes to the model that runs commands.",
+    "shortcut": {
+      "title": "Speak a command",
+      "whatHold": "Hold, say what you want done, let go.",
+      "whatTap": "Tap, say what you want done, tap again."
+    },
+    "model": {
+      "title": "Runs on",
+      "info": "The model that turns what you say into an action. A small, fast one is best: every command is one request to it.",
+      "provider": "Provider",
+      "model": "Model",
+      "using": "Commands run on {{model}} · {{provider}}.",
+      "borrowed": "Using {{provider}} · {{model}}, since {{chosen}} has no key.",
+      "needsKey": "{{provider}} needs a key before commands can run.",
+      "setUp": "Set up a model",
+      "key": "{{provider}} API key",
+      "keyShared": "Shared with AI cleanup and the assistant."
+    },
+    "confirmIrreversible": {
+      "title": "Ask before sending or deleting",
+      "info": "Off: a send, post or delete you ask for is carried out. On: it waits for you to press Do it. Either way it waits when you say so (“draft it”, “let me check first”)."
+    },
+    "dryRun": {
+      "title": "Dry run",
+      "info": "Show what a command would do instead of doing it."
+    },
+    "test": {
+      "group": "Try it",
+      "title": "Type a command",
+      "info": "Type what you would say, and see what was chosen and what each step did."
+    },
+    "examples": {
+      "title": "Things to say",
+      "items": {
+        "youtube": "“Open YouTube”",
+        "song": "“Play Believer by Imagine Dragons”",
+        "volume": "“Turn the volume down”",
+        "switch": "“Switch to Chrome”"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Ask anything by voice, from any app. The assistant can see your screen, search the web, and remember what matters to you.",
     "offNotice": "The assistant is turned off. Its shortcuts do nothing and it uses no memory until you turn it back on.",
@@ -3289,6 +3366,17 @@
       "screen": {
         "ask": "Screen vision for questions",
         "call": "Screen vision in conversations"
+      },
+      "quickAskMemory": {
+        "title": "Remember the conversation",
+        "cleared": "The next question starts a new conversation",
+        "options": {
+          "off": "Off",
+          "five_minutes": "5 minutes",
+          "ten_minutes": "10 minutes",
+          "thirty_minutes": "30 minutes",
+          "until_cleared": "Until I clear it"
+        }
       }
     },
     "tips": {
@@ -3306,6 +3394,7 @@
       "profiles": "Personas with their own name, instructions, and reply style.",
       "replyLength": "How long answers usually are.",
       "history": "How many recent messages it keeps in mind.",
+      "quickAskMemory": "How long a quick ask remembers the one before it, so you can ask a follow-up. Conversations keep their own history.",
       "summarize": "Condenses long chats so it doesn't forget the start.",
       "opacity": "Lower lets your desktop show through.",
       "position": "Click a spot on the screen.",
@@ -3801,13 +3890,22 @@
       "contactNoDetails": "{{name}} is in your contacts, but has no email address or phone number saved.",
       "contactNotFound": "I don't have a contact called {{name}}.",
       "emailDraft": "Draft to {{name}} is open. Say send or cancel.",
+      "emailDraftFile": "Draft to {{name}} with {{file}} is open. Say send or cancel.",
       "emailDraftTruncated": "Draft to {{name}} is open. The message was too long to pass to Gmail, so it was cut short; check the end before sending. Say send or cancel.",
       "emailSent": "Sent to {{name}}.",
+      "emailSentFile": "Sent {{file}} to {{name}}.",
       "empty": "I didn't catch a command.",
       "failed": "{{reason}}",
       "mediaNext": "Skipped to the next track.",
       "mediaPlayPause": "Play/pause pressed.",
+      "mediaPaused": "Paused.",
+      "mediaNothingPlaying": "Nothing is playing.",
+      "mediaResumed": "Resumed.",
+      "mediaAlreadyPlaying": "It's already playing.",
+      "windowNotReady": "The app didn't come up in time, so I didn't type anything.",
+      "mediaPlaying": "Playing “{{title}}” on {{service}}.",
       "mediaPrevious": "Back to the previous track.",
+      "mediaResultsOpened": "Opened {{service}}'s results for “{{query}}”.",
       "mediaStop": "Stopped playback.",
       "needsComputerUse": "None of my tools can do that yet. Controlling the screen for it comes in a later version.",
       "notConfigured": "Command mode isn't set up: {{why}}",
@@ -3824,6 +3922,7 @@
       "routeFailed": "I couldn't work out what to do: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Searching for {{query}}.",
+      "spotifyResultsOpened": "Opened Spotify's results for “{{query}}”. Spotify can't start a search by itself, so pick what to play.",
       "superseded": "A newer command replaced this one, so it isn't waiting any more.",
       "switchedTo": "Switched to {{title}}.",
       "tooManyQuestions": "I still couldn't work out what to do. Try saying it differently.",
@@ -3837,6 +3936,23 @@
       "volumeUp": "Turned the volume up.",
       "waitingForAnswer": "That command is waiting for an answer, not a confirmation.",
       "waitingForConfirmation": "That command is waiting for you to confirm, not for an answer."
+    }
+  },
+  "palette": {
+    "trigger": "Search or jump to…",
+    "placeholder": "Search pages, models and settings",
+    "label": "Command palette",
+    "empty": "Nothing matches “{{query}}”",
+    "groups": {
+      "pages": "Pages",
+      "models": "Models",
+      "settings": "Settings",
+      "actions": "Actions"
+    },
+    "hints": {
+      "move": "Move",
+      "open": "Open",
+      "close": "Close"
     }
   }
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { X } from "@/components/icons/glyphs";
 import { commands } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { useOsType } from "@/hooks/useOsType";
@@ -195,7 +195,7 @@ export const ShortcutsCard: React.FC = () => {
           </TextLink>
         }
       />
-      <ul className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+      <ul className="rows rounded-2xl border border-hairline bg-surface elev-card">
         {rows.map((row) => (
           <React.Fragment key={row.id}>
             <li className={rowClass}>

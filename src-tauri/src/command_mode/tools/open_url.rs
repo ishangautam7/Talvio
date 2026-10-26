@@ -5,13 +5,16 @@
 //! anything else the OS would happily hand to a handler (`file:` runs or
 //! reveals local files, `javascript:` and `data:` are pages that are code,
 //! custom schemes launch arbitrary apps) is refused. A bare domain the way
-//! people say it ("github.com") gets `https://`.
+//! people say it ("github.com") gets `https://`. A well-known site said by
+//! name with no address ("youtube", "gmail") opens that site
+//! ([`crate::command_mode::sites`]), so the model never has to guess one.
 
 use log::{info, warn};
 use reqwest::Url;
 use serde_json::{json, Value};
 
 use crate::command_mode::registry::{arg_str, Risk, ToolCtx, ToolOutcome, ToolSpec, ALL_PLATFORMS};
+use crate::command_mode::sites::{self, Site};
 
 pub static SPEC: ToolSpec = ToolSpec {
     name: "open_url",
@@ -52,6 +55,9 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     let url = match web_url(raw) {
         Ok(url) => url,
         Err(reason) => {
+            if let Some(site) = sites::named(raw) {
+                return open_site(ctx, site);
+            }
             warn!("command mode: open_url refused an address: {reason}");
             return ToolOutcome::failed(reason, false);
         }
@@ -64,6 +70,17 @@ fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     let site = host.strip_prefix("www.").unwrap_or(host);
     info!("command mode: open_url opened a page on {site}");
     ToolOutcome::done("urlOpened", "Opened {{site}}.", &[("site", site)])
+}
+
+/// Open a well-known site by its table entry. Shared with `open_app`, which
+/// falls back to the site when its own app is not installed.
+pub(crate) fn open_site(ctx: &ToolCtx, site: &Site) -> ToolOutcome {
+    if let Err(e) = ctx.effects.open_url(site.url) {
+        warn!("command mode: opening {} failed: {e}", site.name);
+        return ToolOutcome::failed(e, false);
+    }
+    info!("command mode: opened the well-known site {}", site.name);
+    ToolOutcome::done("urlOpened", "Opened {{site}}.", &[("site", site.name)])
 }
 
 /// `raw` as an `http(s)` URL with a real host, or why it is not one.
@@ -209,6 +226,39 @@ mod tests {
         assert!(web_url("github").is_err());
         assert!(web_url("https://").is_err());
         assert!(web_url("").is_err());
+    }
+
+    /// "go to YouTube": the model may pass the name, not an address.
+    #[test]
+    fn a_well_known_site_name_opens_that_site() {
+        for (said, url, name) in [
+            ("youtube", "https://www.youtube.com/", "YouTube"),
+            ("Gmail", "https://mail.google.com/", "Gmail"),
+            ("youtube music", "https://music.youtube.com/", "YouTube Music"),
+            ("netflix", "https://www.netflix.com/", "Netflix"),
+        ] {
+            let fake = Arc::new(FakeEffects::default());
+            let outcome = run(&ctx(&fake), json!({ "url": said }));
+            assert_eq!(
+                outcome,
+                ToolOutcome::done("urlOpened", "Opened {{site}}.", &[("site", name)]),
+                "{said}"
+            );
+            assert_eq!(fake.actions(), vec![format!("open_url {url}")], "{said}");
+        }
+    }
+
+    /// A bare site name works; words that name no site are still refused,
+    /// never turned into a search.
+    #[test]
+    fn only_known_names_stand_in_for_an_address() {
+        let fake = Arc::new(FakeEffects::default());
+        let outcome = run(&ctx(&fake), json!({ "url": "github" }));
+        assert!(matches!(outcome, ToolOutcome::Done { .. }), "{outcome:?}");
+        let fake = Arc::new(FakeEffects::default());
+        let outcome = run(&ctx(&fake), json!({ "url": "my cat pictures" }));
+        assert!(matches!(outcome, ToolOutcome::Failed { .. }), "{outcome:?}");
+        assert!(fake.actions().is_empty());
     }
 
     #[test]

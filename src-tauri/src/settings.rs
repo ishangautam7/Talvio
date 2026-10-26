@@ -1009,6 +1009,38 @@ pub enum AssistantSearchDepth {
     High,
 }
 
+/// How long a quick ask remembers the one before it ("Remember the
+/// conversation"). Within that time of the last answer, the next quick ask is a
+/// follow-up; after it, or after the user starts a new conversation, it starts
+/// empty. Calls and a phone's questions keep their own conversations.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Type)]
+#[serde(rename_all = "snake_case")]
+pub enum QuickAskMemory {
+    /// Every quick ask starts empty.
+    Off,
+    FiveMinutes,
+    #[default]
+    TenMinutes,
+    ThirtyMinutes,
+    /// Until the user starts a new conversation (or the app restarts).
+    UntilCleared,
+}
+
+impl QuickAskMemory {
+    /// How long after the last answer a quick ask still continues it; `None`
+    /// for no limit.
+    pub fn window(self) -> Option<std::time::Duration> {
+        use std::time::Duration;
+        match self {
+            QuickAskMemory::Off => Some(Duration::ZERO),
+            QuickAskMemory::FiveMinutes => Some(Duration::from_secs(5 * 60)),
+            QuickAskMemory::TenMinutes => Some(Duration::from_secs(10 * 60)),
+            QuickAskMemory::ThirtyMinutes => Some(Duration::from_secs(30 * 60)),
+            QuickAskMemory::UntilCleared => None,
+        }
+    }
+}
+
 /// How much a reasoning model may think before it answers. One dial each for AI
 /// cleanup (`post_process_thinking`) and the assistant (`assistant_thinking`).
 ///
@@ -1982,6 +2014,10 @@ pub struct AppSettings {
     /// "max results" number as the primary control; tuned to stay fast.
     #[serde(default)]
     pub assistant_search_depth: AssistantSearchDepth,
+    /// How long a quick ask remembers the one before it (see
+    /// [`QuickAskMemory`]).
+    #[serde(default)]
+    pub assistant_quick_ask_memory: QuickAskMemory,
     /// How much a reasoning model may think before answering an ask or a call.
     /// See [`ThinkingLevel`]; `Off` keeps replies on the fast path.
     #[serde(default)]
@@ -2034,6 +2070,11 @@ pub struct AppSettings {
     /// dictate or type into this computer.
     #[serde(default = "default_true")]
     pub remote_input_enabled: bool,
+    /// "Let phones see and use windows": an allowed phone may list this computer's
+    /// windows, aim its dictation and text at one, and press keys there
+    /// (`account/remote/windows.rs`). Off by default: window titles say a lot.
+    #[serde(default)]
+    pub remote_windows_enabled: bool,
     /// "Sync API keys": provider keys added on this computer are kept in the
     /// user's account and arrive on their other signed-in computers
     /// (`account/secrets_sync.rs`). Only while signed in.
@@ -2049,6 +2090,11 @@ pub struct AppSettings {
     /// user's apps and sends the transcript to the router's provider.
     #[serde(default)]
     pub command_mode_enabled: bool,
+    /// Hold to talk (true) or Tap to toggle (false) for the command shortcut
+    /// ([`COMMAND_BINDING_ID`]), its own setting like the ask's. See
+    /// [`holds_to_record`].
+    #[serde(default = "default_true")]
+    pub command_push_to_talk: bool,
     /// The provider (an id from `post_process_providers`) that routes a
     /// command to a tool. Its key is the one already saved for that provider.
     #[serde(default = "default_command_router_provider_id")]
@@ -2061,10 +2107,22 @@ pub struct AppSettings {
     /// `--dry-run` can still override it for one command.
     #[serde(default)]
     pub command_dry_run: bool,
+    /// "Ask before irreversible actions": hold every send, post or delete for
+    /// the user's Do it. Off by default: a command the user spoke is the
+    /// request, so it is carried out, Send included, and waits only when the
+    /// user's own words ask to review (`command_mode::review`).
+    #[serde(default)]
+    pub command_confirm_irreversible: bool,
     /// The Google account Gmail and Calendar links open in, sent as
     /// `authuser=`. Empty means the browser's default Google account.
     #[serde(default)]
     pub command_google_account: String,
+    /// The user's own email address, which "email me" and "send it to
+    /// myself" mean. Empty: the signed-in Talvio account's address is used
+    /// (`command_mode::command_settings`), and failing that the command asks
+    /// once and keeps the answer here.
+    #[serde(default)]
+    pub command_own_email: String,
     /// The search page a web search opens; `{query}` is replaced with the
     /// URL-encoded query.
     #[serde(default = "default_command_search_url")]
@@ -2316,6 +2374,18 @@ pub const CLEANUP_BINDING_ID: &str = "transcribe_with_post_process";
 /// are held (`hands_free`). Never registered on its own.
 pub const HANDS_FREE_BINDING_ID: &str = "hands_free";
 
+/// Binding id of the command shortcut: say what you want done
+/// (`command_mode`). Only registered while command mode is on
+/// ([`command_binding_active`]).
+pub const COMMAND_BINDING_ID: &str = "command";
+
+/// Whether the command shortcut is registered: only while command mode is
+/// switched on, so its keys are never taken from other apps for a feature that
+/// would do nothing.
+pub fn command_binding_active(settings: &AppSettings) -> bool {
+    settings.command_mode_enabled
+}
+
 /// Shortcuts the user may remove entirely, leaving them unbound. Dictation and
 /// the quick ask are the app's two front doors and always keep a key; the
 /// cleanup shortcut is turned off with its own switch on the cleanup page.
@@ -2327,12 +2397,13 @@ pub const OPTIONAL_BINDINGS: [&str; 3] = ["cancel", "assistant_call", HANDS_FREE
 /// Whether the recording shortcut `binding_id` records while its keys are held
 /// (Hold to talk) instead of from one press to the next (Tap to toggle).
 /// Dictation and the cleanup shortcut follow `push_to_talk`, the ask follows
-/// `assistant_push_to_talk`. Any other shortcut acts on a press and has nothing
+/// `assistant_push_to_talk`, a command `command_push_to_talk`. Any other shortcut acts on a press and has nothing
 /// to hold: the call starts on one press and hangs up on the next.
 pub fn holds_to_record(settings: &AppSettings, binding_id: &str) -> bool {
     match binding_id {
         "transcribe" | CLEANUP_BINDING_ID => settings.push_to_talk,
         "assistant" => settings.assistant_push_to_talk,
+        COMMAND_BINDING_ID => settings.command_push_to_talk,
         _ => false,
     }
 }
@@ -4456,6 +4527,31 @@ pub fn get_default_settings() -> AppSettings {
         },
     );
 
+    // The command shortcut is the ask keys plus Shift, as cleanup is the
+    // dictation keys plus Shift: say what you want done (`command_mode`). It
+    // extends the ask's keys the way the call does, so pressing all three never
+    // shows an ask on the way (`shortcut::chord`). Only registered while command
+    // mode is on (`command_binding_active`).
+    #[cfg(target_os = "macos")]
+    let default_command_shortcut = "fn+ctrl+shift";
+    #[cfg(target_os = "windows")]
+    let default_command_shortcut = "ctrl_left+alt_left+shift";
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    let default_command_shortcut = "ctrl+alt+shift+space";
+
+    bindings.insert(
+        COMMAND_BINDING_ID.to_string(),
+        ShortcutBinding {
+            id: COMMAND_BINDING_ID.to_string(),
+            name: "Voice command".to_string(),
+            description: "Say what you want done, such as \"open YouTube\", and Talvio does it."
+                .to_string(),
+            default_binding: default_command_shortcut.to_string(),
+            current_binding: default_command_shortcut.to_string(),
+            alternate_binding: String::new(),
+        },
+    );
+
     // Hands-free mode: a key pressed while the dictation keys are held, so the
     // dictation keeps listening after they are let go (`hands_free`). Space on
     // every platform, as in Wispr Flow (Ctrl+Win+Space, Fn+Space). It is not a
@@ -4634,6 +4730,7 @@ pub fn get_default_settings() -> AppSettings {
         assistant_web_search_max_results: default_assistant_web_search_max_results(),
         assistant_web_search_fetch_content: default_assistant_web_search_fetch_content(),
         assistant_search_depth: AssistantSearchDepth::default(),
+        assistant_quick_ask_memory: QuickAskMemory::default(),
         assistant_thinking: ThinkingLevel::default(),
         assistant_web_search_daily_credit_budget: default_assistant_web_search_daily_credit_budget(
         ),
@@ -4647,13 +4744,17 @@ pub fn get_default_settings() -> AppSettings {
         account_server_url: String::new(),
         account_discovered_server: String::new(),
         remote_input_enabled: true,
+        remote_windows_enabled: false,
         account_sync_secrets: true,
         account_approved_devices: Vec::new(),
         command_mode_enabled: false,
+        command_push_to_talk: true,
         command_router_provider_id: default_command_router_provider_id(),
         command_router_model: default_command_router_model(),
         command_dry_run: false,
+        command_confirm_irreversible: false,
         command_google_account: String::new(),
+        command_own_email: String::new(),
         command_search_url: default_command_search_url(),
         command_auto_escalate: true,
         command_agent_model: default_command_agent_model(),
@@ -5438,7 +5539,7 @@ fn migrate_openai_tts_endpoint(settings: &mut AppSettings) -> bool {
 /// Re-fill the in-memory secret fields from the OS keychain. No-op when the
 /// keychain is unavailable, which leaves any plaintext fallback values from the
 /// store in place.
-fn hydrate_secrets(settings: &mut AppSettings) {
+pub(crate) fn hydrate_secrets(settings: &mut AppSettings) {
     if !crate::secret_store::is_available() {
         return;
     }
@@ -6310,6 +6411,65 @@ mod tests {
         assert_ne!(call, "ctrl+shift+c");
         // Left-side: AltGr reports as Left Ctrl + Right Alt.
         assert!(call.contains("alt_left"), "{call}");
+    }
+
+    /// A command is the ask keys plus Shift, as cleanup is the dictation keys
+    /// plus Shift, on every platform: Left Ctrl + Left Alt + Shift on
+    /// Windows, Fn + Ctrl + Shift on a Mac, Ctrl + Alt + Shift + Space on
+    /// Linux, whose engine needs a main key.
+    #[test]
+    fn the_command_key_is_the_ask_keys_plus_shift() {
+        let defaults = get_default_settings().bindings;
+        let command = &defaults[COMMAND_BINDING_ID];
+        assert_eq!(command.current_binding, command.default_binding);
+        assert!(command.alternate_binding.is_empty());
+        let expected = if cfg!(target_os = "windows") {
+            "ctrl_left+alt_left+shift"
+        } else if cfg!(target_os = "macos") {
+            "fn+ctrl+shift"
+        } else {
+            "ctrl+alt+shift+space"
+        };
+        assert_eq!(command.default_binding, expected);
+        let parts = |binding: &str| -> std::collections::BTreeSet<String> {
+            binding.split('+').map(str::to_string).collect()
+        };
+        let ask = parts(&defaults["assistant"].default_binding);
+        let command = parts(&command.default_binding);
+        assert!(ask.is_subset(&command));
+        assert_eq!(
+            command.difference(&ask).cloned().collect::<Vec<_>>(),
+            ["shift"]
+        );
+        // It always keeps a key while it exists; the master switch is how it
+        // is turned off.
+        assert!(!is_optional_binding(COMMAND_BINDING_ID));
+    }
+
+    /// Hold or Tap for a command is its own setting, and the shortcut is only
+    /// registered while command mode is on.
+    #[test]
+    fn the_command_key_holds_on_its_own_setting_and_only_while_on() {
+        let mut settings = get_default_settings();
+        assert!(settings.command_push_to_talk);
+        assert!(!command_binding_active(&settings));
+        assert!(holds_to_record(&settings, COMMAND_BINDING_ID));
+        settings.command_push_to_talk = false;
+        settings.push_to_talk = true;
+        settings.assistant_push_to_talk = true;
+        assert!(!holds_to_record(&settings, COMMAND_BINDING_ID));
+        assert!(holds_to_record(&settings, "assistant"));
+        settings.command_mode_enabled = true;
+        assert!(command_binding_active(&settings));
+    }
+
+    /// A store from before command mode had a key gets the binding and holds
+    /// it to talk, like a fresh install.
+    #[test]
+    fn an_older_store_gets_the_command_key_held_to_talk() {
+        let settings: AppSettings =
+            serde_json::from_value(serde_json::json!({ "push_to_talk": false })).unwrap();
+        assert!(settings.command_push_to_talk);
     }
 
     #[cfg(target_os = "macos")]

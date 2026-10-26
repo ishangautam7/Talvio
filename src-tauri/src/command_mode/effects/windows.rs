@@ -838,6 +838,118 @@ impl SystemEffects {
     }
 }
 
+/// Bring `window` forward and give it the keyboard (see
+/// [`Effects::focus_window`]). Free of the app handle, so a live test can use it.
+fn focus_window_now(window: &WindowEntry) -> Result<(), String> {
+    let hwnd = HWND(window.id as isize as *mut std::ffi::c_void);
+    // SAFETY: a handle that is no longer a window is detected here; every
+    // later call tolerates one that closes in between.
+    if !unsafe { IsWindow(Some(hwnd)) }.as_bool() {
+        return Err("That window has closed.".to_string());
+    }
+    // A window can stop answering after the list was read (between a
+    // question and its answer, say). Nothing below would wait for it, but
+    // it could not come forward either.
+    // SAFETY: a read-only query on a live handle.
+    if unsafe { IsHungAppWindow(hwnd) }.as_bool() {
+        return Err("That window isn't responding.".to_string());
+    }
+    // SAFETY: plain user32 calls on a window handle; the attach is undone
+    // on the same path that made it. The restore and the raise are posted
+    // rather than sent, so a window that hangs from here on cannot hold
+    // this thread (a plain ShowWindow or BringWindowToTop on another
+    // process's window waits for it to answer).
+    let restoring = unsafe {
+        // AttachThreadInput needs this thread to have an input queue; a
+        // worker that has never touched user32 may not have one yet.
+        let _ = IsGUIThread(true);
+        let restoring = IsIconic(hwnd).as_bool();
+        if restoring {
+            let _ = ShowWindowAsync(hwnd, SW_RESTORE);
+        }
+        // Raised before the attach: only while the two threads' input
+        // queues are separate is an async position change posted.
+        let _ = SetWindowPos(
+            hwnd,
+            Some(HWND_TOP),
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS,
+        );
+        let popup = GetLastActivePopup(hwnd);
+        let popup_usable = !popup.is_invalid()
+            && IsWindowVisible(popup).as_bool()
+            && IsWindowEnabled(popup).as_bool();
+        let activate = HWND(activation_target(
+            handle_id(hwnd),
+            IsWindowEnabled(hwnd).as_bool(),
+            handle_id(popup),
+            popup_usable,
+        ) as *mut _);
+        let foreground = GetForegroundWindow();
+        let foreground_thread = if foreground.is_invalid() {
+            0
+        } else {
+            GetWindowThreadProcessId(foreground, None)
+        };
+        let this_thread = GetCurrentThreadId();
+        let attached = foreground_thread != 0
+            && foreground_thread != this_thread
+            && AttachThreadInput(this_thread, foreground_thread, true).as_bool();
+        let _ = SetForegroundWindow(activate);
+        if attached {
+            let _ = AttachThreadInput(this_thread, foreground_thread, false);
+        }
+        restoring
+    };
+    let settle = if restoring {
+        FOCUS_SETTLE_RESTORED
+    } else {
+        FOCUS_SETTLE
+    };
+    let deadline = Instant::now() + settle;
+    loop {
+        // SAFETY: no arguments, then a read-only query on what it returned.
+        let (foreground, root) = unsafe {
+            let foreground = GetForegroundWindow();
+            let root = if foreground.is_invalid() {
+                foreground
+            } else {
+                GetAncestor(foreground, GA_ROOTOWNER)
+            };
+            (foreground, root)
+        };
+        if landed_on(handle_id(hwnd), handle_id(foreground), handle_id(root)) {
+            if foreground != hwnd {
+                debug!(
+                    "The switch to window {} landed on a dialog it owns",
+                    window.id
+                );
+            }
+            return Ok(());
+        }
+        if Instant::now() >= deadline {
+            debug!("The foreground switch to window {} was refused", window.id);
+            return Err("Windows would not let me bring that window forward.".to_string());
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
+
+/// Every window the user could switch to, front to back.
+fn open_windows_now() -> Vec<WindowEntry> {
+    let own = own_process();
+    top_level_windows()
+        .into_iter()
+        .filter(|&hwnd| is_switchable(hwnd))
+        .filter_map(|hwnd| describe(hwnd, own))
+        .filter(|entry| !entry.title.trim().is_empty() && !is_desktop(entry))
+        .take(MAX_WINDOWS)
+        .collect()
+}
+
 impl Effects for SystemEffects {
     fn foreground_is_exactly(&self, id: i64) -> bool {
         // The raw foreground handle, not the root owner `foreground_window`
@@ -851,14 +963,7 @@ impl Effects for SystemEffects {
     }
 
     fn open_windows(&self) -> Vec<WindowEntry> {
-        let own = own_process();
-        top_level_windows()
-            .into_iter()
-            .filter(|&hwnd| is_switchable(hwnd))
-            .filter_map(|hwnd| describe(hwnd, own))
-            .filter(|entry| !entry.title.trim().is_empty() && !is_desktop(entry))
-            .take(MAX_WINDOWS)
-            .collect()
+        open_windows_now()
     }
 
     /// Windows keeps recent items as shortcuts in `%APPDATA%\Microsoft\Windows\Recent`,
@@ -962,101 +1067,7 @@ impl Effects for SystemEffects {
     }
 
     fn focus_window(&self, window: &WindowEntry) -> Result<(), String> {
-        let hwnd = HWND(window.id as isize as *mut std::ffi::c_void);
-        // SAFETY: a handle that is no longer a window is detected here; every
-        // later call tolerates one that closes in between.
-        if !unsafe { IsWindow(Some(hwnd)) }.as_bool() {
-            return Err("That window has closed.".to_string());
-        }
-        // A window can stop answering after the list was read (between a
-        // question and its answer, say). Nothing below would wait for it, but
-        // it could not come forward either.
-        // SAFETY: a read-only query on a live handle.
-        if unsafe { IsHungAppWindow(hwnd) }.as_bool() {
-            return Err("That window isn't responding.".to_string());
-        }
-        // SAFETY: plain user32 calls on a window handle; the attach is undone
-        // on the same path that made it. The restore and the raise are posted
-        // rather than sent, so a window that hangs from here on cannot hold
-        // this thread (a plain ShowWindow or BringWindowToTop on another
-        // process's window waits for it to answer).
-        let restoring = unsafe {
-            // AttachThreadInput needs this thread to have an input queue; a
-            // worker that has never touched user32 may not have one yet.
-            let _ = IsGUIThread(true);
-            let restoring = IsIconic(hwnd).as_bool();
-            if restoring {
-                let _ = ShowWindowAsync(hwnd, SW_RESTORE);
-            }
-            // Raised before the attach: only while the two threads' input
-            // queues are separate is an async position change posted.
-            let _ = SetWindowPos(
-                hwnd,
-                Some(HWND_TOP),
-                0,
-                0,
-                0,
-                0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS,
-            );
-            let popup = GetLastActivePopup(hwnd);
-            let popup_usable = !popup.is_invalid()
-                && IsWindowVisible(popup).as_bool()
-                && IsWindowEnabled(popup).as_bool();
-            let activate = HWND(activation_target(
-                handle_id(hwnd),
-                IsWindowEnabled(hwnd).as_bool(),
-                handle_id(popup),
-                popup_usable,
-            ) as *mut _);
-            let foreground = GetForegroundWindow();
-            let foreground_thread = if foreground.is_invalid() {
-                0
-            } else {
-                GetWindowThreadProcessId(foreground, None)
-            };
-            let this_thread = GetCurrentThreadId();
-            let attached = foreground_thread != 0
-                && foreground_thread != this_thread
-                && AttachThreadInput(this_thread, foreground_thread, true).as_bool();
-            let _ = SetForegroundWindow(activate);
-            if attached {
-                let _ = AttachThreadInput(this_thread, foreground_thread, false);
-            }
-            restoring
-        };
-        let settle = if restoring {
-            FOCUS_SETTLE_RESTORED
-        } else {
-            FOCUS_SETTLE
-        };
-        let deadline = Instant::now() + settle;
-        loop {
-            // SAFETY: no arguments, then a read-only query on what it returned.
-            let (foreground, root) = unsafe {
-                let foreground = GetForegroundWindow();
-                let root = if foreground.is_invalid() {
-                    foreground
-                } else {
-                    GetAncestor(foreground, GA_ROOTOWNER)
-                };
-                (foreground, root)
-            };
-            if landed_on(handle_id(hwnd), handle_id(foreground), handle_id(root)) {
-                if foreground != hwnd {
-                    debug!(
-                        "The switch to window {} landed on a dialog it owns",
-                        window.id
-                    );
-                }
-                return Ok(());
-            }
-            if Instant::now() >= deadline {
-                debug!("The foreground switch to window {} was refused", window.id);
-                return Err("Windows would not let me bring that window forward.".to_string());
-            }
-            std::thread::sleep(Duration::from_millis(20));
-        }
+        focus_window_now(window)
     }
 
     /// Through the same paste the dictation uses (the user's paste method, the
@@ -1514,5 +1525,104 @@ mod tests {
         assert_eq!(apps_folder_id("shell:AppsFolder\\"), None);
         assert_eq!(apps_folder_id(r"C:\Programs\Spotify.lnk"), None);
         assert_eq!(apps_folder_id("shell"), None);
+    }
+}
+
+/// Real effects without the app, for `#[ignore]`d live tests (the tier-2
+/// agent on a real window). Reads, window focus and key presses are real;
+/// everything that needs the app (opening, pasting) or could disturb the
+/// machine (media, volume) is refused.
+#[cfg(test)]
+pub(crate) mod live {
+    use super::*;
+
+    pub(crate) struct LiveEffects;
+
+    impl Effects for LiveEffects {
+        fn foreground_is_exactly(&self, id: i64) -> bool {
+            // SAFETY: no arguments; an invalid handle compares unequal.
+            let hwnd = unsafe { GetForegroundWindow() };
+            !hwnd.is_invalid() && handle_id(hwnd) as i64 == id
+        }
+        fn installed_apps(&self) -> Vec<AppEntry> {
+            installed_apps_cached()
+        }
+        fn open_windows(&self) -> Vec<WindowEntry> {
+            open_windows_now()
+        }
+        fn recent_files(&self) -> Vec<PathBuf> {
+            Vec::new()
+        }
+        /// The user's Documents, Downloads and Desktop, where the live
+        /// email-a-file test puts the file it sends.
+        fn known_folders(&self) -> Vec<PathBuf> {
+            let Some(home) = std::env::var_os("USERPROFILE").map(PathBuf::from) else {
+                return Vec::new();
+            };
+            ["Documents", "Downloads", "Desktop"]
+                .iter()
+                .map(|name| home.join(name))
+                .filter(|dir| dir.is_dir())
+                .collect()
+        }
+        // Opening goes through the shell rather than the app's opener, which
+        // needs an `AppHandle`; the live executor tests open real links, apps
+        // and folders this way.
+        fn open_url(&self, url: &str) -> Result<(), String> {
+            Command::new("rundll32.exe")
+                .args(["url.dll,FileProtocolHandler", url])
+                .spawn()
+                .map(drop)
+                .map_err(|e| e.to_string())
+        }
+        fn open_path(&self, path: &Path) -> Result<(), String> {
+            Command::new("explorer.exe")
+                .arg(path)
+                .spawn()
+                .map(drop)
+                .map_err(|e| e.to_string())
+        }
+        fn launch_app(&self, app: &AppEntry) -> Result<(), String> {
+            Command::new("explorer.exe")
+                .arg(&app.launch)
+                .spawn()
+                .map(drop)
+                .map_err(|e| e.to_string())
+        }
+        fn focus_window(&self, window: &WindowEntry) -> Result<(), String> {
+            focus_window_now(window)
+        }
+        /// Typed key by key, not pasted: the paste the app uses needs its
+        /// main thread.
+        fn type_text(&self, text: &str) -> Result<(), String> {
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            enigo.text(text).map_err(|e| e.to_string())
+        }
+        fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
+            let key = key_for(&combo.key).ok_or("unknown key")?;
+            let modifiers: Vec<Key> = combo.modifiers.iter().copied().map(modifier_key).collect();
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            press_combo(&mut enigo, &modifiers, key)
+        }
+        fn media(&self, action: MediaAction) -> Result<(), String> {
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            enigo
+                .key(media_key(action), Direction::Click)
+                .map_err(|e| e.to_string())
+        }
+        fn volume(&self, action: VolumeAction) -> Result<(), String> {
+            let (key, times) = match action {
+                VolumeAction::Up(steps) => (Key::VolumeUp, steps),
+                VolumeAction::Down(steps) => (Key::VolumeDown, steps),
+                _ => return Err("not in a live test".into()),
+            };
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            for _ in 0..times {
+                enigo
+                    .key(key, Direction::Click)
+                    .map_err(|e| e.to_string())?;
+            }
+            Ok(())
+        }
     }
 }

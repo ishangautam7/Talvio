@@ -1,6 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { CircleArrowUp, LoaderCircle, RotateCw } from "lucide-react";
+import {
+  CircleArrowUp,
+  LoaderCircle,
+  RotateCw,
+} from "@/components/icons/glyphs";
 import { useNavigation } from "../shell/navigation";
 import { PILL_PHASES, useUpdateStore } from "./updateStore";
 

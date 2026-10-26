@@ -42,17 +42,17 @@ export type SelectProps = BaseProps & (CreatableProps | NonCreatableProps);
 const surfaceBg = "var(--color-surface)";
 const hoverBg = "var(--color-surface-strong)";
 const neutralBorder = "var(--color-hairline-strong)";
-const accentBorder = "var(--color-accent)";
+const accentBorder = "var(--color-accent-fill)";
 
 const selectStyles: StylesConfig<SelectOption, false> = {
   control: (base, state) => ({
     ...base,
-    minHeight: 36,
-    borderRadius: 8,
+    minHeight: 34,
+    borderRadius: 9,
     borderColor: state.isFocused ? accentBorder : neutralBorder,
     boxShadow: state.isFocused
-      ? "0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent)"
-      : "none",
+      ? "var(--focus-ring)"
+      : "0 1px 2px rgba(27, 29, 51, 0.05), var(--edge-light)",
     backgroundColor: surfaceBg,
     fontSize: "0.875rem",
     color: "var(--color-text)",
@@ -64,7 +64,7 @@ const selectStyles: StylesConfig<SelectOption, false> = {
   valueContainer: (base) => ({
     ...base,
     paddingInline: 12,
-    paddingBlock: 6,
+    paddingBlock: 4,
   }),
   input: (base) => ({
     ...base,
@@ -93,18 +93,26 @@ const selectStyles: StylesConfig<SelectOption, false> = {
     zIndex: 30,
     borderRadius: 12,
     overflow: "hidden",
+    marginTop: 6,
     // Opaque: a floating menu overlays real content, so a translucent fill let
     // the rows underneath bleed through and hurt legibility.
     backgroundColor: "var(--color-surface)",
     color: "var(--color-text)",
-    border: "1px solid var(--color-hairline)",
-    boxShadow: "0 12px 32px rgba(15, 23, 42, 0.14)",
+    boxShadow: "var(--shadow-float)",
   }),
+  menuList: (base) => ({
+    ...base,
+    padding: 4,
+  }),
+  indicatorSeparator: () => ({ display: "none" }),
   option: (base, state) => ({
     ...base,
     backgroundColor:
       state.isSelected || state.isFocused ? hoverBg : "transparent",
     color: "var(--color-text)",
+    borderRadius: 7,
+    fontSize: "0.875rem",
+    paddingBlock: 7,
     fontWeight: state.isSelected ? 500 : 400,
     cursor: state.isDisabled ? "not-allowed" : base.cursor,
     opacity: state.isDisabled ? 0.5 : 1,

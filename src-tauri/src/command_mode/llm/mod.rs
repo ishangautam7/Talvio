@@ -170,25 +170,99 @@ pub fn router_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError
             "no router model is selected".into(),
         ));
     }
-    llm_for(settings, model)
+    let (provider_id, model) = effective(settings, model);
+    llm_for(settings, &provider_id, &model)
+}
+
+/// The provider and model a command actually runs on: the ones chosen for
+/// command mode while that provider can be used (it has a key, or needs
+/// none), otherwise the assistant's own provider and model. Someone who set
+/// the assistant up with one provider should not have to find a second key
+/// before "open YouTube" works; the default router is Anthropic, which many
+/// people have no key for.
+pub(crate) fn effective(settings: &AppSettings, model: &str) -> (String, String) {
+    let chosen = settings.command_router_provider_id.trim();
+    if usable(settings, chosen) {
+        return (chosen.to_string(), model.to_string());
+    }
+    // Another provider set up with a key: the assistant's, then AI cleanup's.
+    let elsewhere = [
+        (
+            "assistant",
+            settings.assistant_provider_id.trim(),
+            &settings.assistant_models,
+        ),
+        (
+            "cleanup",
+            settings.post_process_provider_id.trim(),
+            &settings.post_process_models,
+        ),
+    ];
+    for (feature, provider, models) in elsewhere {
+        let other_model = models.get(provider).map(|m| m.trim()).unwrap_or_default();
+        if provider != chosen && usable(settings, provider) && !other_model.is_empty() {
+            log::info!(
+                "Command mode has no key for `{chosen}`; using the {feature}'s `{provider}/{other_model}`"
+            );
+            return (provider.to_string(), other_model.to_string());
+        }
+    }
+    (chosen.to_string(), model.to_string())
+}
+
+/// Whether `provider_id` can take a tool call: an HTTP provider with a key,
+/// or one that needs none.
+pub(crate) fn usable(settings: &AppSettings, provider_id: &str) -> bool {
+    let Some(provider) = settings.post_process_provider(provider_id) else {
+        return false;
+    };
+    if provider.id == "apple_intelligence" || !provider.base_url.starts_with("http") {
+        return false;
+    }
+    let has_key = settings
+        .post_process_api_keys
+        .get(provider_id)
+        .is_some_and(|key| !key.trim().is_empty());
+    has_key || !crate::settings::post_process_provider_requires_api_key(&provider.id)
 }
 
 /// Build the model the tier-2 agent runs on: the router's provider and key,
 /// with `command_agent_model` (a stronger model than the router's, since it
 /// plans over many steps). An empty agent model means the default.
 pub fn agent_llm_for(settings: &AppSettings) -> Result<Box<dyn RouterLlm>, LlmError> {
-    let model = settings.command_agent_model.trim();
-    let model = if model.is_empty() {
-        crate::settings::DEFAULT_COMMAND_AGENT_MODEL
+    let (provider_id, model) = agent_choice(settings);
+    llm_for(settings, &provider_id, &model)
+}
+
+/// The provider and model the agent runs on. The default agent model is an
+/// Anthropic id, which means nothing to any other provider: on Azure it was
+/// asked for as a deployment that does not exist (HTTP 404
+/// `DeploymentNotFound`), so every command that fell through to the agent
+/// failed. Off Anthropic, an unset or default agent model therefore means the
+/// router's own model, which that provider is known to serve.
+pub(crate) fn agent_choice(settings: &AppSettings) -> (String, String) {
+    let configured = settings.command_agent_model.trim();
+    let default = crate::settings::DEFAULT_COMMAND_AGENT_MODEL;
+    let wanted = if configured.is_empty() {
+        default
     } else {
-        model
+        configured
     };
-    llm_for(settings, model)
+    let (provider_id, model) = effective(settings, wanted);
+    if provider_id == "anthropic" || (wanted != default && model == wanted) {
+        return (provider_id, model);
+    }
+    // Not Anthropic, and the agent model is the Anthropic default (or the
+    // assistant's model already replaced it): run on the router's model.
+    effective(settings, settings.command_router_model.trim())
 }
 
 /// [`router_for`] and [`agent_llm_for`] with the model already chosen.
-fn llm_for(settings: &AppSettings, model: &str) -> Result<Box<dyn RouterLlm>, LlmError> {
-    let provider_id = settings.command_router_provider_id.trim();
+fn llm_for(
+    settings: &AppSettings,
+    provider_id: &str,
+    model: &str,
+) -> Result<Box<dyn RouterLlm>, LlmError> {
     if provider_id.is_empty() {
         return Err(LlmError::NotConfigured(
             "no router provider is selected".into(),
@@ -234,4 +308,92 @@ fn llm_for(settings: &AppSettings, model: &str) -> Result<Box<dyn RouterLlm>, Ll
         api_key,
         model.to_string(),
     )))
+}
+
+#[cfg(test)]
+mod agent_choice_tests {
+    use super::agent_choice;
+    use crate::settings::{get_default_settings, AppSettings};
+
+    fn with_key(provider: &str, router_model: &str) -> AppSettings {
+        let mut settings = get_default_settings();
+        settings.command_router_provider_id = provider.into();
+        settings.command_router_model = router_model.into();
+        settings
+            .post_process_api_keys
+            .insert(provider.into(), "key".into());
+        settings
+    }
+
+    /// The Anthropic default agent model means nothing on Azure: the agent
+    /// runs on the router's model there (the real failure was HTTP 404
+    /// DeploymentNotFound for `claude-sonnet-5-5`).
+    #[test]
+    fn off_anthropic_the_default_agent_model_becomes_the_routers() {
+        let mut settings = with_key("azure_openai", "gpt-5.6-luna");
+        if settings.post_process_provider("azure_openai").is_none() {
+            return; // no Azure in this build's provider list
+        }
+        settings.command_agent_model = String::new();
+        assert_eq!(
+            agent_choice(&settings),
+            ("azure_openai".into(), "gpt-5.6-luna".into())
+        );
+        settings.command_agent_model = crate::settings::DEFAULT_COMMAND_AGENT_MODEL.into();
+        assert_eq!(agent_choice(&settings).1, "gpt-5.6-luna");
+        // A model the user picked for that provider is kept.
+        settings.command_agent_model = "gpt-5.6".into();
+        assert_eq!(agent_choice(&settings).1, "gpt-5.6");
+    }
+
+    #[test]
+    fn on_anthropic_the_default_agent_model_stays() {
+        let settings = with_key("anthropic", "claude-haiku-5-5");
+        let (provider, model) = agent_choice(&settings);
+        assert_eq!(provider, "anthropic");
+        assert_eq!(model, crate::settings::DEFAULT_COMMAND_AGENT_MODEL);
+    }
+}
+
+#[cfg(test)]
+mod effective_tests {
+    use super::effective;
+    use crate::settings::get_default_settings;
+
+    #[test]
+    fn a_keyless_choice_runs_on_the_assistant_then_on_cleanup() {
+        let mut settings = get_default_settings();
+        settings.command_router_provider_id = "anthropic".into();
+        settings.assistant_provider_id = "azure_openai".into();
+        settings.post_process_provider_id = "openai".into();
+        settings
+            .assistant_models
+            .insert("azure_openai".into(), "gpt-5.6-luna".into());
+        settings
+            .post_process_models
+            .insert("openai".into(), "gpt-5-mini".into());
+        settings
+            .post_process_api_keys
+            .insert("openai".into(), "key".into());
+        assert_eq!(
+            effective(&settings, "claude-haiku-5-5"),
+            ("openai".into(), "gpt-5-mini".into())
+        );
+
+        settings
+            .post_process_api_keys
+            .insert("azure_openai".into(), "key".into());
+        assert_eq!(
+            effective(&settings, "claude-haiku-5-5"),
+            ("azure_openai".into(), "gpt-5.6-luna".into())
+        );
+
+        settings
+            .post_process_api_keys
+            .insert("anthropic".into(), "key".into());
+        assert_eq!(
+            effective(&settings, "claude-haiku-5-5"),
+            ("anthropic".into(), "claude-haiku-5-5".into())
+        );
+    }
 }

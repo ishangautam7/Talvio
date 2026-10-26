@@ -642,6 +642,10 @@
             "name": "대화 시작",
             "description": "손을 쓰지 않고 어시스턴트와 대화하며 답변을 음성으로 듣습니다. 다시 누르면 종료됩니다."
           },
+          "command": {
+            "name": "음성 명령",
+            "description": "“YouTube 열어줘”처럼 원하는 일을 말하면 Talvio가 해 줍니다."
+          },
           "hands_free": {
             "name": "핸즈프리",
             "description": "받아쓰기 키를 누른 채 누르면 손을 떼도 녹음이 계속됩니다. 끝내려면 받아쓰기 키를 다시 누르세요."
@@ -678,7 +682,9 @@
         "dictation": "켜짐: 키를 누르고 있는 동안 녹음합니다. 꺼짐: 한 번 누르면 시작하고 다시 누르면 멈추므로, 모든 받아쓰기가 핸즈프리입니다.",
         "assistant": "켜짐: 키를 누르고 있는 동안 듣습니다. 꺼짐: 한 번 누르면 시작하고 다시 누르면 보냅니다.",
         "dictationLabel": "누르고 있는 동안 받아쓰기",
-        "assistantLabel": "누르고 있는 동안 질문"
+        "assistantLabel": "누르고 있는 동안 질문",
+        "command": "켜짐: 키를 누르고 있는 동안 듣습니다. 꺼짐: 한 번 누르면 시작하고 다시 누르면 명령을 실행합니다.",
+        "commandLabel": "누르고 있는 동안 명령"
       },
       "handsFree": {
         "unavailableKeys": "받아쓰기가 Ctrl + Win처럼 보조 키로만 되어 있을 때 작동합니다. {{keys}}에서는 대신 '누르고 있는 동안 받아쓰기'를 끄세요. 키를 다시 누를 때까지 받아쓰기가 계속됩니다.",
@@ -2097,6 +2103,8 @@
         "title": "휴대폰",
         "remoteInput": "휴대폰으로 받아쓰기",
         "remoteInputHint": "휴대폰으로 이 컴퓨터에 받아쓰기하고 입력할 수 있게 합니다.",
+        "remoteWindows": "휴대폰에서 창 보기 및 사용 허용",
+        "remoteWindowsHint": "휴대폰에서 열려 있는 창 목록을 보고, 한 창을 실시간으로 보면서 그 창에 입력하거나 키를 누르거나 클릭할 수 있습니다. 휴대폰이 보고 있을 때는 여기에 중지 버튼이 있는 카드가 표시됩니다.",
         "install": "휴대폰에 Talvio 앱을 설치하고 {{email}}(으)로 로그인하세요."
       },
       "keys": {
@@ -2451,6 +2459,7 @@
     "processing": "정리하는 중…",
     "generating": "Flow로 작성 중…",
     "vision": "화면을 보는 중…",
+    "command": "처리 중…",
     "notices": {
       "flowNotConfigured": "Flow에는 어시스턴트 모델이 필요합니다 — 받아쓰기로 붙여넣었습니다",
       "flowFailed": "Flow가 생성하지 못했습니다 — 아무것도 붙여넣지 않았습니다",
@@ -2459,7 +2468,8 @@
       "cleanupFallback": "AI 정리가 실행되지 않았습니다 — 원본 텍스트를 붙여넣었습니다",
       "cleanupModelRejected": "정리 제공자가 해당 모델을 거부했습니다 — 설정에서 모델을 확인하세요",
       "cloudSttFellBack": "클라우드 전사에 실패했습니다 — 기기의 모델을 사용했습니다",
-      "noSpeechModel": "아직 음성 모델이 없습니다. 모델 페이지에서 하나 고르세요"
+      "noSpeechModel": "아직 음성 모델이 없습니다. 모델 페이지에서 하나 고르세요",
+      "commandTranscriptionFailed": "명령을 듣지 못했습니다 — 다시 시도하세요"
     },
     "listening": "듣고 있습니다…",
     "locked": "핸즈프리로 녹음 중 — 단축키를 다시 누르면 정지합니다",
@@ -2516,6 +2526,20 @@
     "body": "이 컴퓨터의 앱에 받아쓰기하고 입력하려고 합니다. 본인 소유의 휴대폰만 허용하세요.",
     "allow": "허용",
     "deny": "허용 안 함"
+  },
+  "phoneViewing": {
+    "title": "휴대폰이 보는 중",
+    "body": "{{phone}}에서 {{title}}을(를) 볼 수 있습니다.",
+    "unnamedPhone": "내 휴대폰",
+    "stop": "중지"
+  },
+  "commandCard": {
+    "heading": "음성 명령",
+    "confirm": "실행",
+    "cancel": "취소",
+    "working": "처리 중…",
+    "dryRun": "모의 실행: 아무것도 실행하지 않았습니다.",
+    "sayAgain": "명령 키를 누르고 답을 말하세요."
   },
   "assistant": {
     "conversation": {
@@ -2673,6 +2697,7 @@
       "screen": "화면을 보는 중…",
       "meetingSearch": "회의 검색 중",
       "meetingRead": "회의 읽는 중",
+      "computer": "컴퓨터에서 실행하는 중…",
       "working": "처리하는 중",
       "elapsed": "{{seconds}}초"
     },
@@ -2734,7 +2759,12 @@
     },
     "quick": {
       "selection": "선택 영역",
-      "copied": "복사됨"
+      "copied": "복사됨",
+      "newConversation": "새 대화"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "음성 준비 중 · {{percent}}%"
     }
   },
   "nav": {
@@ -2742,6 +2772,7 @@
     "home": "홈",
     "history": "히스토리",
     "assistant": "어시스턴트",
+    "commands": "명령",
     "meetings": "회의",
     "cleanup": "AI 정리",
     "dictionary": "사전",
@@ -2782,7 +2813,9 @@
       "assistant": "어시스턴트",
       "mouse": "마우스",
       "cleanupOff": "이 단축키를 쓰려면 AI 정리를 켜세요.",
-      "assistantOff": "어시스턴트가 꺼져 있어 해당 단축키가 작동하지 않습니다."
+      "assistantOff": "어시스턴트가 꺼져 있어 해당 단축키가 작동하지 않습니다.",
+      "commands": "음성 명령",
+      "commandsOff": "음성 명령이 꺼져 있어 이 단축키가 작동하지 않습니다."
     },
     "audio": {
       "microphone": "마이크",
@@ -3117,6 +3150,50 @@
     },
     "addWord": "단어 추가"
   },
+  "commandsPage": {
+    "description": "원하는 일을 말하면 Talvio가 이 컴퓨터에서 해 줍니다: 사이트 열기, 노래 재생, 앱 전환, 이메일 작성.",
+    "enable": "음성 명령",
+    "offNotice": "음성 명령이 꺼져 있습니다. 켜면 단축키가 작동하며, 말한 내용은 명령을 실행하는 모델로 전송됩니다.",
+    "shortcut": {
+      "title": "명령 말하기",
+      "whatHold": "누른 채 원하는 일을 말하고 손을 떼세요.",
+      "whatTap": "누르고 원하는 일을 말한 뒤 다시 누르세요."
+    },
+    "model": {
+      "title": "실행 모델",
+      "info": "말한 내용을 동작으로 바꾸는 모델입니다. 작고 빠른 모델이 가장 좋습니다. 명령 하나가 요청 하나입니다.",
+      "provider": "제공자",
+      "model": "모델",
+      "using": "명령은 {{model}} · {{provider}}에서 실행됩니다.",
+      "borrowed": "{{chosen}}에 키가 없어 {{provider}} · {{model}}을(를) 사용합니다.",
+      "needsKey": "명령을 실행하려면 {{provider}} 키가 필요합니다.",
+      "setUp": "모델 설정",
+      "key": "{{provider}} API 키",
+      "keyShared": "AI 정리 및 어시스턴트와 함께 사용됩니다."
+    },
+    "confirmIrreversible": {
+      "title": "보내기나 삭제 전에 묻기",
+      "info": "끔: 요청한 보내기, 게시, 삭제를 바로 실행합니다. 켬: 실행을 누를 때까지 기다립니다. 어느 쪽이든 말하면 기다립니다(“초안만”, “먼저 확인할게”)."
+    },
+    "dryRun": {
+      "title": "모의 실행",
+      "info": "명령을 실행하는 대신 무엇을 할지 보여 줍니다."
+    },
+    "test": {
+      "group": "사용해 보기",
+      "title": "명령 입력",
+      "info": "말할 내용을 입력하면 무엇이 선택되었고 각 단계가 무엇을 했는지 볼 수 있습니다."
+    },
+    "examples": {
+      "title": "이렇게 말해 보세요",
+      "items": {
+        "youtube": "“YouTube 열어줘”",
+        "song": "“Imagine Dragons의 Believer 틀어줘”",
+        "volume": "“볼륨 낮춰줘”",
+        "switch": "“Chrome으로 전환해줘”"
+      }
+    }
+  },
   "assistantPage": {
     "description": "어느 앱에서나 음성으로 무엇이든 물어보세요. 어시스턴트는 화면을 보고, 웹을 검색하고, 중요한 것을 기억할 수 있습니다.",
     "offNotice": "어시스턴트가 꺼져 있습니다. 다시 켤 때까지 단축키는 작동하지 않고 메모리도 사용하지 않습니다.",
@@ -3262,6 +3339,17 @@
       "screen": {
         "ask": "질문 시 화면 인식",
         "call": "대화 중 화면 인식"
+      },
+      "quickAskMemory": {
+        "title": "대화 기억하기",
+        "cleared": "다음 질문부터 새 대화가 시작됩니다",
+        "options": {
+          "off": "끄기",
+          "five_minutes": "5분",
+          "ten_minutes": "10분",
+          "thirty_minutes": "30분",
+          "until_cleared": "직접 지울 때까지"
+        }
       }
     },
     "tips": {
@@ -3279,6 +3367,7 @@
       "profiles": "고유한 이름, 지침, 답변 스타일을 가진 페르소나입니다.",
       "replyLength": "평소 답변의 길이입니다.",
       "history": "최근 메시지를 몇 개까지 기억할지 정합니다.",
+      "quickAskMemory": "빠른 질문이 바로 앞의 질문을 얼마 동안 기억할지 정합니다. 이어서 질문할 수 있습니다. 대화는 각자의 기록을 따로 유지합니다.",
       "summarize": "긴 대화를 요약해 앞부분을 잊지 않도록 합니다.",
       "opacity": "낮출수록 바탕 화면이 비쳐 보입니다.",
       "position": "화면에서 위치를 클릭하세요.",
@@ -3747,13 +3836,22 @@
       "contactNoDetails": "{{name}}은(는) 연락처에 있지만 저장된 이메일 주소나 전화번호가 없습니다.",
       "contactNotFound": "{{name}}(이)라는 연락처가 없습니다.",
       "emailDraft": "{{name}}에게 보낼 초안을 열었습니다. 보내기 또는 취소라고 말하세요.",
+      "emailDraftFile": "{{file}}이(가) 첨부된 {{name}}님께 보낼 초안이 열려 있습니다. 보내기 또는 취소라고 말하세요.",
       "emailDraftTruncated": "{{name}}에게 보낼 초안을 열었습니다. 메시지가 너무 길어 Gmail에 전달하면서 잘렸으니 보내기 전에 끝부분을 확인하세요. 보내기 또는 취소라고 말하세요.",
       "emailSent": "{{name}}에게 보냈습니다.",
+      "emailSentFile": "{{file}}을(를) {{name}}님께 보냈습니다.",
       "empty": "명령을 알아듣지 못했습니다.",
       "failed": "{{reason}}",
       "mediaNext": "다음 트랙으로 넘겼습니다.",
       "mediaPlayPause": "재생/일시정지를 눌렀습니다.",
+      "mediaPaused": "일시 정지했습니다.",
+      "mediaNothingPlaying": "재생 중인 것이 없습니다.",
+      "mediaResumed": "다시 재생합니다.",
+      "mediaAlreadyPlaying": "이미 재생 중입니다.",
+      "windowNotReady": "앱이 제때 열리지 않아 아무것도 입력하지 않았습니다.",
+      "mediaPlaying": "{{service}}에서 “{{title}}”을(를) 재생합니다.",
       "mediaPrevious": "이전 트랙으로 돌아갔습니다.",
+      "mediaResultsOpened": "{{service}}에서 “{{query}}” 검색 결과를 열었습니다.",
       "mediaStop": "재생을 멈췄습니다.",
       "needsComputerUse": "아직 그 작업을 할 수 있는 도구가 없습니다. 화면을 제어해 처리하는 기능은 이후 버전에서 추가됩니다.",
       "notConfigured": "명령 모드가 설정되지 않았습니다: {{why}}",
@@ -3770,6 +3868,7 @@
       "routeFailed": "무엇을 해야 할지 알 수 없었습니다: {{why}}",
       "say": "{{text}}",
       "searchOpened": "{{query}}을(를) 검색합니다.",
+      "spotifyResultsOpened": "Spotify에서 “{{query}}” 검색 결과를 열었습니다. Spotify는 스스로 검색을 시작할 수 없으니 재생할 항목을 선택하세요.",
       "superseded": "새 명령이 이 명령을 대신해서 더 이상 기다리지 않습니다.",
       "switchedTo": "{{title}}(으)로 전환했습니다.",
       "tooManyQuestions": "여전히 무엇을 해야 할지 알 수 없습니다. 다르게 말해 보세요.",
@@ -3783,6 +3882,23 @@
       "volumeUp": "볼륨을 높였습니다.",
       "waitingForAnswer": "이 명령은 확인이 아니라 답변을 기다리고 있습니다.",
       "waitingForConfirmation": "이 명령은 답변이 아니라 확인을 기다리고 있습니다."
+    }
+  },
+  "palette": {
+    "trigger": "검색하거나 이동…",
+    "placeholder": "페이지, 모델, 설정 검색",
+    "label": "명령 팔레트",
+    "empty": "“{{query}}”와 일치하는 항목이 없습니다",
+    "groups": {
+      "pages": "페이지",
+      "models": "모델",
+      "settings": "설정",
+      "actions": "작업"
+    },
+    "hints": {
+      "move": "이동",
+      "open": "열기",
+      "close": "닫기"
     }
   }
 }

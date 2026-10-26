@@ -642,6 +642,10 @@
             "name": "開始對話",
             "description": "免動手與助理對話並聆聽它的回覆。再按一次即可結束。"
           },
+          "command": {
+            "name": "語音指令",
+            "description": "說出您想做的事，例如「打開 YouTube」，Talvio 就會替您完成。"
+          },
           "hands_free": {
             "name": "免持",
             "description": "按住聽寫鍵時按下它，放開後會繼續錄音。再次按下聽寫鍵即可結束。"
@@ -678,7 +682,9 @@
         "dictation": "開：按住按鍵期間持續錄音。關：按一下開始，再按一下停止，因此每次聽寫都是免持的。",
         "assistant": "開：按住按鍵期間持續聆聽。關：按一下開始，再按一下送出。",
         "dictationLabel": "按住說話",
-        "assistantLabel": "按住提問"
+        "assistantLabel": "按住提問",
+        "command": "開：按住按鍵期間持續聆聽。關：按一下開始，再按一下執行指令。",
+        "commandLabel": "按住說出指令"
       },
       "handsFree": {
         "unavailableKeys": "僅在聽寫快捷鍵只由輔助鍵組成時可用，例如 Ctrl + Win。使用 {{keys}} 時，請改為關閉「按住說話」：每次聽寫都會持續到你再次按下按鍵。",
@@ -2097,6 +2103,8 @@
         "title": "手機",
         "remoteInput": "手機語音輸入",
         "remoteInputHint": "讓您的手機能在這台電腦上語音輸入和打字。",
+        "remoteWindows": "允許手機檢視和使用視窗",
+        "remoteWindowsHint": "您的手機可以列出已開啟的視窗，即時檢視其中一個，並在其中打字、按鍵或點擊。手機正在檢視時，這裡會顯示一張卡片，可以停止。",
         "install": "在手機上安裝 Talvio App，並以 {{email}} 登入。"
       },
       "keys": {
@@ -2451,6 +2459,7 @@
     "processing": "整理中…",
     "generating": "Flow 正在撰寫…",
     "vision": "正在查看您的螢幕…",
+    "command": "處理中…",
     "notices": {
       "flowNotConfigured": "Flow 需要助理模型——已改以一般語音輸入貼上",
       "flowFailed": "Flow 無法生成——未貼上任何內容",
@@ -2459,7 +2468,8 @@
       "cleanupFallback": "AI 整理未執行——已貼上原始文字",
       "cleanupModelRejected": "您的整理供應商拒絕了該模型——請在「設定」中檢查模型",
       "cloudSttFellBack": "雲端轉寫失敗——已改用本機模型",
-      "noSpeechModel": "尚未選擇語音模型。請在「模型」頁面選擇一個"
+      "noSpeechModel": "尚未選擇語音模型。請在「模型」頁面選擇一個",
+      "commandTranscriptionFailed": "沒聽清楚指令——請再試一次"
     },
     "listening": "正在聆聽…",
     "locked": "免持錄製中——再按一次快捷鍵即可停止",
@@ -2516,6 +2526,20 @@
     "body": "它想在這台電腦上的應用程式中語音輸入和打字，所以只允許您自己的手機。",
     "allow": "允許",
     "deny": "不允許"
+  },
+  "phoneViewing": {
+    "title": "手機正在檢視",
+    "body": "{{phone}} 可以看到 {{title}}。",
+    "unnamedPhone": "您的手機",
+    "stop": "停止"
+  },
+  "commandCard": {
+    "heading": "語音指令",
+    "confirm": "執行",
+    "cancel": "取消",
+    "working": "處理中…",
+    "dryRun": "試運行：未執行任何操作。",
+    "sayAgain": "按住命令鍵說出你的回答。"
   },
   "assistant": {
     "conversation": {
@@ -2673,6 +2697,7 @@
       "screen": "正在查看您的螢幕…",
       "meetingSearch": "正在搜尋會議",
       "meetingRead": "正在閱讀會議",
+      "computer": "正在您的電腦上執行…",
       "working": "正在處理",
       "elapsed": "{{seconds}}秒"
     },
@@ -2734,7 +2759,12 @@
     },
     "quick": {
       "selection": "選取內容",
-      "copied": "已複製"
+      "copied": "已複製",
+      "newConversation": "新對話"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "正在準備語音 · {{percent}}%"
     }
   },
   "nav": {
@@ -2742,6 +2772,7 @@
     "home": "首頁",
     "history": "歷史紀錄",
     "assistant": "助理",
+    "commands": "指令",
     "meetings": "會議",
     "cleanup": "AI 整理",
     "dictionary": "字典",
@@ -2782,7 +2813,9 @@
       "assistant": "助理",
       "mouse": "滑鼠",
       "cleanupOff": "開啟 AI 整理即可使用這個快捷鍵。",
-      "assistantOff": "助理已關閉，因此它的快捷鍵不會有任何作用。"
+      "assistantOff": "助理已關閉，因此它的快捷鍵不會有任何作用。",
+      "commands": "語音指令",
+      "commandsOff": "語音指令已關閉，因此此快捷鍵不會有任何作用。"
     },
     "audio": {
       "microphone": "麥克風",
@@ -3117,6 +3150,50 @@
     },
     "addWord": "新增詞彙"
   },
+  "commandsPage": {
+    "description": "說出您想做的事，Talvio 會在這台電腦上完成：開啟網站、播放歌曲、切換應用程式、撰寫郵件。",
+    "enable": "語音指令",
+    "offNotice": "語音指令已關閉。開啟後其快捷鍵才會生效；您說的內容會傳送給執行指令的模型。",
+    "shortcut": {
+      "title": "說出指令",
+      "whatHold": "按住、說出您想做的事、放開。",
+      "whatTap": "按一下、說出您想做的事，再按一下。"
+    },
+    "model": {
+      "title": "執行模型",
+      "info": "將您說的話轉換為動作的模型。小而快的模型最合適：每個指令只會向它傳送一次請求。",
+      "provider": "供應商",
+      "model": "模型",
+      "using": "指令在 {{model}} · {{provider}} 上執行。",
+      "borrowed": "由於 {{chosen}} 沒有金鑰，正在使用 {{provider}} · {{model}}。",
+      "needsKey": "{{provider}} 需要金鑰才能執行指令。",
+      "setUp": "設定模型",
+      "key": "{{provider}} API 金鑰",
+      "keyShared": "與 AI 整理和助理共用。"
+    },
+    "confirmIrreversible": {
+      "title": "傳送或刪除前先詢問",
+      "info": "關：你要求的傳送、發布或刪除會直接完成。開：等你按「執行」。無論哪種，只要你說了就會等待（「只寫草稿」、「讓我先看看」）。"
+    },
+    "dryRun": {
+      "title": "試運行",
+      "info": "顯示指令將會執行的操作，而不實際執行。"
+    },
+    "test": {
+      "group": "試試看",
+      "title": "輸入指令",
+      "info": "輸入您要說的話，查看選擇了什麼，以及每個步驟做了什麼。"
+    },
+    "examples": {
+      "title": "可以這樣說",
+      "items": {
+        "youtube": "「打開 YouTube」",
+        "song": "「播放 Imagine Dragons 的 Believer」",
+        "volume": "「把音量調低」",
+        "switch": "「切換到 Chrome」"
+      }
+    }
+  },
   "assistantPage": {
     "description": "在任何應用程式中，用語音問任何問題。助理可以查看您的螢幕、搜尋網路，還能記住對您重要的事。",
     "offNotice": "助理已關閉。在您重新開啟之前，它的快捷鍵不會有任何作用，也不會佔用記憶體。",
@@ -3262,6 +3339,17 @@
       "screen": {
         "ask": "提問時使用螢幕視覺",
         "call": "對話時使用螢幕視覺"
+      },
+      "quickAskMemory": {
+        "title": "記住對話",
+        "cleared": "下一個問題將開始新對話",
+        "options": {
+          "off": "關閉",
+          "five_minutes": "5 分鐘",
+          "ten_minutes": "10 分鐘",
+          "thirty_minutes": "30 分鐘",
+          "until_cleared": "直到我清除"
+        }
       }
     },
     "tips": {
@@ -3279,6 +3367,7 @@
       "profiles": "擁有自己名稱、指示與回覆風格的角色。",
       "replyLength": "回答通常的長度。",
       "history": "它會記住多少則最近的訊息。",
+      "quickAskMemory": "快速提問會記住上一個問題多久，方便您追問。對話會保留各自的歷史紀錄。",
       "summarize": "濃縮較長的對話，讓它不會忘記開頭的內容。",
       "opacity": "數值越低，越能透出後方的桌面。",
       "position": "點選螢幕上的一個位置。",
@@ -3747,13 +3836,22 @@
       "contactNoDetails": "{{name}} 在您的聯絡人中，但沒有儲存電子郵件地址或電話號碼。",
       "contactNotFound": "我找不到名為 {{name}} 的聯絡人。",
       "emailDraft": "給 {{name}} 的草稿已開啟。請說「傳送」或「取消」。",
+      "emailDraftFile": "給 {{name}} 的草稿（附 {{file}}）已開啟。說「傳送」或「取消」。",
       "emailDraftTruncated": "給 {{name}} 的草稿已開啟。訊息太長，無法完整傳給 Gmail，因此被截短了；傳送前請檢查結尾。請說「傳送」或「取消」。",
       "emailSent": "已傳送給 {{name}}。",
+      "emailSentFile": "已將 {{file}} 傳送給 {{name}}。",
       "empty": "我沒有聽到指令。",
       "failed": "{{reason}}",
       "mediaNext": "已跳到下一首。",
       "mediaPlayPause": "已按下播放／暫停。",
+      "mediaPaused": "已暫停。",
+      "mediaNothingPlaying": "目前沒有在播放。",
+      "mediaResumed": "已繼續播放。",
+      "mediaAlreadyPlaying": "已經在播放了。",
+      "windowNotReady": "應用程式沒能及時開啟，所以我沒有輸入任何內容。",
+      "mediaPlaying": "正在 {{service}} 上播放「{{title}}」。",
       "mediaPrevious": "已回到上一首。",
+      "mediaResultsOpened": "已在 {{service}} 上開啟「{{query}}」的搜尋結果。",
       "mediaStop": "已停止播放。",
       "needsComputerUse": "我目前的工具都還做不到這件事。操控畫面來完成它的功能將在之後的版本推出。",
       "notConfigured": "指令模式尚未設定：{{why}}",
@@ -3770,6 +3868,7 @@
       "routeFailed": "我無法判斷該怎麼做：{{why}}",
       "say": "{{text}}",
       "searchOpened": "正在搜尋 {{query}}。",
+      "spotifyResultsOpened": "已在 Spotify 上開啟「{{query}}」的搜尋結果。Spotify 無法自行開始搜尋，請選擇要播放的內容。",
       "superseded": "較新的指令取代了這個指令，所以它不再等待。",
       "switchedTo": "已切換到 {{title}}。",
       "tooManyQuestions": "我還是無法判斷該怎麼做。請換個說法試試。",
@@ -3783,6 +3882,23 @@
       "volumeUp": "已調高音量。",
       "waitingForAnswer": "這個指令正在等待回答，而不是確認。",
       "waitingForConfirmation": "這個指令正在等待您確認，而不是回答。"
+    }
+  },
+  "palette": {
+    "trigger": "搜尋或跳至…",
+    "placeholder": "搜尋頁面、模型和設定",
+    "label": "命令面板",
+    "empty": "沒有與「{{query}}」相符的項目",
+    "groups": {
+      "pages": "頁面",
+      "models": "模型",
+      "settings": "設定",
+      "actions": "動作"
+    },
+    "hints": {
+      "move": "移動",
+      "open": "開啟",
+      "close": "關閉"
     }
   }
 }

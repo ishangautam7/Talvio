@@ -11,7 +11,7 @@ use base64::Engine as _;
 use log::{debug, info};
 use serde_json::{json, Value};
 
-use super::{Pasted, Reply, Router};
+use super::{windows, Pasted, Reply, Router};
 
 const SAMPLE_RATE: u32 = 16_000;
 const MAX_SAMPLES: u32 = 5 * 60 * SAMPLE_RATE;
@@ -40,6 +40,14 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
         Some("return") => Deliver::Return,
         _ => return reply.fail("unsupported"),
     };
+    // Checked before the transcription, so a stale window fails at once.
+    let target = match deliver {
+        Deliver::Paste => match windows::target(&router, &reply, &body) {
+            Ok(target) => target,
+            Err(code) => return reply.fail(code),
+        },
+        Deliver::Return => None,
+    };
     if !host.speech_ready() {
         return reply.fail("no_speech_model");
     }
@@ -65,7 +73,7 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
     );
     reply.progress("transcribing");
     let started = Instant::now();
-    let Some(text) = host.transcribe(samples).await else {
+    let Some(text) = super::with_heartbeat(&reply, host.transcribe(samples), || {}).await else {
         return reply.fail("transcription_failed");
     };
     debug!("Phone dictation transcribed in {:?}", started.elapsed());
@@ -88,11 +96,12 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
         Deliver::Return => reply.ok(json!({ "text": text, "pasted": false })),
         Deliver::Paste => {
             reply.progress("pasting");
-            match host.paste(text.clone()).await {
-                Pasted::Done => reply.ok(json!({ "text": text, "pasted": true })),
+            match windows::aim(&router, target.as_ref(), || host.paste(text.clone())).await {
+                Ok(Pasted::Done) => reply.ok(json!({ "text": text, "pasted": true })),
                 // Nothing is pasted on this computer: the phone gets the text.
-                Pasted::Off => reply.ok(json!({ "text": text, "pasted": false })),
-                Pasted::Failed => reply.fail("paste_failed"),
+                Ok(Pasted::Off) => reply.ok(json!({ "text": text, "pasted": false })),
+                Ok(Pasted::Failed) => reply.fail("paste_failed"),
+                Err(code) => reply.fail(code),
             }
         }
     }
@@ -100,7 +109,7 @@ pub(super) async fn handle(router: Arc<Router>, body: Value, mut reply: Reply) {
 
 /// Base64 to the WAV bytes and their samples, only for 16 kHz mono 16-bit
 /// PCM between one sample and five minutes long.
-fn decode(audio: &str) -> Result<(Vec<u8>, Vec<f32>), &'static str> {
+pub(super) fn decode(audio: &str) -> Result<(Vec<u8>, Vec<f32>), &'static str> {
     if audio.len() > MAX_AUDIO_BASE64 {
         return Err("too large");
     }

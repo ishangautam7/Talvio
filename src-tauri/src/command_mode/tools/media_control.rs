@@ -1,10 +1,15 @@
-//! `media_control`: play, pause and skip whatever is playing.
+//! `media_control`: pause, resume and skip whatever is playing.
 //!
-//! Sent as the system media keys ([`Effects::media`]), so it reaches Spotify,
-//! a YouTube tab or a podcast app alike without knowing which one is playing,
-//! and works without focus, which is why it is offered on Wayland too.
+//! Pause and resume go to the player itself where the system lists players
+//! ([`Effects::pause_media`], Windows' media sessions): the play/pause key
+//! only toggles, so "pause" said while nothing played used to start
+//! something. Skipping, and pausing where there is no session list, are the
+//! system media keys ([`Effects::media`]), which reach Spotify, a YouTube tab
+//! or a podcast app alike without knowing which one is playing, and work
+//! without focus, which is why the tool is offered on Wayland too.
 //!
 //! [`Effects::media`]: crate::command_mode::effects::Effects::media
+//! [`Effects::pause_media`]: crate::command_mode::effects::Effects::pause_media
 
 use serde_json::{json, Value};
 
@@ -15,9 +20,9 @@ use crate::command_mode::registry::{
 
 pub static SPEC: ToolSpec = ToolSpec {
     name: "media_control",
-    description: "Control whatever music or video is playing, through the system media keys: \
-                  play or pause, next track, previous track, or stop. Works on any player, \
-                  without switching to it.",
+    description: "Control whatever music or video is already playing: pause it, resume it, \
+                  skip to the next or previous track, or stop. Works on any player, without \
+                  switching to it. To start something new by name, use play_media instead.",
     schema,
     risk: Risk::Safe,
     platforms: ALL_PLATFORMS,
@@ -35,8 +40,9 @@ fn schema() -> Value {
         "properties": {
             "action": {
                 "type": "string",
-                "enum": ["play_pause", "next", "previous", "stop"],
-                "description": "play_pause toggles (use it for play, pause and resume)."
+                "enum": ["pause", "resume", "play_pause", "next", "previous", "stop"],
+                "description": "pause or resume what is playing; play_pause only when the user \
+                                says to toggle it."
             }
         },
         "required": ["action"],
@@ -62,12 +68,54 @@ fn action_named(action: &str) -> Option<(MediaAction, Feedback)> {
 
 fn run(ctx: &ToolCtx, args: Value) -> ToolOutcome {
     let requested = arg_str(&args, "action").unwrap_or_default();
+    match requested {
+        "pause" => return pause(ctx),
+        "resume" => return resume(ctx),
+        _ => {}
+    }
     let Some((action, feedback)) = action_named(requested) else {
         return ToolOutcome::failed(
-            "The media action has to be play_pause, next, previous or stop.",
+            "The media action has to be pause, resume, play_pause, next, previous or stop.",
             false,
         );
     };
+    press(ctx, action, feedback)
+}
+
+/// Pause what plays, by the player's own pause. Nothing playing is said as
+/// much, rather than toggled into playing. Without a session list, the key.
+fn pause(ctx: &ToolCtx) -> ToolOutcome {
+    match ctx.effects.pause_media() {
+        Ok(0) => ToolOutcome::done("mediaNothingPlaying", "Nothing is playing.", &[]),
+        Ok(_) => ToolOutcome::done("mediaPaused", "Paused.", &[]),
+        Err(e) => {
+            log::debug!("command mode: pausing by session failed ({e}); pressing the media key");
+            press(
+                ctx,
+                MediaAction::PlayPause,
+                Feedback::new("mediaPlayPause", "Play/pause pressed.", &[]),
+            )
+        }
+    }
+}
+
+/// Resume the player by its own play. Something already playing is left
+/// alone; a player that cannot be asked gets the key.
+fn resume(ctx: &ToolCtx) -> ToolOutcome {
+    if ctx.effects.media_playing() == Some(true) {
+        return ToolOutcome::done("mediaAlreadyPlaying", "It's already playing.", &[]);
+    }
+    match ctx.effects.resume_media() {
+        Ok(true) => ToolOutcome::done("mediaResumed", "Resumed.", &[]),
+        Ok(false) | Err(_) => press(
+            ctx,
+            MediaAction::PlayPause,
+            Feedback::new("mediaPlayPause", "Play/pause pressed.", &[]),
+        ),
+    }
+}
+
+fn press(ctx: &ToolCtx, action: MediaAction, feedback: Feedback) -> ToolOutcome {
     match ctx.effects.media(action) {
         Ok(()) => ToolOutcome::Done { feedback },
         Err(e) => {
@@ -149,6 +197,58 @@ mod tests {
             run(&ctx(fake), json!({"action": "next"})),
             ToolOutcome::failed("No media keys here.", false)
         );
+    }
+
+    fn with_sessions(playing: Option<bool>) -> Arc<FakeEffects> {
+        let fake = FakeEffects::default();
+        *fake.playing.lock().unwrap() = playing;
+        Arc::new(fake)
+    }
+
+    fn key_of(outcome: ToolOutcome) -> String {
+        match outcome {
+            ToolOutcome::Done { feedback } => feedback.key,
+            other => panic!("expected Done, got {other:?}"),
+        }
+    }
+
+    /// "Pause" pauses the player that plays, and never toggles silence into
+    /// playing.
+    #[test]
+    fn pause_pauses_what_plays_and_never_starts_anything() {
+        let fake = with_sessions(Some(true));
+        let key = key_of(run(&ctx(fake.clone()), json!({"action": "pause"})));
+        assert_eq!(key, "commandMode.feedback.mediaPaused");
+        assert_eq!(fake.actions(), vec!["pause_media".to_string()]);
+
+        let fake = with_sessions(Some(false));
+        let key = key_of(run(&ctx(fake.clone()), json!({"action": "pause"})));
+        assert_eq!(key, "commandMode.feedback.mediaNothingPlaying");
+        assert!(!fake.actions().iter().any(|a| a.starts_with("media ")));
+    }
+
+    /// Where the system lists no players, pause is the media key.
+    #[test]
+    fn without_sessions_pause_and_resume_press_the_key() {
+        for action in ["pause", "resume"] {
+            let fake = with_sessions(None);
+            let key = key_of(run(&ctx(fake.clone()), json!({ "action": action })));
+            assert_eq!(key, "commandMode.feedback.mediaPlayPause", "{action}");
+            assert_eq!(fake.actions(), vec!["media PlayPause".to_string()]);
+        }
+    }
+
+    #[test]
+    fn resume_leaves_something_playing_alone() {
+        let fake = with_sessions(Some(true));
+        let key = key_of(run(&ctx(fake.clone()), json!({"action": "resume"})));
+        assert_eq!(key, "commandMode.feedback.mediaAlreadyPlaying");
+        assert!(fake.actions().is_empty());
+
+        let fake = with_sessions(Some(false));
+        let key = key_of(run(&ctx(fake.clone()), json!({"action": "resume"})));
+        assert_eq!(key, "commandMode.feedback.mediaResumed");
+        assert_eq!(fake.actions(), vec!["resume_media".to_string()]);
     }
 
     /// Media keys need no focus, so Wayland keeps them.

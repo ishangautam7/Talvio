@@ -1,6 +1,6 @@
 import { memo, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import { SmilePlus } from "lucide-react";
+import { SmilePlus } from "@/components/icons/glyphs";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { useSettings } from "@/hooks/useSettings";
 

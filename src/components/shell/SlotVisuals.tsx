@@ -1,14 +1,13 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  AudioLines,
+  AssistantGlyph,
+  CleanupGlyph,
   Cloud,
   Cpu,
-  MessageCircle,
-  Mic,
-  Volume2,
-  Wand2,
-} from "lucide-react";
+  SpeechToTextGlyph,
+  VoiceGlyph,
+} from "@/components/icons/glyphs";
 import type { ModelInfo } from "@/bindings";
 import { getModelBrand } from "@/components/icons/BrandLogos";
 import { ProviderTile } from "@/components/icons/ProviderLogos";
@@ -19,11 +18,20 @@ import type { SlotSummary } from "./useModelSlots";
 /** Fixed identity for each model job: its glyph and copy key. */
 export const SLOT_META: Record<ModelSlot, { icon: SettingIcon; key: string }> =
   {
-    stt: { icon: Mic, key: "stt" },
-    cleanup: { icon: Wand2, key: "cleanup" },
-    assistant: { icon: MessageCircle, key: "assistant" },
-    voice: { icon: Volume2, key: "voice" },
+    stt: { icon: SpeechToTextGlyph, key: "stt" },
+    cleanup: { icon: CleanupGlyph, key: "cleanup" },
+    assistant: { icon: AssistantGlyph, key: "assistant" },
+    voice: { icon: VoiceGlyph, key: "voice" },
   };
+
+/** Whose colour each job wears: dictation's ember, cleanup's magenta, the
+ *  assistant's violet, and the dictionary's sky for the voice. */
+export const SLOT_HUES: Record<ModelSlot, string> = {
+  stt: "home",
+  cleanup: "cleanup",
+  assistant: "assistant",
+  voice: "dictionary",
+};
 
 type MarkSize = "sm" | "md" | "lg";
 
@@ -56,11 +64,12 @@ export const SlotGlyph: React.FC<{
   size?: MarkSize;
   className?: string;
 }> = ({ slot, size = "md", className = "" }) => {
-  const Icon = slot === "voice" ? AudioLines : SLOT_META[slot].icon;
+  const Icon = SLOT_META[slot].icon;
   return (
     <span
       aria-hidden="true"
-      className={`grid shrink-0 place-items-center bg-surface-strong text-muted ${BOX[size]} ${className}`}
+      data-hue={SLOT_HUES[slot]}
+      className={`hue-tile grid shrink-0 place-items-center ${BOX[size]} ${className}`}
     >
       <Icon size={16} strokeWidth={1.8} />
     </span>

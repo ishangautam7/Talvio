@@ -1,12 +1,15 @@
+import type { OrbMode } from "./orbMotion";
+
 /**
  * What the quick ask is showing, derived from the assistant's pipeline state.
  *
- * Pure, so the one decision that makes the surface feel responsive or dead —
- * "is there something to read yet?" — is a test rather than a screenshot.
+ * Pure, so the decisions that make the orb feel alive or stuck are tests
+ * rather than screenshots.
  *
- * The quick ask is one question and one answer. It has no follow-up field and no
- * thread: a conversation is what the call is for. So every phase below belongs
- * to the single exchange in front of the user, and the next ask starts clean.
+ * The quick ask is voice-first: one question, answered aloud by the orb. There
+ * is no answer card. The next ask may continue the same conversation while it
+ * is remembered ("Remember the conversation"), but every phase below belongs
+ * to the single exchange in front of the user.
  */
 
 export type AssistantState =
@@ -26,18 +29,20 @@ export type QuickAskPhase =
   | "transcribing"
   /** The model is working and has not written anything yet. */
   | "working"
-  /** The answer is streaming in. */
+  /** The answer is being written, and its voice has not started yet. */
   | "answering"
-  /** The answer is complete. */
+  /** The answer is being spoken. */
+  | "speaking"
+  /** The answer is complete and nothing is playing. */
   | "done"
   /** The ask failed. */
   | "error";
 
 /**
- * The surface's three shapes. The pill is for waiting, the bar is for typing, and
- * the card is for reading. They are one element that morphs, never a swap.
+ * The surface's two shapes: the bar is for typing, the orb is for everything
+ * else. They are one element, never a swap of windows.
  */
-export type QuickAskShape = "pill" | "bar" | "card";
+export type QuickAskShape = "bar" | "orb";
 
 export interface QuickAskInputs {
   state: AssistantState;
@@ -47,6 +52,8 @@ export interface QuickAskInputs {
   answer: string;
   /** An error is on screen. */
   hasError: boolean;
+  /** The answer's voice is audible right now. */
+  audible?: boolean;
 }
 
 export function quickAskPhase({
@@ -54,30 +61,54 @@ export function quickAskPhase({
   stream,
   answer,
   hasError,
+  audible = false,
 }: QuickAskInputs): QuickAskPhase {
   if (state === "listening") return "listening";
   if (state === "transcribing") return "transcribing";
+  // The voice outranks everything after the question: while it is heard, the
+  // orb is speaking, even if the backend has already moved on to idle.
+  if (audible) return "speaking";
   const busy = state !== "idle";
   if (hasError && !busy) return "error";
-  // Text on screen means the card, from the very first token. Waiting for the
-  // whole answer before showing any of it is what made the old surface feel
-  // stuck: a long reply spent its entire generation behind a spinner.
-  if (stream.trim()) return busy ? "answering" : "done";
-  if (answer.trim()) return busy ? "answering" : "done";
+  // "speaking" from the backend means a voice is on its way, not yet heard.
+  if (state === "speaking") return "answering";
+  if (stream.trim() || answer.trim()) return busy ? "answering" : "done";
   return busy ? "working" : "prompt";
 }
 
 export function quickAskShape(phase: QuickAskPhase): QuickAskShape {
+  return phase === "prompt" ? "bar" : "orb";
+}
+
+/** What the orb does in each phase. */
+export function orbModeFor(phase: QuickAskPhase): OrbMode {
   switch (phase) {
-    case "prompt":
-      return "bar";
     case "listening":
+      return "listening";
     case "transcribing":
     case "working":
-      return "pill";
+    case "answering":
+      return "thinking";
+    case "speaking":
+      return "speaking";
+    case "error":
+      return "error";
     default:
-      return "card";
+      return "idle";
   }
+}
+
+/** How long the orb stays once a spoken answer has finished, before it puts
+ *  itself away: long enough to read as an ending, not a disappearance. */
+export const SETTLE_MS = 900;
+
+/** How long it stays when it is offering something to click (Insert, Undo,
+ *  Copy), unless the pointer is on it. */
+export const LINGER_WITH_ACTION_MS = 8000;
+
+/** How long a finished orb stays before it puts itself away. */
+export function lingerFor(offersAction: boolean): number {
+  return offersAction ? LINGER_WITH_ACTION_MS : SETTLE_MS;
 }
 
 /** A tool the current turn is running, as reported by the backend. */
@@ -91,8 +122,9 @@ export interface ToolActivity {
 /**
  * The translation key for what the assistant is doing while the pill waits.
  *
- * Kept to four short states — listening, thinking, searching the web, looking
- * at the screen — because the pill is glanced at, not read. Transcription used
+ * Kept to a few short states — listening, thinking, searching the web, looking
+ * at the screen, doing something on the computer — because the pill is
+ * glanced at, not read. Transcription used
  * to have its own label, and every other tool a generic "Working on it"; to the
  * person waiting both are just the assistant thinking, and a pill that flips
  * through five labels in two seconds reads as noise. A tool that changes what
@@ -107,8 +139,52 @@ export function workingLabelKey(
   if (phase === "listening") return "assistant.status.listening";
   if (tool?.name === "web_search") return "assistant.status.searching";
   if (tool?.name === "capture_screen") return "assistant.tool.screen";
+  if (tool?.name === "do_on_computer") return "assistant.tool.computer";
   if (!tool && state === "searching") return "assistant.status.searching";
   return "assistant.status.thinking";
+}
+
+/**
+ * The one line of text the orb may carry while a tool runs: what it is doing,
+ * in a few words ("Searching the web", "Open YouTube…"). Only tools whose
+ * work the user would want to see named get a line; the rest (setting a
+ * reminder, reading the clock) are over before a line could be read.
+ */
+export function toolCaption(
+  tool: ToolActivity | null,
+): { key: string; values?: Record<string, string> } | null {
+  if (!tool) return null;
+  switch (tool.name) {
+    case "web_search":
+      return { key: "assistant.status.searching" };
+    case "capture_screen":
+      return { key: "assistant.tool.screen" };
+    case "search_meeting":
+      return { key: "assistant.tool.meetingSearch" };
+    case "read_meeting":
+      return { key: "assistant.tool.meetingRead" };
+    case "do_on_computer": {
+      const action = oneLine(tool.detail);
+      return action
+        ? { key: "assistant.orb.doing", values: { action } }
+        : { key: "assistant.tool.computer" };
+    }
+    default:
+      return null;
+  }
+}
+
+/** A request as one short line: its first line, capitalised, trailing
+ *  punctuation dropped (the caption adds its own ellipsis), and cut at a word
+ *  near 48 characters. */
+export function oneLine(text: string): string {
+  const first = (text.split("\n")[0] ?? "").trim().replace(/[.!?…:;,]+$/u, "");
+  if (!first) return "";
+  const capped = first.charAt(0).toLocaleUpperCase() + first.slice(1);
+  if (capped.length <= 48) return capped;
+  const cut = capped.slice(0, 48);
+  const space = cut.lastIndexOf(" ");
+  return (space > 24 ? cut.slice(0, space) : cut).trimEnd();
 }
 
 /**

@@ -13,17 +13,22 @@
 //! Reads are infallible and return empty lists when the platform cannot answer;
 //! actions return `Err` with a sentence fit to show the user.
 
+pub mod http;
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
+mod media_sessions;
 #[cfg(target_os = "windows")]
 mod windows;
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) use windows::live::LiveEffects;
 
 use serde::Serialize;
 use specta::Type;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::Duration;
 use tauri::AppHandle;
 
 use super::registry::Modifier;
@@ -162,6 +167,18 @@ pub enum VolumeAction {
     Set(u8),
 }
 
+/// Where a file being attached to a web form stands, as the page itself says
+/// it ([`Effects::attachment_state`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AttachState {
+    /// The page shows nothing for the file.
+    Absent,
+    /// The page is still uploading or saving it.
+    Uploading,
+    /// The page lists it as attached.
+    Attached,
+}
+
 /// The side effects tools may have. See the module docs.
 pub trait Effects: Send + Sync {
     // ── Reads: run in dry run too ──────────────────────────────────────────
@@ -192,8 +209,38 @@ pub trait Effects: Send + Sync {
     fn foreground_is_exactly(&self, id: i64) -> bool {
         self.foreground_window().is_some_and(|front| front.id == id)
     }
+    /// Fetch a web page (http or https) as text, as a desktop browser would
+    /// ask for it, cut at [`http::MAX_BODY_BYTES`]. A read, so a dry run
+    /// fetches too. Unlike the other reads it can fail, because a tool that
+    /// fetches has a fallback to choose (`play_media` opens the results page).
+    fn fetch_text(
+        &self,
+        url: &str,
+        headers: &[(&str, &str)],
+        timeout: Duration,
+    ) -> Result<String, String> {
+        http::fetch_text(url, headers, timeout)
+    }
+    /// Whether any app is playing media right now. `None` when this system
+    /// cannot tell (only Windows lists media sessions), and the tools then
+    /// fall back to the play/pause key.
+    fn media_playing(&self) -> Option<bool> {
+        media_sessions::playing()
+    }
 
     // ── Actions: recorded, not run, in dry run ─────────────────────────────
+
+    /// Pause every app that is playing, by its own pause rather than the
+    /// toggle key. `Ok(n)`: how many were paused. `Err` where the system
+    /// has no media sessions.
+    fn pause_media(&self) -> Result<usize, String> {
+        media_sessions::pause_all()
+    }
+    /// Resume the current player by its own play. `Ok(false)`: nothing to
+    /// resume. `Err` where the system has no media sessions.
+    fn resume_media(&self) -> Result<bool, String> {
+        media_sessions::play_current()
+    }
 
     /// Open a URL in the user's default browser.
     fn open_url(&self, url: &str) -> Result<(), String>;
@@ -202,6 +249,39 @@ pub trait Effects: Send + Sync {
     fn launch_app(&self, app: &AppEntry) -> Result<(), String>;
     /// Bring a window to the front and give it the keyboard.
     fn focus_window(&self, window: &WindowEntry) -> Result<(), String>;
+    /// Press the button in window `window_id` whose label's first word is
+    /// `first_word` (case-insensitive), through the accessibility tree, as a
+    /// person clicking it would; keyboard focus does not matter. `Ok(false)`:
+    /// no such enabled button (or no tree on this system). Used where a
+    /// shortcut depends on where the keyboard is, as Gmail's Ctrl+Enter only
+    /// sends from inside the compose form.
+    fn press_button(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+        press_button_in_tree(super::agent::tree().as_ref(), window_id, first_word)
+    }
+    /// Open the file picker of window `window_id` by its button whose label's
+    /// first word is `first_word` (Gmail's "Attach files"), through the
+    /// accessibility tree. Gmail's button answers Expand, not Invoke, so both
+    /// are tried. `Ok(false)`: no such button (or no tree on this system).
+    fn open_file_picker(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+        expand_button_in_tree(super::agent::tree().as_ref(), window_id, first_word)
+    }
+    /// Whether a file picker that window `window_id` opened has the keyboard:
+    /// a "File name" box in its tree that has focus, and a popup, not the
+    /// window itself, in front. Only then may a path be typed.
+    fn file_picker_ready(&self, window_id: i64) -> bool {
+        file_picker_in_tree(super::agent::tree().as_ref(), window_id)
+            && !self.foreground_is_exactly(window_id)
+    }
+    /// What window `window_id` says about the attachment `file_name`.
+    fn attachment_state(&self, window_id: i64, file_name: &str) -> AttachState {
+        attachment_state_in_tree(super::agent::tree().as_ref(), window_id, file_name)
+    }
+    /// The titles of the tabs in window `window_id` (a browser's tab strip),
+    /// read through the accessibility tree. `None` where there is no tree or
+    /// no tab strip. A read: a dry run reads it too.
+    fn tab_titles(&self, window_id: i64) -> Option<Vec<String>> {
+        tab_titles_in_tree(super::agent::tree().as_ref(), window_id)
+    }
     /// Put text into the focused field.
     fn type_text(&self, text: &str) -> Result<(), String>;
     fn press_keys(&self, combo: &KeyCombo) -> Result<(), String>;
@@ -241,6 +321,180 @@ impl SystemEffects {
     pub fn new(app: AppHandle) -> Self {
         Self { app }
     }
+}
+
+/// [`Effects::press_button`] over a tree. A Chromium browser switches its
+/// accessibility on at the first request and answers that one with almost
+/// nothing, so a read with no match is tried twice more a moment apart.
+pub fn press_button_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+    first_word: &str,
+) -> Result<bool, String> {
+    let wanted = first_word.to_lowercase();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(Duration::from_millis(500));
+        }
+        let snapshot = match tree.snapshot(Some(window_id)) {
+            Ok(snapshot) => snapshot,
+            Err(super::agent::tree::TreeError::Unsupported) => return Ok(false),
+            Err(e) => {
+                log::debug!("command mode: no tree for a button press yet: {e}");
+                continue;
+            }
+        };
+        let button = snapshot.elements.iter().find(|element| {
+            element.role == "button"
+                && !element.states.iter().any(|s| s == "disabled")
+                && element
+                    .name
+                    .split(|c: char| !c.is_alphanumeric())
+                    .find(|w| !w.is_empty())
+                    .is_some_and(|w| w.to_lowercase() == wanted)
+        });
+        if let Some(button) = button {
+            return tree
+                .act(button.id, &super::agent::tree::UiAction::Invoke)
+                .map(|()| true)
+                .map_err(|e| e.to_string());
+        }
+    }
+    Ok(false)
+}
+
+/// [`Effects::open_file_picker`] over a tree: Expand first (what Gmail's
+/// Attach button answers), Invoke where Expand is not supported. Tried
+/// three times, as [`press_button_in_tree`] is.
+pub fn expand_button_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+    first_word: &str,
+) -> Result<bool, String> {
+    use super::agent::tree::{TreeError, UiAction};
+    let wanted = first_word.to_lowercase();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(Duration::from_millis(500));
+        }
+        let snapshot = match tree.snapshot(Some(window_id)) {
+            Ok(snapshot) => snapshot,
+            Err(TreeError::Unsupported) => return Ok(false),
+            Err(e) => {
+                log::debug!("command mode: no tree for a file picker yet: {e}");
+                continue;
+            }
+        };
+        let Some(button) = snapshot.elements.iter().find(|element| {
+            element.role == "button"
+                && !element.states.iter().any(|s| s == "disabled")
+                && first_word_is(&element.name, &wanted)
+        }) else {
+            continue;
+        };
+        return match tree.act(button.id, &UiAction::Expand) {
+            Ok(()) => Ok(true),
+            Err(TreeError::NotSupported(_)) => tree
+                .act(button.id, &UiAction::Invoke)
+                .map(|()| true)
+                .map_err(|e| e.to_string()),
+            Err(e) => Err(e.to_string()),
+        };
+    }
+    Ok(false)
+}
+
+/// Whether `name`'s first word is `wanted` (lowercase).
+fn first_word_is(name: &str, wanted: &str) -> bool {
+    name.split(|c: char| !c.is_alphanumeric())
+        .find(|w| !w.is_empty())
+        .is_some_and(|w| w.to_lowercase() == wanted)
+}
+
+/// The labels a file picker's name box goes by, lowercase: the Windows common
+/// dialog's "File name:" in the languages it is most used in.
+const FILE_NAME_LABELS: &[&str] = &[
+    "file name",
+    "nombre de archivo",
+    "nom du fichier",
+    "dateiname",
+    "nome file",
+    "nome do arquivo",
+    "nome de ficheiro",
+    "bestandsnaam",
+    "имя файла",
+    "ファイル名",
+    "文件名",
+    "파일 이름",
+];
+
+/// [`Effects::file_picker_ready`]'s tree half: window `window_id`'s tree
+/// (which takes in the dialogs it owns) has a focused file-name box.
+pub fn file_picker_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+) -> bool {
+    let Ok(snapshot) = tree.snapshot(Some(window_id)) else {
+        return false;
+    };
+    snapshot.elements.iter().any(|element| {
+        let name = element.name.to_lowercase();
+        element.role == "edit"
+            && element.states.iter().any(|s| s == "focused")
+            && FILE_NAME_LABELS.iter().any(|label| name.starts_with(label))
+    })
+}
+
+/// [`Effects::tab_titles`] over a tree: the names of its tab items.
+pub fn tab_titles_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+) -> Option<Vec<String>> {
+    let snapshot = tree.snapshot(Some(window_id)).ok()?;
+    let tabs: Vec<String> = snapshot
+        .elements
+        .iter()
+        .filter(|element| element.role == "tab")
+        .map(|element| element.name.clone())
+        .collect();
+    (!tabs.is_empty()).then_some(tabs)
+}
+
+/// [`Effects::attachment_state`] over a tree. Gmail names its chip after the
+/// file at every stage: "Uploading attachment: X…", "Saving attachment: X…",
+/// then "Attachment: X. Press enter to view…". Anything still uploading or
+/// saving wins over a finished label, so a send never goes while one is.
+pub fn attachment_state_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+    file_name: &str,
+) -> AttachState {
+    let Ok(snapshot) = tree.snapshot(Some(window_id)) else {
+        return AttachState::Absent;
+    };
+    attachment_state_of(snapshot.elements.iter().map(|e| e.name.as_str()), file_name)
+}
+
+/// The state the labels `names` give the attachment `file_name`.
+pub fn attachment_state_of<'a>(
+    names: impl Iterator<Item = &'a str>,
+    file_name: &str,
+) -> AttachState {
+    let wanted = file_name.to_lowercase();
+    let mut state = AttachState::Absent;
+    for name in names {
+        let name = name.to_lowercase();
+        if !name.contains(&wanted) {
+            continue;
+        }
+        if name.contains("uploading") || name.contains("saving attachment") {
+            return AttachState::Uploading;
+        }
+        if name.contains("attachment") {
+            state = AttachState::Attached;
+        }
+    }
+    state
 }
 
 /// The real effects wrapped so that actions are recorded instead of run.
@@ -303,7 +557,27 @@ impl<E: Effects> Effects for DryRunEffects<E> {
     fn foreground_is_exactly(&self, id: i64) -> bool {
         self.inner.foreground_is_exactly(id)
     }
+    fn fetch_text(
+        &self,
+        url: &str,
+        headers: &[(&str, &str)],
+        timeout: Duration,
+    ) -> Result<String, String> {
+        self.inner.fetch_text(url, headers, timeout)
+    }
+    fn media_playing(&self) -> Option<bool> {
+        self.inner.media_playing()
+    }
 
+    fn pause_media(&self) -> Result<usize, String> {
+        let playing = usize::from(self.inner.media_playing() == Some(true));
+        self.record("pause what is playing".to_string())?;
+        Ok(playing)
+    }
+    fn resume_media(&self) -> Result<bool, String> {
+        self.record("resume the player".to_string())?;
+        Ok(true)
+    }
     fn open_url(&self, url: &str) -> Result<(), String> {
         self.record(format!("open URL {url}"))
     }
@@ -318,6 +592,21 @@ impl<E: Effects> Effects for DryRunEffects<E> {
             "focus window \"{}\" ({})",
             window.title, window.app
         ))
+    }
+    fn press_button(&self, _window_id: i64, first_word: &str) -> Result<bool, String> {
+        self.record(format!("press the {first_word} button"))?;
+        Ok(true)
+    }
+    fn open_file_picker(&self, _window_id: i64, first_word: &str) -> Result<bool, String> {
+        self.record(format!("open the {first_word} file picker"))?;
+        Ok(true)
+    }
+    // A dry run opened no picker and attached nothing.
+    fn file_picker_ready(&self, _window_id: i64) -> bool {
+        false
+    }
+    fn attachment_state(&self, _window_id: i64, _file_name: &str) -> AttachState {
+        AttachState::Absent
     }
     fn type_text(&self, text: &str) -> Result<(), String> {
         self.record(format!(
@@ -362,11 +651,46 @@ pub mod fake {
         /// When set, every action fails with this message.
         pub fail_with: Option<String>,
         pub actions: Mutex<Vec<String>>,
+        /// Canned pages for `fetch_text`, by URL prefix: the first entry whose
+        /// prefix the URL starts with answers. A URL nothing matches fails as
+        /// if offline, so a test never reaches the network.
+        pub pages: Vec<(String, Result<String, String>)>,
+        /// Every URL `fetch_text` was asked for, in order. Fetches are reads,
+        /// so they are kept apart from `actions`.
+        pub fetched: Mutex<Vec<String>>,
+        /// What `media_playing` answers; `None` = a system without media
+        /// sessions, where `pause_media` and `resume_media` fail.
+        pub playing: Mutex<Option<bool>>,
+        /// What a send shortcut (a modifier plus Enter) turns the window in
+        /// front into, the way Gmail's draft becomes the inbox once it has
+        /// sent. `None`: the window stays as it was, as when nothing sent.
+        pub send_retitles: Option<String>,
+        /// The window a send retitled, and its new title.
+        pub retitled: Mutex<Option<(i64, String)>>,
+        /// Buttons `press_button` finds, as (window id, first word). Pressing
+        /// one of a word that sends (`send`) retitles like a send shortcut.
+        pub buttons: Vec<(i64, String)>,
+        /// Buttons `open_file_picker` finds, as (window id, first word);
+        /// opening one puts a picker in front (`picker_open`).
+        pub picker_buttons: Vec<(i64, String)>,
+        /// A file picker has the keyboard.
+        pub picker_open: Mutex<bool>,
+        /// What the page shows once Enter is pressed in an open picker.
+        /// `None`: the picker closes and nothing is attached.
+        pub attaches_as: Option<AttachState>,
+        /// What `attachment_state` answers now.
+        pub attachment: Mutex<Option<AttachState>>,
+        /// What `tab_titles` answers now. `None`: no tab strip is read.
+        pub tabs: Mutex<Option<Vec<String>>>,
     }
 
     impl FakeEffects {
         pub fn actions(&self) -> Vec<String> {
             self.actions.lock().unwrap().clone()
+        }
+
+        pub fn fetched(&self) -> Vec<String> {
+            self.fetched.lock().unwrap().clone()
         }
 
         fn act(&self, line: String) -> Result<(), String> {
@@ -383,7 +707,19 @@ pub mod fake {
             self.apps.clone()
         }
         fn open_windows(&self) -> Vec<WindowEntry> {
-            self.windows.clone()
+            let retitled = self.retitled.lock().unwrap().clone();
+            self.windows
+                .iter()
+                .cloned()
+                .map(|mut window| {
+                    if let Some((id, title)) = &retitled {
+                        if window.id == *id {
+                            window.title = title.clone();
+                        }
+                    }
+                    window
+                })
+                .collect()
         }
         fn recent_files(&self) -> Vec<PathBuf> {
             self.recent.clone()
@@ -396,6 +732,44 @@ pub mod fake {
         }
         fn foreground_is_exactly(&self, id: i64) -> bool {
             !self.popup_in_front && self.foreground_window().is_some_and(|front| front.id == id)
+        }
+        fn fetch_text(
+            &self,
+            url: &str,
+            _headers: &[(&str, &str)],
+            _timeout: Duration,
+        ) -> Result<String, String> {
+            self.fetched.lock().unwrap().push(url.to_string());
+            self.pages
+                .iter()
+                .find(|(prefix, _)| url.starts_with(prefix.as_str()))
+                .map(|(_, page)| page.clone())
+                .unwrap_or_else(|| Err("offline".to_string()))
+        }
+        fn media_playing(&self) -> Option<bool> {
+            *self.playing.lock().unwrap()
+        }
+        fn pause_media(&self) -> Result<usize, String> {
+            let mut playing = self.playing.lock().unwrap();
+            match *playing {
+                None => Err("media sessions are not available".into()),
+                Some(was) => {
+                    self.act("pause_media".into())?;
+                    *playing = Some(false);
+                    Ok(usize::from(was))
+                }
+            }
+        }
+        fn resume_media(&self) -> Result<bool, String> {
+            let mut playing = self.playing.lock().unwrap();
+            match *playing {
+                None => Err("media sessions are not available".into()),
+                Some(_) => {
+                    self.act("resume_media".into())?;
+                    *playing = Some(true);
+                    Ok(true)
+                }
+            }
         }
         fn open_url(&self, url: &str) -> Result<(), String> {
             self.act(format!("open_url {url}"))
@@ -413,11 +787,69 @@ pub mod fake {
             }
             Ok(())
         }
+        fn press_button(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+            let found = self
+                .buttons
+                .iter()
+                .any(|(id, word)| *id == window_id && word.eq_ignore_ascii_case(first_word));
+            if !found {
+                return Ok(false);
+            }
+            self.act(format!("press_button {window_id} {first_word}"))?;
+            if let Some(title) = &self.send_retitles {
+                if first_word.eq_ignore_ascii_case("send") {
+                    let mut front = self.foreground.lock().unwrap();
+                    if let Some(window) = front.as_mut().filter(|w| w.id == window_id) {
+                        window.title = title.clone();
+                    }
+                    *self.retitled.lock().unwrap() = Some((window_id, title.clone()));
+                }
+            }
+            Ok(true)
+        }
+        fn open_file_picker(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+            let found = self
+                .picker_buttons
+                .iter()
+                .any(|(id, word)| *id == window_id && word.eq_ignore_ascii_case(first_word));
+            if !found {
+                return Ok(false);
+            }
+            self.act(format!("open_file_picker {window_id} {first_word}"))?;
+            *self.picker_open.lock().unwrap() = true;
+            Ok(true)
+        }
+        fn file_picker_ready(&self, _window_id: i64) -> bool {
+            *self.picker_open.lock().unwrap()
+        }
+        fn attachment_state(&self, _window_id: i64, _file_name: &str) -> AttachState {
+            self.attachment
+                .lock()
+                .unwrap()
+                .unwrap_or(AttachState::Absent)
+        }
+        fn tab_titles(&self, _window_id: i64) -> Option<Vec<String>> {
+            self.tabs.lock().unwrap().clone()
+        }
         fn type_text(&self, text: &str) -> Result<(), String> {
             self.act(format!("type_text {text}"))
         }
         fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
-            self.act(format!("press_keys {}", combo.label()))
+            self.act(format!("press_keys {}", combo.label()))?;
+            let enter = combo.key.eq_ignore_ascii_case("enter") && combo.modifiers.is_empty();
+            if enter && std::mem::take(&mut *self.picker_open.lock().unwrap()) {
+                *self.attachment.lock().unwrap() = self.attaches_as;
+                return Ok(());
+            }
+            let sends = combo.key.eq_ignore_ascii_case("enter") && !combo.modifiers.is_empty();
+            if let (true, Some(title)) = (sends, &self.send_retitles) {
+                let mut front = self.foreground.lock().unwrap();
+                if let Some(window) = front.as_mut() {
+                    window.title = title.clone();
+                    *self.retitled.lock().unwrap() = Some((window.id, title.clone()));
+                }
+            }
+            Ok(())
         }
         fn media(&self, action: MediaAction) -> Result<(), String> {
             self.act(format!("media {action:?}"))
@@ -441,10 +873,16 @@ mod tests {
                 launch: "spotify.lnk".into(),
             }],
             fail_with: Some("would have run".into()),
+            pages: vec![("https://example.com/".into(), Ok("page".into()))],
             ..Default::default()
         };
         let dry = DryRunEffects::new(fake);
         assert_eq!(dry.installed_apps().len(), 1);
+        // A fetch is a read: it reaches the inner effects and is not recorded.
+        assert_eq!(
+            dry.fetch_text("https://example.com/a", &[], Duration::from_secs(1)),
+            Ok("page".to_string())
+        );
         // The inner fake fails every action, so success proves nothing ran.
         assert!(dry.open_url("https://example.com").is_ok());
         assert!(dry

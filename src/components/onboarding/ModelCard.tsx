@@ -10,7 +10,7 @@ import {
   Loader2,
   Radio,
   Trash2,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import type { ModelInfo } from "@/bindings";
 import { getModelBrand } from "../icons/BrandLogos";
 import { formatModelSize } from "../../lib/utils/format";

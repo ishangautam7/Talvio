@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Wand2 } from "lucide-react";
+import { Wand2 } from "@/components/icons/glyphs";
 import { SettingsGroup } from "@/components/ui/SettingsGroup";
 import { SettingContainer } from "@/components/ui/SettingContainer";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";

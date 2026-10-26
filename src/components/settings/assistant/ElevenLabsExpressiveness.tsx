@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw } from "@/components/icons/glyphs";
 import { SettingContainer } from "@/components/ui/SettingContainer";
 
 /** The slider moves in 5% steps; finer than that is not audible. */
@@ -152,7 +152,7 @@ export const ElevenLabsExpressiveness: React.FC<
             onBlur={commit}
             aria-label={t("settings.assistant.tts.expressivenessLabel")}
             aria-valuetext={levelLabel}
-            className="block h-2 w-full rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ink/20"
+            className="range-input block h-1.5 w-full rounded-full appearance-none cursor-pointer focus:outline-none"
             style={{
               // An unset row draws an empty track: nothing is overridden yet,
               // so nothing is "filled in".

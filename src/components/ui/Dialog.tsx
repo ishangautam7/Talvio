@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { X } from "@/components/icons/glyphs";
 import { usePortalTarget } from "./portal";
 
 /**
@@ -16,7 +16,7 @@ import { usePortalTarget } from "./portal";
  * inside another one closes first.
  */
 
-type DialogSize = "sm" | "md" | "lg" | "xl" | "settings";
+type DialogSize = "sm" | "md" | "lg" | "xl" | "settings" | "drawer";
 
 const SIZE_CLASSES: Record<DialogSize, string> = {
   sm: "w-[min(26rem,calc(100vw-2rem))]",
@@ -25,6 +25,10 @@ const SIZE_CLASSES: Record<DialogSize, string> = {
   xl: "w-[min(56rem,calc(100vw-2rem))]",
   settings:
     "w-[min(60rem,calc(100vw-2.5rem))] h-[min(44rem,calc(100vh-4.5rem))]",
+  // Settings: a large panel over the whole window, its categories down the
+  // start edge.
+  drawer:
+    "dialog-drawer w-[min(62rem,calc(100vw-2rem))] h-[min(46rem,calc(100vh-3.5rem))] max-h-none",
 };
 
 /** Stack of open dialog ids; the last one owns Escape. */
@@ -151,6 +155,7 @@ export const Dialog: React.FC<DialogProps> = ({
   };
 
   const isSettings = size === "settings";
+  const isDrawer = size === "drawer";
 
   return createPortal(
     <div
@@ -171,7 +176,7 @@ export const Dialog: React.FC<DialogProps> = ({
     >
       <div
         aria-hidden="true"
-        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(16_17_34/0.42)] backdrop-blur-[3px]"
+        className="dialog-scrim pointer-events-none absolute inset-0 bg-[rgb(12_12_16/0.32)] backdrop-blur-[10px] backdrop-saturate-[1.2]"
       />
       <div
         ref={panelRef}
@@ -180,7 +185,7 @@ export const Dialog: React.FC<DialogProps> = ({
         aria-labelledby={bare ? labelledBy : title ? titleId : undefined}
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className={`dialog-panel relative flex max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-[1.25rem] border border-hairline bg-surface text-ink shadow-[0_32px_80px_-28px_rgba(27,29,51,0.5),0_2px_8px_rgba(27,29,51,0.08)] outline-none ${SIZE_CLASSES[size]} ${className}`}
+        className={`${isDrawer ? "" : "dialog-panel max-h-[calc(100vh-3rem)]"} relative flex flex-col overflow-hidden rounded-3xl bg-surface text-ink shadow-[0_0_0_1px_rgba(24,24,27,0.08),0_24px_64px_-20px_rgba(24,24,27,0.32),0_2px_8px_rgba(24,24,27,0.05)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
       >
         {!bare && (
           <div className="flex shrink-0 items-start gap-4 px-6 pt-6 pb-4">
@@ -188,7 +193,7 @@ export const Dialog: React.FC<DialogProps> = ({
               {title && (
                 <h2
                   id={titleId}
-                  className="font-display text-[1.375rem] text-ink"
+                  className="font-display text-[1.25rem] text-ink"
                 >
                   {title}
                 </h2>
@@ -203,12 +208,12 @@ export const Dialog: React.FC<DialogProps> = ({
           </div>
         )}
         <div
-          className={`min-h-0 flex-1 ${isSettings ? "flex" : "overflow-y-auto"} ${bodyClassName}`}
+          className={`min-h-0 flex-1 ${isSettings ? "flex" : isDrawer ? "flex flex-col" : "overflow-y-auto"} ${bodyClassName}`}
         >
           {children}
         </div>
         {footer && (
-          <div className="flex shrink-0 items-center gap-2 border-t border-hairline bg-canvas/60 px-6 py-3">
+          <div className="flex shrink-0 items-center gap-2 border-t border-hairline bg-canvas/70 px-6 py-3">
             {footer}
           </div>
         )}
@@ -228,7 +233,7 @@ export const DialogCloseButton: React.FC<{
     onClick={onClick}
     aria-label={label}
     title={label}
-    className={`-me-2 -mt-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/6 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${className}`}
+    className={`-me-2 -mt-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.07] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${className}`}
   >
     <X className="h-4 w-4" aria-hidden="true" />
   </button>

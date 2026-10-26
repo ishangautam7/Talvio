@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Monitor, Smartphone } from "lucide-react";
+import { Monitor, Smartphone } from "@/components/icons/glyphs";
 import type { AccountDevice } from "@/bindings";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
@@ -66,7 +66,7 @@ export const DeviceList: React.FC<DeviceListProps> = ({
         ref={listRef}
         tabIndex={-1}
         aria-label={t("settings.account.devices.title")}
-        className="divide-y divide-hairline focus:outline-none"
+        className="rows focus:outline-none"
       >
         {devices.map((device) => {
           const Icon = isPhone(device) ? Smartphone : Monitor;

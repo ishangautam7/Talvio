@@ -96,7 +96,8 @@ export type HandsFree =
   | { state: "taken"; keys: string; key: string; by: string };
 
 /** Whether a shortcut is registered: the separate cleanup shortcut only while
- *  it is the one that cleans up, the assistant's only while it is on, and
+ *  it is the one that cleans up, the assistant's only while it is on, the
+ *  command shortcut only while command mode is on, and
  *  Cancel only during a recording (never counted here). */
 const isLive = (settings: AppSettings, id: string) => {
   if (id === "cancel" || id === HANDS_FREE_ID) return false;
@@ -106,6 +107,7 @@ const isLive = (settings: AppSettings, id: string) => {
     );
   if (id === "assistant" || id === "assistant_call")
     return settings.assistant_enabled ?? true;
+  if (id === "command") return !!settings.command_mode_enabled;
   return true;
 };
 

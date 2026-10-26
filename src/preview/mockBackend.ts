@@ -940,6 +940,8 @@ const settings: Json = {
   assistant_response_length: "default",
   local_llm_context_size: 16384,
   local_llm_unload_timeout: "min5",
+  // `?commands=on`: Voice commands switched on, so the Commands page shows its settings.
+  command_mode_enabled: params.get("commands") === "on",
   experimental_enabled: params.get("experimental") === "1",
   // `?engine=handy_keys` shows the editor Windows and macOS really use.
   ...(params.get("engine")
@@ -1636,6 +1638,21 @@ const accountStatus = (): Json => ({
 const handlers: Record<string, (args: Json) => unknown> = {
   account_get_status: () => accountStatus(),
   get_app_settings: () => structuredClone(settings),
+  // The floating windows preview (windows.html).
+  list_waiting_reminders: () => [
+    {
+      id: "r1",
+      text: "Send the invoice to Sara",
+      note: "Before the call on Friday",
+      due_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 20 * 60_000).toISOString(),
+      snoozes: 0,
+      fired: true,
+    },
+  ],
+  account_pending_approvals: () => [
+    { id: "p1", name: "Ishan's Pixel 9", platform: "android" },
+  ],
   get_default_settings: () => structuredClone(settings),
   get_available_models: () => structuredClone(models),
   get_current_model: () => settings.selected_model,
@@ -2134,6 +2151,11 @@ const handlers: Record<string, (args: Json) => unknown> = {
           "assistant_web_search_provider",
         ],
         ["set_assistant_search_depth", "depth", "assistant_search_depth"],
+        [
+          "set_assistant_quick_ask_memory",
+          "memory",
+          "assistant_quick_ask_memory",
+        ],
         ["set_assistant_thinking", "level", "assistant_thinking"],
         [
           "change_post_process_thinking_setting",

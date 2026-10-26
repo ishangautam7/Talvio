@@ -2,7 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowUp, Eraser, MessageSquareText, Square, X } from "lucide-react";
+import {
+  ArrowUp,
+  Eraser,
+  MessageSquareText,
+  Square,
+  X,
+} from "@/components/icons/glyphs";
 import { useMeetingChat } from "./useMeetingChat";
 
 interface MeetingAskPanelProps {
@@ -113,7 +119,7 @@ export const MeetingAskPanel: React.FC<MeetingAskPanelProps> = ({
                       key={key}
                       type="button"
                       onClick={() => submit(text)}
-                      className="cursor-pointer rounded-full border border-hairline-strong bg-surface px-3.5 py-1.5 text-[0.8125rem] text-body transition-colors hover:border-ink/30 hover:bg-surface-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                      className="cursor-pointer rounded-lg border border-hairline-strong bg-surface px-3 py-1.5 text-[0.8125rem] text-body transition-colors hover:border-ink/30 hover:bg-surface-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                     >
                       {text}
                     </button>

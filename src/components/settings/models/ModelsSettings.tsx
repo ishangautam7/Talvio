@@ -21,7 +21,7 @@ import {
   Trash2,
   X,
   type LucideIcon,
-} from "lucide-react";
+} from "@/components/icons/glyphs";
 import type { ModelCardStatus } from "@/components/onboarding";
 import { useModelStore } from "@/stores/modelStore";
 import { useSettings } from "@/hooks/useSettings";
@@ -568,7 +568,7 @@ export const ModelsSettings: React.FC<ModelsSettingsProps> = ({
       <h2 className="px-1 text-[0.8125rem] font-semibold text-muted">
         {title}
       </h2>
-      <div className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface elev-card">
+      <div className="rows rounded-2xl border border-hairline bg-surface elev-card">
         {list.map((model) => renderRow(model, hideRecommended))}
       </div>
     </section>

@@ -64,6 +64,8 @@ fn extended_by_another(settings: &AppSettings, binding_id: &str, pressed: &str) 
             settings::cleanup_binding_active(settings)
         } else if crate::assistant::is_assistant_binding(id) {
             settings.assistant_enabled
+        } else if id == settings::COMMAND_BINDING_ID {
+            settings::command_binding_active(settings)
         } else {
             // The hands-free key is never a shortcut of its own, and it does
             // not withdraw the dictation it is pressed on (`hands_free`).
@@ -303,5 +305,41 @@ mod tests {
         settings.assistant_enabled = false;
         settings.post_process_enabled = false;
         assert!(!holds_back(&settings, "transcribe", "fn"));
+    }
+
+    /// The command key is the ask keys plus Shift: while command mode is on, a
+    /// held ask keeps its panel back until the press has settled, so pressing
+    /// all three never flashes the ask up on the way, as with the call.
+    #[test]
+    fn the_command_key_holds_the_ask_back_only_while_command_mode_is_on() {
+        let mut settings = with(&[
+            ("assistant", "ctrl_left+alt_left"),
+            ("assistant_call", ""),
+            (settings::COMMAND_BINDING_ID, "ctrl_left+alt_left+shift"),
+        ]);
+        assert!(!holds_back(&settings, "assistant", "ctrl_left+alt_left"));
+        settings.command_mode_enabled = true;
+        assert!(holds_back(&settings, "assistant", "ctrl_left+alt_left"));
+        // Tapped, the engine fires the ask only once its keys are let go.
+        settings.assistant_push_to_talk = false;
+        assert!(!holds_back(&settings, "assistant", "ctrl_left+alt_left"));
+    }
+
+    /// Nothing extends the command key by default, so a held command shows its
+    /// pill at once; tapped, it never waits.
+    #[test]
+    fn a_held_command_shows_at_once() {
+        let mut settings = with(&[
+            ("assistant", "fn+ctrl"),
+            ("assistant_call", "fn+ctrl+c"),
+            (settings::COMMAND_BINDING_ID, "fn+ctrl+shift"),
+        ]);
+        settings.command_mode_enabled = true;
+        let command = settings::COMMAND_BINDING_ID;
+        assert!(!holds_back(&settings, command, "fn+ctrl+shift"));
+        // The ask is extended by both the call and the command.
+        assert!(holds_back(&settings, "assistant", "fn+ctrl"));
+        settings.command_push_to_talk = false;
+        assert!(!holds_back(&settings, command, "fn+ctrl+shift"));
     }
 }

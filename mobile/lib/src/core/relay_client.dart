@@ -181,6 +181,23 @@ class RelayClient {
     if (!sent) _fail(requestId, RelayError.notConnected);
   }
 
+  /// Sends [body] to the device request [requestId] went to, as part of that
+  /// request rather than a new one: under the request's own `requestId` and
+  /// relay `id`, so a `relay_failed` for it ends the request as offline (a
+  /// live view's `rtc.answer` and `rtc.ice`). False when the request has
+  /// ended or this phone is not connected; nothing is retried.
+  bool sendWithin(String requestId, Map<String, Object?> body) {
+    final pending = _pending[requestId];
+    if (pending == null) return false;
+    return _send(
+      ClientFrame.relay(
+        id: requestId,
+        to: pending.to,
+        body: {...body, 'requestId': requestId},
+      ),
+    );
+  }
+
   void dispose() {
     disconnect();
     _incoming.close();

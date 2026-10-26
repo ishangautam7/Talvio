@@ -2,14 +2,20 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Smartphone } from "lucide-react";
-import { commands, type AccountPhone } from "@/bindings";
+import { Eye, Smartphone } from "lucide-react";
+import {
+  commands,
+  type AccountPhone,
+  type CommandCard,
+  type ViewingCard,
+} from "@/bindings";
 import { platformName } from "@/components/settings/account/account";
 import { preventBrowserContextMenu } from "@/lib/contextMenu";
 import { useSafeWindowDrag } from "@/lib/useSafeWindowDrag";
 // The assistant's own card, as the reminder popup uses it.
 import "@/assistant/AssistantPanel.css";
 import "./ApprovalPopup.css";
+import { CommandCardView } from "./CommandCardView";
 
 /**
  * How long the cards must sit still on screen before a click answers them.
@@ -24,11 +30,18 @@ const ARM_DELAY_MS = 750;
  * `src-tauri/src/account/approval.rs`): may it dictate and type here? One card
  * per phone asking. The window never takes the keyboard, so the paste that
  * Allow lets through lands where the user's cursor is.
+ *
+ * The same window says "Phone is viewing" for as long as a phone watches a
+ * window here (live view), with Stop, and shows a spoken command's card
+ * (`CommandCardView`): what was heard and what happened, with Send and
+ * Cancel or the choices when the command waits.
  */
 const ApprovalPopup: React.FC = () => {
   const { t } = useTranslation();
   useSafeWindowDrag();
   const [phones, setPhones] = useState<AccountPhone[]>([]);
+  const [viewing, setViewing] = useState<ViewingCard | null>(null);
+  const [command, setCommand] = useState<CommandCard | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const armedAt = useRef(0);
   const disarm = useCallback(() => {
@@ -46,8 +59,26 @@ const ApprovalPopup: React.FC = () => {
       "account-approval-changed",
       (event) => setPhones(event.payload ?? []),
     );
+    void commands
+      .accountViewing()
+      .then(setViewing)
+      .catch(() => setViewing(null));
+    const unlistenViewing = listen<ViewingCard | null>(
+      "account-viewing-changed",
+      (event) => setViewing(event.payload ?? null),
+    );
+    void commands
+      .commandCard()
+      .then(setCommand)
+      .catch(() => setCommand(null));
+    const unlistenCommand = listen<CommandCard | null>(
+      "command-card-changed",
+      (event) => setCommand(event.payload ?? null),
+    );
     return () => {
       void unlisten.then((off) => off());
+      void unlistenViewing.then((off) => off());
+      void unlistenCommand.then((off) => off());
     };
   }, []);
 
@@ -64,11 +95,11 @@ const ApprovalPopup: React.FC = () => {
     const observer = new ResizeObserver(report);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [phones.length, disarm]);
+  }, [phones.length, viewing, command, disarm]);
 
   // A card added or gone moves the others; the window moves when it is placed
   // again (a reminder taking the corner) or dragged.
-  useEffect(() => disarm(), [phones, disarm]);
+  useEffect(() => disarm(), [phones, command?.seq, disarm]);
   useEffect(() => {
     const unlisten = getCurrentWindow().onMoved(disarm);
     return () => {
@@ -95,7 +126,14 @@ const ApprovalPopup: React.FC = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [phones, answer]);
 
-  if (phones.length === 0) return null;
+  const stopViewing = () => {
+    if (performance.now() >= armedAt.current)
+      void commands.accountStopViewing();
+  };
+
+  const armed = () => performance.now() >= armedAt.current;
+
+  if (phones.length === 0 && !viewing && !command) return null;
 
   return (
     <div
@@ -103,6 +141,38 @@ const ApprovalPopup: React.FC = () => {
       ref={rootRef}
       onContextMenu={preventBrowserContextMenu}
     >
+      {command && <CommandCardView card={command} armed={armed} />}
+      {viewing && (
+        <section
+          className="ask-card"
+          aria-labelledby="viewing-title"
+          aria-describedby="viewing-body"
+        >
+          <header className="ask-head" data-tauri-drag-region>
+            <Eye className="ask-head-icon" size={12} />
+            <p className="ask-question-text" id="viewing-title">
+              {t("phoneViewing.title")}
+            </p>
+          </header>
+          <div className="ask-answer-body">
+            <p id="viewing-body">
+              {t("phoneViewing.body", {
+                phone: viewing.phone || t("phoneViewing.unnamedPhone"),
+                title: viewing.title,
+              })}
+            </p>
+          </div>
+          <div className="approval-actions">
+            <button
+              type="button"
+              className="qa-btn primary"
+              onClick={stopViewing}
+            >
+              {t("phoneViewing.stop")}
+            </button>
+          </div>
+        </section>
+      )}
       {phones.map((phone) => (
         <section
           className="ask-card"

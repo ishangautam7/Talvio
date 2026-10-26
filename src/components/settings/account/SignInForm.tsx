@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, Smartphone } from "lucide-react";
+import { Loader2, Smartphone } from "@/components/icons/glyphs";
 import { commands, type AccountStatus, type Result } from "@/bindings";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -123,7 +123,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
     <section className="rounded-2xl border border-hairline bg-surface px-6 py-8 elev-card">
       <div className="mx-auto max-w-sm">
         <div className="text-center">
-          <div className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-accent/10 text-accent">
+          <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-surface-strong text-ink">
             <Smartphone className="h-5 w-5" aria-hidden="true" />
           </div>
           <h2 className="mt-3 font-display text-lg leading-tight text-ink">

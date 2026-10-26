@@ -182,7 +182,11 @@ function CallOrb({ voice, onEnd }: { voice: Voice; onEnd: () => void }) {
       aria-label={t("assistant.conversation.end")}
       title={t("assistant.conversation.end")}
     >
-      <VoiceOrb phase={voice.phase} level={voice.level} />
+      <VoiceOrb
+        phase={voice.phase}
+        level={voice.level}
+        speechLevel={voice.speechLevel}
+      />
       <span className="call-orb-end" aria-hidden="true">
         <X size={15} strokeWidth={2.6} />
       </span>

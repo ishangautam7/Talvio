@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { commands, type RecordingRetentionPeriod } from "@/bindings";
 import { useSettings } from "../../../hooks/useSettings";

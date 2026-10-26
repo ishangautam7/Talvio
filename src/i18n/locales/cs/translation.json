@@ -648,6 +648,10 @@
             "name": "Zahájit konverzaci",
             "description": "Mluvte s asistentem bez použití rukou a poslouchejte jeho odpovědi. Dalším stisknutím ukončíte."
           },
+          "command": {
+            "name": "Hlasový příkaz",
+            "description": "Řekněte, co chcete udělat, třeba „otevři YouTube“, a Talvio to udělá."
+          },
           "hands_free": {
             "name": "Bez držení",
             "description": "Stiskněte při držení kláves diktování a nahrávání bude pokračovat i po jejich puštění. Dalším stiskem kláves diktování skončíte."
@@ -684,7 +688,9 @@
         "dictation": "Zapnuto: nahrává se, dokud držíte klávesy. Vypnuto: jeden stisk spustí, další zastaví, takže každé diktování je bez držení.",
         "assistant": "Zapnuto: poslouchá, dokud držíte klávesy. Vypnuto: jeden stisk spustí, další odešle.",
         "dictationLabel": "Držet pro mluvení",
-        "assistantLabel": "Držet pro dotaz"
+        "assistantLabel": "Držet pro dotaz",
+        "command": "Zapnuto: poslouchá, dokud držíte klávesy. Vypnuto: jeden stisk spustí, další příkaz provede.",
+        "commandLabel": "Držet pro příkaz"
       },
       "handsFree": {
         "unavailableKeys": "Funguje, když je diktování jen z modifikačních kláves, třeba Ctrl + Win. S {{keys}} raději vypněte „Držet pro mluvení“: každé diktování pak běží, dokud znovu nestisknete klávesy.",
@@ -2124,6 +2130,8 @@
         "title": "Telefon",
         "remoteInput": "Diktování z telefonu",
         "remoteInputHint": "Umožní telefonu diktovat a psát na tomto počítači.",
+        "remoteWindows": "Povolit telefonům vidět a používat okna",
+        "remoteWindowsHint": "Telefon může vypsat otevřená okna, sledovat jedno živě a psát do něj, mačkat v něm klávesy nebo do něj klikat. Když telefon sleduje, zobrazí se tu karta s tlačítkem Zastavit.",
         "install": "Nainstalujte si do telefonu aplikaci Talvio a přihlaste se jako {{email}}."
       },
       "keys": {
@@ -2487,6 +2495,7 @@
     "processing": "Čistím…",
     "generating": "Píšu s Flow…",
     "vision": "Dívám se na vaši obrazovku…",
+    "command": "Pracuji na tom…",
     "notices": {
       "flowNotConfigured": "Flow potřebuje model asistenta — vloženo jako diktování",
       "flowFailed": "Flow nedokázal nic vygenerovat — nic se nevložilo",
@@ -2495,7 +2504,8 @@
       "cleanupFallback": "Čištění pomocí AI neproběhlo — vložen původní text",
       "cleanupModelRejected": "Poskytovatel čištění tento model odmítl — zkontrolujte model v Nastavení",
       "cloudSttFellBack": "Cloudový přepis selhal — použit model v zařízení",
-      "noSpeechModel": "Zatím žádný model pro přepis. Vyberte si ho na stránce Modely"
+      "noSpeechModel": "Zatím žádný model pro přepis. Vyberte si ho na stránce Modely",
+      "commandTranscriptionFailed": "Příkaz nebyl slyšet — zkuste to znovu"
     },
     "listening": "Poslouchám…",
     "locked": "Nahrávám bez držení — dalším stiskem zkratky nahrávání zastavíte",
@@ -2558,6 +2568,20 @@
     "body": "Chce diktovat a psát do aplikací na tomto počítači, proto povolte jen telefony, které vlastníte.",
     "allow": "Povolit",
     "deny": "Nepovolit"
+  },
+  "phoneViewing": {
+    "title": "Telefon sleduje",
+    "body": "{{phone}} vidí {{title}}.",
+    "unnamedPhone": "Váš telefon",
+    "stop": "Zastavit"
+  },
+  "commandCard": {
+    "heading": "Hlasový příkaz",
+    "confirm": "Provést",
+    "cancel": "Zrušit",
+    "working": "Pracuji na tom…",
+    "dryRun": "Zkušební běh: nic se neprovedlo.",
+    "sayAgain": "Řekněte odpověď pomocí kláves pro příkazy."
   },
   "assistant": {
     "conversation": {
@@ -2727,6 +2751,7 @@
       "screen": "Dívám se na vaši obrazovku…",
       "meetingSearch": "Prohledávám schůzku",
       "meetingRead": "Čtu schůzku",
+      "computer": "Provádím to na vašem počítači…",
       "working": "Pracuji na tom",
       "elapsed": "{{seconds}} s"
     },
@@ -2788,7 +2813,12 @@
     },
     "quick": {
       "selection": "Výběr",
-      "copied": "Zkopírováno"
+      "copied": "Zkopírováno",
+      "newConversation": "Nová konverzace"
+    },
+    "orb": {
+      "doing": "{{action}}…",
+      "voiceLoading": "Připravuji hlas · {{percent}} %"
     }
   },
   "nav": {
@@ -2796,6 +2826,7 @@
     "home": "Domů",
     "history": "Historie",
     "assistant": "Asistent",
+    "commands": "Příkazy",
     "meetings": "Schůzky",
     "cleanup": "Čištění pomocí AI",
     "dictionary": "Slovník",
@@ -2836,7 +2867,9 @@
       "assistant": "Asistent",
       "mouse": "Myš",
       "cleanupOff": "Pro tuto zkratku zapněte čištění pomocí AI.",
-      "assistantOff": "Asistent je vypnutý, takže jeho zkratky nic nedělají."
+      "assistantOff": "Asistent je vypnutý, takže jeho zkratky nic nedělají.",
+      "commands": "Hlasové příkazy",
+      "commandsOff": "Hlasové příkazy jsou vypnuté, takže tato zkratka nic nedělá."
     },
     "audio": {
       "microphone": "Mikrofon",
@@ -3189,6 +3222,50 @@
     },
     "addWord": "Přidat slovo"
   },
+  "commandsPage": {
+    "description": "Řekněte, co chcete udělat, a Talvio to udělá na tomto počítači: otevře web, pustí písničku, přepne aplikaci, napíše e-mail.",
+    "enable": "Hlasové příkazy",
+    "offNotice": "Hlasové příkazy jsou vypnuté. Zapněte je, aby jejich zkratka něco dělala; co řeknete, pak půjde modelu, který příkazy provádí.",
+    "shortcut": {
+      "title": "Vyslovit příkaz",
+      "whatHold": "Podržte, řekněte, co chcete udělat, pusťte.",
+      "whatTap": "Stiskněte, řekněte, co chcete udělat, stiskněte znovu."
+    },
+    "model": {
+      "title": "Běží na",
+      "info": "Model, který z toho, co řeknete, udělá akci. Nejlepší je malý a rychlý: každý příkaz je jeden požadavek.",
+      "provider": "Poskytovatel",
+      "model": "Model",
+      "using": "Příkazy běží na {{model}} · {{provider}}.",
+      "borrowed": "Používá se {{provider}} · {{model}}, protože {{chosen}} nemá klíč.",
+      "needsKey": "{{provider}} potřebuje klíč, aby příkazy mohly běžet.",
+      "setUp": "Nastavit model",
+      "key": "API klíč pro {{provider}}",
+      "keyShared": "Sdílený s čištěním pomocí AI a asistentem."
+    },
+    "confirmIrreversible": {
+      "title": "Zeptat se před odesláním nebo smazáním",
+      "info": "Vypnuto: odeslání, zveřejnění nebo smazání, o které požádáte, se provede. Zapnuto: počká, až stisknete Provést. Vždy počká, když to řeknete („jen koncept“, „nech mě to zkontrolovat“)."
+    },
+    "dryRun": {
+      "title": "Zkušební běh",
+      "info": "Ukáže, co by příkaz udělal, místo aby to udělal."
+    },
+    "test": {
+      "group": "Vyzkoušet",
+      "title": "Napište příkaz",
+      "info": "Napište, co byste řekli, a uvidíte, co se vybralo a co udělal každý krok."
+    },
+    "examples": {
+      "title": "Co říct",
+      "items": {
+        "youtube": "„Otevři YouTube“",
+        "song": "„Pusť Believer od Imagine Dragons“",
+        "volume": "„Ztlum hlasitost“",
+        "switch": "„Přepni na Chrome“"
+      }
+    }
+  },
   "assistantPage": {
     "description": "Ptejte se hlasem na cokoli, z jakékoli aplikace. Asistent vidí vaši obrazovku, vyhledává na webu a pamatuje si, na čem vám záleží.",
     "offNotice": "Asistent je vypnutý. Jeho zkratky nic nedělají a nepoužívá žádnou paměť, dokud ho znovu nezapnete.",
@@ -3343,6 +3420,17 @@
       "screen": {
         "ask": "Zobrazení obrazovky u otázek",
         "call": "Zobrazení obrazovky v konverzacích"
+      },
+      "quickAskMemory": {
+        "title": "Pamatovat si konverzaci",
+        "cleared": "Další otázka začne novou konverzaci",
+        "options": {
+          "off": "Vypnuto",
+          "five_minutes": "5 minut",
+          "ten_minutes": "10 minut",
+          "thirty_minutes": "30 minut",
+          "until_cleared": "Dokud ji nevymažu"
+        }
       }
     },
     "tips": {
@@ -3360,6 +3448,7 @@
       "profiles": "Persony s vlastním jménem, instrukcemi a stylem odpovědí.",
       "replyLength": "Jak dlouhé obvykle odpovědi jsou.",
       "history": "Kolik nedávných zpráv si pamatuje.",
+      "quickAskMemory": "Jak dlouho si rychlý dotaz pamatuje ten předchozí, abyste se mohli doptat. Konverzace si vedou vlastní historii.",
       "summarize": "Zhušťuje dlouhé chaty, aby nezapomněl jejich začátek.",
       "opacity": "Nižší hodnota nechá prosvítat plochu.",
       "position": "Klikněte na místo na obrazovce.",
@@ -3909,13 +3998,22 @@
       "contactNoDetails": "{{name}} je ve vašich kontaktech, ale nemá uloženou e-mailovou adresu ani telefonní číslo.",
       "contactNotFound": "Nemám kontakt jménem {{name}}.",
       "emailDraft": "Koncept pro {{name}} je otevřený. Řekněte odeslat, nebo zrušit.",
+      "emailDraftFile": "Koncept pro {{name}} s {{file}} je otevřený. Řekni odeslat nebo zrušit.",
       "emailDraftTruncated": "Koncept pro {{name}} je otevřený. Zpráva byla pro Gmail příliš dlouhá, takže byla zkrácena; před odesláním zkontrolujte konec. Řekněte odeslat, nebo zrušit.",
       "emailSent": "Odesláno: {{name}}.",
+      "emailSentFile": "Soubor {{file}} byl odeslán: {{name}}.",
       "empty": "Nezachytil jsem žádný příkaz.",
       "failed": "{{reason}}",
       "mediaNext": "Přeskočeno na další skladbu.",
       "mediaPlayPause": "Stisknuto přehrát/pozastavit.",
+      "mediaPaused": "Pozastaveno.",
+      "mediaNothingPlaying": "Nic nehraje.",
+      "mediaResumed": "Pokračuje.",
+      "mediaAlreadyPlaying": "Už hraje.",
+      "windowNotReady": "Aplikace se neotevřela včas, takže jsem nic nenapsal.",
+      "mediaPlaying": "Přehrávám „{{title}}“ na {{service}}.",
       "mediaPrevious": "Zpět na předchozí skladbu.",
+      "mediaResultsOpened": "Otevřeny výsledky {{service}} pro „{{query}}“.",
       "mediaStop": "Přehrávání zastaveno.",
       "needsComputerUse": "To zatím žádný z mých nástrojů neumí. Ovládání obrazovky přijde v pozdější verzi.",
       "notConfigured": "Režim příkazů není nastaven: {{why}}",
@@ -3932,6 +4030,7 @@
       "routeFailed": "Nepřišel jsem na to, co udělat: {{why}}",
       "say": "{{text}}",
       "searchOpened": "Hledám {{query}}.",
+      "spotifyResultsOpened": "Otevřeny výsledky Spotify pro „{{query}}“. Spotify neumí samo spustit vyhledávání, takže vyberte, co přehrát.",
       "superseded": "Tento příkaz nahradil novější, takže už nečeká.",
       "switchedTo": "Přepnuto na {{title}}.",
       "tooManyQuestions": "Pořád jsem nepřišel na to, co udělat. Zkuste to říct jinak.",
@@ -3945,6 +4044,23 @@
       "volumeUp": "Hlasitost zvýšena.",
       "waitingForAnswer": "Ten příkaz čeká na odpověď, ne na potvrzení.",
       "waitingForConfirmation": "Ten příkaz čeká na vaše potvrzení, ne na odpověď."
+    }
+  },
+  "palette": {
+    "trigger": "Hledat nebo přejít na…",
+    "placeholder": "Hledejte stránky, modely a nastavení",
+    "label": "Paleta příkazů",
+    "empty": "Nic neodpovídá „{{query}}“",
+    "groups": {
+      "pages": "Stránky",
+      "models": "Modely",
+      "settings": "Nastavení",
+      "actions": "Akce"
+    },
+    "hints": {
+      "move": "Pohyb",
+      "open": "Otevřít",
+      "close": "Zavřít"
     }
   }
 }

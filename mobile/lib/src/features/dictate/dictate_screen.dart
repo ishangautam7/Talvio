@@ -1,827 +1,41 @@
-import 'dart:math' as math;
+import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/app_services.dart';
-import '../../core/device_icon.dart';
 import '../../core/models.dart';
-import '../../core/relay_client.dart';
-import '../../core/widgets.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
+import '../../design/voice.dart';
 import '../../shell/feature_tab.dart';
+import '../screen/live_dock.dart' show openWatch;
+import '../screen/live_protocol.dart';
+import 'computer_widgets.dart';
 import 'dictate_controller.dart';
-import 'recent_dictations.dart';
+import 'dictate_parts.dart';
+import 'dictate_scope.dart';
+import 'key_pad.dart';
 import 'strings.dart';
+import 'voice_recorder.dart';
 
-final dictateTab = FeatureTab(
-  id: 'dictate',
+export 'computer_widgets.dart' show windowLabel;
+
+/// Dictating and typing into the computer, and pressing its keys.
+final sendTab = FeatureTab(
+  id: sendTabId,
   label: DictateStrings.tab,
-  icon: Icons.mic_none,
-  selectedIcon: Icons.mic,
+  icon: AppIcons.dictate,
+  selectedIcon: AppIcons.dictateSelected,
   requires: DictateKind.dictate,
   builder: (_) => const DictateScreen(),
+  composer: true,
 );
 
-class DictateScreen extends StatefulWidget {
-  const DictateScreen({super.key});
+const sendTabId = 'send';
 
-  @override
-  State<DictateScreen> createState() => _DictateScreenState();
-}
-
-class _DictateScreenState extends State<DictateScreen> {
-  late final AppServices _services = AppServices.of(context);
-  late final DictateController _controller = DictateController(
-    relay: _services.relay,
-    prefs: _services.prefs,
-  );
-  final _text = TextEditingController();
-  final _textFocus = FocusNode();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _text.dispose();
-    _textFocus.dispose();
-    super.dispose();
-  }
-
-  Future<void> _sendText() async {
-    final text = _text.text.trim();
-    if (text.isEmpty) return;
-    if (await _controller.sendText(text) && mounted) _text.clear();
-  }
-
-  void _copy(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text(DictateStrings.copied)));
-  }
-
-  Future<void> _chooseComputer() => showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    builder: (context) => SafeArea(
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-            child: Text(
-              DictateStrings.chooseComputer,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          for (final computer in _controller.computers)
-            _ComputerTile(
-              computer,
-              selected: computer.id == _controller.computer?.id,
-              onTap: () {
-                _controller.choose(computer.id);
-                Navigator.pop(context);
-              },
-            ),
-        ],
-      ),
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final relay = _services.relay;
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        _controller,
-        relay.devices,
-        relay.status,
-        _textFocus,
-      ]),
-      builder: (context, _) {
-        final connected = relay.status.value == RelayStatus.connected;
-        final known = relay.devices.value != null;
-        final computers = _controller.computers;
-        final computer = _controller.computer;
-        return Scaffold(
-          appBar: AppBar(
-            title: computer == null
-                ? const Text(DictateStrings.title)
-                : _ComputerTitle(
-                    computer,
-                    // A recording or request keeps its computer to the end.
-                    onTap:
-                        computers.length > 1 &&
-                            _controller.phase == DictatePhase.idle
-                        ? _chooseComputer
-                        : null,
-                  ),
-          ),
-          body: Column(
-            children: [
-              if (!connected) const _ConnectionBanner(),
-              Expanded(
-                child: switch ((known, computer)) {
-                  (false, _) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  (true, null) when computers.isNotEmpty => _PickComputer(
-                    computers,
-                    onPick: _controller.choose,
-                  ),
-                  (true, null) => _NoComputer(
-                    email: _services.session.session?.user.email ?? '',
-                  ),
-                  (true, final Device computer) => _buildBody(
-                    context,
-                    computer,
-                    connected,
-                  ),
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBody(BuildContext context, Device computer, bool connected) {
-    final c = _controller;
-    final idle = c.phase == DictatePhase.idle;
-    final ready = connected && computer.online;
-    final canDictate =
-        ready && computer.capabilities.contains(DictateKind.dictate);
-    final canType = ready && computer.capabilities.contains(DictateKind.text);
-    final typing = _textFocus.hasFocus;
-    final outcome = c.outcome;
-    final (progress, progressDetail) = c.cancelling
-        ? (DictateStrings.cancelling, null)
-        : switch (c.stage) {
-            'approval' => (
-              DictateStrings.approval(computer.name),
-              DictateStrings.approvalDetail,
-            ),
-            'pasting' => (DictateStrings.pasting(computer.name), null),
-            _ => (DictateStrings.transcribing(computer.name), null),
-          };
-
-    // A computer that advertises nothing yet has not said `hello`.
-    final note = !computer.online
-        ? DictateStrings.offlineNote(computer.name)
-        : connected &&
-              computer.capabilities.isNotEmpty &&
-              !computer.capabilities.contains(DictateKind.dictate)
-        ? DictateStrings.updateNote(computer.name)
-        : null;
-
-    return LayoutBuilder(
-      builder: (context, constraints) => Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (note != null && c.phase != DictatePhase.sending)
-                  _Note(note),
-                if (c.phase == DictatePhase.sending)
-                  _ProgressCard(
-                    text: progress,
-                    detail: progressDetail,
-                    onCancel: c.cancelling ? null : c.cancelRequest,
-                  )
-                else if (outcome != null)
-                  _OutcomeCard(
-                    outcome: outcome,
-                    computerName: outcome.computer ?? computer.name,
-                    onCopy: _copy,
-                    onRetry: c.canRetry && canDictate ? c.retry : null,
-                    onDismiss: c.dismissOutcome,
-                  ),
-                if (note == null &&
-                    outcome == null &&
-                    idle &&
-                    c.recents.items.isEmpty)
-                  _Hint(
-                    c.deliver == Deliver.keep
-                        ? DictateStrings.hintKeep
-                        : DictateStrings.hintPaste(computer.name),
-                  ),
-                if (c.recents.items.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  SectionTitle(DictateStrings.recent),
-                  for (final item in c.recents.items)
-                    _RecentTile(item, onCopy: _copy),
-                ],
-              ],
-            ),
-          ),
-          // Short screens (landscape, large text) scroll the controls instead
-          // of pushing them under the navigation bar, and keep some room for
-          // the cards above. While typing, the controls are the text field.
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: typing
-                  ? constraints.maxHeight
-                  : math.max(
-                      constraints.maxHeight - 96,
-                      constraints.maxHeight / 2,
-                    ),
-            ),
-            child: SingleChildScrollView(
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: Column(
-                    children: [
-                      // While typing the keyboard needs the room, and the delivery
-                      // choice and mic only apply to speech.
-                      if (!typing) ...[
-                        SegmentedButton<Deliver>(
-                          showSelectedIcon: false,
-                          segments: const [
-                            ButtonSegment(
-                              value: Deliver.paste,
-                              label: Text(DictateStrings.pasteOnComputer),
-                            ),
-                            ButtonSegment(
-                              value: Deliver.keep,
-                              label: Text(DictateStrings.keepOnPhone),
-                            ),
-                          ],
-                          selected: {c.deliver},
-                          onSelectionChanged: idle
-                              ? (value) => c.deliver = value.single
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        _MicButton(
-                          phase: c.phase,
-                          level: c.level,
-                          onPressed: switch (c.phase) {
-                            DictatePhase.idle when canDictate =>
-                              c.startRecording,
-                            DictatePhase.recording => c.stopAndSend,
-                            _ => null,
-                          },
-                        ),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 48),
-                          child: c.phase == DictatePhase.recording
-                              ? _RecordingCaption(
-                                  elapsed: c.elapsed,
-                                  paused: c.paused,
-                                  onDiscard: c.discardRecording,
-                                )
-                              : Center(
-                                  child: Text(
-                                    idle ? DictateStrings.tapToSpeak : '',
-                                    style: _muted(context),
-                                  ),
-                                ),
-                        ),
-                      ],
-                      _Composer(
-                        controller: _text,
-                        focusNode: _textFocus,
-                        hint: DictateStrings.typeHint(computer.name),
-                        enabled: canType && idle,
-                        onSend: _sendText,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-TextStyle? _muted(BuildContext context) => Theme.of(context)
-    .textTheme
-    .bodyMedium
-    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
-
-class _ComputerTitle extends StatelessWidget {
-  const _ComputerTitle(this.computer, {required this.onTap});
-
-  final Device computer;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      button: onTap != null,
-      label: DictateStrings.chooseComputer,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DeviceIcon(computer),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      computer.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    Text(
-                      computer.online
-                          ? DictateStrings.online
-                          : DictateStrings.offline,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (onTap != null) const Icon(Icons.arrow_drop_down),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ConnectionBanner extends StatelessWidget {
-  const _ConnectionBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            const SizedBox.square(
-              dimension: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                DictateStrings.connecting,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ComputerTile extends StatelessWidget {
-  const _ComputerTile(
-    this.computer, {
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Device computer;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-      leading: DeviceIcon(computer),
-      title: Text(computer.name),
-      subtitle: Text(
-        computer.online ? DictateStrings.online : DictateStrings.offline,
-      ),
-      trailing: selected ? const Icon(Icons.check) : null,
-      onTap: onTap,
-    );
-  }
-}
-
-/// Several computers and no choice yet (or the chosen one left the account).
-class _PickComputer extends StatelessWidget {
-  const _PickComputer(this.computers, {required this.onPick});
-
-  final List<Device> computers;
-  final ValueChanged<String> onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
-          child: Text(
-            DictateStrings.pickComputerTitle,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-          child: Text(DictateStrings.pickComputerBody, style: _muted(context)),
-        ),
-        for (final computer in computers)
-          _ComputerTile(
-            computer,
-            selected: false,
-            onTap: () => onPick(computer.id),
-          ),
-      ],
-    );
-  }
-}
-
-class _NoComputer extends StatelessWidget {
-  const _NoComputer({required this.email});
-
-  final String email;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.computer_outlined,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              DictateStrings.noComputerTitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              DictateStrings.noComputerBody(email),
-              textAlign: TextAlign.center,
-              style: _muted(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Note extends StatelessWidget {
-  const _Note(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card.filled(
-      child: ListTile(
-        leading: const Icon(Icons.info_outline),
-        title: Text(text),
-      ),
-    );
-  }
-}
-
-class _Hint extends StatelessWidget {
-  const _Hint(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-      child: Text(text, textAlign: TextAlign.center, style: _muted(context)),
-    );
-  }
-}
-
-class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({
-    required this.text,
-    required this.detail,
-    required this.onCancel,
-  });
-
-  final String text;
-  final String? detail;
-  final VoidCallback? onCancel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card.outlined(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const LinearProgressIndicator(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(text),
-                        if (detail case final detail?)
-                          Text(detail, style: _muted(context)),
-                      ],
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: onCancel,
-                  child: const Text(DictateStrings.cancel),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OutcomeCard extends StatelessWidget {
-  const _OutcomeCard({
-    required this.outcome,
-    required this.computerName,
-    required this.onCopy,
-    required this.onRetry,
-    required this.onDismiss,
-  });
-
-  final DictateOutcome outcome;
-  final String computerName;
-  final ValueChanged<String> onCopy;
-  final VoidCallback? onRetry;
-  final VoidCallback onDismiss;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final error = outcome.error;
-    final text = outcome.text;
-
-    if (error != null) {
-      return Card.filled(
-        color: theme.colorScheme.errorContainer,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  DictateStrings.error(error, computerName),
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onErrorContainer,
-                  ),
-                ),
-              ),
-              OverflowBar(
-                alignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: onDismiss,
-                    child: const Text(DictateStrings.dismiss),
-                  ),
-                  if (onRetry != null)
-                    TextButton(
-                      onPressed: onRetry,
-                      child: const Text(DictateStrings.tryAgain),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final title = outcome.typed
-        ? DictateStrings.typedPasted(computerName)
-        : outcome.pasted
-        ? DictateStrings.pasted(computerName)
-        : DictateStrings.result;
-    return Card.outlined(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.check_circle_outline,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Text(title, style: theme.textTheme.titleSmall),
-                  ),
-                ),
-                IconButton(
-                  tooltip: DictateStrings.dismiss,
-                  icon: const Icon(Icons.close),
-                  onPressed: onDismiss,
-                ),
-              ],
-            ),
-            if (!outcome.typed && text != null && text.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: SelectableText(text, style: theme.textTheme.bodyLarge),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => onCopy(text),
-                  icon: const Icon(Icons.copy, size: 18),
-                  label: const Text(DictateStrings.copy),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentTile extends StatelessWidget {
-  const _RecentTile(this.item, {required this.onCopy});
-
-  final RecentDictation item;
-  final ValueChanged<String> onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = MaterialLocalizations.of(context);
-    final now = DateTime.now();
-    final today =
-        item.at.year == now.year &&
-        item.at.month == now.month &&
-        item.at.day == now.day;
-    return ListTile(
-      title: Text(item.text, maxLines: 3, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        today
-            ? localizations.formatTimeOfDay(TimeOfDay.fromDateTime(item.at))
-            : localizations.formatShortMonthDay(item.at),
-      ),
-      trailing: IconButton(
-        tooltip: DictateStrings.copy,
-        icon: const Icon(Icons.copy),
-        onPressed: () => onCopy(item.text),
-      ),
-    );
-  }
-}
-
-class _MicButton extends StatelessWidget {
-  const _MicButton({
-    required this.phase,
-    required this.level,
-    required this.onPressed,
-  });
-
-  static const _size = 88.0;
-  static const _ring = 128.0;
-
-  final DictatePhase phase;
-  final ValueListenable<double> level;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final recording = phase == DictatePhase.recording;
-    return SizedBox.square(
-      dimension: _ring,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (recording)
-            ValueListenableBuilder(
-              valueListenable: level,
-              builder: (context, value, _) => AnimatedScale(
-                scale: _size / _ring + (1 - _size / _ring) * value,
-                duration: const Duration(milliseconds: 100),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.error.withValues(alpha: 0.2),
-                  ),
-                  child: const SizedBox.square(dimension: _ring),
-                ),
-              ),
-            ),
-          Semantics(
-            label: recording
-                ? DictateStrings.stopAndSend
-                : DictateStrings.startRecording,
-            // Excluding the button's own semantics drops its tap too.
-            excludeSemantics: true,
-            button: true,
-            enabled: onPressed != null,
-            onTap: onPressed,
-            child: SizedBox.square(
-              dimension: _size,
-              child: FilledButton(
-                onPressed: onPressed,
-                style: FilledButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: EdgeInsets.zero,
-                  backgroundColor: recording ? scheme.error : null,
-                  foregroundColor: recording ? scheme.onError : null,
-                ),
-                child: phase == DictatePhase.sending
-                    ? const SizedBox.square(
-                        dimension: 28,
-                        child: CircularProgressIndicator(strokeWidth: 3),
-                      )
-                    : Icon(
-                        recording ? Icons.stop_rounded : Icons.mic,
-                        size: 40,
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecordingCaption extends StatelessWidget {
-  const _RecordingCaption({
-    required this.elapsed,
-    required this.paused,
-    required this.onDiscard,
-  });
-
-  final ValueListenable<Duration> elapsed;
-  final bool paused;
-  final VoidCallback onDiscard;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Flexible(
-          child: ValueListenableBuilder(
-            valueListenable: elapsed,
-            builder: (context, value, _) {
-              final seconds = (value.inSeconds % 60).toString().padLeft(2, '0');
-              final time = paused
-                  ? DictateStrings.paused
-                  : '${value.inMinutes}:$seconds';
-              return Text(
-                '$time · ${DictateStrings.tapToSend}',
-                style: _muted(
-                  context,
-                )?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        TextButton(
-          onPressed: onDiscard,
-          child: const Text(DictateStrings.discard),
-        ),
-      ],
-    );
-  }
-}
+/// How long "Pasted on …" stays before the hint comes back.
+const pastedNoteFor = Duration(seconds: 5);
 
 /// Caps typed text at the 10 000 characters a `text` request may carry,
 /// counted as PROTOCOL.md counts them (code points). `maxLength` would count
@@ -835,51 +49,506 @@ final typedTextLimit = TextInputFormatter.withFunction((old, next) {
   );
 });
 
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.controller,
-    required this.focusNode,
-    required this.hint,
-    required this.enabled,
-    required this.onSend,
-  });
+class DictateScreen extends StatefulWidget {
+  const DictateScreen({super.key});
 
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final String hint;
-  final bool enabled;
-  final VoidCallback onSend;
+  @override
+  State<DictateScreen> createState() => _DictateScreenState();
+}
+
+class _DictateScreenState extends State<DictateScreen>
+    with SingleTickerProviderStateMixin {
+  late final AppServices _services = AppServices.of(context);
+  late final DictateController _controller = DictateScope.of(context);
+  final _text = TextEditingController();
+  final _textFocus = FocusNode();
+  var _keysOpen = false;
+
+  /// The outcome last seen, and whether its "Pasted" line has had its time.
+  DictateOutcome? _seen;
+  var _settled = false;
+
+  /// Counts the time "Pasted" stays (frames, not a timer: an outcome can
+  /// arrive outside the test clock).
+  late final _settle = AnimationController(vsync: this, duration: pastedNoteFor)
+    ..addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(() => _settled = true);
+      }
+    });
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onOutcome);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onOutcome);
+    _settle.dispose();
+    _text.dispose();
+    _textFocus.dispose();
+    super.dispose();
+  }
+
+  void _onOutcome() {
+    final outcome = _controller.outcome;
+    if (identical(outcome, _seen)) return;
+    _seen = outcome;
+    _settled = false;
+    _settle.stop();
+    if (outcome == null) return;
+    final error = outcome.error;
+    if (error != null && error != 'cancelled') Haptic.error();
+    if (error == null && (outcome.pasted || outcome.typed)) {
+      unawaited(_settle.forward(from: 0));
+    }
+  }
+
+  void _copy(String text) {
+    unawaited(Clipboard.setData(ClipboardData(text: text)));
+    Haptic.tick();
+    showSnack(context, DictateStrings.copied);
+  }
+
+  Future<void> _chooseDestination() => showTalvioSheet<void>(
+    context,
+    title: DictateStrings.goesTo,
+    builder: (sheet) => WindowPicker(
+      _controller,
+      onWatch: _canWatch
+          ? (target, window) {
+              Navigator.pop(sheet);
+              openWatch(context, _controller, target, window: window);
+            }
+          : null,
+    ),
+  );
+
+  /// The computer streams windows and screens (capability `screen`).
+  bool get _canWatch =>
+      _controller.hasWindows &&
+      (_controller.computer?.capabilities.contains(ScreenKind.capability) ??
+          false);
+
+  /// Presses [keys] in the chosen window; a failure shows as a snack bar,
+  /// since the stage belongs to the last dictation.
+  Future<void> _press(List<String> keys) async {
+    Haptic.tick();
+    final name = _controller.computer?.name ?? '';
+    _showKeyError(await _controller.pressKeys(keys), name);
+  }
+
+  void _showKeyError(String? error, String name) {
+    if (error == null || !mounted) return;
+    showSnack(
+      context,
+      DictateStrings.error(error, name),
+      action: error == 'target_gone'
+          ? SnackBarAction(
+              label: DictateStrings.chooseWindow,
+              onPressed: _chooseDestination,
+            )
+          : null,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            minLines: 1,
-            maxLines: 4,
-            inputFormatters: [typedTextLimit],
-            textCapitalization: TextCapitalization.sentences,
-            onTapOutside: (_) => focusNode.unfocus(),
-            decoration: InputDecoration(hintText: hint),
+    final relay = _services.relay;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        _controller,
+        relay.devices,
+        relay.status,
+        _textFocus,
+        VoiceRecorder.holder,
+      ]),
+      builder: (context, _) =>
+          ComputerGate(controller: _controller, builder: _buildBody),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, Device computer, bool connected) {
+    final c = _controller;
+    final idle = c.phase == DictatePhase.idle;
+    final ready = connected && computer.online;
+    final canDictate =
+        ready && computer.capabilities.contains(DictateKind.dictate);
+    final canType = ready && computer.capabilities.contains(DictateKind.text);
+    // The window and key rows exist only for a computer that offers them.
+    final hasWindows = c.hasWindows;
+    final canAim = ready && hasWindows;
+    final typing = _textFocus.hasFocus;
+    final name = computer.name;
+
+    // A computer that advertises nothing yet has not said `hello`.
+    final offline = !computer.online;
+    final outdated =
+        !offline &&
+        connected &&
+        computer.capabilities.isNotEmpty &&
+        !computer.capabilities.contains(DictateKind.dictate);
+
+    final composer = Composer(
+      controller: _text,
+      focusNode: _textFocus,
+      hint: offline
+          ? DictateStrings.offlineTitle(name)
+          : DictateStrings.typeHint(name),
+      sendLabel: DictateStrings.send,
+      enabled: canType && idle,
+      inputFormatters: [typedTextLimit],
+      maxLines: 4,
+      onSubmit: c.sendText,
+      onEnter: hasWindows && canAim ? () => _press(const ['enter']) : null,
+      enterLabel: DictateStrings.pressEnter,
+      leading: hasWindows
+          ? ComposerButton(
+              label: _keysOpen
+                  ? DictateStrings.hideKeys
+                  : DictateStrings.showKeys,
+              icon: AppIcons.keyboard,
+              active: _keysOpen,
+              onPressed: offline || outdated
+                  ? null
+                  : () {
+                      Haptic.tick();
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      setState(() => _keysOpen = !_keysOpen);
+                    },
+            )
+          : null,
+    );
+
+    if (offline || outdated) {
+      return Column(
+        children: [
+          Expanded(
+            child: EmptyState(
+              icon: offline ? DuoIcons.offline : DuoIcons.update,
+              title: offline
+                  ? DictateStrings.offlineTitle(name)
+                  : DictateStrings.updateTitle(name),
+              body: offline
+                  ? DictateStrings.offlineNote(name)
+                  : DictateStrings.updateNote(name),
+            ),
+          ),
+          composer,
+        ],
+      );
+    }
+
+    final voice = VoiceState(
+      recording: c.phase == DictatePhase.recording,
+      paused: c.paused,
+      level: c.level,
+      elapsed: c.elapsed,
+      onStart: idle && canDictate && !c.micBlocked ? c.startRecording : null,
+      onStop: c.stopAndSend,
+      onDiscard: c.discardRecording,
+      startLabel: DictateStrings.startRecording,
+      stopLabel: DictateStrings.stopAndSend,
+      discardLabel: DictateStrings.discard,
+      pausedLabel: DictateStrings.paused,
+    );
+
+    final keys = _keysOpen && hasWindows;
+    final destination = DestinationRow(
+      window: c.window,
+      computerName: name,
+      deliver: c.deliver,
+      hasWindows: hasWindows,
+      // A recording or request keeps its window and delivery.
+      onTap: idle ? _chooseDestination : null,
+    );
+    final recent = RecentDictationsList(
+      items: c.recents.items,
+      onCopy: _copy,
+      onOpen: (item) => openDictation(context, c, item),
+    );
+    final Widget? bottom = keys
+        ? Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: KeyPad(
+              platform: computer.platform,
+              onPress: canAim ? _press : null,
+            ),
+          )
+        : null;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // A short screen (a phone on its side, large text) scrolls the
+        // whole page above the composer, the mic included.
+        final scale = MediaQuery.textScalerOf(context).scale(1);
+        final compact = constraints.maxHeight < 520 * scale;
+        final stage = keys || typing
+            ? null
+            : _stage(context, c, voice, name, canDictate, compact: compact);
+        if (compact) {
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  reverse: true,
+                  child: Column(
+                    children: [destination, recent, ?bottom, ?stage],
+                  ),
+                ),
+              ),
+              composer,
+            ],
+          );
+        }
+        return Column(
+          children: [
+            destination,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: Space.s16),
+                children: [recent],
+              ),
+            ),
+            ?bottom,
+            ?stage,
+            composer,
+          ],
+        );
+      },
+    );
+  }
+
+  /// The status line or card, the mic, and the recording row.
+  Widget _stage(
+    BuildContext context,
+    DictateController c,
+    VoiceState voice,
+    String name,
+    bool canDictate, {
+    bool compact = false,
+  }) {
+    final t = context.talvio;
+    final outcome = c.outcome;
+    final sending = c.phase == DictatePhase.sending;
+    final idle = c.phase == DictatePhase.idle;
+
+    Widget hint() => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 300),
+        child: Text(
+          c.deliver == Deliver.keep
+              ? DictateStrings.hintKeep
+              : DictateStrings.hintPaste(name),
+          key: const ValueKey('hint'),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TalvioType.footnote.copyWith(color: t.muted),
+        ),
+      ),
+    );
+
+    final Widget status;
+    if (voice.recording && compact) {
+      status = const SizedBox(key: ValueKey('none'));
+    } else if (voice.recording) {
+      final where = c.deliver == Deliver.keep
+          ? DictateStrings.listeningKeep
+          : switch (c.window) {
+              final window? => DictateStrings.listeningFor(
+                windowLabel(window).$1,
+              ),
+              null => DictateStrings.listeningCursor(name),
+            };
+      status = Semantics(
+        key: const ValueKey('listening'),
+        liveRegion: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatusDot(
+                    color: voice.paused ? t.warning : t.live,
+                    size: 8,
+                    blink: !voice.paused,
+                  ),
+                  const SizedBox(width: Space.s8),
+                  Text(
+                    voice.paused
+                        ? DictateStrings.paused
+                        : DictateStrings.listening,
+                    style: TalvioType.title2.copyWith(color: t.ink),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Space.s4),
+              Text(
+                where,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TalvioType.footnote.copyWith(color: t.muted),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 8),
-        ValueListenableBuilder(
-          valueListenable: controller,
-          builder: (context, value, _) => IconButton.filled(
-            tooltip: DictateStrings.send,
-            iconSize: 24,
-            constraints: const BoxConstraints.tightFor(width: 56, height: 56),
-            onPressed: enabled && value.text.trim().isNotEmpty ? onSend : null,
-            icon: const Icon(Icons.send),
+      );
+    } else if (sending && c.stage == 'approval' && !c.cancelling) {
+      status = RequestCard(
+        key: const ValueKey('approval'),
+        approval: true,
+        title: DictateStrings.approval(name),
+        detail: DictateStrings.approvalDetail,
+        onCancel: c.cancelRequest,
+        cancelLabel: DictateStrings.cancel,
+      );
+    } else if (sending) {
+      final text = c.cancelling
+          ? DictateStrings.cancelling
+          : c.stage == 'pasting'
+          ? DictateStrings.pasting(name)
+          : DictateStrings.transcribing(name);
+      status = Column(
+        key: const ValueKey('sending'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Semantics(
+            liveRegion: true,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Spinner(size: 14, color: t.muted),
+                const SizedBox(width: Space.s8),
+                Flexible(
+                  child: Text(
+                    text,
+                    style: TalvioType.footnote.copyWith(color: t.muted),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Btn(
+            DictateStrings.cancel,
+            kind: BtnKind.ghostNeutral,
+            compact: true,
+            onPressed: c.cancelling ? null : c.cancelRequest,
+          ),
+        ],
+      );
+    } else if (outcome?.error case final error?) {
+      status = InlineBanner(
+        key: ObjectKey(outcome),
+        tone: error == 'cancelled' ? Tone.neutral : Tone.danger,
+        message: DictateStrings.error(error, outcome!.computer ?? name),
+        action: c.windowLost && c.hasWindows && idle
+            ? Btn(
+                DictateStrings.chooseWindow,
+                kind: BtnKind.ghost,
+                compact: true,
+                onPressed: _chooseDestination,
+              )
+            : c.canRetry && canDictate
+            ? Btn(
+                DictateStrings.tryAgain,
+                kind: BtnKind.ghost,
+                compact: true,
+                onPressed: () {
+                  Haptic.tap();
+                  unawaited(c.retry());
+                },
+              )
+            : null,
+        onClose: c.dismissOutcome,
+        closeLabel: DictateStrings.dismiss,
+      );
+    } else if (outcome != null && !outcome.pasted && !outcome.typed) {
+      final text = outcome.text ?? '';
+      final computer = c.computer;
+      final canPaste =
+          computer != null &&
+          computer.online &&
+          computer.capabilities.contains(DictateKind.text) &&
+          idle;
+      status = ReturnedCard(
+        key: ObjectKey(outcome),
+        outcome: outcome,
+        computerName: outcome.computer ?? name,
+        onOpen: () => openText(context, c, text),
+        onCopy: () => _copy(text),
+        onPaste: canPaste && text.isNotEmpty
+            ? () {
+                Haptic.tap();
+                unawaited(c.sendText(text));
+              }
+            : null,
+        onDismiss: c.dismissOutcome,
+      );
+    } else if (outcome != null && !_settled) {
+      final app = switch (outcome.window) {
+        final window? => windowLabel(window).$1,
+        null => null,
+      };
+      final where = outcome.computer ?? name;
+      final title = switch ((outcome.typed, app)) {
+        (true, final app?) => DictateStrings.typedPastedIn(app, where),
+        (true, null) => DictateStrings.typedPasted(where),
+        (false, final app?) => DictateStrings.pastedIn(app, where),
+        (false, null) => DictateStrings.pasted(where),
+      };
+      status = Semantics(
+        key: ObjectKey(outcome),
+        liveRegion: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.done, size: 16, color: t.success),
+              const SizedBox(width: Space.s8),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TalvioType.footnote.copyWith(color: t.ink),
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      );
+    } else if (compact) {
+      status = const SizedBox(key: ValueKey('none'));
+    } else {
+      status = hint();
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(
+        top: compact ? Space.s8 : Space.s16,
+        bottom: compact ? Space.s12 : Space.s24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedSwitcher(duration: Motion.quick, child: status),
+          if (status.key != const ValueKey('none'))
+            SizedBox(height: voice.recording ? Space.s40 : Space.s24),
+          MicOrb(voice: voice, size: compact ? 64 : 80),
+          if (voice.recording) ...[
+            SizedBox(height: compact ? Space.s16 : Space.s40),
+            RecordingStrip(voice: voice),
+          ],
+        ],
+      ),
     );
   }
 }

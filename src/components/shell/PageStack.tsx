@@ -4,6 +4,7 @@ import { InsightsPage } from "@/components/pages/InsightsPage";
 import { HistoryPage } from "@/components/pages/HistoryPage";
 import { AssistantPage } from "@/components/pages/AssistantPage";
 import { MeetingsPage } from "@/components/pages/MeetingsPage";
+import { CommandsPage } from "@/components/pages/CommandsPage";
 import { CleanupPage } from "@/components/pages/CleanupPage";
 import { DictionaryPage } from "@/components/pages/DictionaryPage";
 import { ModelsPage } from "@/components/pages/ModelsPage";
@@ -16,6 +17,7 @@ const PAGES: Record<PageId, React.ComponentType> = {
   insights: InsightsPage,
   history: HistoryPage,
   assistant: AssistantPage,
+  commands: CommandsPage,
   meetings: MeetingsPage,
   cleanup: CleanupPage,
   dictionary: DictionaryPage,

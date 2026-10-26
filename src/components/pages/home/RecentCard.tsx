@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy } from "@/components/icons/glyphs";
 import { commands, events, type HistoryEntry } from "@/bindings";
 import { useSettings } from "@/hooks/useSettings";
 import { Keycaps } from "@/components/ui/Keycaps";
@@ -139,7 +139,7 @@ export const RecentCard: React.FC = () => {
       {entries === null ? (
         <div className="h-40 animate-pulse rounded-2xl border border-hairline bg-surface-muted" />
       ) : hasEntries ? (
-        <ul className="divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
+        <ul className="rows overflow-hidden rounded-2xl border border-hairline bg-surface elev-card">
           {entries.map((entry) => (
             <RecentRow key={entry.id} entry={entry} />
           ))}

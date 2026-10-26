@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Smartphone } from "lucide-react";
+import { Smartphone } from "@/components/icons/glyphs";
 import {
   commands,
   type AccountConnection,
@@ -35,6 +35,7 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
   const name = displayName(user);
   const remoteInput =
     getSetting("remote_input_enabled") ?? status.remote_input_enabled;
+  const remoteWindows = getSetting("remote_windows_enabled") ?? false;
   const syncKeys = getSetting("account_sync_secrets") ?? true;
 
   return (
@@ -42,7 +43,7 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
       <section className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-hairline bg-surface px-5 py-4 elev-card">
         <div
           aria-hidden="true"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent/12 font-display text-lg text-accent"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-strong font-display text-base text-ink"
         >
           {avatarLetter(user)}
         </div>
@@ -90,6 +91,17 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
           isUpdating={isUpdating("remote_input_enabled")}
           label={t("settings.account.phone.remoteInput")}
           description={t("settings.account.phone.remoteInputHint")}
+          grouped
+        />
+        <ToggleSwitch
+          checked={remoteInput && remoteWindows}
+          onChange={(enabled) =>
+            void updateSetting("remote_windows_enabled", enabled)
+          }
+          isUpdating={isUpdating("remote_windows_enabled")}
+          disabled={!remoteInput}
+          label={t("settings.account.phone.remoteWindows")}
+          description={t("settings.account.phone.remoteWindowsHint")}
           grouped
         />
         {!status.devices.some(isPhone) && (

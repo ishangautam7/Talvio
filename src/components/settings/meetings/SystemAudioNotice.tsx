@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { MicOff } from "lucide-react";
+import { MicOff } from "@/components/icons/glyphs";
 
 interface SystemAudioNoticeProps {
   /** True once a recording is running without the system stream. */

@@ -24,7 +24,7 @@
  */
 
 :root {
-  --mp-surface: rgba(23, 25, 47, 0.97);
+  --mp-surface: rgba(18, 20, 40, 0.97);
   --mp-surface-hover: rgba(30, 33, 60, 0.98);
   --mp-raise: rgba(255, 255, 255, 0.06);
   --mp-raise-strong: rgba(255, 255, 255, 0.11);
@@ -36,8 +36,21 @@
   --mp-hairline: rgba(255, 255, 255, 0.08);
   --mp-hairline-strong: rgba(255, 255, 255, 0.14);
   --mp-inner:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
     inset 0 0 0 0.5px rgba(0, 0, 0, 0.5);
+  /* The assistant's sheen (AssistantPanel.css `--as-sheen`). */
+  --mp-sheen:
+    radial-gradient(
+      120% 100% at 0% 0%,
+      rgba(78, 84, 200, 0.2),
+      rgba(78, 84, 200, 0) 62%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.016) 46%,
+      rgba(255, 255, 255, 0) 100%
+    );
   /* The recording dot is Talvio coral (dark-mode value), the pill's one spot of
      colour. Nothing else here may be coral, so the dot keeps meaning "live". */
   --mp-live: #ff6a52;
@@ -136,7 +149,7 @@
   height: 36px;
   padding: 0 5px 0 14px;
   border-radius: 999px;
-  background: var(--mp-surface);
+  background: var(--mp-sheen), var(--mp-surface);
   border: 1px solid var(--mp-hairline-strong);
   box-shadow: var(--mp-inner);
   cursor: pointer;
@@ -402,8 +415,8 @@
   gap: 12px;
   width: 100%;
   padding: 14px 14px 12px;
-  border-radius: 18px;
-  background: var(--mp-surface);
+  border-radius: 22px;
+  background: var(--mp-sheen), var(--mp-surface);
   border: 1px solid var(--mp-hairline-strong);
   box-shadow: var(--mp-inner);
   cursor: grab;
@@ -478,8 +491,8 @@
   width: 100%;
   max-height: 100%;
   min-height: 0;
-  border-radius: 18px;
-  background: var(--mp-surface);
+  border-radius: 22px;
+  background: var(--mp-sheen), var(--mp-surface);
   border: 1px solid var(--mp-hairline-strong);
   box-shadow: var(--mp-inner);
   overflow: hidden;
@@ -511,7 +524,7 @@
   to {
     opacity: 1;
     transform: scale(1);
-    border-radius: 18px;
+    border-radius: 22px;
   }
 }
 

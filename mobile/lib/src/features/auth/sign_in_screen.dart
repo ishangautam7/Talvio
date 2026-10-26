@@ -7,8 +7,9 @@ import '../../core/app_services.dart';
 import '../../core/config.dart';
 import '../../core/models.dart';
 import '../../core/session_store.dart';
-import '../../core/strings.dart';
-import '../../core/widgets.dart';
+import '../../design/brand.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
 import 'google_mark.dart';
 import 'google_sign_in.dart';
 import 'strings.dart';
@@ -148,259 +149,265 @@ class _SignInScreenState extends State<SignInScreen> {
   /// The server discovery named, or that it is still being looked for (a
   /// release build whose discovery has never answered). There is nothing to
   /// change here: the server only ever comes from discovery.
-  Widget _serverControl(ThemeData theme) {
+  Widget _serverStatus(BuildContext context) {
+    final t = context.talvio;
     final session = _services.session;
     final finder = session.finder;
     final url = session.serverUrl;
-    final choice = session.serverChoice;
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Text(
-          url != null
-              ? serverText(choice, url)
-              : finder.looking
-              ? AuthStrings.serverLooking
-              : AuthStrings.serverNotFound,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+    final style = TalvioType.footnote.copyWith(color: t.muted);
+    if (url != null) {
+      final label = session.serverChoice == ServerChoice.pinned
+          ? AuthStrings.developmentServer
+          : AuthStrings.server;
+      return Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '$label · '),
+            TextSpan(text: Uri.parse(url).authority, style: TalvioType.mono),
+          ],
         ),
-        if (url == null && !finder.looking)
-          TextButton(
-            onPressed: finder.lookUp,
-            child: const Text(AuthStrings.tryAgain),
-          ),
-        if (url == null && !finder.looking && finder.lastError != null)
-          SizedBox(
-            width: double.infinity,
-            child: Text(
-              AuthStrings.serverProblem(finder.lastError!),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-      ],
+        textAlign: TextAlign.center,
+        style: style,
+      );
+    }
+    if (finder.looking) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Spinner(size: 14, color: t.muted),
+          const SizedBox(width: Space.s8),
+          Flexible(child: Text(AuthStrings.serverLooking, style: style)),
+        ],
+      );
+    }
+    return InlineBanner(
+      tone: Tone.warning,
+      margin: EdgeInsets.zero,
+      message: switch (finder.lastError) {
+        final error? =>
+          '${AuthStrings.serverNotFound}. ${AuthStrings.serverProblem(error)}',
+        null => AuthStrings.serverNotFound,
+      },
+      action: Btn(
+        AuthStrings.tryAgain,
+        kind: BtnKind.ghostNeutral,
+        compact: true,
+        onPressed: finder.lookUp,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final dark = theme.brightness == Brightness.dark;
+    final t = context.talvio;
     final creating = _mode == _Mode.create;
     final busy = _busy != _Busy.none;
+    const scroll = EdgeInsets.only(bottom: 120);
+
+    final form = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TalvioMark(size: 44),
+        ),
+        const SizedBox(height: Space.s24),
+        Semantics(
+          header: true,
+          child: Text(
+            creating ? AuthStrings.createTitle : AuthStrings.signInTitle,
+            style: TalvioType.display.copyWith(color: t.ink),
+          ),
+        ),
+        const SizedBox(height: Space.s8),
+        Text(
+          AuthStrings.subtitle,
+          style: TalvioType.rowBody.copyWith(color: t.muted),
+        ),
+        const SizedBox(height: Space.s32),
+        SegmentedPill<_Mode>(
+          height: 40,
+          options: const [
+            (_Mode.signIn, AuthStrings.signInTab, null),
+            (_Mode.create, AuthStrings.createTab, null),
+          ],
+          selected: _mode,
+          onChanged: busy
+              ? null
+              : (mode) => setState(() {
+                  _mode = mode;
+                  _error = null;
+                }),
+        ),
+        const SizedBox(height: Space.s24),
+        if (creating) ...[
+          TextFormField(
+            controller: _name,
+            enabled: !busy,
+            scrollPadding: scroll,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.name],
+            style: TalvioType.body.copyWith(color: t.ink),
+            decoration: const InputDecoration(labelText: AuthStrings.name),
+            validator: (value) => (value ?? '').trim().runes.length > 64
+                ? AuthStrings.nameLong
+                : null,
+          ),
+          const SizedBox(height: Space.s12),
+        ],
+        TextFormField(
+          controller: _email,
+          enabled: !busy,
+          scrollPadding: scroll,
+          keyboardType: TextInputType.emailAddress,
+          autocorrect: false,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
+          style: TalvioType.body.copyWith(color: t.ink),
+          decoration: const InputDecoration(labelText: AuthStrings.email),
+          validator: (value) {
+            final email = (value ?? '').trim();
+            if (email.isEmpty) return AuthStrings.emailMissing;
+            if (!RegExp(r'^\S+@\S+$').hasMatch(email)) {
+              return AuthStrings.emailInvalid;
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: Space.s12),
+        TextFormField(
+          controller: _password,
+          enabled: !busy,
+          scrollPadding: scroll,
+          obscureText: _obscure,
+          autocorrect: false,
+          enableSuggestions: false,
+          textInputAction: TextInputAction.done,
+          autofillHints: [
+            creating ? AutofillHints.newPassword : AutofillHints.password,
+          ],
+          style: TalvioType.body.copyWith(color: t.ink),
+          decoration: InputDecoration(
+            labelText: AuthStrings.password,
+            helperText: creating ? AuthStrings.passwordHelp : null,
+            suffixIcon: Padding(
+              padding: const EdgeInsetsDirectional.only(end: 4),
+              child: IconBtn(
+                tooltip: _obscure
+                    ? AuthStrings.showPassword
+                    : AuthStrings.hidePassword,
+                icon: _obscure ? AppIcons.show : AppIcons.hide,
+                color: t.muted,
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+            ),
+          ),
+          validator: (value) {
+            final password = value ?? '';
+            if (password.isEmpty) return AuthStrings.passwordMissing;
+            if (!creating) return null;
+            if (password.runes.length < 8) return AuthStrings.passwordShort;
+            if (password.runes.length > 256) return AuthStrings.passwordLong;
+            return null;
+          },
+          onFieldSubmitted: (_) => _submit(),
+        ),
+        if (_error case final error?) ...[
+          const SizedBox(height: Space.s24),
+          Appear(
+            key: ValueKey(error),
+            child: InlineBanner(
+              tone: Tone.danger,
+              margin: EdgeInsets.zero,
+              message: error,
+            ),
+          ),
+          const SizedBox(height: Space.s16),
+        ] else
+          const SizedBox(height: Space.s24),
+        Btn(
+          creating ? AuthStrings.createAccount : AuthStrings.signIn,
+          expand: true,
+          loading: _busy == _Busy.password,
+          onPressed: busy ? null : _submit,
+        ),
+        if (_google) ...[
+          const SizedBox(height: Space.s20),
+          Row(
+            children: [
+              Expanded(child: Divider(color: t.hairline)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Space.s12),
+                child: Text(
+                  AuthStrings.or,
+                  style: TalvioType.footnote.copyWith(color: t.muted),
+                ),
+              ),
+              Expanded(child: Divider(color: t.hairline)),
+            ],
+          ),
+          const SizedBox(height: Space.s20),
+          Btn(
+            AuthStrings.google,
+            kind: BtnKind.secondary,
+            expand: true,
+            loading: _busy == _Busy.google,
+            leading: const GoogleMark(size: 20),
+            onPressed: busy ? null : _signInWithGoogle,
+          ),
+        ],
+      ],
+    );
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: AutofillGroup(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        creating
-                            ? AuthStrings.createTitle
-                            : AuthStrings.signInTitle,
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AuthStrings.subtitle,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      SegmentedButton<_Mode>(
-                        showSelectedIcon: false,
-                        segments: const [
-                          ButtonSegment(
-                            value: _Mode.signIn,
-                            label: Text(AuthStrings.signInTab),
-                          ),
-                          ButtonSegment(
-                            value: _Mode.create,
-                            label: Text(AuthStrings.createTab),
-                          ),
-                        ],
-                        selected: {_mode},
-                        onSelectionChanged: busy
-                            ? null
-                            : (mode) => setState(() {
-                                _mode = mode.single;
-                                _error = null;
-                              }),
-                      ),
-                      const SizedBox(height: 24),
-                      if (creating) ...[
-                        TextFormField(
-                          controller: _name,
-                          enabled: !busy,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.name],
-                          decoration: const InputDecoration(
-                            labelText: AuthStrings.name,
-                          ),
-                          validator: (value) =>
-                              (value ?? '').trim().runes.length > 64
-                              ? AuthStrings.nameLong
-                              : null,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      TextFormField(
-                        controller: _email,
-                        enabled: !busy,
-                        keyboardType: TextInputType.emailAddress,
-                        autocorrect: false,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
-                        decoration: const InputDecoration(
-                          labelText: AuthStrings.email,
-                        ),
-                        validator: (value) {
-                          final email = (value ?? '').trim();
-                          if (email.isEmpty) return AuthStrings.emailMissing;
-                          if (!RegExp(r'^\S+@\S+$').hasMatch(email)) {
-                            return AuthStrings.emailInvalid;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _password,
-                        enabled: !busy,
-                        obscureText: _obscure,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: [
-                          creating
-                              ? AutofillHints.newPassword
-                              : AutofillHints.password,
-                        ],
-                        decoration: InputDecoration(
-                          labelText: AuthStrings.password,
-                          helperText: creating
-                              ? AuthStrings.passwordHelp
-                              : null,
-                          suffixIcon: IconButton(
-                            tooltip: _obscure
-                                ? AuthStrings.showPassword
-                                : AuthStrings.hidePassword,
-                            icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 0.8,
+            colors: [
+              t.coral.withValues(alpha: t.isDark ? 0.12 : 0.08),
+              t.coral.withValues(alpha: 0),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: AutofillGroup(
+            child: Form(
+              key: _formKey,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight - 64,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
-                          ),
-                        ),
-                        validator: (value) {
-                          final password = value ?? '';
-                          if (password.isEmpty) {
-                            return AuthStrings.passwordMissing;
-                          }
-                          if (!creating) return null;
-                          if (password.runes.length < 8) {
-                            return AuthStrings.passwordShort;
-                          }
-                          if (password.runes.length > 256) {
-                            return AuthStrings.passwordLong;
-                          }
-                          return null;
-                        },
-                        onFieldSubmitted: (_) => _submit(),
-                      ),
-                      if (_error case final error?) ...[
-                        const SizedBox(height: 16),
-                        Semantics(
-                          liveRegion: true,
-                          child: Text(
-                            error,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        onPressed: busy ? null : _submit,
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                        ),
-                        child: _busy == _Busy.password
-                            ? const ButtonSpinner()
-                            : Text(
-                                creating
-                                    ? AuthStrings.createAccount
-                                    : AuthStrings.signIn,
-                              ),
-                      ),
-                      if (_google) ...[
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            const Expanded(child: Divider()),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                AuthStrings.or,
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ),
-                            const Expanded(child: Divider()),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        // Google's branding: its "G" and its button colours.
-                        OutlinedButton(
-                          onPressed: busy ? null : _signInWithGoogle,
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                            backgroundColor: dark
-                                ? const Color(0xFF131314)
-                                : Colors.white,
-                            foregroundColor: dark
-                                ? const Color(0xFFE3E3E3)
-                                : const Color(0xFF1F1F1F),
-                            side: BorderSide(
-                              color: dark
-                                  ? const Color(0xFF8E918F)
-                                  : const Color(0xFF747775),
-                            ),
-                          ),
-                          child: _busy == _Busy.google
-                              ? const ButtonSpinner()
-                              : const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    GoogleMark(),
-                                    SizedBox(width: 10),
-                                    Flexible(child: Text(AuthStrings.google)),
-                                  ],
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                form,
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: Space.s32,
+                                  ),
+                                  child: _serverStatus(context),
                                 ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                      const SizedBox(height: 32),
-                      _serverControl(theme),
-                    ],
+                      ),
+                    ),
                   ),
                 ),
               ),

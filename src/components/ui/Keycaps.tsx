@@ -51,8 +51,8 @@ export const shortKeyCombination = (
 
 const SIZES: Record<KeycapSize, string> = {
   sm: "h-[1.375rem] min-w-[1.375rem] px-1.5 text-[0.6875rem] rounded-[0.3125rem]",
-  md: "h-7 min-w-7 px-2 text-[0.8125rem] rounded-md",
-  lg: "h-11 min-w-11 px-3.5 text-[0.9375rem] rounded-[0.625rem]",
+  md: "h-[1.625rem] min-w-[1.625rem] px-[0.4375rem] text-[0.75rem] rounded-md",
+  lg: "h-9 min-w-9 px-3 text-[0.875rem] rounded-lg",
 };
 
 export const Keycaps: React.FC<KeycapsProps> = ({
@@ -67,8 +67,7 @@ export const Keycaps: React.FC<KeycapsProps> = ({
   const keys = bindingKeyLabels(binding, osType);
   if (keys.length === 0) return <>{fallback}</>;
 
-  const finish =
-    variant === "hero" ? "keycap-hero" : "keycap bg-surface text-ink";
+  const finish = variant === "hero" ? "keycap-hero" : "keycap text-ink-soft";
 
   return (
     <span

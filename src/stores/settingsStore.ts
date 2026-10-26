@@ -175,6 +175,8 @@ const settingUpdaters: {
   push_to_talk: (value) => commands.changePttSetting(value as boolean),
   assistant_push_to_talk: (value) =>
     commands.changeAssistantPttSetting(value as boolean),
+  command_push_to_talk: (value) =>
+    commands.changeCommandPttSetting(value as boolean),
   dictation_silence_stop_secs: (value) =>
     commands.changeDictationSilenceStopSetting(value as number),
   selected_microphone: (value) =>
@@ -292,6 +294,8 @@ const settingUpdaters: {
     commands.changeExtraRecordingBufferSetting(value as number),
   remote_input_enabled: (value) =>
     commands.setRemoteInputEnabled(value as boolean),
+  remote_windows_enabled: (value) =>
+    commands.setRemoteWindowsEnabled(value as boolean),
   account_sync_secrets: (value) =>
     commands.setAccountSyncSecrets(value as boolean),
   command_mode_enabled: (value) =>
@@ -302,6 +306,8 @@ const settingUpdaters: {
     commands.changeCommandRouterModelSetting(value as string),
   command_dry_run: (value) =>
     commands.changeCommandDryRunSetting(value as boolean),
+  command_confirm_irreversible: (value) =>
+    commands.changeCommandConfirmIrreversibleSetting(value as boolean),
   command_google_account: (value) =>
     commands.changeCommandGoogleAccountSetting(value as string),
   command_search_url: (value) =>
