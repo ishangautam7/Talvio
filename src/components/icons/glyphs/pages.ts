@@ -1,5 +1,5 @@
 import type { PageId } from "@/components/shell/navigation";
-import type { Glyph } from "./base";
+import type { Glyph } from "./index";
 import {
   AssistantGlyph,
   CleanupGlyph,
@@ -10,7 +10,7 @@ import {
   InsightsGlyph,
   MeetingsGlyph,
   ModelsGlyph,
-} from "./features";
+} from "./index";
 
 /** Every page's glyph, for anything that names a page (the navigation, the
  *  palette, a page's title tile). */
