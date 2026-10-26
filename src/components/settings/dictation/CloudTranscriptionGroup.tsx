@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { withoutTalvioFree } from "@/lib/freeCredit";
 import { useTranslation } from "react-i18next";
 import {
   Cloud,
@@ -273,7 +274,7 @@ export const CloudTranscriptionGroup: React.FC<{
     }
   };
 
-  const providerOptions = providers.map((entry) => ({
+  const providerOptions = withoutTalvioFree(providers).map((entry) => ({
     value: entry.id,
     label: entry.label,
     ready:

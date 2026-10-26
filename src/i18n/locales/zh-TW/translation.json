@@ -3538,6 +3538,27 @@
       "model": "模型（選填）"
     }
   },
+  "freeCredit": {
+    "title": "免費額度",
+    "explain": "每個 Talvio 帳號都含 {{amount}} 的 AI 用量，由語音轉文字、AI 整理、助理、語音指令和朗讀回答共用。不需要 API 金鑰。",
+    "balance": "免費額度：剩餘 {{remaining}}，共 {{limit}}",
+    "checking": "正在查詢免費額度…",
+    "option": "使用 Talvio free（含 {{amount}}）",
+    "use": "使用 Talvio free",
+    "inUse": "使用中",
+    "exhausted": "免費額度已用完。加入你自己的 API 金鑰即可繼續使用雲端功能。",
+    "disabled": "Talvio free 目前無法使用。加入你自己的 API 金鑰即可繼續使用雲端功能。",
+    "addKey": "加入自己的金鑰",
+    "failed": "無法切換到 Talvio free。",
+    "setupHint": "你已登入，可以用免費額度在雲端轉寫，不需要下載任何內容。",
+    "jobs": {
+      "stt": "語音轉文字",
+      "cleanup": "AI 整理",
+      "assistant": "助理",
+      "command": "語音指令",
+      "voice": "朗讀回答"
+    }
+  },
   "catalog": {
     "recommended": "推薦",
     "searchHuggingFace": "搜尋 Hugging Face",

@@ -152,6 +152,7 @@ export const SquarePen = wrap(L.SquarePen, "SquarePen");
 export const Eraser = wrap(L.Eraser, "Eraser");
 export const Wand2 = wrap(L.WandSparkles, "Wand2");
 export const Sparkles = wrap(L.Sparkles, "Sparkles");
+export const Gift = wrap(L.Gift, "Gift");
 export const Users = wrap(L.Users, "Users");
 export const Speech = wrap(L.Speech, "Speech");
 export const MessageCircle = wrap(L.MessageCircle, "MessageCircle");

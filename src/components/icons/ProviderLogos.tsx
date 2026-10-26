@@ -6,6 +6,7 @@ import {
   Cpu,
   Earth,
   Fish,
+  Gift,
   Mic,
   Plug,
   Search,
@@ -393,6 +394,7 @@ const E = {
   tavily: { glyph: logo(TavilyLogo), tile: "tavily" },
   exa: { glyph: logo(ExaLogo), tile: "exa" },
   builtin: { glyph: lucide(Cpu), tile: "ours" },
+  talvioFree: { glyph: lucide(Gift), tile: "ours" },
   custom: { glyph: lucide(Plug), tile: "generic" },
   customMic: { glyph: lucide(Mic), tile: "generic" },
   kokoro: { glyph: lucide(AudioLines), tile: "ours" },
@@ -427,6 +429,7 @@ const EXACT: Record<string, Entry> = {
   apple_intelligence: E.apple,
   bedrock_mantle: E.aws,
   builtin: E.builtin,
+  talvio_free: E.talvioFree,
   local: E.ollama,
   custom: E.custom,
   // Cloud STT extras

@@ -3622,6 +3622,27 @@
       "model": "Model (volitelné)"
     }
   },
+  "freeCredit": {
+    "title": "Kredit zdarma",
+    "explain": "Každý účet Talvio zahrnuje {{amount}} na využití AI, sdílené přepisem řeči na text, úpravou pomocí AI, asistentem, hlasovými příkazy a mluvenými odpověďmi. Klíč API není potřeba.",
+    "balance": "Kredit zdarma: zbývá {{remaining}} z {{limit}}",
+    "checking": "Kontrolujeme váš kredit zdarma…",
+    "option": "Použít Talvio free ({{amount}} v ceně)",
+    "use": "Použít Talvio free",
+    "inUse": "Používá se",
+    "exhausted": "Váš kredit zdarma je vyčerpán. Přidejte vlastní klíč API, abyste mohli dál používat cloudové funkce.",
+    "disabled": "Talvio free teď není k dispozici. Přidejte vlastní klíč API, abyste mohli dál používat cloudové funkce.",
+    "addKey": "Přidat vlastní klíč",
+    "failed": "Přepnutí na Talvio free se nezdařilo.",
+    "setupHint": "Jste přihlášeni, takže můžete přepisovat v cloudu na svůj kredit zdarma a nic nestahovat.",
+    "jobs": {
+      "stt": "Řeč na text",
+      "cleanup": "Úprava pomocí AI",
+      "assistant": "Asistent",
+      "command": "Hlasové příkazy",
+      "voice": "Mluvené odpovědi"
+    }
+  },
   "catalog": {
     "recommended": "Doporučeno",
     "searchHuggingFace": "Hledat na Hugging Face",

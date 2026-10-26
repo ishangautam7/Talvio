@@ -3538,6 +3538,27 @@
       "model": "模型（可选）"
     }
   },
+  "freeCredit": {
+    "title": "免费额度",
+    "explain": "每个 Talvio 账户都含 {{amount}} 的 AI 用量，由语音转文字、AI 整理、助手、语音命令和朗读回答共用。无需 API 密钥。",
+    "balance": "免费额度：剩余 {{remaining}}，共 {{limit}}",
+    "checking": "正在查询免费额度…",
+    "option": "使用 Talvio free（含 {{amount}}）",
+    "use": "使用 Talvio free",
+    "inUse": "使用中",
+    "exhausted": "免费额度已用完。添加你自己的 API 密钥即可继续使用云端功能。",
+    "disabled": "Talvio free 目前不可用。添加你自己的 API 密钥即可继续使用云端功能。",
+    "addKey": "添加自己的密钥",
+    "failed": "无法切换到 Talvio free。",
+    "setupHint": "你已登录，可以用免费额度在云端转写，无需下载任何内容。",
+    "jobs": {
+      "stt": "语音转文字",
+      "cleanup": "AI 整理",
+      "assistant": "助手",
+      "command": "语音命令",
+      "voice": "朗读回答"
+    }
+  },
   "catalog": {
     "recommended": "推荐",
     "searchHuggingFace": "搜索 Hugging Face",

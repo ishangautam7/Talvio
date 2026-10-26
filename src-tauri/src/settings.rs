@@ -402,6 +402,8 @@ pub struct PostProcessProvider {
 pub enum PostProcessConfigSource {
     DedicatedCleanupSelection,
     AssistantFallback,
+    /// Neither selection can run and the account's free credit serves it.
+    FreeCredit,
 }
 
 /// Where speech-to-text runs. `Local` is the app's original behaviour and the
@@ -548,6 +550,8 @@ pub enum CloudSttUnavailableReason {
     /// sending the audio to another language's model instead would paste a
     /// confident transcript in the wrong language.
     UnsupportedLanguage,
+    /// Talvio free is chosen and nobody is signed in to a Talvio account.
+    SignInRequired,
 }
 
 /// Whether cloud transcription is ready, for display in Settings.
@@ -622,6 +626,8 @@ pub enum PostProcessUnavailableReason {
     SelectedPromptMissing,
     SelectedPromptEmpty,
     MissingApiKey,
+    /// Talvio free is chosen and nobody is signed in to a Talvio account.
+    SignInRequired,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Type)]
@@ -2738,6 +2744,19 @@ fn default_post_process_providers() -> Vec<PostProcessProvider> {
         supports_structured_output: true,
     });
 
+    // Talvio free: the account server's OpenAI-compatible API, paid for by
+    // the account's free credit. The base URL is a placeholder; the real
+    // address and the session token are put in at request time
+    // (`crate::free_credit`), so neither is ever stored here.
+    providers.push(PostProcessProvider {
+        id: crate::free_credit::PROVIDER_ID.to_string(),
+        label: crate::free_credit::LABEL.to_string(),
+        base_url: crate::free_credit::PLACEHOLDER_BASE_URL.to_string(),
+        allow_base_url_edit: false,
+        models_endpoint: Some("/models".to_string()),
+        supports_structured_output: true,
+    });
+
     // Local OpenAI-compatible servers (Ollama, LM Studio, llama.cpp, vLLM)
     providers.push(PostProcessProvider {
         id: "local".to_string(),
@@ -2799,6 +2818,25 @@ fn default_cloud_stt_timeout_secs() -> u64 {
 /// waiting for a new app release.
 pub fn default_cloud_stt_providers() -> Vec<CloudSttProvider> {
     vec![
+        // Talvio free: the account server's OpenAI-compatible transcription
+        // route, paid for by the account's free credit. Address and token are
+        // put in at request time (`crate::free_credit`); none is stored.
+        CloudSttProvider {
+            id: crate::free_credit::PROVIDER_ID.to_string(),
+            label: crate::free_credit::LABEL.to_string(),
+            base_url: crate::free_credit::PLACEHOLDER_BASE_URL.to_string(),
+            allow_base_url_edit: false,
+            kind: CloudSttKind::OpenAiCompatible,
+            default_model: crate::free_credit::TRANSCRIBE_MODEL.to_string(),
+            models: vec![crate::free_credit::TRANSCRIBE_MODEL.to_string()],
+            models_endpoint: None,
+            honors_keyterms: true,
+            supports_streaming: false,
+            supports_translation: false,
+            // Needs no key of the user's: the session is the credential.
+            key_optional: true,
+            api_key_url: String::new(),
+        },
         CloudSttProvider {
             id: CLOUD_STT_ELEVENLABS.to_string(),
             label: "ElevenLabs Scribe".to_string(),
@@ -3175,6 +3213,9 @@ impl PartialEq for CloudSttProvider {
 fn default_model_for_provider(provider_id: &str) -> String {
     if provider_id == APPLE_INTELLIGENCE_PROVIDER_ID {
         return APPLE_INTELLIGENCE_DEFAULT_MODEL_ID.to_string();
+    }
+    if provider_id == crate::free_credit::PROVIDER_ID {
+        return crate::free_credit::CHAT_MODEL.to_string();
     }
     String::new()
 }
@@ -4206,6 +4247,18 @@ fn ensure_post_process_defaults(settings: &mut AppSettings) -> bool {
         }
 
         let default_model = default_model_for_provider(&provider.id);
+        // Talvio free serves one chat model, for the assistant too.
+        if provider.id == crate::free_credit::PROVIDER_ID
+            && settings
+                .assistant_models
+                .get(&provider.id)
+                .is_none_or(|model| model.trim().is_empty())
+        {
+            settings
+                .assistant_models
+                .insert(provider.id.clone(), default_model.clone());
+            changed = true;
+        }
         match settings.post_process_models.get_mut(&provider.id) {
             Some(existing) => {
                 if existing.is_empty() && !default_model.is_empty() {
@@ -4681,7 +4734,14 @@ pub fn get_default_settings() -> AppSettings {
         assistant_models: {
             let mut map = HashMap::new();
             for provider in default_post_process_providers() {
-                map.insert(provider.id, String::new());
+                // Talvio free serves one chat model; every other provider
+                // starts without one.
+                let model = if provider.id == crate::free_credit::PROVIDER_ID {
+                    crate::free_credit::CHAT_MODEL.to_string()
+                } else {
+                    String::new()
+                };
+                map.insert(provider.id, model);
             }
             map
         },
@@ -4780,10 +4840,47 @@ impl AppSettings {
             .find(|provider| provider.id == self.post_process_provider_id)
     }
 
+    /// The provider the assistant runs on: the user's choice, or Talvio free
+    /// when that choice cannot run (no model, or no key for a provider that
+    /// needs one) and the account's free credit can.
     pub fn active_assistant_provider(&self) -> Option<&PostProcessProvider> {
-        self.post_process_providers
+        self.assistant_provider_with(crate::free_credit::usable())
+    }
+
+    /// [`Self::active_assistant_provider`] with the free credit's state given.
+    pub fn assistant_provider_with(&self, free_usable: bool) -> Option<&PostProcessProvider> {
+        let chosen = self
+            .post_process_providers
             .iter()
-            .find(|provider| provider.id == self.assistant_provider_id)
+            .find(|provider| provider.id == self.assistant_provider_id);
+        let runs = chosen.is_some_and(|provider| {
+            provider.id == crate::free_credit::PROVIDER_ID
+                || self.llm_choice_configured(&provider.id, &self.assistant_models)
+        });
+        if !runs && free_usable {
+            if let Some(free) = self.post_process_provider(crate::free_credit::PROVIDER_ID) {
+                return Some(free);
+            }
+        }
+        chosen
+    }
+
+    /// Whether the user finished setting up `provider_id` for a job whose
+    /// models are `models`: a model is chosen and, where the provider needs
+    /// one, a key is saved.
+    pub(crate) fn llm_choice_configured(
+        &self,
+        provider_id: &str,
+        models: &HashMap<String, String>,
+    ) -> bool {
+        let has_model = models
+            .get(provider_id)
+            .is_some_and(|m| !m.trim().is_empty());
+        let has_key = self
+            .post_process_api_keys
+            .get(provider_id)
+            .is_some_and(|key| !key.trim().is_empty());
+        has_model && (has_key || !post_process_provider_requires_api_key(provider_id))
     }
 
     /// The currently selected character, falling back to the first available
@@ -4941,6 +5038,20 @@ fn resolve_post_process_candidate(
         })?
         .to_string();
 
+    // Chosen by the user, it needs a session; as the fallback, the caller has
+    // already established that the free credit can serve.
+    if provider.id == crate::free_credit::PROVIDER_ID
+        && source != PostProcessConfigSource::FreeCredit
+        && !crate::free_credit::signed_in()
+    {
+        return Err(PostProcessResolutionError {
+            reason: PostProcessUnavailableReason::SignInRequired,
+            source: Some(source),
+            provider_id: Some(provider.id.clone()),
+            provider_label: Some(provider.label.clone()),
+        });
+    }
+
     let api_key = settings
         .post_process_api_keys
         .get(&provider.id)
@@ -4997,6 +5108,20 @@ pub(crate) fn resolve_post_process_brain(
     (PostProcessProvider, String, String, PostProcessConfigSource),
     PostProcessResolutionError,
 > {
+    resolve_post_process_brain_with(settings, crate::free_credit::usable())
+}
+
+/// [`resolve_post_process_brain`] with the free credit's state given:
+/// `free_usable` lets Talvio free serve cleanup when neither selection can.
+/// It is the last resort, after both of the user's own selections, so a
+/// provider the user set up is never replaced by it.
+pub(crate) fn resolve_post_process_brain_with(
+    settings: &AppSettings,
+    free_usable: bool,
+) -> Result<
+    (PostProcessProvider, String, String, PostProcessConfigSource),
+    PostProcessResolutionError,
+> {
     if settings.post_process_providers.is_empty() {
         return Err(PostProcessResolutionError {
             reason: PostProcessUnavailableReason::NoProviders,
@@ -5032,6 +5157,20 @@ pub(crate) fn resolve_post_process_brain(
                 api_key,
                 PostProcessConfigSource::AssistantFallback,
             )),
+            Err(_) if free_usable => match resolve_post_process_candidate(
+                settings,
+                crate::free_credit::PROVIDER_ID,
+                &settings.post_process_models,
+                PostProcessConfigSource::FreeCredit,
+            ) {
+                Ok((provider, model, api_key)) => Ok((
+                    provider,
+                    model,
+                    api_key,
+                    PostProcessConfigSource::FreeCredit,
+                )),
+                Err(_) => Err(dedicated_error),
+            },
             // The dedicated error is the one reported: it names the selection the
             // user actually made, so the message points at the setting they need
             // to fix rather than at a fallback they never chose.
@@ -5097,6 +5236,19 @@ pub(crate) fn resolve_meeting_brain(
             Err(error) => {
                 first_error.get_or_insert(error);
             }
+        }
+    }
+
+    // Neither of the user's selections can write notes: the account's free
+    // credit can, when there is some.
+    if crate::free_credit::usable() {
+        if let Ok((provider, model, api_key)) = resolve_post_process_candidate(
+            settings,
+            crate::free_credit::PROVIDER_ID,
+            &settings.assistant_models,
+            PostProcessConfigSource::FreeCredit,
+        ) {
+            return Ok((provider, model, api_key, MeetingBrainSource::Assistant));
         }
     }
 
@@ -7783,7 +7935,11 @@ mod tests {
         for provider in default_post_process_providers() {
             let should_require = !matches!(
                 provider.id.as_str(),
-                "builtin" | "local" | "custom" | APPLE_INTELLIGENCE_PROVIDER_ID
+                "builtin"
+                    | "local"
+                    | "custom"
+                    | APPLE_INTELLIGENCE_PROVIDER_ID
+                    | crate::free_credit::PROVIDER_ID
             );
             assert_eq!(
                 post_process_provider_requires_api_key(&provider.id),

@@ -3566,6 +3566,27 @@
       "model": "Modell (valfri)"
     }
   },
+  "freeCredit": {
+    "title": "Gratiskredit",
+    "explain": "Varje Talvio-konto ingår {{amount}} i AI-användning, som delas av tal till text, AI-städning, assistenten, röstkommandon och upplästa svar. Ingen API-nyckel behövs.",
+    "balance": "Gratiskredit: {{remaining}} kvar av {{limit}}",
+    "checking": "Kontrollerar din gratiskredit…",
+    "option": "Använd Talvio free ({{amount}} ingår)",
+    "use": "Använd Talvio free",
+    "inUse": "Används",
+    "exhausted": "Din gratiskredit är slut. Lägg till en egen API-nyckel för att fortsätta använda molnfunktionerna.",
+    "disabled": "Talvio free är inte tillgängligt just nu. Lägg till en egen API-nyckel för att fortsätta använda molnfunktionerna.",
+    "addKey": "Lägg till egen nyckel",
+    "failed": "Det gick inte att byta till Talvio free.",
+    "setupHint": "Du är inloggad, så du kan transkribera i molnet med din gratiskredit utan att ladda ner något.",
+    "jobs": {
+      "stt": "Tal till text",
+      "cleanup": "AI-städning",
+      "assistant": "Assistent",
+      "command": "Röstkommandon",
+      "voice": "Upplästa svar"
+    }
+  },
   "catalog": {
     "recommended": "Rekommenderad",
     "searchHuggingFace": "Sök på Hugging Face",

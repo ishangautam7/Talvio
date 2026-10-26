@@ -212,6 +212,7 @@ fn describe_unavailable(error: crate::settings::CloudSttResolutionError) -> Stri
     use crate::settings::CloudSttUnavailableReason as Reason;
     match error.reason {
         Reason::NotEnabled => "Cloud transcription is turned off".to_string(),
+        Reason::SignInRequired => crate::free_credit::SIGN_IN_MESSAGE.to_string(),
         Reason::SelectedProviderMissing => {
             format!(
                 "Unknown provider: {}",

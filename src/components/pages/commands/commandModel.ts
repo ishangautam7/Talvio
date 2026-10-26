@@ -1,3 +1,4 @@
+import { FREE_PROVIDER_ID } from "@/lib/freeCredit";
 import type {
   AppSettings,
   CommandModelInUse,
@@ -20,6 +21,7 @@ export function routerProviders(
   return (settings?.post_process_providers ?? []).filter(
     (provider) =>
       !NOT_A_ROUTER.has(provider.id) &&
+      provider.id !== FREE_PROVIDER_ID &&
       provider.base_url.trim().toLowerCase().startsWith("http"),
   );
 }

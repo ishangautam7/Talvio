@@ -637,6 +637,9 @@ fn cleanup_unavailable_message(error: &PostProcessResolutionError) -> String {
         PostProcessUnavailableReason::MissingApiKey => {
             format!("No API key is set for {provider}. Add one in Models → AI cleanup.")
         }
+        PostProcessUnavailableReason::SignInRequired => {
+            crate::free_credit::SIGN_IN_MESSAGE.to_string()
+        }
         PostProcessUnavailableReason::NoPromptSelected
         | PostProcessUnavailableReason::SelectedPromptMissing
         | PostProcessUnavailableReason::SelectedPromptEmpty => {
@@ -691,6 +694,7 @@ pub(crate) async fn test_post_process_connection(app: &AppHandle) -> Result<Stri
     let borrowed = match source {
         PostProcessConfigSource::AssistantFallback => " (borrowed from the assistant)",
         PostProcessConfigSource::DedicatedCleanupSelection => "",
+        PostProcessConfigSource::FreeCredit => " (on your Talvio free credit)",
     };
     let answered = reply.as_deref().is_some_and(|text| !text.trim().is_empty());
     if answered {
@@ -2432,9 +2436,8 @@ fn fallback_reason_for_unavailable(
         | PostProcessUnavailableReason::SelectedProviderMissing
         | PostProcessUnavailableReason::NoPromptSelected
         | PostProcessUnavailableReason::SelectedPromptMissing
-        | PostProcessUnavailableReason::SelectedPromptEmpty => {
-            PostProcessFallbackReason::NotConfigured
-        }
+        | PostProcessUnavailableReason::SelectedPromptEmpty
+        | PostProcessUnavailableReason::SignInRequired => PostProcessFallbackReason::NotConfigured,
     }
 }
 

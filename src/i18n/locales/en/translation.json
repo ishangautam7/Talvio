@@ -3566,6 +3566,27 @@
       "model": "Model (optional)"
     }
   },
+  "freeCredit": {
+    "title": "Free credit",
+    "explain": "Every Talvio account includes {{amount}} of AI usage, shared by speech to text, AI cleanup, the assistant, voice commands and spoken answers. No API key needed.",
+    "balance": "Free credit: {{remaining}} of {{limit}} left",
+    "checking": "Checking your free credit…",
+    "option": "Use Talvio free ({{amount}} included)",
+    "use": "Use Talvio free",
+    "inUse": "In use",
+    "exhausted": "Your free credit is used up. Add your own API key to keep using cloud features.",
+    "disabled": "Talvio free isn't available right now. Add your own API key to keep using cloud features.",
+    "addKey": "Add your own key",
+    "failed": "Couldn't switch to Talvio free.",
+    "setupHint": "You're signed in, so you can transcribe in the cloud on your free credit, with nothing to download.",
+    "jobs": {
+      "stt": "Speech to text",
+      "cleanup": "AI cleanup",
+      "assistant": "Assistant",
+      "command": "Voice commands",
+      "voice": "Spoken answers"
+    }
+  },
   "catalog": {
     "recommended": "Recommended",
     "searchHuggingFace": "Search Hugging Face",

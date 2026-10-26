@@ -13,6 +13,7 @@ import { SlotLogo, useSlotStatusText } from "@/components/shell/SlotVisuals";
 import { MODEL_TABS } from "./models/ModelTabs";
 import { USED_BY_KEYS } from "./models/usedBy";
 import { RetiredSelectionPrompt } from "@/components/settings/models/RetiredSelectionPrompt";
+import { FreeCreditNotice } from "@/components/freeCredit/FreeCredit";
 
 /** "Used by dictation, the assistant and meetings." — behind the tab's (i). */
 const UsedByTip: React.FC<{ slot: ModelSlot }> = ({ slot }) => {
@@ -164,6 +165,7 @@ export const ModelsPage: React.FC = () => {
               <div className="mb-6">
                 <UsedByTip slot={slot} />
               </div>
+              <FreeCreditNotice job={slot} className="mb-6" />
               {slot === "stt" && (
                 <RetiredSelectionPrompt placement="models" className="mb-6" />
               )}

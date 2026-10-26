@@ -36,6 +36,8 @@ import {
   ttsNeedsSetup,
 } from "./ProviderSetup";
 import { TTS_ENGINE_IDS, ttsEngineSpec } from "@/lib/ttsEngines";
+import { isTalvioFree } from "@/lib/freeCredit";
+import { useFreeOption } from "@/components/freeCredit/useFreeOption";
 
 /**
  * "Which model does this job" as one control, usable on any page.
@@ -55,6 +57,7 @@ const KEYLESS_LLM = new Set([
   "local",
   "custom",
   "apple_intelligence",
+  "talvio_free",
 ]);
 const BUILTIN = "builtin";
 const APPLE = "apple_intelligence";
@@ -108,6 +111,7 @@ export const LlmModelPicker: React.FC<{
     : defaultBrowse;
   const [busy, setBusy] = useState(false);
   const [setupId, setSetupId] = useState<string | null>(null);
+  const free = useFreeOption();
 
   const isCleanup = role === "cleanup";
   const providerId =
@@ -152,9 +156,15 @@ export const LlmModelPicker: React.FC<{
 
     // Apple Intelligence runs on the Mac and needs nothing; the assistant
     // cannot use it at all.
+    // Talvio free is listed while there is credit to spend, or while it is
+    // the one in use; it never needs setting up.
     const providers = (settings?.post_process_providers ?? []).filter(
       (provider) =>
-        provider.id !== BUILTIN && (isCleanup || provider.id !== APPLE),
+        provider.id !== BUILTIN &&
+        (isCleanup || provider.id !== APPLE) &&
+        (!isTalvioFree(provider.id) ||
+          free.available ||
+          provider.id === providerId),
     );
     const isReady = (providerId: string) =>
       providerId === APPLE ||
@@ -163,6 +173,15 @@ export const LlmModelPicker: React.FC<{
     const cloud = providers
       .filter((provider) => isReady(provider.id))
       .map<LogoSelectOption>((provider) => {
+        if (isTalvioFree(provider.id)) {
+          return {
+            value: `cloud:${provider.id}`,
+            label: free.label,
+            title: free.label,
+            icon: <ProviderTile id={provider.id} kind="llm" size="sm" />,
+            group: cloudGroup,
+          };
+        }
         const model = modelMap[provider.id]?.trim() ?? "";
         return {
           value: `cloud:${provider.id}`,
@@ -198,7 +217,7 @@ export const LlmModelPicker: React.FC<{
       ...(scope === "device" ? [] : cloud),
       ...(scope === "device" ? [] : setup),
     ];
-  }, [models, settings, modelMap, isCleanup, scope, t]);
+  }, [models, settings, modelMap, isCleanup, scope, t, free, providerId]);
 
   const value =
     providerId === BUILTIN
@@ -289,6 +308,7 @@ export const SttModelPicker: React.FC<{ className?: string }> = ({
   const refreshCloud = useSlotDataStore((state) => state.refreshCloud);
   const browse = useBrowseAction("stt");
   const [busy, setBusy] = useState(false);
+  const free = useFreeOption();
 
   const isCloud = settings?.stt_engine_mode === "cloud";
 
@@ -304,9 +324,13 @@ export const SttModelPicker: React.FC<{ className?: string }> = ({
         icon: <ModelMark model={model} size="sm" />,
         group: t("pickers.groups.device"),
       }));
+    const chosen = isCloud ? settings?.cloud_stt_provider_id : null;
     const cloud = cloudProviders
       .filter(
         (provider) =>
+          (!isTalvioFree(provider.id) ||
+            free.available ||
+            provider.id === chosen) &&
           (cloudKeys[provider.id] || cloudSttKeyOptional(provider)) &&
           !cloudSttNeedsEndpoint(
             provider,
@@ -317,6 +341,15 @@ export const SttModelPicker: React.FC<{ className?: string }> = ({
         const model =
           settings?.cloud_stt_models?.[provider.id]?.trim() ||
           provider.default_model;
+        if (isTalvioFree(provider.id)) {
+          return {
+            value: `cloud:${provider.id}`,
+            label: free.label,
+            title: free.label,
+            icon: <ProviderTile id={provider.id} kind="stt" size="sm" />,
+            group: t("pickers.groups.cloud"),
+          };
+        }
         // One fixed model (Amazon Transcribe) is named by its provider.
         if (cloudSttFixedModel(provider)) {
           return {
@@ -339,7 +372,17 @@ export const SttModelPicker: React.FC<{ className?: string }> = ({
         };
       });
     return [...local, ...cloud];
-  }, [models, cloudProviders, cloudKeys, settings?.cloud_stt_models, t]);
+  }, [
+    models,
+    cloudProviders,
+    cloudKeys,
+    settings?.cloud_stt_models,
+    settings?.cloud_stt_base_urls,
+    settings?.cloud_stt_provider_id,
+    isCloud,
+    free,
+    t,
+  ]);
 
   const value = isCloud
     ? `cloud:${settings?.cloud_stt_provider_id ?? ""}`
@@ -408,12 +451,18 @@ export const VoicePicker: React.FC<{ className?: string }> = ({
     previous: string;
   } | null>(null);
   const current = settings?.assistant_tts_engine ?? "kokoro";
+  const free = useFreeOption();
 
-  const options = TTS_ENGINE_IDS.map<LogoSelectOption>((engine) => {
+  const engines = TTS_ENGINE_IDS.filter(
+    (engine) => !isTalvioFree(engine) || free.available || engine === current,
+  );
+  const options = engines.map<LogoSelectOption>((engine) => {
     const local = !!ttsEngineSpec(engine)?.local;
     return {
       value: engine,
-      label: t(`settings.assistant.tts.engines.${engine}`),
+      label: isTalvioFree(engine)
+        ? free.label
+        : t(`settings.assistant.tts.engines.${engine}`),
       hint: local
         ? t("modelsHub.where.device")
         : ttsNeedsSetup(settings, engine)

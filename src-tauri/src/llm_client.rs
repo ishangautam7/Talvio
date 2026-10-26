@@ -304,6 +304,8 @@ fn client_cache_key(provider: &PostProcessProvider, api_key: &str) -> u64 {
 /// Get an HTTP client with provider-specific headers, reusing a cached one (and
 /// therefore its live connections) whenever the provider and key are unchanged.
 fn create_client(provider: &PostProcessProvider, api_key: &str) -> Result<reqwest::Client, String> {
+    let credential = credential(provider, api_key);
+    let api_key = credential.as_str();
     let key = client_cache_key(provider, api_key);
     if let Ok(cache) = CLIENT_CACHE.lock() {
         if let Some(client) = cache.get(&key) {
@@ -375,11 +377,35 @@ fn azure_openai_host(raw: &str) -> Option<String> {
 /// `/chat/completions` and `/models`. This makes "paste the endpoint from the
 /// Azure portal" just work instead of 404ing on a missing `/openai/v1` path.
 fn effective_base_url(provider: &PostProcessProvider) -> String {
+    if provider.id == crate::free_credit::PROVIDER_ID {
+        return free_route(provider, "").0;
+    }
     let raw = provider.base_url.trim().trim_end_matches('/');
     if let Some(host) = azure_openai_host(raw) {
         return format!("https://{}/openai/v1", host);
     }
     raw.to_string()
+}
+
+/// Talvio free's real address and the session token, put in at request time
+/// so neither is ever stored with the provider (see `crate::free_credit`).
+fn free_route(provider: &PostProcessProvider, api_key: &str) -> (String, String) {
+    crate::free_credit::route(
+        &provider.id,
+        &provider.base_url,
+        api_key,
+        crate::free_credit::access().as_ref(),
+    )
+}
+
+/// The key a request to `provider` authenticates with: the user's own, or
+/// the account session's for Talvio free.
+fn credential(provider: &PostProcessProvider, api_key: &str) -> String {
+    if provider.id == crate::free_credit::PROVIDER_ID {
+        free_route(provider, api_key).1
+    } else {
+        api_key.to_string()
+    }
 }
 
 /// True when a provider targets Google Gemini's OpenAI-compatible surface.
@@ -728,11 +754,24 @@ pub(crate) async fn send_chat_completion_detailed(
             .map_err(|error| ChatCompletionError::Transport(error.to_string()))?;
 
         let status = response.status();
+        if status.is_success() {
+            crate::free_credit::note_success(&url, response.headers());
+        }
         if !status.is_success() {
             let error_text = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "Failed to read error response".to_string());
+            // Talvio free's own refusals (credit used up, switched off) end
+            // here, in words the user can act on, and are never retried.
+            if let Some(message) =
+                crate::free_credit::note_failure(&url, status.as_u16(), &error_text)
+            {
+                return Err(ChatCompletionError::HttpStatus {
+                    status: status.as_u16(),
+                    detail: message,
+                });
+            }
             if status.as_u16() == 400 {
                 if let Some(rejected) = rejected_request_parameter(&error_text) {
                     let learned = adaptations.with(rejected);
@@ -1507,6 +1546,9 @@ async fn send_stream_request(
             .map_err(|e| format!("HTTP request failed: {e}"))?;
         let status = response.status();
         let mut emitted = false;
+        if status.is_success() {
+            crate::free_credit::note_success(url, response.headers());
+        }
         let (result, can_negotiate) = if status.is_success() {
             (
                 read_sse_round(response, |token| {
@@ -1518,6 +1560,13 @@ async fn send_stream_request(
             )
         } else {
             let error_text = response.text().await.unwrap_or_default();
+            if let Some(message) =
+                crate::free_credit::note_failure(url, status.as_u16(), &error_text)
+            {
+                // Never negotiated or retried: another round would only be
+                // refused again, and falling back elsewhere is the user's call.
+                return Err(message);
+            }
             (
                 Err(format!(
                     "API request failed with status {status}: {error_text}"

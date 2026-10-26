@@ -3566,6 +3566,27 @@
       "model": "Modell (optional)"
     }
   },
+  "freeCredit": {
+    "title": "Gratisguthaben",
+    "explain": "Jedes Talvio-Konto enthält KI-Nutzung im Wert von {{amount}}, geteilt von Spracherkennung, KI-Bereinigung, Assistent, Sprachbefehlen und gesprochenen Antworten. Kein API-Schlüssel nötig.",
+    "balance": "Gratisguthaben: noch {{remaining}} von {{limit}}",
+    "checking": "Gratisguthaben wird geprüft…",
+    "option": "Talvio free nutzen ({{amount}} inklusive)",
+    "use": "Talvio free nutzen",
+    "inUse": "Wird genutzt",
+    "exhausted": "Dein Gratisguthaben ist aufgebraucht. Füge einen eigenen API-Schlüssel hinzu, um Cloud-Funktionen weiter zu nutzen.",
+    "disabled": "Talvio free ist gerade nicht verfügbar. Füge einen eigenen API-Schlüssel hinzu, um Cloud-Funktionen weiter zu nutzen.",
+    "addKey": "Eigenen Schlüssel hinzufügen",
+    "failed": "Wechsel zu Talvio free fehlgeschlagen.",
+    "setupHint": "Du bist angemeldet und kannst mit deinem Gratisguthaben in der Cloud transkribieren, ganz ohne Download.",
+    "jobs": {
+      "stt": "Sprache zu Text",
+      "cleanup": "KI-Bereinigung",
+      "assistant": "Assistent",
+      "command": "Sprachbefehle",
+      "voice": "Gesprochene Antworten"
+    }
+  },
   "catalog": {
     "recommended": "Empfohlen",
     "searchHuggingFace": "Auf Hugging Face suchen",

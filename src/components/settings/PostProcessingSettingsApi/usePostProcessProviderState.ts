@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { withoutTalvioFree } from "@/lib/freeCredit";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useSettings } from "../../../hooks/useSettings";
@@ -51,7 +52,10 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
   const selectionSequence = useRef(0);
 
   // Settings are guaranteed to have providers after migration
-  const providers = settings?.post_process_providers || [];
+  const providers = useMemo(
+    () => withoutTalvioFree(settings?.post_process_providers || []),
+    [settings?.post_process_providers],
+  );
 
   const selectedProviderId = useMemo(() => {
     return settings?.post_process_provider_id || providers[0]?.id || "openai";
