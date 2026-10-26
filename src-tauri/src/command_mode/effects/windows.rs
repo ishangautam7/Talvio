@@ -1556,23 +1556,38 @@ pub(crate) mod live {
         fn known_folders(&self) -> Vec<PathBuf> {
             Vec::new()
         }
-        fn media_playing(&self) -> Option<bool> {
-            None
+        // Opening goes through the shell rather than the app's opener, which
+        // needs an `AppHandle`; the live executor tests open real links, apps
+        // and folders this way.
+        fn open_url(&self, url: &str) -> Result<(), String> {
+            Command::new("rundll32.exe")
+                .args(["url.dll,FileProtocolHandler", url])
+                .spawn()
+                .map(drop)
+                .map_err(|e| e.to_string())
         }
-        fn open_url(&self, _url: &str) -> Result<(), String> {
-            Err("not in a live test".into())
+        fn open_path(&self, path: &Path) -> Result<(), String> {
+            Command::new("explorer.exe")
+                .arg(path)
+                .spawn()
+                .map(drop)
+                .map_err(|e| e.to_string())
         }
-        fn open_path(&self, _path: &Path) -> Result<(), String> {
-            Err("not in a live test".into())
-        }
-        fn launch_app(&self, _app: &AppEntry) -> Result<(), String> {
-            Err("not in a live test".into())
+        fn launch_app(&self, app: &AppEntry) -> Result<(), String> {
+            Command::new("explorer.exe")
+                .arg(&app.launch)
+                .spawn()
+                .map(drop)
+                .map_err(|e| e.to_string())
         }
         fn focus_window(&self, window: &WindowEntry) -> Result<(), String> {
             focus_window_now(window)
         }
-        fn type_text(&self, _text: &str) -> Result<(), String> {
-            Err("not in a live test".into())
+        /// Typed key by key, not pasted: the paste the app uses needs its
+        /// main thread.
+        fn type_text(&self, text: &str) -> Result<(), String> {
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            enigo.text(text).map_err(|e| e.to_string())
         }
         fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
             let key = key_for(&combo.key).ok_or("unknown key")?;
@@ -1580,11 +1595,25 @@ pub(crate) mod live {
             let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
             press_combo(&mut enigo, &modifiers, key)
         }
-        fn media(&self, _action: MediaAction) -> Result<(), String> {
-            Err("not in a live test".into())
+        fn media(&self, action: MediaAction) -> Result<(), String> {
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            enigo
+                .key(media_key(action), Direction::Click)
+                .map_err(|e| e.to_string())
         }
-        fn volume(&self, _action: VolumeAction) -> Result<(), String> {
-            Err("not in a live test".into())
+        fn volume(&self, action: VolumeAction) -> Result<(), String> {
+            let (key, times) = match action {
+                VolumeAction::Up(steps) => (Key::VolumeUp, steps),
+                VolumeAction::Down(steps) => (Key::VolumeDown, steps),
+                _ => return Err("not in a live test".into()),
+            };
+            let mut enigo = Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
+            for _ in 0..times {
+                enigo
+                    .key(key, Direction::Click)
+                    .map_err(|e| e.to_string())?;
+            }
+            Ok(())
         }
     }
 }
