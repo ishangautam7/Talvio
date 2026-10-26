@@ -2,8 +2,8 @@ import React from "react";
 import { Trans } from "react-i18next";
 
 /**
- * The live banner at the top of a feature page: a card lit by the page's
- * colour from one corner, with what the page is for on one side (a short
+ * The banner at the top of a feature page: an ordinary card, with what the
+ * page is for on one side (a short
  * headline, one line under it, and the page's main action) and a live
  * picture of the feature on the other — the meeting recorder's two voices,
  * the assistant's orb, Home's voice line. The picture sits in a framed panel
@@ -31,6 +31,8 @@ export const Stage: React.FC<{
   label?: string;
   /** Wider picture column (the recorder). */
   wide?: boolean;
+  /** A strip under the card's body, behind a hairline (Home's numbers). */
+  footer?: React.ReactNode;
 }> = ({
   kicker,
   title,
@@ -41,9 +43,10 @@ export const Stage: React.FC<{
   className = "",
   label,
   wide = false,
+  footer,
 }) => (
   <section
-    className={`stage @container rounded-[1.5rem] border border-hairline ${className}`}
+    className={`stage @container rounded-2xl border border-hairline ${className}`}
     aria-label={label}
   >
     <div
@@ -56,28 +59,29 @@ export const Stage: React.FC<{
       }`}
     >
       <div className="flex min-w-0 flex-col justify-center py-1 @3xl:py-2">
-        {kicker && <div className="stage-kicker mb-2.5">{kicker}</div>}
+        {kicker && <div className="stage-kicker mb-2">{kicker}</div>}
         <h2 className="hero-title">{title}</h2>
         {subtitle && (
-          <p className="mt-2 max-w-md text-[0.9375rem] leading-relaxed text-muted text-pretty">
+          <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted text-pretty">
             {subtitle}
           </p>
         )}
         {actions && <div className="pt-5">{actions}</div>}
       </div>
       {picture && (
-        <div className="stage-panel relative flex min-h-[9.5rem] min-w-0 items-stretch overflow-hidden rounded-[1.125rem]">
+        <div className="stage-panel relative flex min-h-[9rem] min-w-0 items-stretch overflow-hidden rounded-xl">
           <div className={`flex w-full ${corner ? "pt-8" : ""}`}>{picture}</div>
           {corner && <div className="absolute end-2.5 top-2.5">{corner}</div>}
         </div>
       )}
     </div>
+    {footer && <div className="border-t border-hairline">{footer}</div>}
   </section>
 );
 
 /**
- * A headline from a translation key, where `<em>…</em>` in the string is set
- * in the page's colour ("Every call, <em>written down.</em>"). A translation
+ * A headline from a translation key; `<em>…</em>` in the string renders in
+ * the same ink (it used to take the page's colour) ("Every call, <em>written down.</em>"). A translation
  * without the tag simply renders plain.
  */
 export const HeroTitle: React.FC<{ i18nKey: string }> = ({ i18nKey }) => (
@@ -97,7 +101,7 @@ export const HeroShortcut: React.FC<{
   children: React.ReactNode;
 }> = ({ label, hint, status, icon, children }) => (
   <div className="flex min-w-0 flex-col items-start">
-    <span className="mb-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-ink">
+    <span className="mb-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-body">
       {icon}
       {label}
     </span>
