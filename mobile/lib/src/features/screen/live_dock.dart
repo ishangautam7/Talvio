@@ -1,8 +1,9 @@
-// The small live view at the top of every page while a watch runs: the
-// picture with its state, sound, a button to make it full screen and Stop.
+// The small live view at the top of every page while a watch runs (design
+// spec §3.14): the picture with its state, sound, full screen and close.
 // Collapsed it is one line.
 
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -11,8 +12,8 @@ import '../../design/tokens.dart';
 import '../assistant/assistant_scope.dart';
 import '../dictate/dictate_controller.dart';
 import '../dictate/remote_windows.dart';
-import 'live_protocol.dart';
 import 'live_controller.dart';
+import 'live_protocol.dart';
 import 'strings.dart';
 import 'watch_controller.dart';
 import 'watch_screen.dart';
@@ -47,6 +48,23 @@ Future<void> openFullScreen(BuildContext context, LiveController live) async {
   }
 }
 
+/// Starts watching [target] on [dictate]'s computer, in the small view. The
+/// watched window is also where dictation and typing go next: [window], or
+/// for a screen wherever the keyboard is.
+void openWatch(
+  BuildContext context,
+  DictateController dictate,
+  WatchTarget target, {
+  RemoteWindow? window,
+}) {
+  final computer = dictate.computer;
+  final live = LiveScope.maybeOf(context);
+  if (computer == null || live == null) return;
+  Haptic.tap();
+  dictate.chooseWindow(window);
+  live.start(computer, target);
+}
+
 class LiveDock extends StatelessWidget {
   const LiveDock({super.key});
 
@@ -59,18 +77,13 @@ class LiveDock extends StatelessWidget {
       builder: (context, _) {
         final watch = live.watch;
         return AnimatedSize(
-          duration: Motion.medium,
-          curve: Motion.emphasized,
+          duration: Motion.emphasized,
+          curve: Motion.emphasizedCurve,
           alignment: Alignment.topCenter,
           child: watch == null
               ? const SizedBox(width: double.infinity)
               : Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.lg,
-                    Space.xs,
-                    Space.lg,
-                    Space.sm,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: _Dock(live: live, watch: watch),
                 ),
         );
@@ -88,59 +101,30 @@ class _Dock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = watch;
-    final ended = w.phase == WatchPhase.ended;
     final showPicture = live.expanded && !live.fullScreen;
     final height = MediaQuery.sizeOf(context).height;
     return Semantics(
       container: true,
       label: ScreenStrings.watchItem(w.title),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0B0C18),
-          borderRadius: BorderRadius.circular(Radii.lg),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(Radii.lg),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              iconButtonTheme: IconButtonThemeData(
-                style: IconButton.styleFrom(foregroundColor: Colors.white),
-              ),
-            ),
-            child: showPicture
-                ? ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: height * 0.3),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Radii.lg),
+        child: showPicture
+            ? ColoredBox(
+                color: TalvioColors.mediaBg,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: (height * 0.32).clamp(0, 280),
+                  ),
+                  child: Center(
+                    heightFactor: 1,
                     child: _Aspect(
                       watch: w,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          GestureDetector(
-                            onTap: ended
-                                ? null
-                                : () =>
-                                      unawaited(openFullScreen(context, live)),
-                            child: _Picture(watch: w),
-                          ),
-                          _Overlay(live: live, watch: w),
-                          if (ended)
-                            _Ended(live: live, watch: w)
-                          else if (w.phase != WatchPhase.live)
-                            _Waiting(watch: w),
-                        ],
-                      ),
+                      child: _Picture(live: live, watch: w),
                     ),
-                  )
-                : _Bar(live: live, watch: w),
-          ),
-        ),
+                  ),
+                ),
+              )
+            : _Bar(live: live, watch: w),
       ),
     );
   }
@@ -178,39 +162,107 @@ class _Aspect extends StatelessWidget {
   }
 }
 
-/// Starts watching [target] on [dictate]'s computer, in the small view. The
-/// watched window is also where dictation and typing go next: [window], or
-/// for a screen wherever the keyboard is.
-void openWatch(
-  BuildContext context,
-  DictateController dictate,
-  WatchTarget target, {
-  RemoteWindow? window,
-}) {
-  final computer = dictate.computer;
-  final live = LiveScope.maybeOf(context);
-  if (computer == null || live == null) return;
-  Haptic.tap();
-  dictate.chooseWindow(window);
-  live.start(computer, target);
-}
+/// The picture, its state, and the controls over it, which hide after a
+/// few seconds without a touch and come back on a tap.
+class _Picture extends StatefulWidget {
+  const _Picture({required this.live, required this.watch});
 
-class _Picture extends StatelessWidget {
-  const _Picture({required this.watch});
-
+  final LiveController live;
   final WatchController watch;
 
   @override
-  Widget build(BuildContext context) {
-    final link = watch.link;
-    if (link == null || !watch.foreground) {
-      return const ColoredBox(color: Color(0xFF0B0C18));
+  State<_Picture> createState() => _PictureState();
+}
+
+class _PictureState extends State<_Picture>
+    with SingleTickerProviderStateMixin {
+  var _shown = true;
+
+  /// Counts down the 3 s the controls stay without a touch.
+  late final _idle = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 3),
+  )..addStatusListener(_onIdle);
+
+  @override
+  void initState() {
+    super.initState();
+    _restart();
+  }
+
+  @override
+  void dispose() {
+    _idle.dispose();
+    super.dispose();
+  }
+
+  void _onIdle(AnimationStatus status) {
+    final live = widget.watch.phase == WatchPhase.live;
+    if (status == AnimationStatus.completed && live && mounted) {
+      setState(() => _shown = false);
     }
-    return ColoredBox(color: Colors.black, child: link.buildVideo());
+  }
+
+  /// Shows the controls and starts their countdown again.
+  void _restart() {
+    if (!_shown) setState(() => _shown = true);
+    // Tests and reduced motion keep them up.
+    if (ambientMotion) unawaited(_idle.forward(from: 0));
+  }
+
+  void _toggle() {
+    if (_shown) {
+      _idle.stop();
+      setState(() => _shown = false);
+    } else {
+      _restart();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final w = widget.watch;
+    final live = widget.live;
+    final link = w.link;
+    final ended = w.phase == WatchPhase.ended;
+    final waiting = !ended && w.phase != WatchPhase.live;
+    final shown = _shown || ended || waiting;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggle,
+          child: link == null || !w.foreground
+              ? const ColoredBox(color: TalvioColors.mediaBg)
+              : ColoredBox(
+                  color: TalvioColors.mediaBg,
+                  child: link.buildVideo(),
+                ),
+        ),
+        if (ended)
+          _Ended(live: live, watch: w)
+        else if (waiting)
+          _Waiting(watch: w),
+        IgnorePointer(
+          ignoring: !shown,
+          child: AnimatedOpacity(
+            duration: Motion.quick,
+            opacity: shown ? 1 : 0,
+            child: Listener(
+              onPointerDown: (_) => _restart(),
+              behavior: HitTestBehavior.translucent,
+              child: _Overlay(live: live, watch: w),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
-/// The picture's top edge: state and title; its buttons.
+/// The controls over the picture: the state and title at the top with
+/// collapse and close; sound and full screen at the bottom.
 class _Overlay extends StatelessWidget {
   const _Overlay({required this.live, required this.watch});
 
@@ -221,78 +273,82 @@ class _Overlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final w = watch;
     final isLive = w.phase == WatchPhase.live && !w.reconnecting;
-    return Column(
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xB3000000), Color(0x00000000)],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.md,
-              Space.xs,
-              Space.xs,
-              Space.lg,
-            ),
-            child: Row(
-              children: [
-                _LiveBadge(text: watchStatus(w), live: isLive),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: Text(
-                    w.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.text.labelMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
+        const Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          height: 56,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x80000000), Color(0x00000000)],
                 ),
-                _GlassButton(
-                  tooltip: ScreenStrings.collapse,
-                  icon: Icons.expand_less_rounded,
-                  onPressed: () => live.setExpanded(false),
-                  small: true,
-                ),
-                const SizedBox(width: Space.xs),
-                _GlassButton(
-                  tooltip: ScreenStrings.stopWatching,
-                  icon: Icons.close_rounded,
-                  onPressed: () {
-                    Haptic.tick();
-                    live.close();
-                  },
-                  small: true,
-                ),
-                const SizedBox(width: Space.xs),
-              ],
+              ),
             ),
           ),
         ),
-        const Spacer(),
+        PositionedDirectional(
+          start: 12,
+          top: 10,
+          end: 88,
+          child: Row(
+            children: [
+              LiveBadge(text: watchStatus(w), live: isLive),
+              const SizedBox(width: Space.s8),
+              Expanded(
+                child: Text(
+                  w.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TalvioType.label.copyWith(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+        PositionedDirectional(
+          end: 4,
+          top: 0,
+          child: Row(
+            children: [
+              GlassButton(
+                tooltip: ScreenStrings.collapse,
+                icon: AppIcons.caretUp,
+                onPressed: () => live.setExpanded(false),
+              ),
+              GlassButton(
+                tooltip: ScreenStrings.stopWatching,
+                icon: AppIcons.close,
+                onPressed: () {
+                  Haptic.tick();
+                  live.close();
+                },
+              ),
+            ],
+          ),
+        ),
         if (w.phase != WatchPhase.ended)
-          Padding(
-            padding: const EdgeInsets.all(Space.xs),
+          PositionedDirectional(
+            end: 4,
+            bottom: 0,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _GlassButton(
+                GlassButton(
                   tooltip: w.soundOn
                       ? ScreenStrings.soundOff
                       : ScreenStrings.soundOn,
-                  icon: w.soundOn
-                      ? Icons.volume_up_rounded
-                      : Icons.volume_off_rounded,
+                  icon: w.soundOn ? AppIcons.soundOn : AppIcons.soundOff,
                   onPressed: () => w.setSound(!w.soundOn),
                 ),
-                const SizedBox(width: Space.xs),
-                _GlassButton(
+                GlassButton(
                   tooltip: ScreenStrings.fullScreen,
-                  icon: Icons.open_in_full_rounded,
+                  icon: AppIcons.fullScreen,
                   onPressed: () => unawaited(openFullScreen(context, live)),
                 ),
               ],
@@ -303,73 +359,80 @@ class _Overlay extends StatelessWidget {
   }
 }
 
-class _GlassButton extends StatelessWidget {
-  const _GlassButton({
+/// A 32 glass circle over video, in a 44 tap target.
+class GlassButton extends StatelessWidget {
+  const GlassButton({
+    super.key,
     required this.tooltip,
     required this.icon,
     required this.onPressed,
-    this.small = false,
   });
 
   final String tooltip;
   final IconData icon;
-  final VoidCallback onPressed;
-  final bool small;
+  final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: tooltip,
-    onPressed: onPressed,
-    style: IconButton.styleFrom(
-      backgroundColor: Colors.black.withValues(alpha: 0.45),
-      foregroundColor: Colors.white,
-      minimumSize: Size.square(small ? 34 : 40),
-      fixedSize: Size.square(small ? 34 : 40),
-      tapTargetSize: MaterialTapTargetSize.padded,
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: tooltip,
+    enabled: onPressed != null,
+    onTap: onPressed,
+    excludeSemantics: true,
+    child: Tooltip(
+      message: tooltip,
+      excludeFromSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: SizedBox.square(
+          dimension: 44,
+          child: Center(
+            child: ClipOval(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  color: TalvioColors.glass,
+                  alignment: Alignment.center,
+                  child: Icon(icon, size: 20, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     ),
-    iconSize: small ? 18 : 20,
-    icon: Icon(icon),
   );
 }
 
-class _LiveBadge extends StatelessWidget {
-  const _LiveBadge({required this.text, required this.live});
+/// "Live" on the live red, or the state on glass while it is not live yet.
+class LiveBadge extends StatelessWidget {
+  const LiveBadge({super.key, required this.text, required this.live});
 
   final String text;
   final bool live;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.talvio;
-    return Semantics(
-      liveRegion: true,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: live ? t.live : Colors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(Radii.pill),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (live) ...[
-                const StatusDot(color: Colors.white, size: 6),
-                const SizedBox(width: 5),
-              ],
-              Text(
-                live ? text.toUpperCase() : text,
-                style: context.text.labelSmall?.copyWith(
-                  color: Colors.white,
-                  letterSpacing: live ? 0.8 : 0,
-                ),
-              ),
-            ],
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: live
+        ? StatusPill(text, kind: PillKind.live)
+        : Container(
+            constraints: const BoxConstraints(minHeight: 22),
+            padding: const EdgeInsets.symmetric(horizontal: Space.s8),
+            decoration: BoxDecoration(
+              color: TalvioColors.glass,
+              borderRadius: BorderRadius.circular(Radii.pill),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              text,
+              style: TalvioType.caption.copyWith(color: Colors.white),
+            ),
           ),
-        ),
-      ),
-    );
-  }
+  );
 }
 
 class _Waiting extends StatelessWidget {
@@ -381,34 +444,42 @@ class _Waiting extends StatelessWidget {
   Widget build(BuildContext context) {
     final approval = watch.phase == WatchPhase.approval;
     return IgnorePointer(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(Space.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox.square(
-                dimension: 26,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
+      child: ColoredBox(
+        color: TalvioColors.mediaBg,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(Space.s16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox.square(
+                  dimension: 20,
+                  child: approval
+                      ? const Icon(
+                          AppIcons.waiting,
+                          size: 20,
+                          color: Colors.white,
+                        )
+                      : const Spinner(color: Colors.white),
                 ),
-              ),
-              const SizedBox(height: Space.md),
-              Text(
-                approval ? ScreenStrings.approval : watchStatus(watch),
-                textAlign: TextAlign.center,
-                style: context.text.titleSmall?.copyWith(color: Colors.white),
-              ),
-              if (approval)
+                const SizedBox(height: Space.s8),
                 Text(
-                  ScreenStrings.approvalDetail,
+                  approval ? ScreenStrings.approval : watchStatus(watch),
                   textAlign: TextAlign.center,
-                  style: context.text.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
+                  style: TalvioType.rowTitle.copyWith(color: Colors.white),
                 ),
-            ],
+                if (approval) ...[
+                  const SizedBox(height: Space.s4),
+                  Text(
+                    ScreenStrings.approvalDetail,
+                    textAlign: TextAlign.center,
+                    style: TalvioType.footnote.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -427,44 +498,54 @@ class _Ended extends StatelessWidget {
     final error = watch.endError;
     final name = watch.computer.name;
     return ColoredBox(
-      color: const Color(0xE60B0C18),
+      color: TalvioColors.mediaBg,
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(Space.lg),
+          padding: const EdgeInsets.fromLTRB(16, 44, 16, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Semantics(
                 liveRegion: true,
                 child: Text(
-                  error == null
-                      ? ScreenStrings.stoppedByYou
-                      : ScreenStrings.error(error, name),
+                  ScreenStrings.ended,
                   textAlign: TextAlign.center,
-                  style: context.text.bodyMedium?.copyWith(color: Colors.white),
+                  style: TalvioType.rowTitle.copyWith(color: Colors.white),
                 ),
               ),
-              const SizedBox(height: Space.sm),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              const SizedBox(height: Space.s4),
+              Text(
+                error == null
+                    ? ScreenStrings.stoppedByYou
+                    : ScreenStrings.error(error, name),
+                textAlign: TextAlign.center,
+                style: TalvioType.footnote.copyWith(
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: Space.s12),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: Space.s8,
                 children: [
-                  TextButton(
+                  Btn(
+                    ScreenStrings.close,
+                    kind: BtnKind.ghostNeutral,
+                    compact: true,
+                    foreground: Colors.white,
                     onPressed: live.close,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                    ),
-                    child: const Text(ScreenStrings.close),
                   ),
                   if (error != 'target_gone')
-                    FilledButton(
+                    Btn(
+                      ScreenStrings.watchAgain,
+                      kind: BtnKind.secondary,
+                      compact: true,
+                      foreground: Colors.white,
+                      borderColor: Colors.white,
                       onPressed: () {
                         Haptic.tap();
                         watch.start();
                       },
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(64, 40),
-                      ),
-                      child: const Text(ScreenStrings.watchAgain),
                     ),
                 ],
               ),
@@ -476,7 +557,7 @@ class _Ended extends StatelessWidget {
   }
 }
 
-/// Collapsed: one line with the state, sound, bigger and Stop. In full
+/// Collapsed: one line with the state, sound, bigger and close. In full
 /// screen it stands in for the picture.
 class _Bar extends StatelessWidget {
   const _Bar({required this.live, required this.watch});
@@ -486,48 +567,54 @@ class _Bar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.talvio;
     final w = watch;
     final isLive = w.phase == WatchPhase.live && !w.reconnecting;
-    return SizedBox(
-      height: 56,
+    return Container(
+      color: t.card,
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
       child: Row(
         children: [
-          const SizedBox(width: Space.md),
-          _LiveBadge(text: watchStatus(w), live: isLive),
-          const SizedBox(width: Space.sm),
+          StatusDot(color: isLive ? t.live : t.faint, size: 8, blink: isLive),
+          const SizedBox(width: Space.s8),
           Expanded(
-            child: Text(
-              live.fullScreen ? ScreenStrings.inFullScreen : w.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: context.text.labelLarge?.copyWith(color: Colors.white),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                live.fullScreen
+                    ? ScreenStrings.inFullScreen
+                    : isLive
+                    ? w.title
+                    : '${watchStatus(w)} · ${w.title}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TalvioType.rowTitle.copyWith(color: t.ink),
+              ),
             ),
           ),
           if (!live.fullScreen && w.phase != WatchPhase.ended)
-            IconButton(
+            IconBtn(
               tooltip: w.soundOn
                   ? ScreenStrings.soundOff
                   : ScreenStrings.soundOn,
               onPressed: () => w.setSound(!w.soundOn),
-              icon: Icon(
-                w.soundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-              ),
+              icon: w.soundOn ? AppIcons.soundOn : AppIcons.soundOff,
             ),
           if (!live.fullScreen)
-            IconButton(
+            IconBtn(
               tooltip: ScreenStrings.expand,
               onPressed: () => live.setExpanded(true),
-              icon: const Icon(Icons.expand_more_rounded),
+              icon: AppIcons.caretDown,
             ),
-          IconButton(
+          IconBtn(
             tooltip: ScreenStrings.stopWatching,
             onPressed: () {
               Haptic.tick();
               live.close();
             },
-            icon: const Icon(Icons.close_rounded),
+            icon: AppIcons.close,
           ),
-          const SizedBox(width: Space.xs),
         ],
       ),
     );
