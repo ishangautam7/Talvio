@@ -167,6 +167,18 @@ pub enum VolumeAction {
     Set(u8),
 }
 
+/// Where a file being attached to a web form stands, as the page itself says
+/// it ([`Effects::attachment_state`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AttachState {
+    /// The page shows nothing for the file.
+    Absent,
+    /// The page is still uploading or saving it.
+    Uploading,
+    /// The page lists it as attached.
+    Attached,
+}
+
 /// The side effects tools may have. See the module docs.
 pub trait Effects: Send + Sync {
     // ── Reads: run in dry run too ──────────────────────────────────────────
@@ -245,6 +257,30 @@ pub trait Effects: Send + Sync {
     /// sends from inside the compose form.
     fn press_button(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
         press_button_in_tree(super::agent::tree().as_ref(), window_id, first_word)
+    }
+    /// Open the file picker of window `window_id` by its button whose label's
+    /// first word is `first_word` (Gmail's "Attach files"), through the
+    /// accessibility tree. Gmail's button answers Expand, not Invoke, so both
+    /// are tried. `Ok(false)`: no such button (or no tree on this system).
+    fn open_file_picker(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+        expand_button_in_tree(super::agent::tree().as_ref(), window_id, first_word)
+    }
+    /// Whether a file picker that window `window_id` opened has the keyboard:
+    /// a "File name" box in its tree that has focus, and a popup, not the
+    /// window itself, in front. Only then may a path be typed.
+    fn file_picker_ready(&self, window_id: i64) -> bool {
+        file_picker_in_tree(super::agent::tree().as_ref(), window_id)
+            && !self.foreground_is_exactly(window_id)
+    }
+    /// What window `window_id` says about the attachment `file_name`.
+    fn attachment_state(&self, window_id: i64, file_name: &str) -> AttachState {
+        attachment_state_in_tree(super::agent::tree().as_ref(), window_id, file_name)
+    }
+    /// The titles of the tabs in window `window_id` (a browser's tab strip),
+    /// read through the accessibility tree. `None` where there is no tree or
+    /// no tab strip. A read: a dry run reads it too.
+    fn tab_titles(&self, window_id: i64) -> Option<Vec<String>> {
+        tab_titles_in_tree(super::agent::tree().as_ref(), window_id)
     }
     /// Put text into the focused field.
     fn type_text(&self, text: &str) -> Result<(), String>;
@@ -325,6 +361,140 @@ pub fn press_button_in_tree(
         }
     }
     Ok(false)
+}
+
+/// [`Effects::open_file_picker`] over a tree: Expand first (what Gmail's
+/// Attach button answers), Invoke where Expand is not supported. Tried
+/// three times, as [`press_button_in_tree`] is.
+pub fn expand_button_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+    first_word: &str,
+) -> Result<bool, String> {
+    use super::agent::tree::{TreeError, UiAction};
+    let wanted = first_word.to_lowercase();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(Duration::from_millis(500));
+        }
+        let snapshot = match tree.snapshot(Some(window_id)) {
+            Ok(snapshot) => snapshot,
+            Err(TreeError::Unsupported) => return Ok(false),
+            Err(e) => {
+                log::debug!("command mode: no tree for a file picker yet: {e}");
+                continue;
+            }
+        };
+        let Some(button) = snapshot.elements.iter().find(|element| {
+            element.role == "button"
+                && !element.states.iter().any(|s| s == "disabled")
+                && first_word_is(&element.name, &wanted)
+        }) else {
+            continue;
+        };
+        return match tree.act(button.id, &UiAction::Expand) {
+            Ok(()) => Ok(true),
+            Err(TreeError::NotSupported(_)) => tree
+                .act(button.id, &UiAction::Invoke)
+                .map(|()| true)
+                .map_err(|e| e.to_string()),
+            Err(e) => Err(e.to_string()),
+        };
+    }
+    Ok(false)
+}
+
+/// Whether `name`'s first word is `wanted` (lowercase).
+fn first_word_is(name: &str, wanted: &str) -> bool {
+    name.split(|c: char| !c.is_alphanumeric())
+        .find(|w| !w.is_empty())
+        .is_some_and(|w| w.to_lowercase() == wanted)
+}
+
+/// The labels a file picker's name box goes by, lowercase: the Windows common
+/// dialog's "File name:" in the languages it is most used in.
+const FILE_NAME_LABELS: &[&str] = &[
+    "file name",
+    "nombre de archivo",
+    "nom du fichier",
+    "dateiname",
+    "nome file",
+    "nome do arquivo",
+    "nome de ficheiro",
+    "bestandsnaam",
+    "имя файла",
+    "ファイル名",
+    "文件名",
+    "파일 이름",
+];
+
+/// [`Effects::file_picker_ready`]'s tree half: window `window_id`'s tree
+/// (which takes in the dialogs it owns) has a focused file-name box.
+pub fn file_picker_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+) -> bool {
+    let Ok(snapshot) = tree.snapshot(Some(window_id)) else {
+        return false;
+    };
+    snapshot.elements.iter().any(|element| {
+        let name = element.name.to_lowercase();
+        element.role == "edit"
+            && element.states.iter().any(|s| s == "focused")
+            && FILE_NAME_LABELS.iter().any(|label| name.starts_with(label))
+    })
+}
+
+/// [`Effects::tab_titles`] over a tree: the names of its tab items.
+pub fn tab_titles_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+) -> Option<Vec<String>> {
+    let snapshot = tree.snapshot(Some(window_id)).ok()?;
+    let tabs: Vec<String> = snapshot
+        .elements
+        .iter()
+        .filter(|element| element.role == "tab")
+        .map(|element| element.name.clone())
+        .collect();
+    (!tabs.is_empty()).then_some(tabs)
+}
+
+/// [`Effects::attachment_state`] over a tree. Gmail names its chip after the
+/// file at every stage: "Uploading attachment: X…", "Saving attachment: X…",
+/// then "Attachment: X. Press enter to view…". Anything still uploading or
+/// saving wins over a finished label, so a send never goes while one is.
+pub fn attachment_state_in_tree(
+    tree: &dyn super::agent::tree::AccessibilityTree,
+    window_id: i64,
+    file_name: &str,
+) -> AttachState {
+    let Ok(snapshot) = tree.snapshot(Some(window_id)) else {
+        return AttachState::Absent;
+    };
+    attachment_state_of(snapshot.elements.iter().map(|e| e.name.as_str()), file_name)
+}
+
+/// The state the labels `names` give the attachment `file_name`.
+pub fn attachment_state_of<'a>(
+    names: impl Iterator<Item = &'a str>,
+    file_name: &str,
+) -> AttachState {
+    let wanted = file_name.to_lowercase();
+    let mut state = AttachState::Absent;
+    for name in names {
+        let name = name.to_lowercase();
+        if !name.contains(&wanted) {
+            continue;
+        }
+        if name.contains("uploading") || name.contains("saving attachment") {
+            return AttachState::Uploading;
+        }
+        if name.contains("attachment") {
+            state = AttachState::Attached;
+        }
+    }
+    state
 }
 
 /// The real effects wrapped so that actions are recorded instead of run.
@@ -427,6 +597,17 @@ impl<E: Effects> Effects for DryRunEffects<E> {
         self.record(format!("press the {first_word} button"))?;
         Ok(true)
     }
+    fn open_file_picker(&self, _window_id: i64, first_word: &str) -> Result<bool, String> {
+        self.record(format!("open the {first_word} file picker"))?;
+        Ok(true)
+    }
+    // A dry run opened no picker and attached nothing.
+    fn file_picker_ready(&self, _window_id: i64) -> bool {
+        false
+    }
+    fn attachment_state(&self, _window_id: i64, _file_name: &str) -> AttachState {
+        AttachState::Absent
+    }
     fn type_text(&self, text: &str) -> Result<(), String> {
         self.record(format!(
             "type {} characters: {text:?}",
@@ -489,6 +670,18 @@ pub mod fake {
         /// Buttons `press_button` finds, as (window id, first word). Pressing
         /// one of a word that sends (`send`) retitles like a send shortcut.
         pub buttons: Vec<(i64, String)>,
+        /// Buttons `open_file_picker` finds, as (window id, first word);
+        /// opening one puts a picker in front (`picker_open`).
+        pub picker_buttons: Vec<(i64, String)>,
+        /// A file picker has the keyboard.
+        pub picker_open: Mutex<bool>,
+        /// What the page shows once Enter is pressed in an open picker.
+        /// `None`: the picker closes and nothing is attached.
+        pub attaches_as: Option<AttachState>,
+        /// What `attachment_state` answers now.
+        pub attachment: Mutex<Option<AttachState>>,
+        /// What `tab_titles` answers now. `None`: no tab strip is read.
+        pub tabs: Mutex<Option<Vec<String>>>,
     }
 
     impl FakeEffects {
@@ -614,11 +807,40 @@ pub mod fake {
             }
             Ok(true)
         }
+        fn open_file_picker(&self, window_id: i64, first_word: &str) -> Result<bool, String> {
+            let found = self
+                .picker_buttons
+                .iter()
+                .any(|(id, word)| *id == window_id && word.eq_ignore_ascii_case(first_word));
+            if !found {
+                return Ok(false);
+            }
+            self.act(format!("open_file_picker {window_id} {first_word}"))?;
+            *self.picker_open.lock().unwrap() = true;
+            Ok(true)
+        }
+        fn file_picker_ready(&self, _window_id: i64) -> bool {
+            *self.picker_open.lock().unwrap()
+        }
+        fn attachment_state(&self, _window_id: i64, _file_name: &str) -> AttachState {
+            self.attachment
+                .lock()
+                .unwrap()
+                .unwrap_or(AttachState::Absent)
+        }
+        fn tab_titles(&self, _window_id: i64) -> Option<Vec<String>> {
+            self.tabs.lock().unwrap().clone()
+        }
         fn type_text(&self, text: &str) -> Result<(), String> {
             self.act(format!("type_text {text}"))
         }
         fn press_keys(&self, combo: &KeyCombo) -> Result<(), String> {
             self.act(format!("press_keys {}", combo.label()))?;
+            let enter = combo.key.eq_ignore_ascii_case("enter") && combo.modifiers.is_empty();
+            if enter && std::mem::take(&mut *self.picker_open.lock().unwrap()) {
+                *self.attachment.lock().unwrap() = self.attaches_as;
+                return Ok(());
+            }
             let sends = combo.key.eq_ignore_ascii_case("enter") && !combo.modifiers.is_empty();
             if let (true, Some(title)) = (sends, &self.send_retitles) {
                 let mut front = self.foreground.lock().unwrap();

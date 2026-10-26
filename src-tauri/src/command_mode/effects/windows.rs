@@ -1553,8 +1553,17 @@ pub(crate) mod live {
         fn recent_files(&self) -> Vec<PathBuf> {
             Vec::new()
         }
+        /// The user's Documents, Downloads and Desktop, where the live
+        /// email-a-file test puts the file it sends.
         fn known_folders(&self) -> Vec<PathBuf> {
-            Vec::new()
+            let Some(home) = std::env::var_os("USERPROFILE").map(PathBuf::from) else {
+                return Vec::new();
+            };
+            ["Documents", "Downloads", "Desktop"]
+                .iter()
+                .map(|name| home.join(name))
+                .filter(|dir| dir.is_dir())
+                .collect()
         }
         // Opening goes through the shell rather than the app's opener, which
         // needs an `AppHandle`; the live executor tests open real links, apps

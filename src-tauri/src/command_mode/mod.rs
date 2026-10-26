@@ -53,6 +53,7 @@ pub mod agent;
 pub mod contacts;
 pub mod context;
 pub mod effects;
+pub(crate) mod files;
 pub mod fuzzy;
 pub mod llm;
 pub mod registry;
@@ -442,6 +443,47 @@ fn effects_for(
     }
 }
 
+/// The settings a command runs with: the user's own, with their email
+/// address taken from the signed-in Talvio account when they never gave one,
+/// so "email me this file" has somewhere to go.
+fn command_settings(app: &AppHandle) -> crate::settings::AppSettings {
+    let mut settings = crate::settings::get_settings(app);
+    if settings.command_own_email.trim().is_empty() {
+        if let Some(email) = crate::account::signed_in_email(app) {
+            settings.command_own_email = email;
+        }
+    }
+    settings
+}
+
+/// Keep an address the user just gave as their own (an email whose
+/// `remember_as_mine` is set, after "what's your email address?"), so "email
+/// me" never asks again. A dry run changes nothing.
+fn remember_own_address(
+    app: &AppHandle,
+    routed: &Result<router::RoutePlan, RouteError>,
+    dry_run: bool,
+) {
+    let Ok(plan) = routed else {
+        return;
+    };
+    if dry_run {
+        return;
+    }
+    for call in &plan.calls {
+        let Some(address) = tools::compose_email::address_to_remember(&call.name, &call.args)
+        else {
+            continue;
+        };
+        let mut settings = crate::settings::get_settings(app);
+        if settings.command_own_email.trim() != address {
+            settings.command_own_email = address;
+            crate::settings::write_settings(app, settings);
+            info!("command mode: remembered the user's own email address");
+        }
+    }
+}
+
 fn load_contacts(app: &AppHandle) -> ContactBook {
     match ContactBook::path(app) {
         Ok(path) => ContactBook::load(&path),
@@ -551,7 +593,7 @@ pub async fn run_command(
     let started = Instant::now();
     reset_cancel();
     release_dictation_target(origin);
-    let settings = crate::settings::get_settings(app);
+    let settings = command_settings(app);
     let dry_run = dry_run_override.unwrap_or(settings.command_dry_run);
     let context = match context {
         Some(context) => context,
@@ -615,6 +657,7 @@ pub async fn run_command(
         route_deadline(),
     )
     .await;
+    remember_own_address(app, &routed, dry_run);
 
     let report = finish(
         &scope,
@@ -669,7 +712,7 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
         .exchanges
         .push((question, answer.trim().to_string()));
 
-    let settings = crate::settings::get_settings(app);
+    let settings = command_settings(app);
     let new_id = state.begin();
     let report = CommandReport::new(new_id, origin, &transcript, dry_run);
     let llm = match llm::router_for(&settings) {
@@ -710,6 +753,7 @@ pub async fn answer_command(app: &AppHandle, id: u32, answer: &str) -> CommandRe
         route_deadline(),
     )
     .await;
+    remember_own_address(app, &routed, dry_run);
 
     let report = finish(
         &scope,

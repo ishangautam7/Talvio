@@ -394,11 +394,10 @@ fn command_mode_live_dump_window() {
         match tree.snapshot(Some(window.id)) {
             Ok(snapshot) => {
                 println!("READ {read}: {} elements", snapshot.elements.len());
-                for element in snapshot
-                    .elements
-                    .iter()
-                    .filter(|e| matches!(e.role.as_str(), "button" | "edit" | "document"))
-                {
+                let everything = std::env::var_os("TALVIO_LIVE_ALL").is_some();
+                for element in snapshot.elements.iter().filter(|e| {
+                    everything || matches!(e.role.as_str(), "button" | "edit" | "document")
+                }) {
                     println!(
                         "  {} {} {:?} {:?}",
                         element.id, element.role, element.name, element.states
@@ -636,5 +635,192 @@ async fn command_mode_live_carry_out() {
             said.join(" / ")
         );
         tokio::time::sleep(Duration::from_secs(3)).await;
+    }
+}
+
+/// Email a file for real: a small file is written to Documents, the router
+/// plans "email me …" against this machine's model, and the executor finds
+/// the file, attaches it in Gmail and sends it, with evidence. "Me" is
+/// `TALVIO_LIVE_OWN_EMAIL`, and a plan addressed to anyone else (or handed to
+/// the screen agent) is refused before anything runs. The file is deleted
+/// afterwards.
+#[cfg(target_os = "windows")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[ignore = "sends an email from this computer to the tester"]
+async fn command_mode_live_email_file() {
+    use super::contacts::ContactBook;
+    use super::effects::LiveEffects;
+    use super::registry::{arg_str, arg_strings, ToolCtx};
+    use super::{CommandModeState, CommandOrigin, CommandReport, Scope};
+    use std::sync::Arc;
+
+    let own = std::env::var("TALVIO_LIVE_OWN_EMAIL")
+        .expect("TALVIO_LIVE_OWN_EMAIL")
+        .trim()
+        .to_lowercase();
+    assert!(
+        own.contains('@'),
+        "TALVIO_LIVE_OWN_EMAIL must be an address"
+    );
+    let home = std::env::var_os("USERPROFILE").expect("USERPROFILE");
+    let file = std::path::Path::new(&home)
+        .join("Documents")
+        .join("Talvio live test attachment.txt");
+    std::fs::write(&file, "Sent by Talvio's live email-a-file test.").unwrap();
+
+    let mut settings = installed_settings();
+    settings.command_own_email = own.clone();
+    settings.command_confirm_irreversible = false;
+    let llm = llm::router_for(&settings).expect("a usable router model");
+    let state = CommandModeState::default();
+    let command = std::env::var("TALVIO_LIVE_COMMAND")
+        .unwrap_or_else(|_| "email me the talvio live test attachment".into());
+    let started = Instant::now();
+    let context = CommandContext::capture();
+    let followup = Followup::default();
+    let routed = router::route(
+        llm.as_ref(),
+        Platform::current(),
+        &command,
+        &context,
+        &followup,
+        tokio::time::Instant::now() + Duration::from_secs(40),
+    )
+    .await;
+    let plan = routed.as_ref().expect("a plan");
+    for call in &plan.calls {
+        println!("PLAN {} {}", call.name, call.args);
+        match call.name.as_str() {
+            "compose_email" => {
+                let mut to: Vec<String> = arg_str(&call.args, "to")
+                    .unwrap_or("")
+                    .split([',', ';'])
+                    .map(|s| s.trim().to_lowercase())
+                    .collect();
+                to.extend(
+                    arg_strings(&call.args, "cc")
+                        .iter()
+                        .map(|s| s.to_lowercase()),
+                );
+                let only_me = to
+                    .iter()
+                    .all(|t| matches!(t.as_str(), "me" | "myself") || *t == own);
+                assert!(only_me, "REFUSED: email not only to the tester: {to:?}");
+            }
+            router::ESCALATE => panic!("REFUSED: an email handed to the screen agent"),
+            _ => {}
+        }
+    }
+    let id = state.begin();
+    let scope = Scope {
+        state: &state,
+        ctx: Arc::new(ToolCtx {
+            settings: settings.clone(),
+            context,
+            effects: Arc::new(LiveEffects),
+            contacts: Arc::new(ContactBook::default()),
+            platform: Platform::current(),
+            dry_run: false,
+        }),
+        dry: None,
+        origin: CommandOrigin::Phone,
+        transcript: command.clone(),
+        followup,
+    };
+    let report = CommandReport::new(id, CommandOrigin::Phone, &command, false);
+    let report = super::finish(
+        &scope,
+        report,
+        Some(llm.as_ref()),
+        llm.label(),
+        routed,
+        started,
+    )
+    .await;
+    let _ = std::fs::remove_file(&file);
+    for step in &report.steps {
+        println!("  STEP {} -> {} {}", step.tool, step.result, step.detail);
+    }
+    let said: Vec<String> = report
+        .feedback
+        .iter()
+        .map(|f| f.render_en().to_string())
+        .collect();
+    println!(
+        "RUN {command:?}: {:?} in {:.1}s | {}",
+        report.status,
+        report.latency_ms as f64 / 1000.0,
+        said.join(" / ")
+    );
+    assert!(
+        matches!(report.status, super::CommandStatus::Done),
+        "not sent: {said:?}"
+    );
+}
+
+/// Discard the Gmail drafts the live tests left open: every "Compose Mail"
+/// tab whose subject is one of the tests' own ("Talvio attach probe",
+/// "Talvio live test …"). Any other draft is left exactly as it is.
+#[cfg(target_os = "windows")]
+#[test]
+#[ignore = "discards the live tests' Gmail drafts on this computer"]
+fn command_mode_live_discard_test_drafts() {
+    use super::agent::{self, tree::UiAction};
+    use super::effects::{Effects, LiveEffects};
+    const OURS: &[&str] = &["talvio attach probe", "talvio live test"];
+    let tree = agent::tree();
+    for window in LiveEffects.open_windows() {
+        let Ok(snapshot) = tree.snapshot(Some(window.id)) else {
+            continue;
+        };
+        let compose_tabs: Vec<String> = snapshot
+            .elements
+            .iter()
+            .filter(|e| e.role == "tab" && e.name.starts_with("Compose Mail"))
+            .map(|e| e.name.clone())
+            .collect();
+        for _ in 0..compose_tabs.len() * 2 {
+            let Ok(snapshot) = tree.snapshot(Some(window.id)) else {
+                break;
+            };
+            // The first compose tab still open, brought forward.
+            let Some(tab) = snapshot
+                .elements
+                .iter()
+                .find(|e| e.role == "tab" && e.name.starts_with("Compose Mail"))
+            else {
+                break;
+            };
+            let _ = tree.act(tab.id, &UiAction::Select);
+            std::thread::sleep(Duration::from_millis(1500));
+            let Ok(page) = tree.snapshot(Some(window.id)) else {
+                break;
+            };
+            let ours = page.elements.iter().any(|e| {
+                e.role == "group" && OURS.iter().any(|o| e.name.to_lowercase().starts_with(o))
+            });
+            if !ours {
+                let selected: Vec<&str> = page
+                    .elements
+                    .iter()
+                    .filter(|e| e.role == "tab" && e.states.iter().any(|s| s == "selected"))
+                    .map(|e| e.name.as_str())
+                    .collect();
+                let groups: Vec<&str> = page
+                    .elements
+                    .iter()
+                    .filter(|e| e.role == "group")
+                    .map(|e| e.name.as_str())
+                    .take(4)
+                    .collect();
+                println!("left a draft that is not a test's: {selected:?} {groups:?}");
+                break;
+            }
+            println!(
+                "discard: {:?}",
+                super::effects::press_button_in_tree(tree.as_ref(), window.id, "discard")
+            );
+            std::thread::sleep(Duration::from_millis(1500));
+        }
     }
 }
