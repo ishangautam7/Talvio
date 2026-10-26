@@ -1,5 +1,6 @@
 import { startServer } from "../src/app";
 import { randomToken } from "../src/crypto";
+import type { FeedbackGithub } from "../src/feedback";
 import type { TurnConfig } from "../src/turn";
 
 // Test messages are loosely typed on purpose: each assertion states the shape it expects.
@@ -37,6 +38,8 @@ export async function harness(
     databasePath?: string;
     secretsKey?: string;
     turn?: TurnConfig | null;
+    adminToken?: string | null;
+    feedbackGithub?: FeedbackGithub | null;
   } = {},
 ) {
   let time = Date.UTC(2026, 0, 1);
@@ -47,6 +50,8 @@ export async function harness(
     databasePath: options.databasePath ?? ":memory:",
     secretsKey: options.secretsKey,
     turn: options.turn ?? null,
+    adminToken: options.adminToken ?? null,
+    feedbackGithub: options.feedbackGithub ?? null,
     publicUrl: PUBLIC_URL,
     google: google && {
       clientId: CLIENT_ID,

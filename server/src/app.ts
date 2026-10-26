@@ -11,6 +11,14 @@ import {
 } from "./account";
 import { Store } from "./db";
 import {
+  deleteFeedback,
+  type FeedbackGithub,
+  type FeedbackLimits,
+  feedbackScreenshot,
+  listFeedback,
+  sendFeedback,
+} from "./feedback";
+import {
   callback,
   exchange,
   GOOGLE_TOKEN_URL,
@@ -46,6 +54,10 @@ export interface Options {
   secretsKey?: string;
   /** Where live-view TURN credentials come from (PROTOCOL.md, "TURN"); null offers STUN only. */
   turn?: TurnConfig | null;
+  /** Unlocks the owner's feedback routes (`ADMIN_TOKEN`); unset, they answer `not_found`. */
+  adminToken?: string | null;
+  /** Also file each feedback entry as a GitHub issue; null files nothing. */
+  feedbackGithub?: FeedbackGithub | null;
   /** Seconds without a byte from a client before its socket is dropped (75; tests shorten it). */
   idleSeconds?: number;
   now?: () => number;
@@ -62,6 +74,9 @@ export interface Ctx {
   loginFailures: RateLimit;
   secrets: SecretBox;
   turn: TurnConfig | null;
+  adminToken: string | null;
+  feedbackGithub: FeedbackGithub | null;
+  feedbackLimits: FeedbackLimits;
 }
 
 type Route = (
@@ -118,6 +133,9 @@ const PER_IP_LIMITED = new Set([
 ]);
 
 const DEVICE_PATH = /^\/v1\/devices\/([^/]+)$/;
+const FEEDBACK_PATH = /^\/v1\/admin\/feedback\/([^/]+)$/;
+const SCREENSHOT_PATH =
+  /^\/v1\/admin\/feedback\/([^/]+)\/screenshots\/(\d{1,2})$/;
 const SECRET_PATH = /^\/v1\/secrets\/([^/]+)$/;
 
 export function startServer(options: Options) {
@@ -136,6 +154,11 @@ export function startServer(options: Options) {
   const hub = new Hub(store, now, log);
   const perIp = new RateLimit(20, 60 * 1000, now);
   const loginFailures = new RateLimit(10, 15 * 60 * 1000, now);
+  const feedbackLimits: FeedbackLimits = {
+    perIp: new RateLimit(10, 60 * 60 * 1000, now),
+    global: new RateLimit(200, 60 * 60 * 1000, now),
+    adminFailures: new RateLimit(10, 15 * 60 * 1000, now),
+  };
   const ctx: Ctx = {
     store,
     hub,
@@ -146,6 +169,9 @@ export function startServer(options: Options) {
     loginFailures,
     secrets: new SecretBox(secretsKey.key),
     turn: options.turn ?? null,
+    adminToken: options.adminToken || null,
+    feedbackGithub: options.feedbackGithub ?? null,
+    feedbackLimits,
   };
 
   function clientIp(req: Request, server: Server<SocketData>): string {
@@ -184,6 +210,20 @@ export function startServer(options: Options) {
     }
     const handler = routes.get(key);
     if (handler) return handler(req, ctx, url, server);
+    // Feedback is limited per address, so these routes need the client's.
+    const ip = () => addressKey(clientIp(req, server));
+    if (key === "POST /v1/feedback") return sendFeedback(req, ctx, ip());
+    if (key === "GET /v1/admin/feedback")
+      return listFeedback(req, ctx, url, ip());
+    const shot =
+      req.method === "GET" ? SCREENSHOT_PATH.exec(url.pathname) : null;
+    if (shot)
+      return feedbackScreenshot(req, ctx, ip(), shot[1]!, Number(shot[2]));
+    const feedbackId =
+      req.method === "DELETE"
+        ? FEEDBACK_PATH.exec(url.pathname)?.[1]
+        : undefined;
+    if (feedbackId) return deleteFeedback(req, ctx, ip(), feedbackId);
     const deviceId =
       req.method === "DELETE" ? DEVICE_PATH.exec(url.pathname)?.[1] : undefined;
     if (deviceId) return deleteDevice(req, ctx, deviceId);
@@ -241,6 +281,9 @@ export function startServer(options: Options) {
         store.deleteExpired(now());
         perIp.prune();
         loginFailures.prune();
+        feedbackLimits.perIp.prune();
+        feedbackLimits.global.prune();
+        feedbackLimits.adminFailures.prune();
       }),
     10 * 60 * 1000,
   );

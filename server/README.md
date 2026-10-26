@@ -5,8 +5,9 @@ or Google) on the desktop app and the phone app, keeps the list of devices on ea
 account, and relays messages between a person's own devices, which is what lets a
 phone use the computer as its microphone and keyboard.
 
-It stores **accounts, devices, and the provider API keys a person chose to keep
-on their account** (encrypted; see "Stored API keys" below). Recordings and
+It stores **accounts, devices, the provider API keys a person chose to keep on
+their account** (encrypted; see "Stored API keys" below), **and the feedback
+people send from the apps** (see "Feedback" below). Recordings and
 transcripts pass through memory on their way from one device to another and are
 never written down or logged.
 
@@ -56,20 +57,23 @@ address decides where people's sign-ins go, so keep it locked down.
 
 ## Configuration
 
-| Variable                    | Default                  | Meaning                                                                                                                                           |
-| --------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                      | `8787`                   | Port to listen on.                                                                                                                                |
-| `HOST`                      | `0.0.0.0`                | Address to listen on.                                                                                                                             |
-| `DATABASE_PATH`             | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.             |
-| `PUBLIC_URL`                | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                               |
-| `GOOGLE_CLIENT_ID`          | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                                |
-| `GOOGLE_CLIENT_SECRET`      | unset                    | Stays on the server; the apps never see it.                                                                                                       |
-| `TALVIO_SECRETS_KEY`        | unset                    | Base64 of 32 random bytes: the key that encrypts stored API keys. Unset uses (and on first start creates) `secrets.key` beside the database.      |
-| `TRUST_PROXY`               | unset                    | `1` takes the client's address from the last `X-Forwarded-For` entry, for rate limiting. Set it only behind exactly one reverse proxy.            |
-| `CLOUDFLARE_TURN_KEY_ID`    | unset                    | With `CLOUDFLARE_TURN_API_TOKEN`: a Cloudflare Realtime TURN key. The server asks Cloudflare for short-lived TURN credentials for each live view. |
-| `CLOUDFLARE_TURN_API_TOKEN` | unset                    | The API token of that TURN key. Stays on the server.                                                                                              |
-| `TURN_URLS`                 | unset                    | Instead of Cloudflare: your own TURN server (coturn with `use-auth-secret`), comma-separated `turn:` / `turns:` URLs.                             |
-| `TURN_SECRET`               | unset                    | That server's `static-auth-secret`. Credentials follow the TURN REST scheme and last a day.                                                       |
+| Variable                    | Default                  | Meaning                                                                                                                                              |
+| --------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                      | `8787`                   | Port to listen on.                                                                                                                                   |
+| `HOST`                      | `0.0.0.0`                | Address to listen on.                                                                                                                                |
+| `DATABASE_PATH`             | `./data/talvio.db`       | SQLite file. Its folder is created if missing. A `talvio.db` that does not exist yet, with a `zynveliq.db` beside it, opens that one.                |
+| `PUBLIC_URL`                | `http://localhost:$PORT` | The address people's browsers reach the server at. Google sends them back to `$PUBLIC_URL/v1/auth/google/callback`.                                  |
+| `GOOGLE_CLIENT_ID`          | unset                    | Google OAuth client. Google sign-in is on only when both Google variables are set.                                                                   |
+| `GOOGLE_CLIENT_SECRET`      | unset                    | Stays on the server; the apps never see it.                                                                                                          |
+| `TALVIO_SECRETS_KEY`        | unset                    | Base64 of 32 random bytes: the key that encrypts stored API keys. Unset uses (and on first start creates) `secrets.key` beside the database.         |
+| `TRUST_PROXY`               | unset                    | `1` takes the client's address from the last `X-Forwarded-For` entry, for rate limiting. Set it only behind exactly one reverse proxy.               |
+| `CLOUDFLARE_TURN_KEY_ID`    | unset                    | With `CLOUDFLARE_TURN_API_TOKEN`: a Cloudflare Realtime TURN key. The server asks Cloudflare for short-lived TURN credentials for each live view.    |
+| `CLOUDFLARE_TURN_API_TOKEN` | unset                    | The API token of that TURN key. Stays on the server.                                                                                                 |
+| `TURN_URLS`                 | unset                    | Instead of Cloudflare: your own TURN server (coturn with `use-auth-secret`), comma-separated `turn:` / `turns:` URLs.                                |
+| `TURN_SECRET`               | unset                    | That server's `static-auth-secret`. Credentials follow the TURN REST scheme and last a day.                                                          |
+| `ADMIN_TOKEN`               | unset                    | At least 24 characters: unlocks the owner's feedback routes (`/v1/admin/feedback`). Unset, they answer 404. Generate it with `openssl rand -hex 32`. |
+| `FEEDBACK_GITHUB_TOKEN`     | unset                    | With `FEEDBACK_GITHUB_REPO`: also file each feedback entry as a GitHub issue. A fine-grained token with Issues: write on that repository.            |
+| `FEEDBACK_GITHUB_REPO`      | unset                    | `owner/name` of that repository. Use a private one: an issue carries the reply email when the sender gave one.                                       |
 
 ## Live view across the internet (TURN)
 
@@ -175,6 +179,33 @@ which one is in use, never the key.
 Logs are one line per request (method, path, status, time) plus WebSocket connect
 and disconnect counts. They never contain tokens, passwords, codes, email
 addresses or message contents.
+
+## Feedback
+
+The apps' feedback forms post to `POST /v1/feedback` (PROTOCOL.md, "Feedback").
+No sign-in is needed; a signed-in sender's account and device are kept with the
+entry. Each entry is a row in the database with its screenshots (up to three,
+1 MiB each) as BLOBs, so backing up the database backs up the feedback. Limits:
+10 per hour per address, 200 per hour for the whole server. The log line for an
+entry has its id, kind, length and screenshot count, never its text.
+
+To read it, set `ADMIN_TOKEN` and ask with it:
+
+```sh
+# Newest first; pass "next" from the answer as ?before= for the next page.
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN"   "https://sync.example.com/v1/admin/feedback?limit=20"
+
+# A screenshot: the "url" of an entry's screenshot.
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" -o shot.webp   "https://sync.example.com/v1/admin/feedback/<id>/screenshots/0"
+
+# Delete an entry with its screenshots.
+curl -s -X DELETE -H "Authorization: Bearer $ADMIN_TOKEN"   "https://sync.example.com/v1/admin/feedback/<id>"
+```
+
+With `FEEDBACK_GITHUB_TOKEN` and `FEEDBACK_GITHUB_REPO` set, each entry is also
+filed as an issue there (best effort: a failure is logged and the entry is kept
+anyway). The issue says how many screenshots the server holds but never links
+to them.
 
 ## Adding a phone ↔ computer feature
 

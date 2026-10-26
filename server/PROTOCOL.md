@@ -8,9 +8,10 @@ What it is for: one account signs in on a computer and a phone, and the phone
 can then use the computer as its speech engine. Speak on the phone, the computer
 transcribes with its own model and pastes at its cursor (or sends the text back);
 type on the phone, the computer pastes it. **The server stores accounts and
-devices, plus the provider API keys a user syncs (encrypted, see Secrets). It
-never stores a recording or a transcript**: relay messages pass
-through memory and are dropped.
+devices, plus the provider API keys a user syncs (encrypted, see Secrets) and
+the feedback people send from the apps (see Feedback). It never stores a
+recording or a transcript**: relay messages pass through memory and are
+dropped.
 
 All JSON is UTF-8, field names are camelCase, times are Unix milliseconds.
 Lengths in characters count Unicode code points.
@@ -62,7 +63,7 @@ message for a code they don't know.
 | 404  | `not_found`           | device id not on this account, unknown route            |
 | 409  | `email_taken`         | sign-up with an email that already has an account       |
 | 409  | `stale`               | secret write older than the stored record (see Secrets) |
-| 413  | `payload_too_large`   | HTTP body over 64 KiB                                   |
+| 413  | `payload_too_large`   | HTTP body over 64 KiB (feedback: see Feedback)          |
 | 429  | `rate_limited`        | too many attempts; `Retry-After` header in seconds      |
 | 503  | `google_unavailable`  | server has no Google credentials configured             |
 | 500  | `internal`            | anything else                                           |
@@ -133,6 +134,7 @@ Authenticated routes take `Authorization: Bearer <token>`.
 | `PUT /v1/secrets/{name}`       | ✓    | `{ value, updatedAt }` → `{ secret: Secret }`                       |
 | `DELETE /v1/secrets/{name}`    | ✓    | query `updatedAt` → `{ secret: Secret }` (a tombstone)              |
 | `GET /v1/ws`                   | ✓    | WebSocket upgrade, see below                                        |
+| `POST /v1/feedback`            | –    | `Feedback` → 201 `{ id }`, see Feedback (a token is optional)       |
 
 Emails are trimmed and lower-cased. A token that has not been used for 180 days
 is deleted and answers `unauthorized`. Rate limits (per server instance): 20
@@ -234,6 +236,69 @@ PKCE verifier.
 Desktop's loopback listener answers the browser with a small HTML page ("You're
 signed in. You can close this tab.") and stops listening. It gives up after 5
 minutes or when the user cancels.
+
+### Feedback: `POST /v1/feedback` (sign-in optional)
+
+What a person sends from an app's feedback form. No sign-in is needed; a
+request that carries a valid `Authorization: Bearer <token>` is stored with that
+account and device, and an invalid or expired token is ignored rather than
+refused, so feedback never fails over a session.
+
+```jsonc
+// Feedback (request body)
+{ "kind": "bug",                     // bug|idea|question, optional
+  "message": "The overlay hides…",   // required, 3–5000 chars after trim
+  "email": "me@example.com",         // optional: where the person wants a reply
+  "system": "Talvio 2.3.0 · Windows 11 · x86_64 · nsis",  // optional, ≤ 300 chars
+  "screenshots": [                   // optional, at most 3
+    { "mediaType": "image/webp",     // image/png|image/jpeg|image/webp
+      "data": "<base64>" } ] }
+// → 201 { "id": "uuid" }
+```
+
+- The app sends exactly what its form showed: `email` only if typed, `system`
+  only if its box was ticked, and that line verbatim.
+- Control characters are removed (line breaks and tabs in `message` are kept);
+  an `email` that is not an address is `invalid_email`; anything else out of
+  shape is `invalid_request`.
+- A screenshot's bytes must be the image `mediaType` says (checked by its
+  leading bytes), at most 1 MiB each and 3 MiB together, else
+  `invalid_request` / `payload_too_large`. The body may be up to 4.5 MiB.
+- Rate limits: 10 per hour per IP (an IPv6 address by its /64) and 200 per hour
+  for the whole server, refused ones included; over either is `rate_limited`
+  with `Retry-After`.
+- Stored in the server's database, screenshots included, until the owner
+  deletes them. Deleting an account keeps its feedback but drops the link to it.
+
+**Reading it (the server's owner).** Only when the server has `ADMIN_TOKEN` set;
+without it these routes answer `not_found`. Each takes
+`Authorization: Bearer <ADMIN_TOKEN>`; a wrong token is `unauthorized`, and
+after 10 wrong tokens in 15 minutes an IP is `rate_limited`.
+
+| Method & path                                   | Response                                                         |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| `GET /v1/admin/feedback?limit=50&before=<next>` | `{ feedback: FeedbackEntry[], next }`, newest first              |
+| `GET /v1/admin/feedback/{id}/screenshots/{n}`   | the image (`n` from 0), with its own `Content-Type`              |
+| `DELETE /v1/admin/feedback/{id}`                | 204; the entry and its screenshots are gone                      |
+
+```jsonc
+// FeedbackEntry
+{ "id": "uuid", "createdAt": 1729000000000, "kind": "bug" /* or null */,
+  "message": "…", "email": "me@example.com" /* or null */, "system": "…" /* or null */,
+  "user": { "id": "uuid", "email": "a@b.com" } /* or null: not signed in, or account deleted */,
+  "device": { "name": "ISHAN-PC", "platform": "windows", "kind": "desktop" } /* or null */,
+  "screenshots": [ { "mediaType": "image/webp", "bytes": 182345,
+                     "url": "https://…/v1/admin/feedback/<id>/screenshots/0" } ] }
+```
+
+`limit` is 1–100 (default 50). `next` is an opaque number to pass as `before`
+for the following page, or null on the last page.
+
+Optionally (`FEEDBACK_GITHUB_TOKEN` and `FEEDBACK_GITHUB_REPO` on the server),
+each stored entry is also filed as an issue in that repository: the first line
+of the message as the title, the message, the system line and the reply email
+in the body, and how many screenshots the server holds (never their content or
+a link to them). Filing is best effort; the app's answer never waits for it.
 
 ## WebSocket `GET /v1/ws`
 

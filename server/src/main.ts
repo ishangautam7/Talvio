@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { startServer } from "./app";
 import { resolveDatabasePath } from "./databasePath";
+import { feedbackGithubFromEnv } from "./feedback";
 import { turnFromEnv } from "./turn";
 
 const env = process.env;
@@ -31,6 +32,11 @@ const google =
     : null;
 
 const turn = turnFromEnv(env);
+const feedbackGithub = feedbackGithubFromEnv(env);
+const adminToken = env.ADMIN_TOKEN?.trim() || null;
+if (adminToken && adminToken.length < 24) {
+  throw new Error("ADMIN_TOKEN must be at least 24 characters.");
+}
 
 const app = startServer({
   port,
@@ -41,9 +47,11 @@ const app = startServer({
   trustProxy: env.TRUST_PROXY === "1",
   secretsKey: env.TALVIO_SECRETS_KEY,
   turn,
+  adminToken,
+  feedbackGithub,
 });
 console.log(
-  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"})`,
+  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"}, feedback admin ${adminToken ? "on" : "off"}, feedback issues ${feedbackGithub ? feedbackGithub.repo : "off"})`,
 );
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

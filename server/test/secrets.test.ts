@@ -370,7 +370,7 @@ describe("secrets at rest", () => {
 });
 
 describe("migration", () => {
-  test("a version 1 database gains the secrets table and keeps its accounts", () => {
+  test("a version 1 database gains the secrets and feedback tables and keeps its accounts", () => {
     const dir = mkdtempSync(join(tmpdir(), "talvio-migrate-"));
     const path = join(dir, "talvio.db");
     const v1 = new Store(path);
@@ -386,6 +386,8 @@ describe("migration", () => {
     v1.close();
     const raw = new Database(path);
     raw.run("DROP TABLE secrets");
+    raw.run("DROP TABLE feedback_screenshots");
+    raw.run("DROP TABLE feedback");
     raw.run("PRAGMA user_version = 1");
     raw.close();
 
@@ -393,13 +395,14 @@ describe("migration", () => {
     const user = migrated.userByEmail("a@example.com")!;
     expect(user).not.toBeNull();
     expect(migrated.listSecrets(user.id)).toEqual([]);
+    expect(migrated.listFeedback(10, null).rows).toEqual([]);
     migrated.close();
     const check = new Database(path);
     const { user_version } = check
       .query<{ user_version: number }, []>("PRAGMA user_version")
       .get()!;
     check.close();
-    expect(user_version).toBe(2);
+    expect(user_version).toBe(3);
     rmSync(dir, { recursive: true, force: true });
   });
 });
