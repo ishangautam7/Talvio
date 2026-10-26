@@ -328,10 +328,12 @@
   --fill-hover: color-mix(in srgb, #ffffff 4.5%, transparent);
   --fill-selected: color-mix(in srgb, #ffffff 7.5%, transparent);
 
-  --font-weight-medium: 470;
-  --font-weight-semibold: 570;
-  --font-weight-bold: 660;
-  font-weight: 380;
+  /* Light text on a dark ground blooms, so every weight eases off a notch
+   * to read the same as on paper. */
+  --font-weight-medium: 450;
+  --font-weight-semibold: 550;
+  --font-weight-bold: 640;
+  font-weight: 370;
 
   background-color: var(--color-canvas);
 }
@@ -629,11 +631,25 @@
 :root[data-theme="dark"] .page-title {
   font-weight: 570;
 }
-/* The label over a group: sentence case, small, muted. */
+/* A small quiet label (Home's date, a job's name). */
 .eyebrow {
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: -0.003em;
+}
+/* The one heading over a card or a group of rows, everywhere (Home's
+ * sections, every settings group): 14px semibold ink, flush with the card's
+ * edge. */
+.section-label {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+:root[data-theme="dark"] .section-label {
+  font-weight: 560;
 }
 
 /* An icon in a neutral square, where a row or a card needs one to lead it
@@ -1035,9 +1051,21 @@
  * ink, behind the page's one large figure. */
 .insights-summary {
   background-color: var(--color-surface);
-  --insights-flow-1: color-mix(in oklab, var(--color-ink) 2%, var(--color-surface));
-  --insights-flow-2: color-mix(in oklab, var(--color-ink) 3.5%, var(--color-surface));
-  --insights-flow-3: color-mix(in oklab, var(--color-ink) 5%, var(--color-surface));
+  --insights-flow-1: color-mix(
+    in oklab,
+    var(--color-ink) 2%,
+    var(--color-surface)
+  );
+  --insights-flow-2: color-mix(
+    in oklab,
+    var(--color-ink) 3.5%,
+    var(--color-surface)
+  );
+  --insights-flow-3: color-mix(
+    in oklab,
+    var(--color-ink) 5%,
+    var(--color-surface)
+  );
 }
 :root[data-theme="dark"] .insights-summary {
   --insights-flow-1: color-mix(in oklab, #ffffff 2.5%, var(--color-surface));
@@ -1689,7 +1717,11 @@ input[type="range"].range-input:focus-visible::-webkit-slider-thumb {
       rgba(255, 255, 255, 0.8),
       transparent 60%
     ),
-    radial-gradient(80% 80% at 70% 75%, rgba(242, 84, 61, 0.8), transparent 70%),
+    radial-gradient(
+      80% 80% at 70% 75%,
+      rgba(242, 84, 61, 0.8),
+      transparent 70%
+    ),
     radial-gradient(100% 100% at 40% 40%, #6f5ae0, #2c2470);
   box-shadow:
     inset 0 -8px 18px rgba(20, 10, 60, 0.35),

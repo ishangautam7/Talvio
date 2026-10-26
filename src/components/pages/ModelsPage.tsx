@@ -9,10 +9,7 @@ import {
   type ModelSlot,
 } from "@/components/shell/navigation";
 import { useModelSlots } from "@/components/shell/useModelSlots";
-import {
-  SlotLogo,
-  useSlotStatusText,
-} from "@/components/shell/SlotVisuals";
+import { SlotLogo, useSlotStatusText } from "@/components/shell/SlotVisuals";
 import { MODEL_TABS } from "./models/ModelTabs";
 import { USED_BY_KEYS } from "./models/usedBy";
 import { RetiredSelectionPrompt } from "@/components/settings/models/RetiredSelectionPrompt";

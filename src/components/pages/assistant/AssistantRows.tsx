@@ -449,7 +449,7 @@ export const RemindersRow: React.FC = () => {
                 className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-muted"
               >
                 <span
-                  className="w-[5.75rem] shrink-0 truncate text-xs font-medium text-accent tabular-nums"
+                  className="w-[5.75rem] shrink-0 truncate text-xs font-medium text-muted tabular-nums"
                   title={new Date(reminder.due_at).toLocaleString(
                     i18n.language,
                   )}

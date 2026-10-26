@@ -28,9 +28,9 @@ export const SettingsGroup: React.FC<SettingsGroupProps> = ({
   return (
     <section className={`space-y-2 ${className}`}>
       {(title || action) && (
-        <div className="flex items-end justify-between gap-3 px-1">
+        <div className="flex items-end justify-between gap-3">
           <div className="flex min-w-0 items-center gap-1">
-            {title && <h2 className="eyebrow text-muted">{title}</h2>}
+            {title && <h2 className="section-label">{title}</h2>}
             {description && <InfoTip text={description} />}
           </div>
           {action && <div className="shrink-0">{action}</div>}

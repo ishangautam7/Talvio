@@ -163,9 +163,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               {title}
             </h1>
             {badge}
-            {description && (
-              <InfoTip text={description} size="md" />
-            )}
+            {description && <InfoTip text={description} size="md" />}
           </div>
           {actions && (
             <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -204,9 +202,7 @@ export const SectionTitle: React.FC<{
       className={`mb-3 flex min-h-8 items-center justify-between gap-3 ${className}`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <Heading className="font-display text-[0.9375rem] text-ink">
-          {title}
-        </Heading>
+        <Heading className="section-label">{title}</Heading>
         {description && <InfoTip text={description} />}
       </div>
       {action && <div className="shrink-0">{action}</div>}

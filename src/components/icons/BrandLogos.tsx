@@ -115,8 +115,8 @@ const BRAND_TILES = {
   nvidia: `bg-[#111416] text-[#76B900] ${SOLID}`,
   qwen: `bg-linear-to-br from-[#6F69F7] to-[#6336E7] text-white ${SOLID}`,
   gemma: `bg-linear-to-br from-[#2E96FF] to-[#446EFF] text-white ${SOLID}`,
-  openai: `bg-ink text-surface ${SOLID}`,
-  moonshine: "bg-accent/10 text-accent ring-1 ring-inset ring-accent/15",
+  openai: `bg-ink text-surface dark:bg-surface-strong dark:text-ink dark:ring-1 dark:ring-hairline-strong ${SOLID}`,
+  moonshine: "bg-surface-strong text-body ring-1 ring-inset ring-hairline",
   // A model that ships its own artwork (SpeakoFlow Mini) keeps it rather than
   // a tinted glyph, so the tile stays empty and the mark supplies the color.
   speakoflow: "bg-transparent",

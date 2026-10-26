@@ -1,9 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight } from "@/components/icons/glyphs";
 import { Page, PageHeader } from "@/components/ui/Page";
-import { Button } from "@/components/ui/Button";
-import { useNavigation } from "@/components/shell/navigation";
 import { useModelSlots } from "@/components/shell/useModelSlots";
 import { RetiredSelectionPrompt } from "@/components/settings/models/RetiredSelectionPrompt";
 import { ShortcutsCard } from "./home/ShortcutsCard";
@@ -12,34 +9,13 @@ import { RecentCard } from "./home/RecentCard";
 import { StatusHero } from "./home/StatusHero";
 import { partOfDay } from "./home/usageMath";
 
-/** Shown above everything else when dictation cannot run yet. */
-const NeedsSpeechModel: React.FC = () => {
-  const { t } = useTranslation();
-  const { openModelSlot } = useNavigation();
-  return (
-    <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-3 rounded-2xl border border-hairline bg-surface px-5 py-3 elev-card">
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" />
-      <p className="min-w-0 flex-1 text-sm font-medium text-ink">
-        {t("home.needsModel.title")}
-      </p>
-      <Button size="sm" onClick={() => openModelSlot("stt")}>
-        {t("home.needsModel.action")}
-        <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-      </Button>
-    </div>
-  );
-};
-
 /**
- * Home: the shortcuts, the models doing each job, and the last few things you
- * said. Usage numbers live on Insights.
+ * Home: whether Talvio can listen and with what (one card, its numbers along
+ * the foot), then the shortcuts, the models doing each job, and the last few
+ * things you said. The full usage picture lives on Insights.
  *
- * There is no banner. Home used to open on a dark stage with a waveform and
- * the dictation keys drawn large, and it was the most-visited decoration in
- * the app: the art said nothing the keys did not, and on the light theme it
- * was the darkest, highest-contrast thing on screen, so it pulled the eye off
- * the content under it. Dictate is now the first row of the shortcuts list,
- * beside the other three.
+ * When dictation cannot run yet the status card says so and carries the one
+ * action that fixes it; there is no second banner repeating it above.
  */
 export const HomePage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -52,18 +28,17 @@ export const HomePage: React.FC = () => {
     month: "long",
     day: "numeric",
   }).format(now);
+  const needsUpdate = slots.stt.issue === "needs_update";
 
   return (
     <Page>
       <PageHeader title={greeting} eyebrow={today} />
 
-      {slots.stt.issue === "needs_update" ? (
+      {needsUpdate && (
         <RetiredSelectionPrompt placement="home" className="mb-6" />
-      ) : (
-        !slots.stt.ready && <NeedsSpeechModel />
       )}
 
-      <StatusHero />
+      <StatusHero needsModel={!needsUpdate && !slots.stt.ready} />
 
       <div className="mt-10 grid grid-cols-1 gap-10 @4xl:grid-cols-[minmax(0,1fr)_22rem] @4xl:gap-8">
         <ShortcutsCard />
