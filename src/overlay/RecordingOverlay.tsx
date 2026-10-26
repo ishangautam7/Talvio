@@ -191,7 +191,8 @@ const LiveWaveform: React.FC<
 /** The card's indicator slot is 23px: five 3px bars on a 5px pitch. The same
  * bars carry listening, working and done, so a change of state moves
  * nothing. */
-const CARD_WAVE: WaveShape = { bars: 5, pitch: 5, barWidth: 3 };
+/** The live ellipse wears the oval's bars, so the two read as one family. */
+const CARD_WAVE: WaveShape = { bars: 7, pitch: 5, barWidth: 3 };
 /** The pill's bars: few and full, the assistant's listening oval's, beside the
  *  pill's one word. Fourteen hairline bars read as noise at this size. */
 const PILL_WAVE: WaveShape = { bars: 7, pitch: 5, barWidth: 3 };
@@ -1203,7 +1204,9 @@ const RecordingOverlay: React.FC = () => {
       {streamingWindow && !recovery ? (
         <div
           ref={cardRef}
-          className={`overlay-card ${state}${completed ? " completed" : ""}${handsFreeNow ? " hands-free" : ""}`}
+          className={`overlay-card ${state}${completed ? " completed" : ""}${handsFreeNow ? " hands-free" : ""}${
+            hasLiveText ? " has-text" : ""
+          }${isRecording ? " is-recording" : ""}${notice ? " has-notice" : ""}`}
           role="group"
           aria-label={ariaLabel}
           onMouseEnter={() => reportHover(true)}

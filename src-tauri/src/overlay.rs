@@ -62,13 +62,13 @@ const OVERLAY_HEIGHT: f64 = 44.0;
 const OVERLAY_LABEL_WIDTH: f64 = 300.0;
 const OVERLAY_LABEL_HEIGHT: f64 = 60.0;
 
-// The Live overlay style reuses this same overlay window, resized into a
-// larger card so the running committed + tentative transcript is readable
-// during dictation. Mirrors
-// Handy's 400×120 streaming overlay. With the Minimal style the overlay
-// stays the compact pill above.
+// Live dictation's window: a one-line ellipse (44 px, the meeting pill's
+// shape) with the running words inside it, wide enough for the bars, about
+// forty characters of the newest words and the hover controls. The ellipse
+// hugs its words inside this frame, so the window never resizes as they arrive.
+// With the Minimal style the overlay stays the compact pill above.
 const OVERLAY_STREAM_WIDTH: f64 = 400.0;
-const OVERLAY_STREAM_HEIGHT: f64 = 120.0;
+const OVERLAY_STREAM_HEIGHT: f64 = 52.0;
 
 // The Undo / Try again pill left behind by a dismissed or failed dictation.
 // Unlike every other state it takes the pointer, so the frame *is* the pill:

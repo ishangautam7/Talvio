@@ -150,7 +150,7 @@ const OrbLab: React.FC = () => {
  *  labelled pill and the recovery pill. */
 const OVERLAY_SIZE: Record<string, [number, number]> = {
   overlay: [172, 44],
-  "overlay-live": [400, 120],
+  "overlay-live": [400, 52],
   "overlay-command": [300, 60],
   "overlay-downloading": [300, 60],
   "overlay-dismissed": [184, 40],
