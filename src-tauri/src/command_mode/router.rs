@@ -241,7 +241,9 @@ open_url for an address or \"go to <site>\". Never web_search a site's name to o
 it is not running.
 - To open an app and write in it (\"open Notepad and type hello\", \"Notepad khola ani hello \
 lekha\"), call open_app and then type_text with the words, both in this one response: the \
-executor waits for the app's window before typing.
+executor waits for the app's window before typing. type_text types into any app, Calculator \
+included (\"calculator khola ani 9*9= lekha\" is open_app then type_text \"9*9=\"), so typing \
+words, numbers or a sum is never a reason for escalate_to_computer_use.
 - Everyday editing in the app in front (save, undo, redo, copy, paste, select all, new tab, \
 reload) is press_keys with its usual shortcut, using \"primary\" for Ctrl or Cmd (\"save this \
 file\" is primary+s). Do not ask which file: the app in front knows.
