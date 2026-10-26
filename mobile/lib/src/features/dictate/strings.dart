@@ -45,6 +45,11 @@ abstract final class DictateStrings {
   static const tapToSpeak = 'Tap to speak';
   static const tapToSend = 'Tap to send';
   static const paused = 'Paused';
+  static const listening = 'Listening';
+  static String listeningFor(String app) => 'Pastes in $app when you stop';
+  static String listeningCursor(String name) =>
+      'Pastes where the cursor is on $name when you stop';
+  static const listeningKeep = 'The text comes back to this phone';
   static const discard = 'Discard';
   static String typeHint(String name) => 'Type to paste on $name';
   static const send = 'Send';

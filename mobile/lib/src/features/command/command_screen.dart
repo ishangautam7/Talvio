@@ -31,10 +31,10 @@ final doTab = FeatureTab(
 /// An icon for each of [CommandStrings.exampleCommands].
 const _exampleIcons = [
   AppIcons.youtube,
+  AppIcons.mail,
   AppIcons.music,
   AppIcons.pause,
   AppIcons.volume,
-  AppIcons.mail,
 ];
 
 class CommandScreen extends StatefulWidget {
@@ -112,7 +112,6 @@ class _CommandScreenState extends State<CommandScreen> {
 
   Widget _buildBody(BuildContext context, Device computer, bool connected) {
     final c = _controller;
-    final t = context.talvio;
     final idle = c.idle;
     final ready =
         connected &&
@@ -234,31 +233,23 @@ class _CommandScreenState extends State<CommandScreen> {
       content = Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                CommandStrings.prompt(name),
-                textAlign: TextAlign.center,
-                style: TalvioType.title1.copyWith(color: t.ink),
-              ),
-              const SizedBox(height: Space.s8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 300),
-                child: Text(
-                  CommandStrings.promptDetail,
-                  textAlign: TextAlign.center,
-                  style: TalvioType.rowBody.copyWith(color: t.muted),
-                ),
-              ),
-            ],
-          ),
+          child: _Hero(name: name),
         ),
       );
     } else {
       content = ListView(
         padding: const EdgeInsets.only(bottom: Space.s16),
         children: [
+          // Above the recent commands while there is room for it (not on
+          // a short screen or with large text).
+          if (status == null &&
+              note == null &&
+              MediaQuery.sizeOf(context).height >=
+                  760 * MediaQuery.textScalerOf(context).scale(1))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
+              child: _Hero(name: name, compact: true),
+            ),
           if (note != null && !sending) ...[
             const SizedBox(height: Space.s16),
             InlineBanner(
@@ -711,17 +702,25 @@ class _RecentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.talvio;
-    final (IconData icon, Color color) = switch (item.status) {
-      CommandStatus.done => (AppIcons.done, t.success),
-      CommandStatus.failed => (AppIcons.failed, t.danger),
-      CommandStatus.cancelled => (AppIcons.cancelledFill, t.muted),
-      CommandStatus.awaitingConfirmation => (AppIcons.waitingFill, t.accent),
-      CommandStatus.needsAnswer => (AppIcons.questionFill, t.accent),
-      CommandStatus.needsComputerUse => (AppIcons.needsScreenFill, t.warning),
-      _ => (AppIcons.done, t.muted),
+    final (IconData icon, Color color, Color wash) = switch (item.status) {
+      CommandStatus.done => (AppIcons.check, t.success, t.successSoft),
+      CommandStatus.failed => (AppIcons.close, t.danger, t.dangerSoft),
+      CommandStatus.cancelled => (AppIcons.cancelled, t.muted, t.fill),
+      CommandStatus.awaitingConfirmation => (
+        AppIcons.waiting,
+        t.accent,
+        t.accentSoft,
+      ),
+      CommandStatus.needsAnswer => (AppIcons.question, t.accent, t.accentSoft),
+      CommandStatus.needsComputerUse => (
+        AppIcons.needsScreen,
+        t.warning,
+        t.warningSoft,
+      ),
+      _ => (AppIcons.check, t.muted, t.fill),
     };
     return ListRow(
-      leading: RowGlyph(icon, color: color),
+      leading: StatusBadge(icon, color: color, wash: wash),
       title: item.said,
       titleMaxLines: 1,
       subtitle: item.feedback.isEmpty ? null : item.feedback,
@@ -731,6 +730,46 @@ class _RecentRow extends StatelessWidget {
         color: t.muted,
         onPressed: onRunAgain,
       ),
+    );
+  }
+}
+
+/// What Do is, over an empty page or above the recent commands: the orb,
+/// the invitation, and a line on what it can do.
+class _Hero extends StatelessWidget {
+  const _Hero({required this.name, this.compact = false});
+
+  final String name;
+
+  /// Above the recent commands: a smaller orb.
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.talvio;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TalvioOrb(size: compact ? 56 : 80),
+        SizedBox(height: compact ? Space.s24 : Space.s32),
+        Semantics(
+          header: true,
+          child: Text(
+            CommandStrings.prompt(name),
+            textAlign: TextAlign.center,
+            style: TalvioType.title1.copyWith(color: t.ink),
+          ),
+        ),
+        const SizedBox(height: Space.s8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 300),
+          child: Text(
+            CommandStrings.promptDetail,
+            textAlign: TextAlign.center,
+            style: TalvioType.rowBody.copyWith(color: t.muted),
+          ),
+        ),
+      ],
     );
   }
 }

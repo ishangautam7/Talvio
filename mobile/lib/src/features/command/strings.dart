@@ -6,17 +6,17 @@ abstract final class CommandStrings {
 
   static String prompt(String name) => 'Tell $name what to do';
   static const promptDetail =
-      'Talvio opens apps and sites, plays music, sets the volume and more, '
-      'right on the computer.';
+      'Say it or type it. Talvio opens apps, plays music, sends email and '
+      'more.';
   static const examples = 'Try';
 
   /// Commands to tap and send as they are.
   static const exampleCommands = [
     'Open YouTube',
+    'Email me the project report',
     'Play Believer by Imagine Dragons',
     'Pause the music',
     'Turn the volume down',
-    'Open Gmail',
   ];
 
   static const startRecording = 'Say a command';
