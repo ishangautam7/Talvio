@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'icons.dart';
+import 'orb.dart';
 import 'tokens.dart';
 
 export 'icons.dart';
+export 'orb.dart';
 
 /// Looping decoration (live dots, the shimmer, blinking, the halo). Widget
 /// tests turn it off so `pumpAndSettle` settles; spinners that say
@@ -137,11 +139,19 @@ class Surface extends StatelessWidget {
           : BorderSide(color: borderColor!),
     );
     final body = Padding(padding: padding, child: child);
-    final material = Material(
-      color: color ?? t.card,
-      shape: shape,
-      clipBehavior: Clip.antiAlias,
-      child: onTap == null ? body : InkWell(onTap: onTap, child: body),
+    final flat = color != null && color != t.card;
+    final material = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: flat ? null : Depth.card(t),
+      ),
+      position: DecorationPosition.background,
+      child: Material(
+        color: color ?? t.card,
+        shape: shape,
+        clipBehavior: Clip.antiAlias,
+        child: onTap == null ? body : InkWell(onTap: onTap, child: body),
+      ),
     );
     if (onTap == null) return material;
     return Pressable(child: material);
@@ -170,22 +180,32 @@ class Group extends StatelessWidget {
     final t = context.talvio;
     return Padding(
       padding: margin,
-      child: Material(
-        color: t.card,
-        borderRadius: BorderRadius.circular(Radii.lg),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final (i, child) in children.indexed) ...[
-              if (i > 0)
-                Padding(
-                  padding: EdgeInsetsDirectional.only(start: dividerInset),
-                  child: Divider(height: 1, thickness: 1, color: t.hairline),
-                ),
-              child,
+      child: Container(
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Radii.lg),
+          border: Depth.edge(t),
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Radii.lg),
+          boxShadow: Depth.card(t),
+        ),
+        child: Material(
+          color: t.card,
+          borderRadius: BorderRadius.circular(Radii.lg),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final (i, child) in children.indexed) ...[
+                if (i > 0)
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(start: dividerInset),
+                    child: Divider(height: 1, thickness: 1, color: t.hairline),
+                  ),
+                child,
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -211,6 +231,7 @@ class ListRow extends StatelessWidget {
     this.semanticLabel,
     this.semanticValue,
     this.selected = false,
+    this.dimWhenDisabled = true,
   });
 
   final String title;
@@ -236,6 +257,10 @@ class ListRow extends StatelessWidget {
   final String? semanticLabel;
   final String? semanticValue;
   final bool selected;
+
+  /// False keeps a disabled row at full strength: it is held, not broken
+  /// (Dictate's destination while a recording uses it).
+  final bool dimWhenDisabled;
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +349,10 @@ class ListRow extends StatelessWidget {
         child: body,
       );
     }
-    return Opacity(opacity: enabled ? 1 : 0.38, child: body);
+    return Opacity(
+      opacity: enabled || !dimWhenDisabled ? 1 : 0.38,
+      child: body,
+    );
   }
 }
 
@@ -338,6 +366,32 @@ class RowGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       Icon(icon, size: IconSize.regular, color: color ?? context.talvio.muted);
+}
+
+/// A status as a 32 circle: the glyph in the status colour on its soft
+/// wash (done, failed, waiting…). The colour is never the only signal; the
+/// glyph differs too.
+class StatusBadge extends StatelessWidget {
+  const StatusBadge(
+    this.icon, {
+    super.key,
+    required this.color,
+    required this.wash,
+    this.size = 32,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Color wash;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: wash, shape: BoxShape.circle),
+    child: Icon(icon, size: size >= 32 ? 16 : 14, color: color),
+  );
 }
 
 /// A 32 tile on the fill colour with an ink glyph (devices, screens), and
@@ -1194,14 +1248,24 @@ class _RequestCardState extends State<RequestCard> {
         decoration: BoxDecoration(
           color: t.card,
           borderRadius: BorderRadius.circular(Radii.lg),
+          boxShadow: Depth.card(t),
+          border: Depth.edge(t),
         ),
         child: Row(
           children: [
             SizedBox.square(
-              dimension: 20,
+              dimension: 28,
               child: widget.approval
-                  ? Icon(AppIcons.waiting, size: 20, color: t.warning)
-                  : const Spinner(),
+                  ? DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: t.warningSoft,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(AppIcons.waiting, size: 16, color: t.warning),
+                    )
+                  : const Center(
+                      child: TalvioOrb(size: 22, mood: OrbMood.thinking),
+                    ),
             ),
             const SizedBox(width: Space.s12),
             Expanded(

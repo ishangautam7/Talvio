@@ -115,6 +115,10 @@ abstract final class AppIcons {
     matchTextDirection: true,
   );
   static const more = IconData(0xe1fe, fontFamily: 'PhosphorRegular');
+  static const arrowUpRight = IconData(0xe092, fontFamily: 'PhosphorRegular');
+  static const file = IconData(0xe23a, fontFamily: 'PhosphorRegular');
+  static const calendar = IconData(0xe10a, fontFamily: 'PhosphorRegular');
+  static const globe = IconData(0xe28e, fontFamily: 'PhosphorRegular');
   static const arrowRight = IconData(
     0xe06c,
     fontFamily: 'PhosphorRegular',

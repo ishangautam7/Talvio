@@ -118,6 +118,53 @@ abstract final class Radii {
   static const pill = 999.0;
 }
 
+/// Depth. On light a card lifts off the stone canvas with a soft, wide
+/// shadow and a crisp contact line; on dark, where shadows vanish, a faint
+/// edge of light does the same job. Nothing heavier than this anywhere.
+abstract final class Depth {
+  /// Groups, cards, the composer.
+  static List<BoxShadow> card(TalvioColors t) => t.isDark
+      ? const []
+      : const [
+          BoxShadow(
+            color: Color(0x0A16151B),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Color(0x0816151B),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ];
+
+  /// Something that floats over the page: the live view, a raised card.
+  static List<BoxShadow> raised(TalvioColors t) => t.isDark
+      ? const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+        ]
+      : const [
+          BoxShadow(
+            color: Color(0x1416151B),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
+          BoxShadow(
+            color: Color(0x0A16151B),
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ];
+
+  /// The faint top light a dark card gets instead of a shadow.
+  static Border? edge(TalvioColors t) =>
+      t.isDark ? Border.all(color: const Color(0x0DFFFFFF)) : null;
+}
+
 /// Durations and curves. Short and decisive; no overshoot.
 abstract final class Motion {
   static const press = Duration(milliseconds: 100);

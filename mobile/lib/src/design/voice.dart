@@ -189,40 +189,21 @@ class _MicOrbState extends State<MicOrb> {
     final enabled = onPressed != null;
     final t = context.talvio;
     final moving = motionAllowed(context);
-    // The halo spills past the orb's own box; the layout is the orb.
+    // The halo and ripples spill past the orb's own box; the layout is the
+    // orb.
     return SizedBox.square(
       dimension: size,
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          if (recording)
+          if (recording && !voice.paused)
             Positioned(
-              left: -24,
-              right: -24,
-              top: -24,
-              bottom: -24,
-              child: Center(
-                child: ValueListenableBuilder(
-                  valueListenable: voice.level,
-                  builder: (context, value, _) {
-                    final grow = !moving
-                        ? 8.0
-                        : voice.paused
-                        ? 0.0
-                        : 24.0 * value.clamp(0.0, 1.0);
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      width: size + 2 * grow,
-                      height: size + 2 * grow,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: t.coral.withValues(alpha: 0.18),
-                      ),
-                    );
-                  },
-                ),
-              ),
+              left: -size * 0.6,
+              right: -size * 0.6,
+              top: -size * 0.6,
+              bottom: -size * 0.6,
+              child: _Ripples(color: t.coral, size: size),
             ),
           Semantics(
             label: recording ? voice.stopLabel : voice.startLabel,
@@ -242,27 +223,32 @@ class _MicOrbState extends State<MicOrb> {
                 child: AnimatedOpacity(
                   duration: Motion.quick,
                   opacity: enabled ? 1 : 0.38,
-                  child: Container(
-                    width: size,
-                    height: size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: TalvioColors.gradient,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                      ),
-                    ),
+                  child: Stack(
                     alignment: Alignment.center,
-                    child: AnimatedSwitcher(
-                      duration: Motion.quick,
-                      transitionBuilder: _swap,
-                      child: Icon(
-                        recording ? AppIcons.stop : AppIcons.micFill,
-                        key: ValueKey(recording),
-                        size: recording ? 28 : 32,
-                        color: Colors.white,
+                    clipBehavior: Clip.none,
+                    children: [
+                      TalvioOrb(
+                        size: size,
+                        mood: recording && !voice.paused
+                            ? OrbMood.listening
+                            : OrbMood.idle,
+                        level: voice.level,
+                        halo: enabled,
                       ),
-                    ),
+                      AnimatedSwitcher(
+                        duration: Motion.quick,
+                        transitionBuilder: _swap,
+                        child: Icon(
+                          recording ? AppIcons.stop : AppIcons.micFill,
+                          key: ValueKey(recording),
+                          size: recording ? 26 : 30,
+                          color: Colors.white,
+                          shadows: const [
+                            Shadow(color: Color(0x40000000), blurRadius: 8),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -272,6 +258,54 @@ class _MicOrbState extends State<MicOrb> {
       ),
     );
   }
+}
+
+/// Rings that leave the recording orb and fade, like sound going out.
+/// Still under reduced motion: one quiet ring.
+class _Ripples extends StatelessWidget {
+  const _Ripples({required this.color, required this.size});
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loopsAllowed(context)) {
+      return CustomPaint(painter: _RipplePainter(color, size, const [0.3]));
+    }
+    return Looping(
+      period: const Duration(milliseconds: 2400),
+      builder: (t) =>
+          CustomPaint(painter: _RipplePainter(color, size, [t, (t + 0.5) % 1])),
+    );
+  }
+}
+
+class _RipplePainter extends CustomPainter {
+  const _RipplePainter(this.color, this.size, this.phases);
+
+  final Color color;
+  final double size;
+  final List<double> phases;
+
+  @override
+  void paint(Canvas canvas, Size box) {
+    final c = box.center(Offset.zero);
+    for (final p in phases) {
+      final r = size / 2 * (1.08 + 0.55 * p);
+      canvas.drawCircle(
+        c,
+        r,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5
+          ..color = color.withValues(alpha: 0.45 * (1 - p)),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RipplePainter old) => true;
 }
 
 /// The composer's content swap: a fade and a slight grow.
@@ -351,6 +385,7 @@ class ComposerButton extends StatelessWidget {
     this.foreground,
     this.iconSize = 20,
     this.active = false,
+    this.brand = false,
   });
 
   final String label;
@@ -364,6 +399,10 @@ class ComposerButton extends StatelessWidget {
 
   /// The Keys toggle is on: an ink glyph on a fill circle.
   final bool active;
+
+  /// The mic: the brand gradient and a soft coral glow instead of the flat
+  /// accent (the screen's one primary action).
+  final bool brand;
 
   @override
   Widget build(BuildContext context) {
@@ -391,21 +430,47 @@ class ComposerButton extends StatelessWidget {
         excludeFromSemantics: true,
         child: Pressable(
           enabled: enabled,
-          child: Material(
-            color: bg ?? Colors.transparent,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onPressed,
-              highlightColor: background == t.accent
-                  ? t.pressedOnAccent
-                  : t.pressed,
-              child: SizedBox.square(
-                dimension: 40,
-                child: Center(
-                  child: Opacity(
-                    opacity: !enabled && background == null ? 0.38 : 1,
-                    child: Icon(icon, size: iconSize, color: fg),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: brand && enabled
+                  ? [
+                      BoxShadow(
+                        color: t.coral.withValues(
+                          alpha: t.isDark ? 0.45 : 0.35,
+                        ),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Material(
+              color: brand && enabled ? null : bg ?? Colors.transparent,
+              type: brand && enabled
+                  ? MaterialType.transparency
+                  : MaterialType.canvas,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onPressed,
+                highlightColor: background == t.accent
+                    ? t.pressedOnAccent
+                    : t.pressed,
+                child: Ink(
+                  width: 40,
+                  height: 40,
+                  decoration: brand && enabled
+                      ? BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: TalvioColors.gradient,
+                        )
+                      : null,
+                  child: Center(
+                    child: Opacity(
+                      opacity: !enabled && background == null ? 0.38 : 1,
+                      child: Icon(icon, size: iconSize, color: fg),
+                    ),
                   ),
                 ),
               ),
@@ -523,7 +588,8 @@ class _ComposerState extends State<Composer> {
               decoration: BoxDecoration(
                 color: t.card,
                 borderRadius: BorderRadius.circular(multiline ? 20 : 24),
-                border: Border.all(color: t.isDark ? t.hairline : t.border),
+                border: Border.all(color: t.isDark ? t.border : t.hairline),
+                boxShadow: Depth.card(t),
               ),
               child: AnimatedSwitcher(
                 duration: Motion.quick,
@@ -638,7 +704,8 @@ class _ComposerState extends State<Composer> {
         label: voice.startLabel,
         icon: AppIcons.micFill,
         background: t.accent,
-        foreground: t.onAccent,
+        foreground: Colors.white,
+        brand: true,
         onPressed: voice.onStart == null
             ? null
             : () {

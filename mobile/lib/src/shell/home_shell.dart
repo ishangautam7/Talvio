@@ -321,10 +321,23 @@ class _NavItemState extends State<_NavItem> {
               AnimatedScale(
                 scale: _down && motionAllowed(context) ? 0.92 : 1,
                 duration: Motion.press,
-                child: Icon(
-                  selected ? widget.tab.selectedIcon : widget.tab.icon,
-                  size: IconSize.large,
-                  color: color,
+                // A quiet pill behind the selected tab's glyph: neutral,
+                // never the accent.
+                child: AnimatedContainer(
+                  duration: Motion.standard,
+                  curve: Motion.enter,
+                  width: 56,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: selected ? t.fill : t.fill.withValues(alpha: 0),
+                    borderRadius: BorderRadius.circular(Radii.pill),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    selected ? widget.tab.selectedIcon : widget.tab.icon,
+                    size: IconSize.large,
+                    color: color,
+                  ),
                 ),
               ),
               const SizedBox(height: Space.s4),
