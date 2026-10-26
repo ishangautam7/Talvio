@@ -81,73 +81,276 @@ class FakeDesktop extends StatelessWidget {
 class _DesktopPainter extends CustomPainter {
   const _DesktopPainter();
 
+  static void _text(
+    Canvas canvas,
+    String text,
+    Offset at,
+    double size,
+    Color color, {
+    FontWeight weight = FontWeight.w400,
+    double? maxWidth,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontFamily: 'Geist',
+          fontSize: size,
+          fontWeight: weight,
+          color: color,
+          height: 1.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      ellipsis: '…',
+    )..layout(maxWidth: maxWidth ?? double.infinity);
+    painter.paint(canvas, at);
+    painter.dispose();
+  }
+
+  static void _box(Canvas canvas, Rect r, Color color, [double radius = 0]) =>
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(r, Radius.circular(radius)),
+        Paint()..color = color,
+      );
+
   @override
   void paint(Canvas canvas, Size size) {
-    final r = Offset.zero & size;
+    final w = size.width;
+    final h = size.height;
+    final all = Offset.zero & size;
+    // Wallpaper: a Windows-style bloom.
     canvas.drawRect(
-      r,
+      all,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(0.2, 0.4),
+          radius: 1.1,
+          colors: [Color(0xFF4F7BD9), Color(0xFF1B3A86), Color(0xFF0C1736)],
+        ).createShader(all),
+    );
+
+    // The browser window.
+    final win = Rect.fromLTWH(w * 0.035, h * 0.04, w * 0.93, h * 0.86);
+    canvas.save();
+    canvas.clipRRect(RRect.fromRectAndRadius(win, const Radius.circular(8)));
+    _box(canvas, win, const Color(0xFF0F0F0F));
+    final u = win.width / 100; // one percent of the window's width
+    // Tab strip and address bar.
+    _box(
+      canvas,
+      Rect.fromLTWH(win.left, win.top, win.width, u * 3.6),
+      const Color(0xFF202124),
+    );
+    _box(
+      canvas,
+      Rect.fromLTWH(win.left + u * 1.5, win.top + u * 0.8, u * 16, u * 2.8),
+      const Color(0xFF35363A),
+      u * 0.8,
+    );
+    _box(
+      canvas,
+      Rect.fromLTWH(win.left + u * 2.3, win.top + u * 1.6, u * 1.2, u * 1.2),
+      const Color(0xFFFF0033),
+      u * 0.3,
+    );
+    _text(
+      canvas,
+      'Believer - YouTube',
+      Offset(win.left + u * 4.2, win.top + u * 1.25),
+      u * 1.25,
+      const Color(0xFFE8EAED),
+      maxWidth: u * 12,
+    );
+    _box(
+      canvas,
+      Rect.fromLTWH(win.left, win.top + u * 3.6, win.width, u * 3.4),
+      const Color(0xFF35363A),
+    );
+    _box(
+      canvas,
+      Rect.fromLTWH(win.left + u * 8, win.top + u * 4.2, u * 70, u * 2.2),
+      const Color(0xFF202124),
+      u * 1.1,
+    );
+    _text(
+      canvas,
+      'youtube.com/watch?v=7wtfhZwyrcc',
+      Offset(win.left + u * 9.5, win.top + u * 4.55),
+      u * 1.2,
+      const Color(0xFFBDC1C6),
+    );
+
+    // The player: warm stage light, the band on it.
+    final top = win.top + u * 9;
+    final player = Rect.fromLTWH(win.left + u * 3, top, u * 64, u * 36);
+    canvas.drawRect(
+      player,
       Paint()
         ..shader = const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF243B6B), Color(0xFF6B3B7A)],
-        ).createShader(r),
+          colors: [Color(0xFF2B0F3A), Color(0xFFB2331F), Color(0xFFF59E3B)],
+          stops: [0.0, 0.6, 1.0],
+        ).createShader(player),
     );
-    final win = Rect.fromLTWH(
-      size.width * 0.08,
-      size.height * 0.08,
-      size.width * 0.62,
-      size.height * 0.74,
+    canvas.drawCircle(
+      player.center + Offset(u * 12, -u * 6),
+      u * 16,
+      Paint()
+        ..shader =
+            RadialGradient(
+              colors: [
+                const Color(0xFFFFE0A3).withValues(alpha: 0.85),
+                const Color(0xFFFFE0A3).withValues(alpha: 0),
+              ],
+            ).createShader(
+              Rect.fromCircle(
+                center: player.center + Offset(u * 12, -u * 6),
+                radius: u * 16,
+              ),
+            ),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(win, const Radius.circular(6)),
-      Paint()..color = const Color(0xFFF7F7F9),
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(win.left, win.top, win.width, size.height * 0.07),
-      Paint()..color = const Color(0xFFE8E8EE),
-    );
-    final red = Rect.fromLTWH(
-      win.left + win.width * 0.06,
-      win.top + size.height * 0.12,
-      win.width * 0.88,
-      win.height * 0.42,
-    );
-    canvas.drawRect(red, Paint()..color = const Color(0xFF111111));
-    final play = Path()
-      ..moveTo(red.center.dx - 10, red.center.dy - 12)
-      ..lineTo(red.center.dx + 14, red.center.dy)
-      ..lineTo(red.center.dx - 10, red.center.dy + 12)
-      ..close();
-    canvas.drawPath(play, Paint()..color = const Color(0xFFFF0033));
-    final line = Paint()..color = const Color(0xFFCFCFD8);
-    for (var i = 0; i < 4; i++) {
+    // Silhouettes on the stage.
+    final ink = Paint()..color = const Color(0xE6100A14);
+    for (final (x, hgt) in [
+      (0.18, 0.42),
+      (0.36, 0.5),
+      (0.58, 0.46),
+      (0.78, 0.4),
+    ]) {
+      final cx = player.left + player.width * x;
+      final base = player.bottom - u * 3;
+      canvas.drawCircle(Offset(cx, base - player.height * hgt), u * 1.6, ink);
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(
-            red.left,
-            red.bottom + 10 + i * 12.0,
-            red.width * (0.9 - i * 0.18),
-            6,
+          Rect.fromLTRB(
+            cx - u * 2.4,
+            base - player.height * hgt + u * 1.8,
+            cx + u * 2.4,
+            base,
           ),
-          const Radius.circular(3),
+          Radius.circular(u * 1.5),
         ),
-        line,
+        ink,
       );
     }
-    final side = Rect.fromLTWH(
-      size.width * 0.74,
-      size.height * 0.08,
-      size.width * 0.2,
-      size.height * 0.5,
+    _box(
+      canvas,
+      Rect.fromLTWH(player.left, player.bottom - u * 3, player.width, u * 3),
+      const Color(0x99000000),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(side, const Radius.circular(6)),
-      Paint()..color = const Color(0xFF1E1F2E),
+    _box(
+      canvas,
+      Rect.fromLTWH(
+        player.left,
+        player.bottom - u * 0.5,
+        player.width,
+        u * 0.5,
+      ),
+      const Color(0x66FFFFFF),
     );
-    canvas.drawRect(
-      Rect.fromLTWH(0, size.height * 0.93, size.width, size.height * 0.07),
-      Paint()..color = const Color(0xCC111222),
+    _box(
+      canvas,
+      Rect.fromLTWH(
+        player.left,
+        player.bottom - u * 0.5,
+        player.width * 0.38,
+        u * 0.5,
+      ),
+      const Color(0xFFFF0033),
+    );
+    canvas.drawCircle(
+      Offset(player.left + player.width * 0.38, player.bottom - u * 0.25),
+      u * 0.7,
+      Paint()..color = const Color(0xFFFF0033),
+    );
+    _text(
+      canvas,
+      '1:22 / 3:24',
+      Offset(player.left + u * 1.5, player.bottom - u * 2.4),
+      u * 1.15,
+      Colors.white,
+    );
+    _text(
+      canvas,
+      'Imagine Dragons - Believer (Official Music Video)',
+      Offset(player.left, player.bottom + u * 1.6),
+      u * 2,
+      Colors.white,
+      weight: FontWeight.w600,
+      maxWidth: player.width,
+    );
+    _text(
+      canvas,
+      'ImagineDragonsVEVO · 2.6B views',
+      Offset(player.left, player.bottom + u * 4.6),
+      u * 1.3,
+      const Color(0xFFAAAAAA),
+    );
+
+    // Up next.
+    for (var i = 0; i < 5; i++) {
+      final y = top + i * u * 8.6;
+      final thumb = Rect.fromLTWH(win.left + u * 70, y, u * 12, u * 6.8);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(thumb, Radius.circular(u * 0.8)),
+        Paint()
+          ..shader = LinearGradient(
+            colors: [
+              HSVColor.fromAHSV(
+                1,
+                (i * 57 + 200) % 360.0,
+                0.55,
+                0.55,
+              ).toColor(),
+              HSVColor.fromAHSV(1, (i * 57 + 240) % 360.0, 0.65, 0.3).toColor(),
+            ],
+          ).createShader(thumb),
+      );
+      _box(
+        canvas,
+        Rect.fromLTWH(win.left + u * 83.5, y + u * 0.6, u * 12, u * 1),
+        const Color(0xFF3F3F3F),
+        u * 0.5,
+      );
+      _box(
+        canvas,
+        Rect.fromLTWH(win.left + u * 83.5, y + u * 2.4, u * 8, u * 1),
+        const Color(0xFF2E2E2E),
+        u * 0.5,
+      );
+    }
+    canvas.restore();
+
+    // Taskbar.
+    final bar = Rect.fromLTWH(0, h * 0.93, w, h * 0.07);
+    _box(canvas, bar, const Color(0xE61C1F2B));
+    final icons = [
+      const Color(0xFF4CC2FF),
+      const Color(0xFFF4B400),
+      const Color(0xFF34A853),
+      const Color(0xFFEA4335),
+      const Color(0xFF2B579A),
+      const Color(0xFF0078D4),
+    ];
+    final s = bar.height * 0.5;
+    final start = w / 2 - (icons.length * s * 1.6) / 2;
+    for (final (i, color) in icons.indexed) {
+      _box(
+        canvas,
+        Rect.fromLTWH(start + i * s * 1.6, bar.top + bar.height * 0.25, s, s),
+        color,
+        s * 0.25,
+      );
+    }
+    _text(
+      canvas,
+      '9:41',
+      Offset(w - bar.height * 2.2, bar.top + bar.height * 0.28),
+      bar.height * 0.36,
+      Colors.white,
     );
   }
 
@@ -305,27 +508,48 @@ String lastId(FakeServer server, String kind) {
 void reply(FakeServer server, String id, Map<String, Object?> body) =>
     server.relay('pc', {'requestId': id, ...body});
 
+// What the assistant does today: it acts, then says what it did. There is
+// no "Go ahead?" step any more (the desktop sends the email and reports it).
 const chat = '''
 {"conversation":"c1","conversationComputer":"pc","turns":[
 {"computerId":"pc","computerName":"ISHAN-PC","spoken":true,
  "question":"Play Believer by Imagine Dragons on YouTube",
- "answer":"Playing **Believer** by Imagine Dragons on YouTube. Turn it up from the dock if you want to hear it here.",
- "actions":[{"label":"Opened YouTube in Chrome","status":"done"},{"label":"Played “Believer”","status":"done"}]},
+ "answer":"Playing **Believer** by Imagine Dragons on YouTube. Open the live view to watch it here.",
+ "actions":[{"label":"Played Believer on YouTube","status":"done"}]},
 {"computerId":"pc","computerName":"ISHAN-PC","spoken":false,
  "question":"Email Ron that the meeting moves to 9",
- "answer":"I drafted it in Gmail:\\n\\n> Hi Ron, the meeting moves to **9:00** tomorrow. See you then.",
- "actions":[{"label":"Drafted an email to Ron","status":"done"},{"label":"Send the email to Ron","status":"awaiting_confirmation"}],
- "pending":{"id":7,"summary":"Send the email to Ron"}}
+ "answer":"Sent. I wrote to Ron:\\n\\n> Hi Ron, the meeting moves to **9:00** tomorrow. See you then.",
+ "actions":[{"label":"Sent to Ron","status":"done"}]}
 ]}''';
 
+int _at(int day, int hour, int minute) =>
+    DateTime(2026, 10, day, hour, minute).millisecondsSinceEpoch;
+
 final commandsRecent =
-    '[{"said":"Open YouTube","feedback":"Opened YouTube.","status":"done","at":${DateTime(2026, 10, 25, 9, 12).millisecondsSinceEpoch}},'
-    '{"said":"Turn the volume down","feedback":"Volume set to 30%.","status":"done","at":${DateTime(2026, 10, 25, 9, 2).millisecondsSinceEpoch}},'
-    '{"said":"Open Spotfy","feedback":"I couldn\'t find an app called Spotfy.","status":"failed","at":${DateTime(2026, 10, 24, 18, 40).millisecondsSinceEpoch}}]';
+    '[{"said":"Email me the project report","feedback":"Sent Project report.pdf to you.","status":"done","at":${_at(26, 9, 41)}},'
+    '{"said":"Play Believer by Imagine Dragons","feedback":"Playing Believer on YouTube.","status":"done","at":${_at(26, 9, 30)}},'
+    '{"said":"Turn the volume down","feedback":"Volume set to 30%.","status":"done","at":${_at(26, 9, 28)}},'
+    '{"said":"Open Gmail","feedback":"Opened Gmail in Chrome.","status":"done","at":${_at(25, 18, 2)}}]';
 
 final dictationsRecent =
-    '[{"text":"Thanks for the notes. I will send the revised deck by Friday afternoon.","at":${DateTime(2026, 10, 25, 9, 30).millisecondsSinceEpoch}},'
-    '{"text":"Can we move the stand-up to ten tomorrow?","at":${DateTime(2026, 10, 24, 17, 5).millisecondsSinceEpoch}}]';
+    '[{"text":"Thanks for the notes. I will send the revised deck by Friday afternoon.","at":${_at(26, 9, 30)}},'
+    '{"text":"Can we move the stand-up to ten tomorrow?","at":${_at(25, 17, 5)}}]';
+
+const _windows = [
+  {'id': 'w1', 'title': 'Q4 plan.docx', 'app': 'Word', 'front': true},
+  {'id': 'w2', 'title': 'Believer - YouTube', 'app': 'Google Chrome'},
+  {'id': 'w3', 'title': 'Inbox (3)', 'app': 'Outlook'},
+];
+
+const _screens = [
+  {
+    'id': 's1',
+    'name': 'Display 1',
+    'width': 2560,
+    'height': 1440,
+    'primary': true,
+  },
+];
 
 void main() {
   setUpAll(_loadFonts);
@@ -378,6 +602,7 @@ void main() {
         dark: dark,
         prefs: {'account.assistant.chat': chat},
       );
+      await shot(tester, '03-ask-chat-$m');
       await tester.enterText(
         find.byType(TextField),
         "What's on my calendar tomorrow?",
@@ -393,7 +618,7 @@ void main() {
       });
       await tester.pump();
       await tester.pump();
-      await shot(tester, '03-ask-chat-$m');
+      await shot(tester, '26-ask-working-$m');
       reply(server, id, {
         'kind': 'progress',
         'stage': 'answer',
@@ -414,10 +639,7 @@ void main() {
       );
       await tab(tester, 'Do');
       await shot(tester, '05-do-$m');
-      await tester.enterText(
-        find.byType(TextField),
-        'Email Ron that the meeting moves to 9',
-      );
+      await tester.enterText(find.byType(TextField), 'Email Ron the Q4 plan');
       await tester.pump();
       await tester.tap(find.byTooltip('Send the command'));
       await tester.pump();
@@ -433,15 +655,13 @@ void main() {
       reply(server, id, {
         'kind': 'result',
         'ok': true,
-        'transcript': 'Email Ron that the meeting moves to 9',
-        'status': 'awaiting_confirmation',
-        'feedback': 'I drafted the email to Ron in Gmail.',
-        'id': 7,
-        'pending': 'Send the email to Ron',
+        'transcript': 'Email Ron the Q4 plan',
+        'status': 'done',
+        'feedback': 'Sent Q4 plan.docx to Ron.',
       });
       await tester.pump();
       await tester.pump();
-      await shot(tester, '08-do-confirm-$m');
+      await shot(tester, '08-do-done-$m');
       await finish(tester, relay);
     });
 
@@ -458,7 +678,25 @@ void main() {
       await shot(tester, '25-dictate-keys-$m');
       await tester.tap(find.byTooltip('Hide keys'));
       await tester.pump();
+      await tester.tap(find.text('Where the cursor is'));
+      await tester.pump();
+      reply(server, lastId(server, 'windows.list'), {
+        'kind': 'result',
+        'ok': true,
+        'windows': _windows,
+        'screens': _screens,
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await shot(tester, '19-dictate-sheet-$m');
+      await tester.tap(find.text('Word').last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.bySemanticsLabel('Start dictating'));
+      // The recording's clock is a real stopwatch: let real time pass.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(seconds: 4)),
+      );
       for (var i = 0; i < 30; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -476,28 +714,6 @@ void main() {
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pump();
       await shot(tester, '11-dictate-pasted-$m');
-      await tester.tap(find.text('Where the cursor is'));
-      await tester.pump();
-      reply(server, lastId(server, 'windows.list'), {
-        'kind': 'result',
-        'ok': true,
-        'windows': [
-          {'id': 'w1', 'title': 'Q4 plan.docx', 'app': 'Word', 'front': true},
-          {'id': 'w2', 'title': 'Inbox (3)', 'app': 'Outlook'},
-        ],
-        'screens': [
-          {
-            'id': 's1',
-            'name': 'Display 1',
-            'width': 2560,
-            'height': 1440,
-            'primary': true,
-          },
-        ],
-      });
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await shot(tester, '19-dictate-sheet-$m');
       await finish(tester, relay);
     });
 
@@ -517,7 +733,7 @@ void main() {
           },
           {
             'id': 'w2',
-            'title': 'Claude Code — zynveliq',
+            'title': 'Claude Code — talvio',
             'app': 'Windows Terminal',
           },
           {'id': 'w3', 'title': 'Q4 plan.docx', 'app': 'Word'},
