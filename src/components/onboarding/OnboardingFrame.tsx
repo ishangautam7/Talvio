@@ -47,16 +47,16 @@ export const OnboardingFrame: React.FC<{
                   {i > 0 && (
                     <span
                       aria-hidden="true"
-                      className={`h-px w-6 ${i <= index ? "bg-accent/40" : "bg-hairline-strong"}`}
+                      className={`h-px w-6 ${i <= index ? "bg-ink/30" : "bg-hairline-strong"}`}
                     />
                   )}
                   <span
                     aria-hidden="true"
                     className={`grid h-5 w-5 place-items-center rounded-full text-[0.6875rem] font-semibold tabular-nums ${
                       state === "current"
-                        ? "bg-accent text-on-primary"
+                        ? "bg-ink text-surface"
                         : state === "done"
-                          ? "bg-accent/12 text-accent"
+                          ? "bg-surface-strong text-ink"
                           : "bg-surface-strong text-muted"
                     }`}
                   >

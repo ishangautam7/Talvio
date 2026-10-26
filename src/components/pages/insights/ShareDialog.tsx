@@ -582,7 +582,7 @@ export const ShareDialog: React.FC<{
             onClick={() => void copyImage()}
             disabled={disabled}
             data-autofocus
-            className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-on-primary transition-[transform,background-color] duration-150 hover:bg-accent-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-default disabled:opacity-40"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-on-primary transition-[transform,background-color] duration-150 hover:bg-accent-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-default disabled:opacity-40"
             aria-live="polite"
           >
             {copied ? (

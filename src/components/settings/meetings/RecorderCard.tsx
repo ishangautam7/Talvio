@@ -110,10 +110,10 @@ export const RecorderCard: React.FC<RecorderCardProps> = ({
             </button>
             <Button
               variant="secondary"
-              size="lg"
+              size="md"
               onClick={onTogglePause}
               disabled={busy !== null}
-              className="rounded-full"
+              className="h-9"
             >
               {paused ? (
                 <Play className="h-4 w-4" aria-hidden="true" />

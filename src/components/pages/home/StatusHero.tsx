@@ -54,7 +54,7 @@ export const StatusHero: React.FC = () => {
 
   const figures = stats && stats.total_words > 0 && (
     <div
-      className="grid grid-cols-1 divide-y divide-hairline @2xl:grid-cols-3 @2xl:divide-x @2xl:divide-y-0 rtl:@2xl:divide-x-reverse"
+      className="grid grid-cols-1 divide-y divide-hairline @2xl:grid-cols-3 @2xl:divide-x @2xl:divide-y-0"
       role="group"
       aria-label={t("home.stats.label")}
     >

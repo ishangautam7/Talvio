@@ -43,7 +43,7 @@ export const SignedIn: React.FC<SignedInProps> = ({ status, user }) => {
       <section className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-hairline bg-surface px-5 py-4 elev-card">
         <div
           aria-hidden="true"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent/12 font-display text-lg text-accent"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-strong font-display text-base text-ink"
         >
           {avatarLetter(user)}
         </div>

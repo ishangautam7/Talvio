@@ -17,8 +17,8 @@ const NeedsSpeechModel: React.FC = () => {
   const { t } = useTranslation();
   const { openModelSlot } = useNavigation();
   return (
-    <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-warning/25 bg-warning/[0.06] px-5 py-3.5">
-      <span className="h-2 w-2 shrink-0 rounded-full bg-warning shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-warning)_16%,transparent)]" />
+    <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-3 rounded-2xl border border-hairline bg-surface px-5 py-3 elev-card">
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" />
       <p className="min-w-0 flex-1 text-sm font-medium text-ink">
         {t("home.needsModel.title")}
       </p>

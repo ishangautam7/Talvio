@@ -185,7 +185,7 @@ export const Dialog: React.FC<DialogProps> = ({
         aria-labelledby={bare ? labelledBy : title ? titleId : undefined}
         tabIndex={-1}
         onKeyDown={onPanelKeyDown}
-        className={`${isDrawer ? "" : "dialog-panel max-h-[calc(100vh-3rem)]"} relative flex flex-col overflow-hidden rounded-[1.375rem] bg-surface text-ink shadow-[0_0_0_1px_rgba(22,21,27,0.06),0_32px_80px_-24px_rgba(22,21,27,0.42),0_4px_12px_rgba(22,21,27,0.06)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
+        className={`${isDrawer ? "" : "dialog-panel max-h-[calc(100vh-3rem)]"} relative flex flex-col overflow-hidden rounded-3xl bg-surface text-ink shadow-[0_0_0_1px_rgba(24,24,27,0.08),0_24px_64px_-20px_rgba(24,24,27,0.32),0_2px_8px_rgba(24,24,27,0.05)] outline-none dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),inset_0_1px_0_rgba(255,255,255,0.05),0_32px_80px_-20px_rgba(0,0,0,0.85)] ${SIZE_CLASSES[size]} ${className}`}
       >
         {!bare && (
           <div className="flex shrink-0 items-start gap-4 px-6 pt-6 pb-4">
@@ -233,7 +233,7 @@ export const DialogCloseButton: React.FC<{
     onClick={onClick}
     aria-label={label}
     title={label}
-    className={`-me-2 -mt-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition-colors hover:bg-ink/[0.07] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${className}`}
+    className={`-me-2 -mt-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.07] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${className}`}
   >
     <X className="h-4 w-4" aria-hidden="true" />
   </button>
