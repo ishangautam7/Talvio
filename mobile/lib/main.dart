@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,17 +15,20 @@ import 'src/shell/features.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // The fonts' licences, for the Licences page under Account.
+  // The fonts' and icons' licences, for the Licences page under Account.
   LicenseRegistry.addLicense(() async* {
     for (final (family, file) in const [
-      ('Inter', 'OFL-Inter.txt'),
+      ('Geist', 'OFL-Geist.txt'),
       ('Plus Jakarta Sans', 'OFL-PlusJakartaSans.txt'),
+      ('Phosphor Icons', 'LICENSE-Phosphor.txt'),
     ]) {
       yield LicenseEntryWithLineBreaks([
         family,
       ], await rootBundle.loadString('assets/fonts/$file'));
     }
   });
+  // Drawn edge to edge, under transparent system bars.
+  unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
   // A build made with an invalid TALVIO_SERVER_URL stops here.
   final pinned = pinnedServerUrl();
   final prefs = await SharedPreferences.getInstance();

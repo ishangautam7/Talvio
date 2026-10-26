@@ -25,6 +25,7 @@ import 'package:talvio_mobile/src/design/components.dart';
 import 'package:talvio_mobile/src/features/screen/live_controller.dart';
 import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
 import 'package:talvio_mobile/src/features/screen/rtc_link.dart';
+import 'package:talvio_mobile/src/shell/home_shell.dart';
 
 import '../test/helpers.dart';
 
@@ -41,26 +42,18 @@ Future<void> _loadFonts() async {
     await loader.load();
   }
 
-  await family('Inter', [
-    for (final w in [400, 500, 600, 700]) 'assets/fonts/Inter-$w.ttf',
+  await family('Geist', [
+    for (final w in ['Regular', 'Medium', 'SemiBold'])
+      'assets/fonts/Geist-$w.ttf',
   ]);
-  await family('PlusJakartaSans', [
-    'assets/fonts/PlusJakartaSans-700.ttf',
-    'assets/fonts/PlusJakartaSans-800.ttf',
+  await family('GeistMono', [
+    'assets/fonts/GeistMono-Regular.ttf',
+    'assets/fonts/GeistMono-Medium.ttf',
   ]);
-  // Flutter's own copy of the icon font: tests only have Ahem otherwise.
-  final root = Platform.environment['FLUTTER_ROOT'] ?? '.';
-  final icons = FontLoader('MaterialIcons')
-    ..addFont(
-      Future.value(
-        ByteData.sublistView(
-          File(
-            '$root/bin/cache/artifacts/material_fonts/materialicons-regular.otf',
-          ).readAsBytesSync(),
-        ),
-      ),
-    );
-  await icons.load();
+  await family('PlusJakartaSans', ['assets/fonts/PlusJakartaSans-800.ttf']);
+  for (final style in ['Regular', 'Fill', 'Duotone']) {
+    await family('Phosphor$style', ['assets/fonts/Phosphor-$style.ttf']);
+  }
 }
 
 Future<void> shot(WidgetTester tester, String name) async {
@@ -296,7 +289,7 @@ Future<void> finish(WidgetTester tester, RelayClient relay) async {
 
 Future<void> tab(WidgetTester tester, String label) async {
   await tester.tap(
-    find.descendant(of: find.byType(NavigationBar), matching: find.text(label)),
+    find.descendant(of: find.byType(TalvioNavBar), matching: find.text(label)),
   );
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
@@ -460,6 +453,11 @@ void main() {
       );
       await tab(tester, 'Dictate');
       await shot(tester, '09-dictate-$m');
+      await tester.tap(find.byTooltip('Keys'));
+      await tester.pump();
+      await shot(tester, '25-dictate-keys-$m');
+      await tester.tap(find.byTooltip('Hide keys'));
+      await tester.pump();
       await tester.tap(find.bySemanticsLabel('Start dictating'));
       for (var i = 0; i < 30; i++) {
         await tester.pump(const Duration(milliseconds: 100));
@@ -478,6 +476,28 @@ void main() {
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pump();
       await shot(tester, '11-dictate-pasted-$m');
+      await tester.tap(find.text('Where the cursor is'));
+      await tester.pump();
+      reply(server, lastId(server, 'windows.list'), {
+        'kind': 'result',
+        'ok': true,
+        'windows': [
+          {'id': 'w1', 'title': 'Q4 plan.docx', 'app': 'Word', 'front': true},
+          {'id': 'w2', 'title': 'Inbox (3)', 'app': 'Outlook'},
+        ],
+        'screens': [
+          {
+            'id': 's1',
+            'name': 'Display 1',
+            'width': 2560,
+            'height': 1440,
+            'primary': true,
+          },
+        ],
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await shot(tester, '19-dictate-sheet-$m');
       await finish(tester, relay);
     });
 
@@ -516,7 +536,7 @@ void main() {
       await tester.pump();
       await tester.pump();
       await shot(tester, '12-screen-$m');
-      await tester.tap(find.text('View screen'));
+      await tester.tap(find.text('Display 1'));
       await tester.pump();
       final watch = lastId(server, 'screen.watch');
       reply(server, watch, {
@@ -537,6 +557,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       await shot(tester, '15-live-full-$m');
+      await tester.tap(find.byTooltip('More options'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await shot(tester, '20-live-options-$m');
       await finish(tester, relay);
     });
 
@@ -559,6 +583,29 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       await shot(tester, '16-account-$m');
+      await finish(tester, relay);
+    });
+
+    testWidgets('computers $m', (tester) async {
+      final (_, relay) = await app(
+        tester,
+        dark: dark,
+        devices: [
+          deviceJson(
+            id: 'phone',
+            name: 'Pixel 9',
+            kind: 'mobile',
+            current: true,
+          ),
+          deviceJson(capabilities: _computer),
+          deviceJson(id: 'mac', name: 'MacBook Air', online: false),
+        ],
+        prefs: {'account.dictate.computer': 'pc'},
+      );
+      await tester.tap(find.bySemanticsLabel('Choose computer'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await shot(tester, '21-computers-$m');
       await finish(tester, relay);
     });
 
@@ -587,4 +634,24 @@ void main() {
       await finish(tester, relay);
     });
   }
+
+  testWidgets('large text', (tester) async {
+    final (_, relay) = await app(
+      tester,
+      prefs: {
+        'account.command.recent': commandsRecent,
+        'account.dictate.recent': dictationsRecent,
+      },
+    );
+    tester.view.physicalSize = const Size(360, 780);
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pump();
+    await shot(tester, '22-large-ask');
+    await tab(tester, 'Do');
+    await shot(tester, '23-large-do');
+    await tab(tester, 'Dictate');
+    await shot(tester, '24-large-dictate');
+    await finish(tester, relay);
+  });
 }

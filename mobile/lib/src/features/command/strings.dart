@@ -28,6 +28,7 @@ abstract final class CommandStrings {
 
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to tell it what to do.';
+  static String updateTitle(String name) => 'Update Talvio on $name';
   static String updateNote(String name) =>
       'Update Talvio on $name to tell it what to do from your phone.';
 

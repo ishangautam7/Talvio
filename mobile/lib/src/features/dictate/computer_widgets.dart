@@ -9,12 +9,12 @@ import '../../core/models.dart';
 import '../../core/relay_client.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
+import '../account/strings.dart';
 import 'dictate_controller.dart';
 import 'remote_windows.dart';
 import 'strings.dart';
 
-TextStyle? mutedText(BuildContext context) =>
-    context.text.bodyMedium?.copyWith(color: context.talvio.muted);
+export '../../design/icons.dart' show platformIcon;
 
 /// A window as two lines: the app, and its title (null when the app is all
 /// there is to say).
@@ -25,20 +25,16 @@ TextStyle? mutedText(BuildContext context) =>
   RemoteWindow(:final app, :final title) => (app, title),
 };
 
-/// The platform's icon.
-IconData platformIcon(String platform) => switch (platform) {
-  'windows' => Icons.desktop_windows_rounded,
-  'macos' => Icons.laptop_mac_rounded,
-  'linux' => Icons.computer_rounded,
-  'ios' => Icons.phone_iphone_rounded,
-  'android' => Icons.phone_android_rounded,
-  _ => Icons.devices_other_rounded,
-};
-
 /// "Online · Windows", or "Offline".
 String presence(Device computer) => computer.online
     ? DictateStrings.onlineOn(computer.platform)
     : DictateStrings.offline;
+
+/// "Online · Windows", or "Offline · last seen 3 days ago".
+String presenceLong(Device computer) => computer.online
+    ? DictateStrings.onlineOn(computer.platform)
+    : '${DictateStrings.offline} · '
+          '${AccountStrings.lastSeen(computer.lastSeenAt, DateTime.now()).toLowerCase()}';
 
 /// Whether the user may switch computers now: there is more than one, and
 /// no recording or request is holding on to this one.
@@ -49,33 +45,20 @@ bool canChooseComputer(DictateController controller) =>
 Future<void> chooseComputer(
   BuildContext context,
   DictateController controller,
-) => showModalBottomSheet<void>(
-  context: context,
-  builder: (context) => SafeArea(
-    child: ListView(
-      shrinkWrap: true,
-      padding: const EdgeInsets.only(bottom: Space.lg),
+) => showTalvioSheet<void>(
+  context,
+  title: DictateStrings.pickComputerTitle,
+  builder: (sheet) => SingleChildScrollView(
+    child: SheetRows(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.page,
-            0,
-            Space.page,
-            Space.md,
-          ),
-          child: Text(
-            DictateStrings.chooseComputer,
-            style: context.text.titleLarge,
-          ),
-        ),
         for (final computer in controller.computers)
-          ComputerTile(
+          ComputerRow(
             computer,
             selected: computer.id == controller.computer?.id,
             onTap: () {
               Haptic.tick();
               controller.choose(computer.id);
-              Navigator.pop(context);
+              Navigator.pop(sheet);
             },
           ),
       ],
@@ -83,55 +66,10 @@ Future<void> chooseComputer(
   ),
 );
 
-/// The computer's icon on the ink tile, with its presence dot.
-class ComputerAvatar extends StatelessWidget {
-  const ComputerAvatar(this.computer, {super.key, this.size = 40});
-
-  final Device computer;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.talvio;
-    return SizedBox.square(
-      dimension: size + 4,
-      child: Stack(
-        children: [
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              gradient: TalvioColors.inkTile,
-              borderRadius: BorderRadius.circular(size * 0.3),
-            ),
-            child: Icon(
-              platformIcon(computer.platform),
-              size: size * 0.5,
-              color: Colors.white,
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: size * 0.36,
-              height: size * 0.36,
-              decoration: BoxDecoration(
-                color: computer.online ? t.success : t.faint,
-                shape: BoxShape.circle,
-                border: Border.all(color: t.canvas, width: 2.5),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The top of the app: the computer, its presence, and the switcher when
-/// there are several. [connecting] says the server link is down.
-class ComputerSwitcher extends StatelessWidget {
+/// The top of the app: the computer's name and how it is, one button that
+/// opens the switcher when there are several. [connecting] says the server
+/// link is down.
+class ComputerSwitcher extends StatefulWidget {
   const ComputerSwitcher({
     super.key,
     required this.computer,
@@ -144,70 +82,100 @@ class ComputerSwitcher extends StatelessWidget {
   final bool connecting;
 
   @override
+  State<ComputerSwitcher> createState() => _ComputerSwitcherState();
+}
+
+class _ComputerSwitcherState extends State<ComputerSwitcher> {
+  var _down = false;
+
+  @override
   Widget build(BuildContext context) {
     final t = context.talvio;
-    final status = connecting
+    final computer = widget.computer;
+    final onTap = widget.onTap;
+    final status = widget.connecting
         ? DictateStrings.connectingShort
         : presence(computer);
+    final dot = widget.connecting
+        ? StatusDot(color: t.warning, pulse: true)
+        : StatusDot(color: computer.online ? t.success : t.faint);
     return Semantics(
       button: onTap != null,
       label: DictateStrings.chooseComputer,
       value: '${computer.name}, $status',
       excludeSemantics: true,
       onTap: onTap,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(Radii.md),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: onTap == null ? null : (_) => setState(() => _down = true),
+        onTapUp: onTap == null ? null : (_) => setState(() => _down = false),
+        onTapCancel: onTap == null ? null : () => setState(() => _down = false),
+        onTap: onTap == null
+            ? null
+            : () {
+                Haptic.tick();
+                onTap();
+              },
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ComputerAvatar(computer, size: 36),
-              const SizedBox(width: Space.sm),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
+          // A wider hit area, with the text still at the gutter.
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: AnimatedOpacity(
+              duration: Motion.press,
+              opacity: _down ? 0.6 : 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          computer.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TalvioType.title2.copyWith(color: t.ink),
+                        ),
+                      ),
+                      if (onTap != null) ...[
+                        const SizedBox(width: Space.s4),
+                        Icon(AppIcons.caretDown, size: 16, color: t.muted),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: Space.s2),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox.square(
+                        dimension: 6,
+                        child: OverflowBox(
+                          maxWidth: 14,
+                          maxHeight: 14,
+                          child: Center(child: dot),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: AnimatedSwitcher(
+                          duration: Motion.quick,
                           child: Text(
-                            computer.name,
+                            status,
+                            key: ValueKey(status),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: context.text.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: TalvioType.footnote.copyWith(color: t.muted),
                           ),
                         ),
-                        if (onTap != null)
-                          Icon(
-                            Icons.expand_more_rounded,
-                            size: 20,
-                            color: t.muted,
-                          ),
-                      ],
-                    ),
-                    Text(
-                      status,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.text.bodySmall?.copyWith(
-                        color: connecting
-                            ? t.warning
-                            : computer.online
-                            ? t.success
-                            : t.muted,
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -215,8 +183,9 @@ class ComputerSwitcher extends StatelessWidget {
   }
 }
 
-class ComputerTile extends StatelessWidget {
-  const ComputerTile(
+/// A computer as a row: its platform on a tile with its presence dot.
+class ComputerRow extends StatelessWidget {
+  const ComputerRow(
     this.computer, {
     super.key,
     required this.selected,
@@ -229,14 +198,18 @@ class ComputerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      minVerticalPadding: 10,
-      leading: ComputerAvatar(computer, size: 40),
-      title: Text(computer.name, style: context.text.titleMedium),
-      subtitle: Text(presence(computer)),
+    final t = context.talvio;
+    return ListRow(
+      leading: RowTile(
+        platformIcon(computer.platform),
+        presence: computer.online ? t.success : t.faint,
+      ),
+      title: computer.name,
+      subtitle: presenceLong(computer),
       trailing: selected
-          ? Icon(Icons.check_circle_rounded, color: context.talvio.accent)
+          ? Icon(AppIcons.check, size: 20, color: t.accent)
           : null,
+      selected: selected,
       onTap: onTap,
     );
   }
@@ -251,42 +224,39 @@ class PickComputer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.talvio;
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: Space.xxl),
+      padding: const EdgeInsets.only(top: Space.s24, bottom: Space.s24),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.page,
-            0,
-            Space.page,
-            Space.xs,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Text(
             DictateStrings.pickComputerTitle,
-            style: context.text.headlineMedium,
+            style: TalvioType.title1.copyWith(color: t.ink),
           ),
         ),
+        const SizedBox(height: Space.s8),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.page,
-            0,
-            Space.page,
-            Space.lg,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Text(
             DictateStrings.pickComputerBody,
-            style: mutedText(context),
+            style: TalvioType.rowBody.copyWith(color: t.muted),
           ),
         ),
-        for (final computer in computers)
-          ComputerTile(
-            computer,
-            selected: false,
-            onTap: () {
-              Haptic.tick();
-              onPick(computer.id);
-            },
-          ),
+        const SizedBox(height: Space.s24),
+        Group(
+          children: [
+            for (final computer in computers)
+              ComputerRow(
+                computer,
+                selected: false,
+                onTap: () {
+                  Haptic.tick();
+                  onPick(computer.id);
+                },
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -299,7 +269,7 @@ class NoComputer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => EmptyState(
-    icon: Icons.add_to_queue_rounded,
+    icon: DuoIcons.addComputer,
     title: DictateStrings.noComputerTitle,
     body: DictateStrings.noComputerBody(email),
   );
@@ -327,11 +297,9 @@ class ComputerGate extends StatelessWidget {
     final known = relay.devices.value != null;
     final computers = controller.computers;
     return switch ((known, controller.computer)) {
-      (false, _) => EmptyState(
-        icon: Icons.wifi_tethering_rounded,
-        title: DictateStrings.connectingTitle,
-        body: DictateStrings.connecting,
-        tone: Tone.neutral,
+      (false, _) => const EmptyState(
+        icon: DuoIcons.addComputer,
+        title: DictateStrings.connecting,
         busy: true,
       ),
       (true, null) when computers.isNotEmpty => PickComputer(

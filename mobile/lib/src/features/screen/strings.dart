@@ -5,8 +5,10 @@ abstract final class ScreenStrings {
   static const homeTab = 'Screen';
   static String heroTitle(String name) => "See $name's screen";
   static const heroBody =
-      'A small live view that stays at the top while you talk to your '
-      'computer. Watch only: nothing is clicked from here.';
+      'Watch it in a small view at the top while you talk to your computer. '
+      'Watch only: nothing is clicked or scrolled from here.';
+  static const watching = 'Watching';
+  static const moreOptions = 'More options';
   static const viewScreen = 'View screen';
   static String viewScreenDetail(String screen, String size) =>
       '$screen · $size';
@@ -22,9 +24,7 @@ abstract final class ScreenStrings {
     'Go to Settings, then Account',
     'Turn on "Let phones see and use windows"',
   ];
-  static const turnOnBody =
-      'In Talvio on the computer, open Settings, Account, and turn on '
-      '"Let phones see and use windows". Then pull down here to refresh.';
+  static const turnOnBody = 'Then pull down here to refresh.';
   static String updateBody(String name) =>
       'Update Talvio on $name to see its screen from your phone.';
   static String offlineBody(String name) =>
