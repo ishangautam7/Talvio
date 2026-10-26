@@ -202,13 +202,13 @@ The routes are OpenAI-compatible under the base `{server}/v1/free`, so a client
 treats it as one more OpenAI-compatible provider whose API key is the session
 token (`Authorization: Bearer <token>`).
 
-| Method & path                         | Body → Response                                                                    |
-| ------------------------------------- | ---------------------------------------------------------------------------------- |
-| `GET /v1/free/balance`                | → `{ "limitUsd": 1, "usedUsd": 0.0123, "remainingUsd": 0.9877, "enabled": true }`  |
-| `GET /v1/free/models`                 | → OpenAI model list of the configured ones (below)                                 |
-| `POST /v1/free/chat/completions`      | OpenAI chat completions request → its response, or SSE with `"stream": true`       |
-| `POST /v1/free/audio/transcriptions`  | OpenAI multipart (`file`, `model`, `language?`, `prompt?`, `response_format?`) → `{ "text": "…" }` |
-| `POST /v1/free/audio/speech`          | `{ input, voice?, model?, response_format?, speed? }` → MP3 bytes (`audio/mpeg`)   |
+| Method & path                        | Body → Response                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `GET /v1/free/balance`               | → `{ "limitUsd": 1, "usedUsd": 0.0123, "remainingUsd": 0.9877, "enabled": true }`                  |
+| `GET /v1/free/models`                | → OpenAI model list of the configured ones (below)                                                 |
+| `POST /v1/free/chat/completions`     | OpenAI chat completions request → its response, or SSE with `"stream": true`                       |
+| `POST /v1/free/audio/transcriptions` | OpenAI multipart (`file`, `model`, `language?`, `prompt?`, `response_format?`) → `{ "text": "…" }` |
+| `POST /v1/free/audio/speech`         | `{ input, voice?, model?, response_format?, speed? }` → MP3 bytes (`audio/mpeg`)                   |
 
 - Model ids: `talvio-free-chat`, `talvio-free-transcribe`, `talvio-free-speech`.
   The `model` a request names is ignored: the server always uses its
