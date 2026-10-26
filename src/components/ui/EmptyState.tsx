@@ -16,8 +16,8 @@ export const EmptyState: React.FC<{
   <div
     className={`empty-state flex flex-col items-center rounded-2xl border border-dashed border-hairline-strong px-6 py-12 text-center ${className}`}
   >
-    <span className="empty-state-tile grid h-12 w-12 place-items-center rounded-[0.875rem] text-muted">
-      <Icon className="h-5 w-5" aria-hidden="true" />
+    <span className="empty-state-tile grid h-10 w-10 place-items-center rounded-xl text-muted">
+      <Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden="true" />
     </span>
     <p className="mt-4 text-[0.9375rem] font-medium text-ink text-balance">
       {title}
