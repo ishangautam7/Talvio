@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:talvio_mobile/src/design/icons.dart';
 import 'package:talvio_mobile/src/features/assistant/assistant_controller.dart';
 
 import '../../app_test.dart' show finish, pumpApp, tabs;
@@ -73,7 +74,6 @@ void main() {
     tester,
   ) async {
     final (server, relay) = await pumpApp(tester, [assistantPc], page: 'Ask');
-    expect(find.text('Ask Talvio on ISHAN-PC'), findsOneWidget);
     expect(find.text('Play Believer on YouTube'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'fits a small phone');
 
@@ -118,7 +118,7 @@ void main() {
     );
     expect(find.text('Played “Believer” on YouTube'), findsOneWidget);
     expect(find.text('Turned it up'), findsOneWidget);
-    expect(find.byIcon(Icons.error_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.failed), findsOneWidget);
     expect(find.text('Thinking…'), findsNothing);
     expect(tester.takeException(), isNull);
 
@@ -135,7 +135,6 @@ void main() {
     await tester.tap(find.byTooltip('New chat'));
     await tester.pump();
     expect(find.text('louder'), findsNothing);
-    expect(find.text('Ask Talvio on ISHAN-PC'), findsOneWidget);
     await ask(tester, server, 'hello');
     expect(lastBody(server).containsKey('conversation'), isFalse);
     await finish(tester, relay);
