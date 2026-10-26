@@ -538,6 +538,9 @@ mod tests {
     fn local_refusals_have_codes_too() {
         assert_eq!(FeedbackError::TooShort.code(), "too_short");
         assert_eq!(FeedbackError::AttachmentTooLarge.code(), "too_large");
-        assert_eq!(FeedbackError::InvalidAttachment.code(), "invalid_screenshot");
+        assert_eq!(
+            FeedbackError::InvalidAttachment.code(),
+            "invalid_screenshot"
+        );
     }
 }
