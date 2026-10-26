@@ -30,7 +30,12 @@ final assistantTab = FeatureTab(
 );
 
 /// An icon for each of [AssistantStrings.exampleQuestions].
-const _exampleIcons = [AppIcons.music, AppIcons.weather, AppIcons.mail];
+const _exampleIcons = [
+  AppIcons.music,
+  AppIcons.mail,
+  AppIcons.weather,
+  AppIcons.globe,
+];
 
 class _NewChatButton extends StatelessWidget {
   const _NewChatButton();
@@ -137,6 +142,13 @@ class _AssistantScreenState extends State<AssistantScreen> {
     });
   }
 
+  /// The signed-in user's first name, for the greeting.
+  String? _firstName() {
+    final name = _services.session.session?.user.name?.trim();
+    if (name == null || name.isEmpty) return null;
+    return name.split(RegExp(r'\s+')).first;
+  }
+
   @override
   Widget build(BuildContext context) {
     final relay = _services.relay;
@@ -181,6 +193,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     } else if (turns.isEmpty) {
       body = _Empty(
         name: name,
+        userName: _firstName(),
         heading: !watching,
         onAsk: ready && c.idle
             ? (text) {
@@ -252,55 +265,52 @@ class _AssistantScreenState extends State<AssistantScreen> {
   }
 }
 
-/// A new conversation: what the assistant is, and three questions to tap,
+/// A new conversation: the orb, a greeting, and three questions to tap
 /// right above the composer that sends them.
 class _Empty extends StatelessWidget {
   const _Empty({
     required this.name,
+    required this.userName,
     required this.heading,
     required this.onAsk,
   });
 
   final String name;
+  final String? userName;
 
-  /// Show the heading (not while the live view takes the room).
+  /// Show the orb (not while the live view takes the room; the greeting
+  /// stays when there is space for it).
   final bool heading;
   final ValueChanged<String>? onAsk;
 
   @override
   Widget build(BuildContext context) {
     final t = context.talvio;
-    final suggestions = Group(
-      children: [
-        for (final (i, example) in AssistantStrings.exampleQuestions.indexed)
-          ListRow(
-            leading: RowGlyph(_exampleIcons[i % _exampleIcons.length]),
-            title: example,
-            subtitle: AssistantStrings.exampleDetails[i],
-            enabled: onAsk != null,
-            semanticLabel: example,
-            semanticValue: AssistantStrings.exampleDetails[i],
-            onTap: onAsk == null ? null : () => onAsk!(example),
-          ),
-      ],
-    );
-    final headingBlock = Padding(
+    final suggestions = _Suggestions(onAsk: onAsk);
+    final greeting = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            AssistantStrings.prompt(name),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TalvioType.title1.copyWith(color: t.ink),
+          if (heading) ...[
+            const TalvioOrb(size: 100),
+            const SizedBox(height: Space.s40),
+          ],
+          Semantics(
+            header: true,
+            child: Text(
+              AssistantStrings.greeting(DateTime.now().hour, userName),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TalvioType.display.copyWith(color: t.ink),
+            ),
           ),
           const SizedBox(height: Space.s8),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 300),
             child: Text(
-              AssistantStrings.promptDetail,
+              AssistantStrings.greetingDetail(name),
               textAlign: TextAlign.center,
               style: TalvioType.rowBody.copyWith(color: t.muted),
             ),
@@ -310,30 +320,193 @@ class _Empty extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The heading goes first when room is short (keyboard, large text).
+        // The greeting goes first when room is short (keyboard, large text).
         final scale = MediaQuery.textScalerOf(context).scale(1);
-        final roomy = heading && constraints.maxHeight >= 360 * scale;
+        final roomy = constraints.maxHeight >= (heading ? 440 : 340) * scale;
         if (roomy) {
-          return Column(
+          return Stack(
             children: [
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, room) => room.maxHeight >= 180 * scale
-                      ? Center(child: headingBlock)
-                      : const SizedBox.expand(),
+              // A faint light at the top of the page, like the desktop's
+              // canvas: the orb's colour, far too soft to read as a shape.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        // Faded out well before the top bar, so no seam.
+                        center: const Alignment(0, -0.12),
+                        radius: 0.7,
+                        colors: [
+                          t.coral.withValues(alpha: t.isDark ? 0.10 : 0.07),
+                          t.coral.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              suggestions,
-              const SizedBox(height: Space.s12),
+              Column(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, room) =>
+                          room.maxHeight >= (heading ? 260 : 120) * scale
+                          ? Center(child: greeting)
+                          : const SizedBox.expand(),
+                    ),
+                  ),
+                  suggestions,
+                ],
+              ),
             ],
           );
         }
         return SingleChildScrollView(
           reverse: true,
-          padding: const EdgeInsets.only(top: Space.s16, bottom: Space.s12),
+          padding: const EdgeInsets.only(top: Space.s16),
           child: suggestions,
         );
       },
+    );
+  }
+}
+
+/// The example questions as a row of cards that scrolls sideways.
+class _Suggestions extends StatelessWidget {
+  const _Suggestions({required this.onAsk});
+
+  final ValueChanged<String>? onAsk;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.talvio;
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, Space.s8),
+          child: Text(
+            AssistantStrings.examples,
+            style: TalvioType.label.copyWith(color: t.muted),
+          ),
+        ),
+        SizedBox(
+          height: 128 * scale + 20,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            itemCount: AssistantStrings.exampleQuestions.length,
+            separatorBuilder: (_, _) => const SizedBox(width: Space.s12),
+            itemBuilder: (context, i) {
+              final example = AssistantStrings.exampleQuestions[i];
+              return _SuggestionCard(
+                width: (168 * scale).clamp(168, 216),
+                titleLines: scale > 1.1 ? 3 : 2,
+                icon: _exampleIcons[i % _exampleIcons.length],
+                title: example,
+                detail: AssistantStrings.exampleDetails[i],
+                onTap: onAsk == null ? null : () => onAsk!(example),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SuggestionCard extends StatelessWidget {
+  const _SuggestionCard({
+    required this.width,
+    required this.titleLines,
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.onTap,
+  });
+
+  final double width;
+  final int titleLines;
+  final IconData icon;
+  final String title;
+  final String detail;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.talvio;
+    final enabled = onTap != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: title,
+      value: detail,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: AnimatedOpacity(
+        duration: Motion.quick,
+        opacity: enabled ? 1 : 0.5,
+        child: Pressable(
+          enabled: enabled,
+          child: Container(
+            width: width,
+            decoration: BoxDecoration(
+              color: t.card,
+              borderRadius: BorderRadius.circular(Radii.xl),
+              boxShadow: Depth.card(t),
+              border: Depth.edge(t),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              borderRadius: BorderRadius.circular(Radii.xl),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: t.fill,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(icon, size: 16, color: t.ink),
+                          ),
+                          const Spacer(),
+                          Icon(AppIcons.arrowUpRight, size: 16, color: t.faint),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        title,
+                        maxLines: titleLines,
+                        overflow: TextOverflow.ellipsis,
+                        style: TalvioType.rowTitle.copyWith(color: t.ink),
+                      ),
+                      const SizedBox(height: Space.s2),
+                      Text(
+                        detail,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TalvioType.footnote.copyWith(color: t.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
