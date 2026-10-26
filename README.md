@@ -427,10 +427,8 @@ In-app feedback and self-update are switched off in this build (no feedback endp
 
 ## License and attribution
 
-Talvio is released under the [MIT License](LICENSE).
-Copyright (c) 2026 Ishan Gautam; Copyright (c) 2026 Abhishek Barali; Copyright (c) 2025 CJ Pais.
-The original [LICENSE](LICENSE) is retained and must accompany distributions.
+Talvio is released under the [MIT License](LICENSE); the copyright notices in that file must accompany distributions.
 
-Talvio is derived from [SpeakoFlow](https://github.com/AbhishekBarali/SpeakoFlow) by Abhishek Barali and [Handy](https://github.com/cjpais/Handy) by CJ Pais; the local dictation core (speech pipeline, voice activity detection, overlay and settings architecture) traces back to Handy. Third-party models keep their original names and licenses.
+The local dictation core (speech pipeline, voice activity detection, overlay and settings architecture) traces back to [Handy](https://github.com/cjpais/Handy) by CJ Pais. Third-party models keep their original names and licenses.
 
 Thanks also to [Tauri](https://tauri.app), transcribe.cpp, llama.cpp, ONNX Runtime, [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), Silero VAD, WeSpeaker, [Kokoro](https://github.com/hexgrad/kokoro) and Kyutai's Pocket TTS. Uploads to cloud transcription are compressed with the [LAME](https://lame.sourceforge.io) MP3 encoder (LGPL-3.0) through [mp3lame-encoder](https://github.com/DoumanAsh/mp3lame-encoder).
