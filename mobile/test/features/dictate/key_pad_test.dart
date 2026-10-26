@@ -63,7 +63,7 @@ void main() {
     }
   });
 
-  testWidgets('keys are big enough to hit, and Enter is the big one', (
+  testWidgets('keys are big enough to hit, and Space is the wide one', (
     tester,
   ) async {
     await pumpPad(tester);
@@ -83,7 +83,7 @@ void main() {
       expect(rect.width, greaterThanOrEqualTo(48), reason: label);
     }
     expect(
-      rectOf(tester, 'Enter').width,
+      rectOf(tester, 'Space').width,
       greaterThan(rectOf(tester, 'Tab').width * 1.8),
     );
     expect(tester.takeException(), isNull);
@@ -129,9 +129,10 @@ void main() {
       'Cmd + Z (undo)',
       'Cmd + A (select all)',
     ]) {
-      expect(find.text(item), findsOneWidget);
+      expect(find.bySemanticsLabel(item), findsOneWidget);
     }
-    await tester.tap(find.text('Cmd + C (copy)'));
+    expect(find.text('Cmd + V'), findsOneWidget, reason: 'the keys, shown');
+    await tester.tap(find.bySemanticsLabel('Cmd + C (copy)'));
     await tester.pump(const Duration(milliseconds: 500));
     expect(pressed.last, ['cmd+c']);
     handle.dispose();

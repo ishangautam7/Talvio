@@ -7,6 +7,26 @@ import 'package:flutter/services.dart';
 
 import 'tokens.dart';
 
+/// The status and navigation bars for [brightness]: transparent status bar,
+/// the navigation bar in the canvas colour, edge to edge.
+SystemUiOverlayStyle systemBars(Brightness brightness) {
+  final t = brightness == Brightness.light
+      ? TalvioColors.light
+      : TalvioColors.dark;
+  final light = brightness == Brightness.light;
+  return (light ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light)
+      .copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: t.canvas,
+        systemNavigationBarDividerColor: t.canvas,
+        systemNavigationBarIconBrightness: light
+            ? Brightness.dark
+            : Brightness.light,
+        systemNavigationBarContrastEnforced: false,
+        systemStatusBarContrastEnforced: false,
+      );
+}
+
 ThemeData buildTheme(Brightness brightness) {
   final light = brightness == Brightness.light;
   final t = light ? TalvioColors.light : TalvioColors.dark;
@@ -16,44 +36,57 @@ ThemeData buildTheme(Brightness brightness) {
     primary: t.accent,
     onPrimary: t.onAccent,
     primaryContainer: t.accentSoft,
-    onPrimaryContainer: light
-        ? const Color(0xFF7A1E10)
-        : const Color(0xFFFFD9D2),
+    onPrimaryContainer: t.ink,
     secondary: t.ink,
     onSecondary: t.canvas,
-    secondaryContainer: t.sunken,
+    secondaryContainer: t.fill,
     onSecondaryContainer: t.ink,
-    tertiary: light ? const Color(0xFF3B3F8F) : const Color(0xFFB9BCFF),
-    onTertiary: light ? Colors.white : const Color(0xFF14164A),
+    tertiary: t.ink,
+    onTertiary: t.canvas,
     error: t.danger,
-    onError: light ? Colors.white : const Color(0xFF3A0B0B),
+    onError: t.onDanger,
     errorContainer: t.dangerSoft,
-    onErrorContainer: light ? const Color(0xFF7A1410) : const Color(0xFFFFDAD6),
+    onErrorContainer: t.ink,
     surface: t.canvas,
     onSurface: t.ink,
     onSurfaceVariant: t.muted,
-    surfaceDim: t.chrome,
+    surfaceDim: t.canvas,
     surfaceBright: t.card,
     surfaceContainerLowest: t.card,
     surfaceContainerLow: t.card,
-    surfaceContainer: t.chrome,
-    surfaceContainerHigh: t.raised,
-    surfaceContainerHighest: t.sunken,
-    outline: light ? const Color(0xFFD6CDC4) : const Color(0xFF3A3E62),
+    surfaceContainer: t.card,
+    surfaceContainerHigh: t.fill,
+    surfaceContainerHighest: t.fillStrong,
+    outline: t.border,
     outlineVariant: t.hairline,
     shadow: Colors.black,
     scrim: Colors.black,
-    inverseSurface: light ? const Color(0xFF1B1D33) : const Color(0xFFF2F1F7),
-    onInverseSurface: light ? const Color(0xFFF2F1F7) : const Color(0xFF1B1D33),
-    inversePrimary: light ? const Color(0xFFFF6A52) : const Color(0xFFC2402A),
+    inverseSurface: t.inverse,
+    onInverseSurface: t.onInverse,
+    inversePrimary: light ? const Color(0xFFFF8F7C) : const Color(0xFFC1381F),
     surfaceTint: Colors.transparent,
   );
 
   final text = _textTheme(t);
-  final stadium = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(Radii.md),
+  const pill = StadiumBorder();
+  final pressed = WidgetStateProperty.resolveWith<Color?>(
+    (s) => s.contains(WidgetState.pressed) ? t.pressed : null,
   );
-  final hairline = BorderSide(color: t.hairline);
+  final pressedOnAccent = WidgetStateProperty.resolveWith<Color?>(
+    (s) => s.contains(WidgetState.pressed) ? t.pressedOnAccent : null,
+  );
+  final focusRing = WidgetStateProperty.resolveWith<BorderSide?>(
+    (s) => s.contains(WidgetState.focused)
+        ? BorderSide(color: t.accent, width: 2)
+        : null,
+  );
+  OutlineInputBorder well([Color? color, double width = 1.5]) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(Radii.md),
+        borderSide: color == null
+            ? BorderSide.none
+            : BorderSide(color: color, width: width),
+      );
 
   return ThemeData(
     useMaterial3: true,
@@ -61,28 +94,29 @@ ThemeData buildTheme(Brightness brightness) {
     colorScheme: scheme,
     fontFamily: TalvioFonts.text,
     textTheme: text,
+    primaryTextTheme: text,
     scaffoldBackgroundColor: t.canvas,
     canvasColor: t.canvas,
-    splashFactory: InkSparkle.splashFactory,
+    splashFactory: NoSplash.splashFactory,
+    splashColor: Colors.transparent,
+    highlightColor: t.pressed,
+    hoverColor: t.pressed,
+    focusColor: t.pressed,
     visualDensity: VisualDensity.standard,
     materialTapTargetSize: MaterialTapTargetSize.padded,
     extensions: [t],
     dividerTheme: DividerThemeData(color: t.hairline, thickness: 1, space: 1),
-    iconTheme: IconThemeData(color: t.ink, size: 22),
+    iconTheme: IconThemeData(color: t.ink, size: 20),
     appBarTheme: AppBarTheme(
       backgroundColor: t.canvas,
       foregroundColor: t.ink,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
-      titleTextStyle: text.titleLarge,
-      systemOverlayStyle: light
-          ? SystemUiOverlayStyle.dark.copyWith(
-              statusBarColor: Colors.transparent,
-            )
-          : SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent,
-            ),
+      toolbarHeight: 52,
+      titleSpacing: 4,
+      titleTextStyle: text.titleMedium,
+      systemOverlayStyle: systemBars(brightness),
     ),
     cardTheme: CardThemeData(
       color: t.card,
@@ -90,156 +124,135 @@ ThemeData buildTheme(Brightness brightness) {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Radii.lg),
-        side: hairline,
       ),
     ),
+    // Primary: the one accent-filled action of a view.
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        backgroundColor: t.accent,
-        foregroundColor: t.onAccent,
-        disabledBackgroundColor: light ? t.sunken : t.raised,
-        disabledForegroundColor: t.faint,
-        minimumSize: const Size(64, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        textStyle: text.labelLarge,
-        shape: stadium,
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.disabled) ? t.fill : t.accent,
+        ),
+        foregroundColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.disabled)
+              ? t.muted.withValues(alpha: 0.6)
+              : t.onAccent,
+        ),
+        overlayColor: pressedOnAccent,
+        elevation: const WidgetStatePropertyAll(0),
+        minimumSize: const WidgetStatePropertyAll(Size(64, 48)),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 20),
+        ),
+        textStyle: WidgetStatePropertyAll(TalvioType.button),
+        iconSize: const WidgetStatePropertyAll(20),
+        shape: const WidgetStatePropertyAll(pill),
+        side: focusRing,
+        splashFactory: NoSplash.splashFactory,
       ),
     ),
+    // Secondary: transparent with a border.
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: t.ink,
-        minimumSize: const Size(64, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        textStyle: text.labelLarge,
-        side: BorderSide(color: scheme.outline),
-        shape: stadium,
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.disabled)
+              ? t.ink.withValues(alpha: 0.38)
+              : t.ink,
+        ),
+        overlayColor: pressed,
+        minimumSize: const WidgetStatePropertyAll(Size(64, 48)),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 20),
+        ),
+        textStyle: WidgetStatePropertyAll(TalvioType.button),
+        iconSize: const WidgetStatePropertyAll(20),
+        shape: const WidgetStatePropertyAll(pill),
+        side: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.focused)
+              ? BorderSide(color: t.accent, width: 2)
+              : BorderSide(
+                  color: s.contains(WidgetState.disabled)
+                      ? t.border.withValues(alpha: 0.5)
+                      : t.border,
+                ),
+        ),
+        splashFactory: NoSplash.splashFactory,
       ),
     ),
+    // Ghost: text only, accent by default.
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: t.accent,
-        minimumSize: const Size(48, 44),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        textStyle: text.labelLarge,
-        shape: stadium,
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.disabled)
+              ? t.accent.withValues(alpha: 0.38)
+              : t.accent,
+        ),
+        overlayColor: pressed,
+        minimumSize: const WidgetStatePropertyAll(Size(64, 44)),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 12),
+        ),
+        textStyle: WidgetStatePropertyAll(TalvioType.button),
+        iconSize: const WidgetStatePropertyAll(20),
+        shape: const WidgetStatePropertyAll(pill),
+        side: focusRing,
+        splashFactory: NoSplash.splashFactory,
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(foregroundColor: t.ink),
-    ),
-    segmentedButtonTheme: SegmentedButtonThemeData(
       style: ButtonStyle(
-        textStyle: WidgetStatePropertyAll(text.labelLarge),
-        side: WidgetStatePropertyAll(BorderSide(color: t.hairline)),
-        shape: WidgetStatePropertyAll(stadium),
-        minimumSize: const WidgetStatePropertyAll(Size(48, 44)),
-        backgroundColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected) ? t.ink : t.card,
-        ),
         foregroundColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.disabled)
-              ? t.faint
-              : states.contains(WidgetState.selected)
-              ? t.canvas
+          (s) => s.contains(WidgetState.disabled)
+              ? t.ink.withValues(alpha: 0.38)
               : t.ink,
         ),
+        overlayColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.pressed) ? t.fill : null,
+        ),
+        iconSize: const WidgetStatePropertyAll(20),
+        minimumSize: const WidgetStatePropertyAll(Size.square(44)),
+        fixedSize: const WidgetStatePropertyAll(Size.square(44)),
+        padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+        shape: const WidgetStatePropertyAll(CircleBorder()),
+        side: focusRing,
+        splashFactory: NoSplash.splashFactory,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: t.card,
-      hintStyle: text.bodyLarge?.copyWith(color: t.faint),
-      labelStyle: text.bodyLarge?.copyWith(color: t.muted),
-      floatingLabelStyle: text.bodyMedium?.copyWith(color: t.accent),
-      helperStyle: text.bodySmall?.copyWith(color: t.muted),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-        borderSide: BorderSide(color: scheme.outline),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-        borderSide: BorderSide(color: scheme.outline),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-        borderSide: BorderSide(color: t.accent, width: 1.6),
-      ),
-      disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-        borderSide: BorderSide(color: t.hairline),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-        borderSide: BorderSide(color: t.danger),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-        borderSide: BorderSide(color: t.danger, width: 1.6),
-      ),
-    ),
-    chipTheme: ChipThemeData(
-      backgroundColor: t.card,
-      side: hairline,
-      labelStyle: text.labelLarge?.copyWith(color: t.ink),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Radii.pill),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      iconTheme: IconThemeData(color: t.muted, size: 18),
+      fillColor: t.fill,
+      hintStyle: TalvioType.body.copyWith(color: t.muted),
+      labelStyle: TalvioType.body.copyWith(color: t.muted),
+      floatingLabelBehavior: FloatingLabelBehavior.never,
+      helperStyle: TalvioType.footnote.copyWith(color: t.muted),
+      errorStyle: TalvioType.footnote.copyWith(color: t.danger),
+      errorMaxLines: 3,
+      helperMaxLines: 2,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: well(),
+      enabledBorder: well(),
+      disabledBorder: well(),
+      focusedBorder: well(t.accent),
+      errorBorder: well(t.danger),
+      focusedErrorBorder: well(t.danger),
+      suffixIconColor: t.muted,
     ),
     listTileTheme: ListTileThemeData(
       iconColor: t.muted,
       textColor: t.ink,
-      titleTextStyle: text.titleMedium,
-      subtitleTextStyle: text.bodyMedium?.copyWith(color: t.muted),
-      contentPadding: const EdgeInsets.symmetric(horizontal: Space.page),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Radii.md),
-      ),
-    ),
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: t.chrome,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      height: 68,
-      indicatorColor: t.accentSoft,
-      indicatorShape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Radii.pill),
-      ),
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => text.labelMedium?.copyWith(
-          color: states.contains(WidgetState.selected) ? t.ink : t.muted,
-          fontWeight: states.contains(WidgetState.selected)
-              ? FontWeight.w700
-              : FontWeight.w500,
-        ),
-      ),
-      iconTheme: WidgetStateProperty.resolveWith(
-        (states) => IconThemeData(
-          size: 24,
-          color: states.contains(WidgetState.selected) ? t.accent : t.muted,
-        ),
-      ),
-    ),
-    navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: t.chrome,
-      indicatorColor: t.accentSoft,
-      selectedIconTheme: IconThemeData(color: t.accent),
-      unselectedIconTheme: IconThemeData(color: t.muted),
-      selectedLabelTextStyle: text.labelMedium?.copyWith(
-        color: t.ink,
-        fontWeight: FontWeight.w700,
-      ),
-      unselectedLabelTextStyle: text.labelMedium?.copyWith(color: t.muted),
+      titleTextStyle: text.titleSmall,
+      subtitleTextStyle: text.bodySmall,
+      contentPadding: const EdgeInsets.symmetric(horizontal: Space.gutter),
     ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: t.card,
       surfaceTintColor: Colors.transparent,
       modalBackgroundColor: t.card,
+      modalBarrierColor: t.scrim,
       showDragHandle: true,
-      dragHandleColor: t.hairline,
+      dragHandleColor: t.border,
+      dragHandleSize: const Size(36, 4),
+      elevation: 0,
+      modalElevation: 0,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xl)),
       ),
@@ -247,46 +260,51 @@ ThemeData buildTheme(Brightness brightness) {
     dialogTheme: DialogThemeData(
       backgroundColor: t.card,
       surfaceTintColor: Colors.transparent,
+      barrierColor: t.scrim,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Radii.xl),
       ),
-      titleTextStyle: text.titleLarge,
-      contentTextStyle: text.bodyLarge?.copyWith(color: t.muted),
+      titleTextStyle: text.titleMedium,
+      contentTextStyle: text.bodyMedium?.copyWith(color: t.muted),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: scheme.inverseSurface,
-      contentTextStyle: text.bodyMedium?.copyWith(
-        color: scheme.onInverseSurface,
-      ),
+      backgroundColor: t.inverse,
+      elevation: 0,
+      contentTextStyle: TalvioType.rowBody.copyWith(color: t.onInverse),
       actionTextColor: light ? const Color(0xFFFF8F7C) : t.accent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Radii.md),
       ),
-      insetPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: t.accent,
-      linearTrackColor: t.sunken,
+      linearTrackColor: t.fill,
       circularTrackColor: Colors.transparent,
+      strokeWidth: 2,
     ),
     tooltipTheme: TooltipThemeData(
       decoration: BoxDecoration(
-        color: scheme.inverseSurface,
-        borderRadius: BorderRadius.circular(Radii.sm),
+        color: t.inverse,
+        borderRadius: BorderRadius.circular(Radii.xs),
       ),
-      textStyle: text.bodySmall?.copyWith(color: scheme.onInverseSurface),
+      textStyle: TalvioType.footnote.copyWith(color: t.onInverse),
     ),
     popupMenuTheme: PopupMenuThemeData(
       color: t.card,
       surfaceTintColor: Colors.transparent,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Radii.md),
-        side: hairline,
       ),
-      textStyle: text.bodyLarge,
+      textStyle: text.titleSmall,
     ),
-    badgeTheme: BadgeThemeData(backgroundColor: t.success),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbColor: WidgetStatePropertyAll(t.border),
+    ),
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: t.accent,
       selectionColor: t.accent.withValues(alpha: 0.25),
@@ -302,39 +320,23 @@ ThemeData buildTheme(Brightness brightness) {
 }
 
 TextTheme _textTheme(TalvioColors t) {
-  TextStyle display(double size, FontWeight weight, double height, double ls) =>
-      TextStyle(
-        fontFamily: TalvioFonts.display,
-        fontSize: size,
-        fontWeight: weight,
-        height: height,
-        letterSpacing: ls,
-        color: t.ink,
-      );
-  TextStyle inter(double size, FontWeight weight, double height, [Color? c]) =>
-      TextStyle(
-        fontFamily: TalvioFonts.text,
-        fontSize: size,
-        fontWeight: weight,
-        height: height,
-        letterSpacing: 0,
-        color: c ?? t.ink,
-      );
+  TextStyle ink(TextStyle s) => s.copyWith(color: t.ink);
   return TextTheme(
-    displayLarge: display(44, FontWeight.w800, 1.08, -1.2),
-    displayMedium: display(36, FontWeight.w800, 1.1, -0.9),
-    displaySmall: display(30, FontWeight.w800, 1.14, -0.6),
-    headlineLarge: display(28, FontWeight.w800, 1.18, -0.6),
-    headlineMedium: display(24, FontWeight.w800, 1.2, -0.4),
-    headlineSmall: display(21, FontWeight.w700, 1.24, -0.3),
-    titleLarge: display(18, FontWeight.w700, 1.3, -0.2),
-    titleMedium: inter(16, FontWeight.w600, 1.35),
-    titleSmall: inter(14, FontWeight.w600, 1.35),
-    bodyLarge: inter(16, FontWeight.w400, 1.5),
-    bodyMedium: inter(14.5, FontWeight.w400, 1.45),
-    bodySmall: inter(12.5, FontWeight.w400, 1.4, t.muted),
-    labelLarge: inter(14.5, FontWeight.w600, 1.25),
-    labelMedium: inter(12.5, FontWeight.w600, 1.25),
-    labelSmall: inter(11, FontWeight.w600, 1.2),
+    // Off-scale Material slots alias onto the scale.
+    displayLarge: ink(TalvioType.title1),
+    displayMedium: ink(TalvioType.title1),
+    displaySmall: ink(TalvioType.display),
+    headlineLarge: ink(TalvioType.title1),
+    headlineMedium: ink(TalvioType.title1),
+    headlineSmall: ink(TalvioType.title1),
+    titleLarge: ink(TalvioType.title2),
+    titleMedium: ink(TalvioType.title2),
+    titleSmall: ink(TalvioType.rowTitle),
+    bodyLarge: ink(TalvioType.body),
+    bodyMedium: ink(TalvioType.rowBody),
+    bodySmall: TalvioType.footnote.copyWith(color: t.muted),
+    labelLarge: ink(TalvioType.button),
+    labelMedium: ink(TalvioType.label),
+    labelSmall: ink(TalvioType.caption),
   );
 }

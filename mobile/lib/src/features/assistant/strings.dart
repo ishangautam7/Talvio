@@ -4,10 +4,10 @@ abstract final class AssistantStrings {
   static const tab = 'Ask';
   static const title = 'Assistant';
 
-  static String prompt(String name) => 'Ask Talvio on $name';
+  static String prompt(String name) => 'Ask $name';
   static const promptDetail =
-      'It answers, and it can do things on the computer too: play a song, '
-      'open a site, start an email.';
+      'It answers questions and can act on the computer: play a song, open '
+      'a site, start an email.';
   static const examples = 'Try';
 
   /// Questions to tap and send as they are.
@@ -27,6 +27,8 @@ abstract final class AssistantStrings {
   static const newChat = 'New chat';
   static const stopAnswer = 'Stop answering';
   static const typeHint = 'Ask anything';
+  static String offlinePlaceholder(String name) => '$name is offline';
+  static const scrollToLatest = 'Scroll to the latest';
   static const send = 'Send';
   static const startRecording = 'Ask by voice';
   static const stopAndSend = 'Stop and ask';
@@ -75,6 +77,10 @@ abstract final class AssistantStrings {
       'Open Talvio on $name to ask its assistant. Your chat stays here.';
   static String offlineNote(String name) =>
       '$name is offline. Open Talvio on it to ask its assistant.';
+  static String updateTitle(String name) => 'Update Talvio on $name';
+  static const updateBody =
+      'This version of Talvio there can’t take questions from your phone '
+      'yet. Your chat stays here.';
   static String updateNote(String name) =>
       'Update Talvio on $name to ask its assistant from your phone.';
 

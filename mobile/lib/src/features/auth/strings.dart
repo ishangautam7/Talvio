@@ -19,6 +19,8 @@ abstract final class AuthStrings {
   static const or = 'or';
   static const google = 'Continue with Google';
   static const serverLooking = 'Looking for the server…';
+  static const server = 'Server';
+  static const developmentServer = 'Development server';
   static const serverNotFound = "Can't find the server";
   static String serverProblem(String detail) => 'Reason: $detail';
   static const tryAgain = 'Try again';

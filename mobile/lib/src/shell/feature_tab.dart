@@ -13,6 +13,7 @@ class FeatureTab {
     required this.builder,
     this.requires,
     this.actions,
+    this.composer = false,
   });
 
   final String id;
@@ -27,6 +28,10 @@ class FeatureTab {
 
   /// Buttons for the top bar while this page is on screen (New chat).
   final List<Widget> Function(BuildContext context)? actions;
+
+  /// The page ends in a composer, so nothing scrolls under the navigation
+  /// bar and it never needs its top line.
+  final bool composer;
 
   /// Hidden only when computers are online and none of them advertises
   /// [requires]. A computer that advertises nothing is unknown, not lacking:

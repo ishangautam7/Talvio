@@ -4,15 +4,16 @@ import '../../core/api_client.dart';
 import '../../core/app_services.dart';
 import '../../core/config.dart';
 import '../../core/models.dart';
+import '../../core/session_store.dart';
 import '../../core/strings.dart';
 import '../../design/brand.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
-import '../dictate/computer_widgets.dart' show ComputerAvatar;
 import 'strings.dart';
 
 /// Who is signed in, the account's devices, the server, signing out and
-/// deleting the account. Opened from the avatar in the top bar.
+/// deleting the account (design spec §4.9). Opened from the avatar in the
+/// top bar.
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
@@ -25,49 +26,21 @@ class _AccountScreenState extends State<AccountScreen> {
   final _removing = <String>{};
   var _signingOut = false;
   var _deleting = false;
+  var _scrolled = false;
 
-  void _showError(ApiException error) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(commonErrorText(error))));
-  }
-
-  Future<bool> _confirm({
-    required String title,
-    required String body,
-    required String action,
-    bool destructive = false,
-  }) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            style: TextButton.styleFrom(foregroundColor: context.talvio.muted),
-            child: const Text(AccountStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: destructive
-                ? TextButton.styleFrom(foregroundColor: context.talvio.danger)
-                : null,
-            child: Text(action),
-          ),
-        ],
-      ),
-    );
-    return confirmed == true && mounted;
-  }
+  void _showError(ApiException error) =>
+      showSnack(context, commonErrorText(error));
 
   Future<void> _remove(Device device) async {
-    if (!await _confirm(
-      title: AccountStrings.removeTitle(device.name),
-      body: AccountStrings.removeBody,
-      action: AccountStrings.remove,
-    )) {
+    if (!await confirmDialog(
+          context,
+          title: AccountStrings.removeTitle(device.name),
+          body: AccountStrings.removeBody,
+          action: AccountStrings.remove,
+          cancel: AccountStrings.cancel,
+          destructive: true,
+        ) ||
+        !mounted) {
       return;
     }
     setState(() => _removing.add(device.id));
@@ -95,12 +68,15 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _deleteAccount() async {
-    if (!await _confirm(
-      title: AccountStrings.deleteTitle,
-      body: AccountStrings.deleteBody,
-      action: AccountStrings.deleteAccount,
-      destructive: true,
-    )) {
+    if (!await confirmDialog(
+          context,
+          title: AccountStrings.deleteTitle,
+          body: AccountStrings.deleteBody,
+          action: AccountStrings.deleteAccount,
+          cancel: AccountStrings.cancel,
+          destructive: true,
+        ) ||
+        !mounted) {
       return;
     }
     setState(() => _deleting = true);
@@ -121,152 +97,205 @@ class _AccountScreenState extends State<AccountScreen> {
     final session = _services.session;
     final relay = _services.relay;
     final busy = _signingOut || _deleting;
+    final ios = Theme.of(context).platform == TargetPlatform.iOS;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AccountStrings.title)),
-      body: ListenableBuilder(
-        listenable: Listenable.merge([session, relay.devices]),
-        builder: (context, _) {
-          final user = session.session?.user;
-          final devices = relay.devices.value;
-          final now = DateTime.now();
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              Space.lg,
-              Space.sm,
-              Space.lg,
-              Space.xxxl,
+      body: Column(
+        children: [
+          AnimatedContainer(
+            duration: Motion.quick,
+            decoration: BoxDecoration(
+              color: t.canvas,
+              border: Border(
+                bottom: BorderSide(color: _scrolled ? t.hairline : t.canvas),
+              ),
             ),
-            children: [
-              if (user != null) _Profile(user: user),
-              const SectionHeader(AccountStrings.devices),
-              if (devices == null)
-                const Notice(
-                  busy: true,
-                  tone: Tone.neutral,
-                  message: AccountStrings.connecting,
-                )
-              else
-                Surface(
-                  padding: EdgeInsets.zero,
-                  child: Column(
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: 52,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 4),
+                  child: Row(
                     children: [
-                      for (final (i, device) in devices.indexed) ...[
-                        if (i > 0) Divider(indent: 72, color: t.hairline),
-                        ListTile(
-                          minVerticalPadding: 10,
-                          contentPadding: const EdgeInsets.only(
-                            left: Space.lg,
-                            right: Space.xs,
-                          ),
-                          leading: ComputerAvatar(device, size: 40),
-                          title: Text(
-                            device.name,
-                            style: context.text.titleSmall,
-                          ),
-                          subtitle: Text(
-                            device.current
-                                ? AccountStrings.thisPhone
-                                : device.online
-                                ? AccountStrings.online
-                                : AccountStrings.lastSeen(
-                                    device.lastSeenAt,
-                                    now,
-                                  ),
-                          ),
-                          trailing: device.current
-                              ? const Pill(
-                                  AccountStrings.thisPhoneShort,
-                                  tone: Tone.accent,
-                                )
-                              : _removing.contains(device.id)
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12),
-                                  child: ButtonSpinner(),
-                                )
-                              : IconButton(
-                                  tooltip: AccountStrings.removeTooltip(
-                                    device.name,
-                                  ),
-                                  icon: Icon(
-                                    Icons.remove_circle_outline_rounded,
-                                    color: t.muted,
-                                  ),
-                                  onPressed: busy
-                                      ? null
-                                      : () => _remove(device),
-                                ),
+                      IconBtn(
+                        icon: ios ? AppIcons.backIos : AppIcons.backAndroid,
+                        size: IconSize.large,
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
+                        onPressed: () => Navigator.maybePop(context),
+                      ),
+                      const SizedBox(width: Space.s4),
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          AccountStrings.title,
+                          style: TalvioType.title2.copyWith(color: t.ink),
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-              const SectionHeader(AccountStrings.server),
-              if (session.session?.serverUrl case final url?)
-                Surface(
-                  padding: EdgeInsets.zero,
-                  child: ListTile(
-                    leading: const IconTile(Icons.dns_outlined, size: 36),
-                    title: Text(
-                      serverText(session.serverChoice, url),
-                      style: context.text.bodyMedium,
-                    ),
-                    subtitle: const Text(AccountStrings.serverNote),
-                  ),
-                ),
-              const SizedBox(height: Space.xxl),
-              OutlinedButton.icon(
-                onPressed: busy ? null : _signOut,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                icon: _signingOut
-                    ? const SizedBox.shrink()
-                    : const Icon(Icons.logout_rounded),
-                label: _signingOut
-                    ? const ButtonSpinner()
-                    : const Text(AccountStrings.signOut),
               ),
-              const SizedBox(height: Space.sm),
-              TextButton(
-                onPressed: busy ? null : _deleteAccount,
-                style: TextButton.styleFrom(
-                  foregroundColor: t.danger,
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                child: _deleting
-                    ? const ButtonSpinner()
-                    : const Text(AccountStrings.deleteAccount),
-              ),
-              const SizedBox(height: Space.xxl),
-              Center(
-                child: Column(
-                  children: [
-                    const LogoLockup(size: 22),
-                    const SizedBox(height: Space.sm),
-                    Text(
-                      AccountStrings.version(appVersion),
-                      style: context.text.bodySmall?.copyWith(color: t.faint),
+            ),
+          ),
+          Expanded(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                final scrolled = n.metrics.extentBefore > 0.5;
+                if (scrolled != _scrolled) {
+                  setState(() => _scrolled = scrolled);
+                }
+                return false;
+              },
+              child: ListenableBuilder(
+                listenable: Listenable.merge([session, relay.devices]),
+                builder: (context, _) {
+                  final user = session.session?.user;
+                  final devices = relay.devices.value;
+                  final now = DateTime.now();
+                  final url = session.session?.serverUrl;
+                  return ListView(
+                    padding: EdgeInsets.only(
+                      top: Space.s8,
+                      bottom: MediaQuery.paddingOf(context).bottom + 24,
                     ),
-                    TextButton(
-                      onPressed: () => showLicensePage(
-                        context: context,
-                        applicationName: 'Talvio',
-                        applicationVersion: appVersion,
-                        applicationIcon: const Padding(
-                          padding: EdgeInsets.all(Space.md),
-                          child: TalvioMark(size: 48),
+                    children: [
+                      if (user != null) _Profile(user: user),
+                      const SectionLabel(AccountStrings.devices, first: true),
+                      Group(
+                        children: [
+                          if (devices == null)
+                            ListRow(
+                              leading: const Spinner(size: 18),
+                              title: AccountStrings.connecting,
+                              titleStyle: TalvioType.rowBody.copyWith(
+                                color: t.muted,
+                              ),
+                            )
+                          else
+                            for (final device in devices)
+                              ListRow(
+                                leading: RowTile(
+                                  platformIcon(device.platform),
+                                  presence: device.online || device.current
+                                      ? t.success
+                                      : t.faint,
+                                ),
+                                title: device.name,
+                                subtitle: device.current
+                                    ? AccountStrings.thisPhone
+                                    : device.online
+                                    ? AccountStrings.online
+                                    : AccountStrings.lastSeen(
+                                        device.lastSeenAt,
+                                        now,
+                                      ),
+                                trailing: device.current
+                                    ? null
+                                    : _removing.contains(device.id)
+                                    ? const SizedBox.square(
+                                        dimension: 44,
+                                        child: Center(child: Spinner(size: 18)),
+                                      )
+                                    : IconBtn(
+                                        tooltip: AccountStrings.removeTooltip(
+                                          device.name,
+                                        ),
+                                        icon: AppIcons.remove,
+                                        color: t.muted,
+                                        onPressed: busy
+                                            ? null
+                                            : () => _remove(device),
+                                      ),
+                              ),
+                        ],
+                      ),
+                      if (url != null) ...[
+                        const SectionLabel(AccountStrings.server),
+                        Group(
+                          children: [
+                            ListRow(
+                              leading: const RowGlyph(AppIcons.server),
+                              title: session.serverChoice == ServerChoice.pinned
+                                  ? AccountStrings.developmentServer
+                                  : AccountStrings.server,
+                              subtitle: Uri.parse(url).authority,
+                              subtitleStyle: TalvioType.mono.copyWith(
+                                color: t.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const GroupFooter(AccountStrings.serverNote),
+                      ],
+                      const SizedBox(height: Space.s24),
+                      Group(
+                        children: [
+                          ListRow(
+                            leading: RowGlyph(AppIcons.signOut, color: t.ink),
+                            title: AccountStrings.signOut,
+                            semanticLabel: AccountStrings.signOut,
+                            enabled: !busy,
+                            trailing: _signingOut
+                                ? const Spinner(size: 18)
+                                : null,
+                            onTap: busy ? null : _signOut,
+                          ),
+                          ListRow(
+                            leading: RowGlyph(AppIcons.delete, color: t.danger),
+                            title: AccountStrings.deleteAccount,
+                            titleStyle: TalvioType.rowTitle.copyWith(
+                              color: t.danger,
+                            ),
+                            semanticLabel: AccountStrings.deleteAccount,
+                            enabled: !busy,
+                            trailing: _deleting
+                                ? Spinner(size: 18, color: t.danger)
+                                : null,
+                            onTap: busy ? null : _deleteAccount,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: Space.s32),
+                      Center(
+                        child: Column(
+                          children: [
+                            const LogoLockup(size: 20),
+                            const SizedBox(height: Space.s8),
+                            Text(
+                              AccountStrings.version(appVersion),
+                              style: TalvioType.footnote.copyWith(
+                                color: t.muted,
+                              ),
+                            ),
+                            const SizedBox(height: Space.s4),
+                            Btn(
+                              AccountStrings.licences,
+                              kind: BtnKind.ghostNeutral,
+                              compact: true,
+                              foreground: t.muted,
+                              onPressed: () => showLicensePage(
+                                context: context,
+                                applicationName: 'Talvio',
+                                applicationVersion: appVersion,
+                                applicationIcon: const Padding(
+                                  padding: EdgeInsets.all(Space.s12),
+                                  child: TalvioMark(size: 48),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      style: TextButton.styleFrom(foregroundColor: t.muted),
-                      child: const Text(AccountStrings.licences),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -282,13 +311,13 @@ class _Profile extends StatelessWidget {
     final t = context.talvio;
     final name = user.name?.trim();
     final shown = name == null || name.isEmpty ? user.email : name;
-    return Surface(
-      padding: const EdgeInsets.all(Space.lg),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
+      child: Column(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 64,
+            height: 64,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               gradient: TalvioColors.gradient,
@@ -296,30 +325,27 @@ class _Profile extends StatelessWidget {
             ),
             child: Text(
               shown.characters.first.toUpperCase(),
-              style: context.text.headlineSmall?.copyWith(color: Colors.white),
+              style: TalvioType.title1.copyWith(color: Colors.white),
             ),
           ),
-          const SizedBox(width: Space.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  shown,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.text.titleLarge,
-                ),
-                if (shown != user.email)
-                  Text(
-                    user.email,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.text.bodyMedium?.copyWith(color: t.muted),
-                  ),
-              ],
-            ),
+          const SizedBox(height: Space.s12),
+          Text(
+            shown,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TalvioType.title2.copyWith(color: t.ink),
           ),
+          if (shown != user.email) ...[
+            const SizedBox(height: Space.s2),
+            Text(
+              user.email,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TalvioType.footnote.copyWith(color: t.muted),
+            ),
+          ],
         ],
       ),
     );
