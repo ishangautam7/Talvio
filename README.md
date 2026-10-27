@@ -260,7 +260,7 @@ Sign in to the same account on your computer and your phone, and the phone becom
 - **Ask:** talk to the assistant running on your computer, typed or spoken. It can act on the computer just like a spoken ask.
 - **Do:** give a voice command ("play some music", "email me the project report") and see what happened.
 - **Dictate:** speak on the phone; the computer transcribes with its own speech model and pastes at its cursor. Or type on the phone and the computer pastes it.
-- **Screen:** watch a window or the whole screen live. In full screen, switch from **View** to **Control** to click (tap, double tap, hold for a right click), scroll with two fingers and type; a button that sends, buys, posts or deletes is asked about on the phone first. Turn on **Let phones see and use windows** in Settings → Account first (off by default, since window titles alone say a lot). A "Phone is viewing" card on the computer has a Stop button.
+- **Screen:** watch a window or the whole screen live. In full screen, switch from **View** to **Control** to click (tap, double tap, hold for a right click) and scroll with two fingers; typing and keys work in either; a button that sends, buys, posts or deletes is asked about on the phone first. Turn on **Let phones see and use windows** in Settings → Account first (off by default, since window titles alone say a lot). A "Phone is viewing" card on the computer has a Stop button.
 
 The account server keeps accounts and devices (and, if you turn on **Sync API keys**, your provider keys, encrypted). Recordings and text pass through it from one device to the other and are never stored.
 
