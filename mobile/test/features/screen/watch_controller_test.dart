@@ -131,13 +131,156 @@ void main() {
     expect(watch.phase, WatchPhase.live);
   });
 
-  screenTest('a screen is watched like a window, and never with control', (
+  screenTest('a screen is watched like a window, in View at first', (
     tester,
   ) async {
-    final (server, _, _, _) = await started(tester, screen: true);
+    final (server, watch, _, _) = await started(tester, screen: true);
     final body = sentOf(server, ScreenKind.watch).single;
     expect(body['target'], 's1');
     expect(body['control'], isFalse);
+    expect(watch.control, isFalse);
+  });
+
+  screenTest('switching to Control sends a new watch with control', (
+    tester,
+  ) async {
+    final (server, watch, first, id) = await live(tester);
+    watch.setControl(true);
+    await tester.pump();
+    expect(sentOf(server, 'cancel').single['requestId'], id);
+    expect(first.closed, isTrue);
+    final again = sentOf(server, ScreenKind.watch);
+    expect(again, hasLength(2));
+    expect(again.last['control'], isTrue);
+    expect(again.last['requestId'], isNot(id));
+    expect(watch.control, isTrue);
+    expect(watch.phase, WatchPhase.starting);
+
+    // The old watch's result does not end the new one.
+    server.relay('pc', {'kind': 'result', 'requestId': id, 'ok': true});
+    await tester.pump();
+    expect(watch.phase, WatchPhase.starting);
+
+    // Ended, a switch is only kept for Watch again.
+    watch
+      ..stop()
+      ..setControl(false);
+    expect(sentOf(server, ScreenKind.watch), hasLength(2));
+    watch.start();
+    await tester.pump();
+    expect(sentOf(server, ScreenKind.watch).last['control'], isFalse);
+  });
+
+  screenTest('a click asks first when the computer says confirm', (
+    tester,
+  ) async {
+    final (_, watch, link, _) = await live(tester);
+    final asked = <String?>[];
+    var answer = true;
+    Future<bool> confirm(String? label) async {
+      asked.add(label);
+      return answer;
+    }
+
+    // Do it: the same click again, confirmed.
+    final done = watch.click(
+      const Offset(0.25, 0.5),
+      count: 2,
+      confirm: confirm,
+    );
+    expect(link.sent.last, {
+      't': 'tap',
+      'x': 0.25,
+      'y': 0.5,
+      'button': 'left',
+      'count': 2,
+      'confirmed': false,
+      'id': 'k1',
+    });
+    link.receive({
+      't': 'ack',
+      'id': 'k1',
+      'ok': false,
+      'error': 'confirm',
+      'label': 'Send',
+    });
+    await tester.pump();
+    expect(asked, ['Send']);
+    expect(link.sent.last, {
+      't': 'tap',
+      'x': 0.25,
+      'y': 0.5,
+      'button': 'left',
+      'count': 2,
+      'confirmed': true,
+      'id': 'k2',
+    });
+    link.receive({'t': 'ack', 'id': 'k2', 'ok': true});
+    expect((await done).ok, isTrue);
+
+    // Cancel: nothing more is sent.
+    answer = false;
+    final declined = watch.click(
+      const Offset(0.9, 0.1),
+      right: true,
+      confirm: confirm,
+    );
+    expect(link.sent.last['button'], 'right');
+    link.receive({
+      't': 'ack',
+      'id': 'k3',
+      'ok': false,
+      'error': 'confirm',
+      'label': 'Delete',
+    });
+    final result = await declined;
+    expect(asked, ['Send', 'Delete']);
+    expect(result.needsConfirm, isTrue);
+    expect(link.sent, hasLength(3));
+  });
+
+  screenTest('text, scrolls and refusals over the channel', (tester) async {
+    final (_, watch, link, _) = await live(tester);
+    final typed = watch.typeText('hello');
+    expect(link.sent.last, {'t': 'text', 'text': 'hello', 'id': 'k1'});
+    link.receive({
+      't': 'ack',
+      'id': 'k1',
+      'ok': false,
+      'error': 'password_field',
+    });
+    expect((await typed).error, 'password_field');
+
+    final scrolled = watch.scroll(const Offset(0.5, 0.5), dy: 3);
+    expect(link.sent.last, {
+      't': 'scroll',
+      'x': 0.5,
+      'y': 0.5,
+      'dy': 3,
+      'dx': 0,
+      'id': 'k2',
+    });
+    link.receive({'t': 'ack', 'id': 'k2', 'ok': false, 'error': 'not_allowed'});
+    expect((await scrolled).error, 'not_allowed');
+
+    expect((await watch.typeText('')).error, 'unsupported');
+    expect(link.sent, hasLength(2), reason: 'empty text is not sent');
+
+    // No ack in 15 s: timeout.
+    final slow = watch.typeText('x');
+    await tester.pump(WatchTimeouts.ack);
+    expect((await slow).error, 'timeout');
+  });
+
+  screenTest('input still waiting ends with the watch', (tester) async {
+    final (_, watch, _, _) = await live(tester);
+    final waiting = watch.click(
+      const Offset(0.5, 0.5),
+      confirm: (_) async => true,
+    );
+    watch.stop();
+    expect((await waiting).error, 'cancelled');
+    expect((await watch.typeText('late')).error, 'not_live');
   });
 
   screenTest('tracks the caret and the target', (tester) async {

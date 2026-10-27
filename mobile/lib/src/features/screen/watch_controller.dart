@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show Offset;
 
 import '../../core/models.dart';
 import '../../core/relay_client.dart';
@@ -12,6 +13,10 @@ import 'rtc_link.dart';
 /// Keys sent on the channel and not yet acknowledged, at most; a tap past
 /// that is ignored, so a stuck computer is not sent a burst of keys later.
 const maxPendingLiveKeys = 3;
+
+/// Taps, scrolls and text sent and not yet acknowledged, at most; one past
+/// that answers `busy` without being sent, for the same reason.
+const maxPendingLiveInputs = 8;
 
 enum WatchPhase {
   /// The watch is sent; nothing back yet.
@@ -40,19 +45,26 @@ abstract final class WatchTimeouts {
 
   /// From the offer to `live`, after which the computer gives up too.
   static const connect = Duration(seconds: 30);
+
+  /// For an input message's `ack`.
+  static const ack = Duration(seconds: 15);
 }
 
 /// Runs one live view of [target] on [computer] at a time: the `screen.watch`
-/// request and its WebRTC handshake over the relay. Live view never clicks or
-/// scrolls: every watch is sent with `control: false`, and the `control`
-/// channel carries sound on/off, keyframe requests and keys ([pressKeys]). Every way a watch ends goes
-/// through [_end], which closes the peer connection.
+/// request, its WebRTC handshake over the relay, and input over the
+/// `control` channel. A watch starts in View ([control] false: keys and text
+/// only, [pressKeys] and [typeText]); in Control it is sent with
+/// `control: true` and taps and scrolls go too ([click], [scroll]). The
+/// computer reads `control` only from the watch, so [setControl] starts a new
+/// one. Every way a watch ends goes through [_end], which closes the peer
+/// connection.
 class WatchController extends ChangeNotifier {
   WatchController({
     required this._relay,
     required this.computer,
     required this.target,
     required this._linkFactory,
+    this._control = false,
   });
 
   final RelayClient _relay;
@@ -62,6 +74,7 @@ class WatchController extends ChangeNotifier {
 
   var _phase = WatchPhase.ended;
   String? _endError;
+  bool _control;
   var _sound = false;
   var _reconnecting = false;
   var _foreground = true;
@@ -92,9 +105,11 @@ class WatchController extends ChangeNotifier {
   Caret? _caret;
   WatchedTarget? _watched;
 
-  /// Keys sent and not yet acknowledged, by id.
+  /// Input sent and not yet acknowledged, by id; the keys among them are
+  /// also in [_keysPending], for [maxPendingLiveKeys].
+  final _acks = <String, ({Completer<InputResult> done, Timer timer})>{};
   final _keysPending = <String>{};
-  var _keySeq = 0;
+  var _inputSeq = 0;
   final _keyErrors = StreamController<String>.broadcast();
 
   WatchPhase get phase => _phase;
@@ -102,6 +117,10 @@ class WatchController extends ChangeNotifier {
   /// Why the last watch ended: an error code, or null when this phone ended
   /// it (or it is still running).
   String? get endError => _endError;
+
+  /// Control: taps and scrolls are allowed (the watch was sent with
+  /// `control: true`). Kept for the next watch, Watch again included.
+  bool get control => _control;
 
   /// The computer's sound plays on this phone.
   bool get soundOn => _sound;
@@ -142,8 +161,8 @@ class WatchController extends ChangeNotifier {
     final request = _relay.request(computer.id, {
       'kind': ScreenKind.watch,
       'target': target.id,
-      // Watch only: this phone never clicks, scrolls or types in a watch.
-      'control': false,
+      // View or Control: in View the computer refuses taps and scrolls.
+      'control': _control,
       'audio': _sound,
     });
     _request = request;
@@ -163,10 +182,75 @@ class WatchController extends ChangeNotifier {
     if (!_channelOpen || _keysPending.length >= maxPendingLiveKeys) {
       return false;
     }
-    final id = 'k${++_keySeq}';
-    if (!_sendControl({'t': 'keys', 'id': id, 'keys': keys})) return false;
-    _keysPending.add(id);
+    final sent = _input(ControlInput.keys(keys));
+    if (sent == null) return false;
+    _keysPending.add(sent.id);
+    unawaited(
+      sent.result.then((result) {
+        _keysPending.remove(sent.id);
+        // The watch or its channel ending is not a key that failed.
+        if (result.error case final error?
+            when error != 'cancelled' && error != 'not_live') {
+          if (!_keyErrors.isClosed) _keyErrors.add(error);
+        }
+      }),
+    );
     return true;
+  }
+
+  /// Types [text] (1 to [maxControlText] characters) in the watched window,
+  /// or wherever the keyboard is on a watched screen. Allowed in View too,
+  /// like keys: the computer only needs `control` for taps and scrolls.
+  Future<InputResult> typeText(String text) {
+    if (text.isEmpty || text.runes.length > maxControlText) {
+      return Future.value(const InputResult.failed('unsupported'));
+    }
+    return _limited(ControlInput.text(text));
+  }
+
+  /// Clicks at [at] (0..1 of the picture): [right] for a right click,
+  /// [count] 2 for a double click. When the computer answers `confirm` (the
+  /// control sends, buys, posts or deletes), [confirm] is asked with the
+  /// control's label, and the same click is sent again `confirmed` only when
+  /// it says yes; otherwise the result stays that `confirm` (or `cancelled`
+  /// when the watch ended while the user was asked).
+  Future<InputResult> click(
+    Offset at, {
+    bool right = false,
+    int count = 1,
+    required Future<bool> Function(String? label) confirm,
+  }) async {
+    final result = await _limited(
+      ControlInput.tap(at, right: right, count: count),
+    );
+    if (!result.needsConfirm) return result;
+    final run = _run;
+    if (!await confirm(result.label)) return result;
+    if (run != _run || _phase == WatchPhase.ended) {
+      return const InputResult.failed('cancelled');
+    }
+    return _limited(
+      ControlInput.tap(at, right: right, count: count, confirmed: true),
+    );
+  }
+
+  /// Scrolls [dy] (and [dx]) wheel notches at [at] (0..1 of the picture).
+  Future<InputResult> scroll(Offset at, {int dy = 0, int dx = 0}) =>
+      _limited(ControlInput.scroll(at, dy: dy, dx: dx));
+
+  /// Switches between View and Control. A running watch ends and is sent
+  /// again with the new `control` (PROTOCOL.md: one offer per watch and no
+  /// renegotiation; the computer frees its slot before it answers the old
+  /// watch, so the new one is never `busy`). An ended one only keeps it for
+  /// Watch again.
+  void setControl(bool control) {
+    if (control == _control || _disposed) return;
+    _control = control;
+    if (_phase == WatchPhase.ended) {
+      _notify();
+      return;
+    }
+    start();
   }
 
   /// Error codes of keys the computer did not press (as `windows.keys`').
@@ -329,9 +413,13 @@ class WatchController extends ChangeNotifier {
       if (open) {
         // The watch carried the sound as it was when sent.
         if (_sound) _sendControl({'t': 'audio', 'on': true});
-      } else if (_signalLost) {
-        _end('interrupted');
-        return;
+      } else {
+        // No ack can come any more.
+        _failInputs('not_live');
+        if (_signalLost) {
+          _end('interrupted');
+          return;
+        }
       }
       _notify();
     },
@@ -345,9 +433,15 @@ class WatchController extends ChangeNotifier {
         case TargetMessage(:final target):
           _watched = target;
           _notify();
-        case AckMessage(:final id, :final ok, :final error):
-          if (!_keysPending.remove(id) || ok) return;
-          _keyErrors.add(error ?? 'keys_failed');
+        case AckMessage(:final id, :final ok, :final error, :final label):
+          final pending = _acks.remove(id);
+          if (pending == null) return;
+          pending.timer.cancel();
+          pending.done.complete(
+            ok
+                ? const InputResult.ok()
+                : InputResult.failed(error ?? 'unknown', label: label),
+          );
         case null:
           break;
       }
@@ -395,7 +489,7 @@ class WatchController extends ChangeNotifier {
     _reconnecting = false;
     _localCandidates.clear();
     _remoteCandidates.clear();
-    _keysPending.clear();
+    _failInputs('cancelled');
     if (link != null) unawaited(link.close());
     _notify();
   }
@@ -416,6 +510,45 @@ class WatchController extends ChangeNotifier {
   bool _sendControl(Map<String, Object?> message) {
     if (!_channelOpen) return false;
     return _link?.send(jsonEncode(message)) ?? false;
+  }
+
+  /// Text, a tap or a scroll; at most [maxPendingLiveInputs] wait at once.
+  Future<InputResult> _limited(Map<String, Object?> message) {
+    if (_acks.length - _keysPending.length >= maxPendingLiveInputs) {
+      return Future.value(const InputResult.failed('busy'));
+    }
+    return _input(message)?.result ??
+        Future.value(const InputResult.failed('not_live'));
+  }
+
+  /// Sends one input message under a fresh id; its ack (or this phone's own
+  /// `timeout`, `not_live` or `cancelled`) completes the result. Null when
+  /// it could not be sent.
+  ({String id, Future<InputResult> result})? _input(
+    Map<String, Object?> message,
+  ) {
+    if (_phase == WatchPhase.ended) return null;
+    final id = 'k${++_inputSeq}';
+    if (!_sendControl({...message, 'id': id})) return null;
+    final done = Completer<InputResult>();
+    _acks[id] = (
+      done: done,
+      timer: Timer(WatchTimeouts.ack, () {
+        if (_acks.remove(id) != null) {
+          done.complete(const InputResult.failed('timeout'));
+        }
+      }),
+    );
+    return (id: id, result: done.future);
+  }
+
+  void _failInputs(String error) {
+    final pending = [..._acks.values];
+    _acks.clear();
+    for (final ack in pending) {
+      ack.timer.cancel();
+      ack.done.complete(InputResult.failed(error));
+    }
   }
 
   void _notify() {

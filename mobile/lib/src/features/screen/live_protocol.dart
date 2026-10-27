@@ -6,7 +6,7 @@
 // shape the protocol does not allow is dropped (null), not half-read.
 
 import 'dart:convert';
-import 'dart:ui' show Rect;
+import 'dart:ui' show Offset, Rect;
 
 /// The capability, request kind and handshake kinds of live view.
 abstract final class ScreenKind {
@@ -21,8 +21,7 @@ abstract final class ScreenKind {
   static const liveStage = 'live';
   static const approvalStage = 'approval';
 
-  /// The data channel the computer opens (this phone only asks for sound
-  /// and keyframes on it).
+  /// The data channel the computer opens: sound, keyframes and input.
   static const channel = 'control';
 }
 
@@ -218,6 +217,9 @@ sealed class ControlMessage {
         id: id,
         ok: json['ok'] == true,
         error: json['error'] is String ? json['error']! as String : null,
+        label: json['label'] is String
+            ? (json['label']! as String).trim()
+            : null,
       ),
       _ => null,
     };
@@ -240,9 +242,77 @@ class TargetMessage extends ControlMessage {
 
 /// The computer's answer to one input message ([id] is the phone's own).
 class AckMessage extends ControlMessage {
-  const AckMessage({required this.id, required this.ok, this.error});
+  const AckMessage({
+    required this.id,
+    required this.ok,
+    this.error,
+    this.label,
+  });
 
   final String id;
   final bool ok;
   final String? error;
+
+  /// With `error: "confirm"`: what the control under the tap is labelled.
+  final String? label;
+}
+
+/// The longest `text` one input message carries.
+const maxControlText = 10000;
+
+/// The input messages this phone sends on the `control` channel, without
+/// their `id` (the controller numbers them). Points are 0..1 across the
+/// picture, rounded to four places (a tenth of a pixel on a 4K screen) and
+/// kept inside it, since the computer refuses anything outside.
+abstract final class ControlInput {
+  static Map<String, Object?> keys(List<String> keys) => {
+    't': 'keys',
+    'keys': keys,
+  };
+
+  static Map<String, Object?> text(String text) => {'t': 'text', 'text': text};
+
+  /// A click: [right] for the right button, [count] 2 for a double click.
+  /// [confirmed] when the phone's user said Do it to a `confirm` ack.
+  static Map<String, Object?> tap(
+    Offset at, {
+    bool right = false,
+    int count = 1,
+    bool confirmed = false,
+  }) => {
+    't': 'tap',
+    'x': _unit(at.dx),
+    'y': _unit(at.dy),
+    'button': right ? 'right' : 'left',
+    'count': count == 2 ? 2 : 1,
+    'confirmed': confirmed,
+  };
+
+  /// [dy] and [dx] wheel notches at [at]: +dy scrolls down, +dx right.
+  static Map<String, Object?> scroll(Offset at, {int dy = 0, int dx = 0}) => {
+    't': 'scroll',
+    'x': _unit(at.dx),
+    'y': _unit(at.dy),
+    'dy': dy,
+    'dx': dx,
+  };
+
+  static double _unit(double v) =>
+      (v.clamp(0.0, 1.0) * 10000).roundToDouble() / 10000;
+}
+
+/// How one input message ended: [error] null when the computer did it.
+class InputResult {
+  const InputResult.ok() : error = null, label = null;
+  const InputResult.failed(String this.error, {this.label});
+
+  /// An ack's error code, or this phone's own: `timeout`, `not_live`,
+  /// `cancelled` (the watch ended first), `busy` (too many still waiting).
+  final String? error;
+
+  /// With `confirm`: the control's label, as the computer read it.
+  final String? label;
+
+  bool get ok => error == null;
+  bool get needsConfirm => error == 'confirm';
 }

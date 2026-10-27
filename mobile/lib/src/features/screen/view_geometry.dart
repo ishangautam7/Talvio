@@ -26,6 +26,33 @@ Rect containRect(Size picture, Size viewport) {
   );
 }
 
+/// The point of the picture under [point] (in viewport coordinates), in 0..1
+/// across the picture: the inverse of [transform] (the zoom and pan), then
+/// the letterbox taken off. Null when it falls on a bar beside the picture
+/// or [transform] cannot be inverted.
+Offset? pictureCoords({
+  required Offset point,
+  required Matrix4 transform,
+  required Size viewport,
+  required Size picture,
+}) {
+  final inverse = Matrix4.tryInvert(transform);
+  if (inverse == null) return null;
+  final child = MatrixUtils.transformPoint(inverse, point);
+  final rect = containRect(picture, viewport);
+  if (rect.isEmpty) return null;
+  final x = (child.dx - rect.left) / rect.width;
+  final y = (child.dy - rect.top) / rect.height;
+  if (x < 0 || x > 1 || y < 0 || y > 1) return null;
+  return Offset(x, y);
+}
+
+/// Wheel notches for a two-finger drag of [delta] logical pixels on one
+/// axis: one per [perNotch], the way a finger moves a page on a touch
+/// screen, so dragging up (negative) scrolls down (positive).
+int scrollNotches(double delta, {double perNotch = 40}) =>
+    (-delta / perNotch).truncate();
+
 /// A uniform scale [scale] followed by a translation by [translation].
 Matrix4 scaleThenTranslate(double scale, Offset translation) => Matrix4(
   scale,

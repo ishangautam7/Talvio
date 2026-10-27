@@ -22,6 +22,70 @@ void main() {
     });
   });
 
+  group('a touch on the viewer to a point of the picture', () {
+    test('takes the letterbox off', () {
+      // The picture spans y 287.5..512.5 of the 800 tall viewport.
+      Offset? at(Offset point) => pictureCoords(
+        point: point,
+        transform: Matrix4.identity(),
+        viewport: viewport,
+        picture: picture,
+      );
+      expect(at(const Offset(200, 400)), const Offset(0.5, 0.5));
+      expect(at(const Offset(0, 287.5)), Offset.zero);
+      expect(at(const Offset(400, 512.5)), const Offset(1, 1));
+      expect(at(const Offset(200, 100)), isNull, reason: 'the bar above');
+      expect(at(const Offset(200, 700)), isNull, reason: 'the bar below');
+    });
+
+    test('undoes the zoom and the pan', () {
+      // Zoomed 4x and panned.
+      final view = scaleThenTranslate(4, const Offset(-200, -1150));
+      final middle = pictureCoords(
+        point: const Offset(200, 400),
+        transform: view,
+        viewport: viewport,
+        picture: picture,
+      )!;
+      // Child point: ((200 + 200) / 4, (400 + 1150) / 4) = (100, 387.5).
+      expect(middle.dx, closeTo(100 / 400, 1e-9));
+      expect(middle.dy, closeTo((387.5 - 287.5) / 225, 1e-9));
+
+      // Every corner of the zoomed view maps back through the same matrix.
+      for (final point in const [Offset(0, 0), Offset(400, 800)]) {
+        final at = pictureCoords(
+          point: point,
+          transform: view,
+          viewport: viewport,
+          picture: picture,
+        );
+        final child = MatrixUtils.transformPoint(Matrix4.inverted(view), point);
+        expect(at!.dx, closeTo(child.dx / 400, 1e-9));
+        expect(at.dy, closeTo((child.dy - 287.5) / 225, 1e-9));
+      }
+    });
+
+    test('a transform that cannot be inverted maps nothing', () {
+      expect(
+        pictureCoords(
+          point: const Offset(200, 400),
+          transform: Matrix4.zero(),
+          viewport: viewport,
+          picture: picture,
+        ),
+        isNull,
+      );
+    });
+
+    test('two fingers dragged up scroll down, one notch per 40 points', () {
+      expect(scrollNotches(-40), 1);
+      expect(scrollNotches(-119), 2);
+      expect(scrollNotches(39), 0);
+      expect(scrollNotches(85), -2);
+      expect(scrollNotches(-60, perNotch: 20), 3);
+    });
+  });
+
   group('follow', () {
     test('zooms until the caret is 4% of the viewport, within range', () {
       // A caret 4% of the picture's height is 9 px here; 32 px wanted.
@@ -149,6 +213,60 @@ void main() {
         (ControlMessage.decode('{"t":"caret"}')! as CaretMessage).caret,
         isNull,
       );
+      final confirm =
+          ControlMessage.decode(
+                '{"t":"ack","id":"k4","ok":false,"error":"confirm",'
+                '"label":" Send "}',
+              )!
+              as AckMessage;
+      expect((confirm.error, confirm.label), ('confirm', 'Send'));
+    });
+
+    test('input messages read as the protocol says', () {
+      expect(ControlInput.keys(['enter']), {
+        't': 'keys',
+        'keys': ['enter'],
+      });
+      expect(ControlInput.text('hi'), {'t': 'text', 'text': 'hi'});
+      expect(ControlInput.tap(const Offset(0.42, 0.81)), {
+        't': 'tap',
+        'x': 0.42,
+        'y': 0.81,
+        'button': 'left',
+        'count': 1,
+        'confirmed': false,
+      });
+      expect(
+        ControlInput.tap(
+          const Offset(0.123456789, 1.2),
+          right: true,
+          count: 2,
+          confirmed: true,
+        ),
+        {
+          't': 'tap',
+          'x': 0.1235,
+          'y': 1.0,
+          'button': 'right',
+          'count': 2,
+          'confirmed': true,
+        },
+        reason: 'rounded, and kept inside the picture',
+      );
+      expect(ControlInput.tap(Offset.zero, count: 3)['count'], 1);
+      expect(ControlInput.scroll(const Offset(0.5, -0.1), dy: 3), {
+        't': 'scroll',
+        'x': 0.5,
+        'y': 0.0,
+        'dy': 3,
+        'dx': 0,
+      });
+    });
+
+    test('an input result knows a confirm', () {
+      const confirm = InputResult.failed('confirm', label: 'Send');
+      expect((confirm.ok, confirm.needsConfirm), (false, true));
+      expect(const InputResult.ok().ok, isTrue);
     });
   });
 
@@ -168,6 +286,10 @@ void main() {
       'remote_windows_off',
       'remote_input_off',
       'not_approved',
+      'not_allowed',
+      'password_field',
+      'tap_failed',
+      'not_live',
     ]) {
       expect(text(code), isNot(contains('Something went wrong')), reason: code);
     }
