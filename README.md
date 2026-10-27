@@ -49,21 +49,20 @@ Local-first: speech is transcribed on your own computer unless you choose a clou
 
 ## Install
 
-> [!NOTE]
-> No public release has been published yet. Until one is, build Talvio from source (below). When releases exist they will be on the [Releases](https://github.com/ishangautam7/zynveliq/releases) page.
+Download the latest version from the [Releases page](https://github.com/ishangautam7/Talvio/releases/latest) or [talvio.sentramind.dev](https://talvio.sentramind.dev/download).
 
-| Platform    | How                                                                                                                                                                                                                                                  |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Windows** | Run the `.exe` installer from a release. Until the installer is signed by a known publisher, Windows SmartScreen may warn you: choose **More info → Run anyway**. Or build from source.                                                              |
-| **macOS**   | Build from source with [BUILD.md](BUILD.md) (Apple silicon uses Metal; Intel builds are CPU-only and need one extra ONNX Runtime step). Talvio asks for **Microphone** and **Accessibility** permission so it can hear you and type into other apps. |
-| **Linux**   | Build from source with [BUILD.md](BUILD.md). Speech runs on Vulkan or the CPU.                                                                                                                                                                       |
-| **Android** | Build the phone app from [`mobile/`](mobile/README.md) (`flutter build apk --release`) and install the APK. iOS builds from the same project on a Mac with Xcode.                                                                                    |
+| Platform    | How |
+| ----------- | --- |
+| **Windows** | Run `Talvio_<version>_x64-setup.exe` (or the `.msi`). The installer is not signed yet, so Windows SmartScreen may warn you: choose **More info → Run anyway**. |
+| **Linux**   | `Talvio_<version>_amd64.AppImage` (make it executable and run it) or the `.deb`. ARM64 builds are there too. Speech runs on Vulkan or the CPU. |
+| **macOS**   | A build is on its way. Until then, build from source with [BUILD.md](BUILD.md). Talvio asks for **Microphone** and **Accessibility** permission so it can hear you and type into other apps. |
+| **Android** | The phone app's APK is at [talvio.sentramind.dev/download/android](https://talvio.sentramind.dev/download/android), or build it from [`mobile/`](mobile/README.md). |
 
 Building from source, in short (full details in [BUILD.md](BUILD.md)):
 
 ```bash
-git clone https://github.com/ishangautam7/zynveliq.git
-cd zynveliq
+git clone https://github.com/ishangautam7/Talvio.git
+cd Talvio
 bun install
 mkdir -p src-tauri/resources/models
 curl -o src-tauri/resources/models/silero_vad_v4.onnx https://blob.handy.computer/silero_vad_v4.onnx
