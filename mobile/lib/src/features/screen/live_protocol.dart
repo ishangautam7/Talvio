@@ -260,6 +260,9 @@ class AckMessage extends ControlMessage {
 /// The longest `text` one input message carries.
 const maxControlText = 10000;
 
+/// Wheel notches in one `scroll`, either way; the computer clamps to this.
+const maxScrollNotches = 20;
+
 /// The input messages this phone sends on the `control` channel, without
 /// their `id` (the controller numbers them). Points are 0..1 across the
 /// picture, rounded to four places (a tenth of a pixel on a 4K screen) and

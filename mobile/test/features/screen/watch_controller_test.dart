@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talvio_mobile/src/features/screen/live_protocol.dart';
@@ -270,6 +272,83 @@ void main() {
     final slow = watch.typeText('x');
     await tester.pump(WatchTimeouts.ack);
     expect((await slow).error, 'timeout');
+  });
+
+  screenTest('a two-finger scroll sends every notch, one at a time', (
+    tester,
+  ) async {
+    final (_, watch, link, _) = await live(tester);
+    final errors = <String>[];
+    // Closed with the watch, at clean-up.
+    watch.inputErrors.listen(errors.add);
+    // Eight texts wait: the first scroll is busy and kept, not lost.
+    final typed = [
+      for (var i = 0; i < maxPendingLiveInputs; i++) watch.typeText('$i'),
+    ];
+    const at = Offset(0.5, 0.5);
+    watch.scrollBy(at, dy: 1);
+    await tester.pump();
+    watch.scrollBy(at, dy: 2);
+    await tester.pump();
+    expect(link.sent.where((m) => m['t'] == 'scroll'), isEmpty);
+    link.receive({'t': 'ack', 'id': 'k1', 'ok': true});
+    expect((await typed.first).ok, isTrue);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(link.sent.last, {
+      't': 'scroll',
+      'x': 0.5,
+      'y': 0.5,
+      'dy': 3,
+      'dx': 0,
+      'id': 'k9',
+    });
+
+    // While it waits, more notches add up and go together after its ack.
+    watch.scrollBy(at, dy: 4);
+    watch.scrollBy(at, dy: 30);
+    await tester.pump();
+    expect(link.sent.last['id'], 'k9');
+    link.receive({'t': 'ack', 'id': 'k9', 'ok': true});
+    await tester.pump();
+    expect(link.sent.last['dy'], maxScrollNotches);
+    link.receive({'t': 'ack', 'id': link.sent.last['id'], 'ok': true});
+    await tester.pump();
+    expect(link.sent.last['dy'], 34 - maxScrollNotches);
+
+    // A refusal drops the rest and says why.
+    watch.scrollBy(at, dy: 5);
+    link.receive({
+      't': 'ack',
+      'id': link.sent.last['id'],
+      'ok': false,
+      'error': 'not_allowed',
+    });
+    await tester.pump();
+    expect(errors, ['not_allowed']);
+    final sent = link.sent.length;
+    await tester.pump(const Duration(seconds: 1));
+    expect(link.sent, hasLength(sent));
+  });
+
+  screenTest('a Do it given too late presses nothing', (tester) async {
+    final (_, watch, link, _) = await live(tester);
+    final answer = Completer<bool>();
+    final clicked = watch.click(
+      const Offset(0.5, 0.5),
+      confirm: (_) => answer.future,
+    );
+    link.receive({
+      't': 'ack',
+      'id': 'k1',
+      'ok': false,
+      'error': 'confirm',
+      'label': 'Send',
+    });
+    await tester.pump();
+    await tester.pump(WatchTimeouts.confirm + const Duration(seconds: 1));
+    answer.complete(true);
+    expect((await clicked).error, 'confirm_expired');
+    expect(link.sent, hasLength(1));
   });
 
   screenTest('input still waiting ends with the watch', (tester) async {

@@ -48,6 +48,12 @@ abstract final class WatchTimeouts {
 
   /// For an input message's `ack`.
   static const ack = Duration(seconds: 15);
+
+  /// For the user to answer a `confirm`. The confirmed tap names no control,
+  /// only a point (PROTOCOL.md), so a Do it given after the window had time
+  /// to change could press something else under that point; past this it
+  /// counts for nothing.
+  static const confirm = Duration(seconds: 30);
 }
 
 /// Runs one live view of [target] on [computer] at a time: the `screen.watch`
@@ -110,7 +116,15 @@ class WatchController extends ChangeNotifier {
   final _acks = <String, ({Completer<InputResult> done, Timer timer})>{};
   final _keysPending = <String>{};
   var _inputSeq = 0;
-  final _keyErrors = StreamController<String>.broadcast();
+  final _inputErrors = StreamController<String>.broadcast();
+
+  /// Two-finger scrolling ([scrollBy]): where, the notches not sent yet, a
+  /// scroll waiting for its ack, and a retry after `busy`.
+  Offset? _scrollAt;
+  var _owedDy = 0;
+  var _owedDx = 0;
+  var _scrollSending = false;
+  Timer? _scrollRetry;
 
   WatchPhase get phase => _phase;
 
@@ -177,7 +191,7 @@ class WatchController extends ChangeNotifier {
   /// Presses [keys] (combos, as `windows.keys` takes them) in the watched
   /// window, or wherever the keyboard is on a watched screen. False when the
   /// channel is not open, or [maxPendingLiveKeys] still wait for their ack. A
-  /// key the computer could not press arrives on [keyErrors].
+  /// key the computer could not press arrives on [inputErrors].
   bool pressKeys(List<String> keys) {
     if (!_channelOpen || _keysPending.length >= maxPendingLiveKeys) {
       return false;
@@ -191,7 +205,7 @@ class WatchController extends ChangeNotifier {
         // The watch or its channel ending is not a key that failed.
         if (result.error case final error?
             when error != 'cancelled' && error != 'not_live') {
-          if (!_keyErrors.isClosed) _keyErrors.add(error);
+          _reportError(error);
         }
       }),
     );
@@ -212,7 +226,8 @@ class WatchController extends ChangeNotifier {
   /// [count] 2 for a double click. When the computer answers `confirm` (the
   /// control sends, buys, posts or deletes), [confirm] is asked with the
   /// control's label, and the same click is sent again `confirmed` only when
-  /// it says yes; otherwise the result stays that `confirm` (or `cancelled`
+  /// it says yes within [WatchTimeouts.confirm]; otherwise the result stays
+  /// that `confirm`, or is `confirm_expired` for a late yes (`cancelled`
   /// when the watch ended while the user was asked).
   Future<InputResult> click(
     Offset at, {
@@ -225,10 +240,15 @@ class WatchController extends ChangeNotifier {
     );
     if (!result.needsConfirm) return result;
     final run = _run;
-    if (!await confirm(result.label)) return result;
+    var expired = false;
+    final expiry = Timer(WatchTimeouts.confirm, () => expired = true);
+    final yes = await confirm(result.label);
+    expiry.cancel();
+    if (!yes) return result;
     if (run != _run || _phase == WatchPhase.ended) {
       return const InputResult.failed('cancelled');
     }
+    if (expired) return const InputResult.failed('confirm_expired');
     return _limited(
       ControlInput.tap(at, right: right, count: count, confirmed: true),
     );
@@ -237,6 +257,70 @@ class WatchController extends ChangeNotifier {
   /// Scrolls [dy] (and [dx]) wheel notches at [at] (0..1 of the picture).
   Future<InputResult> scroll(Offset at, {int dy = 0, int dx = 0}) =>
       _limited(ControlInput.scroll(at, dy: dy, dx: dx));
+
+  /// Adds [dy] (and [dx]) notches to a running two-finger scroll at [at].
+  /// One scroll waits for its ack at a time and the notches that come
+  /// meanwhile go in the next one, so a fast flick over a slow link is sent
+  /// whole in a few messages instead of a message per notch, none of them
+  /// lost to [maxPendingLiveInputs]: a `busy` puts its notches back and
+  /// tries again shortly. Any other failure drops what is owed and arrives
+  /// on [inputErrors] (not `cancelled` or `not_live`, the watch ending).
+  void scrollBy(Offset at, {int dy = 0, int dx = 0}) {
+    if (_phase == WatchPhase.ended) return;
+    _scrollAt = at;
+    _owedDy += dy;
+    _owedDx += dx;
+    _flushScroll();
+  }
+
+  void _flushScroll() {
+    final at = _scrollAt;
+    if (_scrollSending || at == null || (_owedDy == 0 && _owedDx == 0)) {
+      return;
+    }
+    final dy = _owedDy.clamp(-maxScrollNotches, maxScrollNotches);
+    final dx = _owedDx.clamp(-maxScrollNotches, maxScrollNotches);
+    _owedDy -= dy;
+    _owedDx -= dx;
+    _scrollSending = true;
+    final run = _run;
+    unawaited(
+      _limited(ControlInput.scroll(at, dy: dy, dx: dx)).then((result) {
+        if (run != _run) return;
+        _scrollSending = false;
+        switch (result.error) {
+          case null:
+            _flushScroll();
+          case 'busy':
+            _owedDy += dy;
+            _owedDx += dx;
+            _scrollRetry?.cancel();
+            _scrollRetry = Timer(
+              const Duration(milliseconds: 100),
+              _flushScroll,
+            );
+          case final error:
+            _dropScroll();
+            if (error != 'cancelled' && error != 'not_live') {
+              _reportError(error);
+            }
+        }
+      }),
+    );
+  }
+
+  void _dropScroll() {
+    _scrollRetry?.cancel();
+    _scrollRetry = null;
+    _scrollAt = null;
+    _owedDy = 0;
+    _owedDx = 0;
+    _scrollSending = false;
+  }
+
+  void _reportError(String error) {
+    if (!_inputErrors.isClosed) _inputErrors.add(error);
+  }
 
   /// Switches between View and Control. A running watch ends and is sent
   /// again with the new `control` (PROTOCOL.md: one offer per watch and no
@@ -254,7 +338,8 @@ class WatchController extends ChangeNotifier {
   }
 
   /// Error codes of keys the computer did not press (as `windows.keys`').
-  Stream<String> get keyErrors => _keyErrors.stream;
+  /// Why a key, or a scroll from [scrollBy], was not delivered.
+  Stream<String> get inputErrors => _inputErrors.stream;
 
   /// Ends the watch from this phone.
   void stop() {
@@ -489,6 +574,7 @@ class WatchController extends ChangeNotifier {
     _reconnecting = false;
     _localCandidates.clear();
     _remoteCandidates.clear();
+    _dropScroll();
     _failInputs('cancelled');
     if (link != null) unawaited(link.close());
     _notify();
@@ -559,7 +645,7 @@ class WatchController extends ChangeNotifier {
   void dispose() {
     stop();
     _disposed = true;
-    unawaited(_keyErrors.close());
+    unawaited(_inputErrors.close());
     super.dispose();
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -105,6 +107,12 @@ class _WatchScreenState extends State<WatchScreen>
   Offset? _scrollAt;
   Offset? _doubleTapAt;
 
+  /// Fingers on the picture now, and whether this touch has had two: a tap
+  /// or a double tap that was really the start of a pinch or a scroll
+  /// clicks nothing.
+  var _pointers = 0;
+  var _multiTouch = false;
+
   /// Two fingers are scrolling the computer: the viewer does not pan (or
   /// fling) the picture meanwhile.
   var _scrolling = false;
@@ -114,7 +122,7 @@ class _WatchScreenState extends State<WatchScreen>
   var _answerOpen = true;
   AssistantTurn? _answerTurn;
   AssistantTurn? _turnAtOpen;
-  StreamSubscription<String>? _keyErrors;
+  StreamSubscription<String>? _inputErrors;
 
   @override
   void initState() {
@@ -123,12 +131,12 @@ class _WatchScreenState extends State<WatchScreen>
     _move.addListener(() {
       if (_moveTo case final to?) _transform.value = to.value;
     });
-    _keyErrors = _watch.keyErrors.listen(_onKeyError);
+    _inputErrors = _watch.inputErrors.listen(_onInputError);
     widget.assistant?.addListener(_onAssistant);
     _turnAtOpen = _answerTurn = widget.assistant?.turns.lastOrNull;
   }
 
-  void _onKeyError(String code) {
+  void _onInputError(String code) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -184,11 +192,18 @@ class _WatchScreenState extends State<WatchScreen>
   }
 
   /// Asks before a click on a control the computer says sends, buys, posts
-  /// or deletes; true for Do it.
+  /// or deletes; true for Do it. The question closes itself as declined
+  /// after [WatchTimeouts.confirm], when the window may have changed under
+  /// the point (the controller refuses a later yes anyway).
   Future<bool> _confirm(String? label) async {
     if (!mounted) return false;
     Haptic.tick();
-    return confirmDialog(
+    final navigator = Navigator.of(context, rootNavigator: true);
+    var open = true;
+    final expiry = Timer(WatchTimeouts.confirm, () {
+      if (open) navigator.pop(false);
+    });
+    final yes = await confirmDialog(
       context,
       title: label == null || label.isEmpty
           ? ScreenStrings.confirmUnlabelled
@@ -198,6 +213,9 @@ class _WatchScreenState extends State<WatchScreen>
       cancel: ScreenStrings.cancel,
       destructive: true,
     );
+    open = false;
+    expiry.cancel();
+    return yes;
   }
 
   void _toggleTyping() {
@@ -251,7 +269,7 @@ class _WatchScreenState extends State<WatchScreen>
 
   @override
   void dispose() {
-    unawaited(_keyErrors?.cancel());
+    unawaited(_inputErrors?.cancel());
     widget.assistant?.removeListener(_onAssistant);
     _text.dispose();
     _textFocus.dispose();
@@ -390,11 +408,7 @@ class _WatchScreenState extends State<WatchScreen>
     final at = _scrollAt;
     if (notches == 0 || at == null) return;
     _scrolled += notches;
-    unawaited(
-      _watch
-          .scroll(at, dy: vertical ? notches : 0, dx: vertical ? 0 : notches)
-          .then(_showInputError),
-    );
+    _watch.scrollBy(at, dy: vertical ? notches : 0, dx: vertical ? 0 : notches);
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
@@ -574,53 +588,81 @@ class _WatchScreenState extends State<WatchScreen>
               final control = _controlLive;
               // Without callbacks (View) this adds no recognizers, so the
               // viewer's pinch and pan are all there is.
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: control
-                    ? (d) => unawaited(_click(d.localPosition))
-                    : null,
-                onDoubleTapDown: control
-                    ? (d) => _doubleTapAt = d.localPosition
-                    : null,
-                onDoubleTap: control
-                    ? () {
-                        if (_doubleTapAt case final at?) {
-                          unawaited(_click(at, count: 2));
+              // The count is reset on the first finger down, not the last up,
+              // because a tap's callback runs after this sees its up.
+              return Listener(
+                onPointerDown: (_) {
+                  if (_pointers == 0) _multiTouch = false;
+                  if (++_pointers > 1) _multiTouch = true;
+                },
+                onPointerUp: (_) => _pointers = math.max(0, _pointers - 1),
+                onPointerCancel: (_) => _pointers = math.max(0, _pointers - 1),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: control
+                      ? (d) {
+                          if (!_multiTouch) unawaited(_click(d.localPosition));
                         }
-                      }
-                    : null,
-                onLongPressStart: control
-                    ? (d) => unawaited(_click(d.localPosition, right: true))
-                    : null,
-                child: InteractiveViewer(
-                  transformationController: _transform,
-                  minScale: 1,
-                  maxScale: 8,
-                  panEnabled: !_scrolling,
-                  onInteractionStart: _onInteractionStart,
-                  onInteractionUpdate: _onInteractionUpdate,
-                  onInteractionEnd: _onInteractionEnd,
-                  child: SizedBox.fromSize(
-                    size: viewport,
-                    child: link == null || !w.foreground
-                        ? const ColoredBox(color: TalvioColors.mediaBg)
-                        : ValueListenableBuilder(
-                            valueListenable: link.videoSize,
-                            builder: (context, size, child) {
-                              // The first frame sets the letterbox.
-                              if (size != null) {
-                                WidgetsBinding.instance.addPostFrameCallback(
-                                  (_) => _applyFollow(animate: false),
-                                );
-                              }
-                              return child!;
-                            },
-                            child: Semantics(
-                              label: ScreenStrings.watchItem(w.title),
-                              image: true,
-                              child: link.buildVideo(),
-                            ),
-                          ),
+                      : null,
+                  onDoubleTapDown: control
+                      ? (d) => _doubleTapAt = d.localPosition
+                      : null,
+                  onDoubleTap: control
+                      ? () {
+                          if (_doubleTapAt case final at? when !_multiTouch) {
+                            unawaited(_click(at, count: 2));
+                          }
+                        }
+                      : null,
+                  child: RawGestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    gestures: {
+                      if (control)
+                        _OneFingerLongPress:
+                            GestureRecognizerFactoryWithHandlers<
+                              _OneFingerLongPress
+                            >(_OneFingerLongPress.new, (recognizer) {
+                              recognizer.onLongPressStart = (d) {
+                                if (!_multiTouch) {
+                                  unawaited(
+                                    _click(d.localPosition, right: true),
+                                  );
+                                }
+                              };
+                            }),
+                    },
+                    child: InteractiveViewer(
+                      transformationController: _transform,
+                      minScale: 1,
+                      maxScale: 8,
+                      panEnabled: !_scrolling,
+                      onInteractionStart: _onInteractionStart,
+                      onInteractionUpdate: _onInteractionUpdate,
+                      onInteractionEnd: _onInteractionEnd,
+                      child: SizedBox.fromSize(
+                        size: viewport,
+                        child: link == null || !w.foreground
+                            ? const ColoredBox(color: TalvioColors.mediaBg)
+                            : ValueListenableBuilder(
+                                valueListenable: link.videoSize,
+                                builder: (context, size, child) {
+                                  // The first frame sets the letterbox.
+                                  if (size != null) {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback(
+                                          (_) => _applyFollow(animate: false),
+                                        );
+                                  }
+                                  return child!;
+                                },
+                                child: Semantics(
+                                  label: ScreenStrings.watchItem(w.title),
+                                  image: true,
+                                  child: link.buildVideo(),
+                                ),
+                              ),
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -1131,5 +1173,22 @@ class _TopBar extends StatelessWidget {
           ),
       ],
     );
+  }
+}
+
+/// A long press (a right click in Control) that gives up when a second
+/// finger comes down. The stock one only measures its first finger's slop,
+/// so two fingers resting a moment before a pinch or a scroll won the
+/// gesture, right-clicked the computer and left the pinch nothing.
+class _OneFingerLongPress extends LongPressGestureRecognizer {
+  _OneFingerLongPress();
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    if (state != GestureRecognizerState.ready) {
+      resolve(GestureDisposition.rejected);
+      return;
+    }
+    super.addAllowedPointer(event);
   }
 }

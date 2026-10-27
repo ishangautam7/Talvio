@@ -232,6 +232,20 @@ void main() {
     await a.up();
     await b.up();
     await tester.pump(const Duration(milliseconds: 500));
+    // One scroll waits for its ack at a time; what came meanwhile follows
+    // in one message.
+    var acked = sentBefore;
+    for (;;) {
+      final next = [
+        for (final m in link.sent.skip(acked))
+          if (m['t'] == 'scroll') m,
+      ];
+      if (next.isEmpty) break;
+      expect(next, hasLength(1), reason: 'one scroll waits at a time');
+      acked = link.sent.length;
+      link.receive({'t': 'ack', 'id': next.single['id'], 'ok': true});
+      await tester.pump();
+    }
     final scrolls = [
       for (final m in link.sent.skip(sentBefore))
         if (m['t'] == 'scroll') m,
@@ -244,6 +258,19 @@ void main() {
       reason: '120 points up, less the 24 that decide it',
     );
     expect(viewOf(tester), view);
+
+    // Two fingers resting before a pinch never right-click.
+    final rested = link.sent.length;
+    final c = await tester.startGesture(stage.center - const Offset(40, 0));
+    final d = await tester.startGesture(
+      stage.center + const Offset(40, 0),
+      pointer: 4,
+    );
+    await tester.pump(const Duration(milliseconds: 800));
+    await c.up();
+    await d.up();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(link.sent.skip(rested).where((m) => m['t'] == 'tap'), isEmpty);
   });
 
   screenTest('Type sends text to the watched window', (tester) async {

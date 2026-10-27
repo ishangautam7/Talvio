@@ -6,7 +6,8 @@ abstract final class ScreenStrings {
   static String heroTitle(String name) => "See $name's screen";
   static const heroBody =
       'Watch it in a small view at the top while you talk to your computer. '
-      'Open it full screen and switch to Control to click, scroll and type.';
+      'Open it full screen to type, or switch to Control to click and '
+      'scroll too.';
   static const watching = 'Watching';
   static const moreOptions = 'More options';
   static const viewScreen = 'View screen';
@@ -123,6 +124,9 @@ abstract final class ScreenStrings {
     'tap_failed' => "Couldn't click there on $name. Try again.",
     'not_live' => 'Not connected to the window yet. Try again in a moment.',
     'confirm' => 'Confirm on the phone first.',
+    'confirm_expired' =>
+      'That was asked too long ago, and the window may have changed. '
+          'Tap it again.',
     _ => DictateStrings.error(code, name),
   };
 }
