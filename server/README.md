@@ -71,7 +71,8 @@ address decides where people's sign-ins go, so keep it locked down.
 | `CLOUDFLARE_TURN_API_TOKEN` | unset                    | The API token of that TURN key. Stays on the server.                                                                                              |
 | `TURN_URLS`                 | unset                    | Instead of Cloudflare: your own TURN server (coturn with `use-auth-secret`), comma-separated `turn:` / `turns:` URLs.                             |
 | `TURN_SECRET`               | unset                    | That server's `static-auth-secret`. Credentials follow the TURN REST scheme and last a day.                                                       |
-| `ADMIN_TOKEN`               | unset                    | At least 24 characters: unlocks the owner's feedback routes (`/v1/admin/feedback`). Unset, they answer 404. Generate it with `openssl rand -hex 32`. |
+| `ADMIN_EMAILS`              | unset                    | Comma-separated emails of the accounts that may sign in to the admin dashboard at `/admin` with their own password or Google. See "Admin dashboard". |
+| `ADMIN_TOKEN`               | unset                    | Optional, for scripts: at least 24 characters, accepted by every `/v1/admin/...` route. Generate it with `openssl rand -hex 32`. With neither this nor `ADMIN_EMAILS`, the admin routes and `/admin` answer 404. |
 | `FEEDBACK_GITHUB_TOKEN`     | unset                    | With `FEEDBACK_GITHUB_REPO`: also file each feedback entry as a GitHub issue. A fine-grained token with Issues: write on that repository.            |
 | `FEEDBACK_GITHUB_REPO`      | unset                    | `owner/name` of that repository. Use a private one: an issue carries the reply email when the sender gave one.                                       |
 | `FREE_*`                    | unset                    | The free credit upstreams, keys and prices. See "Free credit" below; it is off until they are set.                                                |
@@ -227,6 +228,7 @@ docker run -d --name talvio-server --restart unless-stopped \
   -v talvio-data:/data \
   -e PUBLIC_URL=https://sync.example.com -e TRUST_PROXY=1 \
   -e GOOGLE_CLIENT_ID=... -e GOOGLE_CLIENT_SECRET=... \
+  -e ADMIN_EMAILS=owner@example.com \
   talvio-server
 ```
 
@@ -297,7 +299,8 @@ entry. Each entry is a row in the database with its screenshots (up to three,
 10 per hour per address, 200 per hour for the whole server. The log line for an
 entry has its id, kind, length and screenshot count, never its text.
 
-To read it, set `ADMIN_TOKEN` and ask with it:
+The admin dashboard (below) shows the newest entries with their screenshots. To
+read it from a script, set `ADMIN_TOKEN` and ask with it:
 
 ```sh
 # Newest first; pass "next" from the answer as ?before= for the next page.
@@ -314,6 +317,53 @@ With `FEEDBACK_GITHUB_TOKEN` and `FEEDBACK_GITHUB_REPO` set, each entry is also
 filed as an issue there (best effort: a failure is logged and the entry is kept
 anyway). The issue says how many screenshots the server holds but never links
 to them.
+
+## Admin dashboard
+
+One page at `https://sync.example.com/admin` for the server's owner: how many
+accounts there are (and how many are new in the last day and week), a searchable
+list of them with their devices and free credit, totals of the credit spent per
+service and model, free credit requests and sign-ups per day for the last 30
+days, and the newest feedback.
+
+**Who can open it** is a list of accounts, not a password in the configuration:
+
+```sh
+-e ADMIN_EMAILS=owner@example.com            # several: a@x.com,b@y.com
+```
+
+An account on that list signs in on the page with the same email and password
+it uses in the apps, or with Google when Google sign-in is configured. Anyone
+else is refused (`not_admin`), wrong passwords count against the same limit as
+the apps' login, and the sign-in lasts 12 hours, lives only in the server's
+memory (a restart signs the page out) and is never one of the account's devices.
+The page keeps it in the browser tab's `sessionStorage` only. Taking an address
+off the list (and restarting) or deleting the account ends its access at once.
+
+**Have the account before you list it.** A password sign-up does not prove the
+person owns the address, so an address on the list with no account yet would
+make whoever signs up with it first an admin. The server logs a warning at start
+for each listed address that has no account.
+
+The page is a static file with nothing in it until you sign in: everything comes
+from the JSON routes below, it runs only its own inline script (a
+Content-Security-Policy hash), and it may only talk to this server. For a script,
+the same routes accept `Authorization: Bearer $ADMIN_TOKEN`:
+
+```sh
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" https://sync.example.com/v1/admin/overview
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "https://sync.example.com/v1/admin/users?q=gmail&limit=20"
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" https://sync.example.com/v1/admin/users/<id>
+```
+
+What the server can tell apart is what the free credit ledger records for each
+metered request: the kind of request (chat, speech to text, text to speech), the
+model, its size (tokens, seconds or characters), its cost, and when. Chat covers
+the assistant, AI cleanup, meeting notes and command mode alike, since the apps
+send them to the same route. No prompt, recording, transcript or answer is ever
+stored, so the dashboard has none to show; nor does it show passwords, session
+tokens or stored API keys. "Devices" are the account's signed-in devices: a
+device that signs out or is idle for 180 days is gone from the list.
 
 ## Adding a phone ↔ computer feature
 

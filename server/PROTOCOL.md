@@ -140,6 +140,7 @@ Authenticated routes take `Authorization: Bearer <token>`.
 | `GET /v1/ws`                   | ✓    | WebSocket upgrade, see below                                        |
 | `POST /v1/feedback`            | –    | `Feedback` → 201 `{ id }`, see Feedback (a token is optional)       |
 | `/v1/free/…`                   | ✓    | OpenAI-compatible AI on the server's keys, see Free credit          |
+| `/v1/admin/…`, `GET /admin`    | admin | The owner's dashboard and its data, see Admin                      |
 
 Emails are trimmed and lower-cased. A token that has not been used for 180 days
 is deleted and answers `unauthorized`. Rate limits (per server instance): 20
@@ -347,10 +348,8 @@ refused, so feedback never fails over a session.
 - Stored in the server's database, screenshots included, until the owner
   deletes them. Deleting an account keeps its feedback but drops the link to it.
 
-**Reading it (the server's owner).** Only when the server has `ADMIN_TOKEN` set;
-without it these routes answer `not_found`. Each takes
-`Authorization: Bearer <ADMIN_TOKEN>`; a wrong token is `unauthorized`, and
-after 10 wrong tokens in 15 minutes an IP is `rate_limited`.
+**Reading it (the server's owner).** These are admin routes (see Admin): each
+takes `Authorization: Bearer <admin token>`, an admin sign-in or `ADMIN_TOKEN`.
 
 | Method & path                                   | Response                                                         |
 | ----------------------------------------------- | ---------------------------------------------------------------- |
@@ -376,6 +375,110 @@ each stored entry is also filed as an issue in that repository: the first line
 of the message as the title, the message, the system line and the reply email
 in the body, and how many screenshots the server holds (never their content or
 a link to them). Filing is best effort; the app's answer never waits for it.
+
+### Admin: the owner's dashboard (`/admin`, `/v1/admin/…`)
+
+For the server's owner only; no app calls these. They exist only when the
+server has `ADMIN_EMAILS` (accounts that may sign in to the dashboard) or
+`ADMIN_TOKEN` (for scripts) set; with neither, every route here and `GET /admin`
+answer `not_found`.
+
+**The admin token.** Every data route takes `Authorization: Bearer <token>`
+where the token is either `ADMIN_TOKEN` or an admin sign-in (`zva_…`) from the
+routes below. A missing or wrong token is `unauthorized`; after 10 of those in
+15 minutes an IP is `rate_limited`. An admin sign-in is checked on every
+request: it lasts 12 hours, is kept in the server's memory only (a restart ends
+it), and stops working as soon as its account is deleted or its address is no
+longer in `ADMIN_EMAILS`. It is not a device and is no session for the other
+routes, nor is an app session an admin token.
+
+| Method & path                                  | Body → Response                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| `GET /admin`                                   | the dashboard page (HTML, no data in it)                           |
+| `POST /v1/admin/login`                         | `{ email, password }` → AdminSignIn                                |
+| `GET /v1/admin/google/start`                   | query `code_challenge`, `code_challenge_method=S256` → 302 to Google |
+| `POST /v1/admin/google/exchange`               | `{ code, codeVerifier }` → AdminSignIn                             |
+| `POST /v1/admin/logout`                        | → 204; ends the admin sign-in in the header (if any)               |
+| `GET /v1/admin/overview`                       | → Overview                                                         |
+| `GET /v1/admin/users?q=&sort=&limit=&offset=`  | → `{ total, users: AdminUser[], next }`                            |
+| `GET /v1/admin/users/{id}`                     | → AdminUserDetail, or `not_found`                                  |
+| `GET /v1/admin/feedback…`                      | see Feedback                                                       |
+
+```jsonc
+// AdminSignIn
+{ "token": "zva_…", "expiresAt": 1729043200000,
+  "user": { "id": "uuid", "email": "owner@example.com", "name": null } }
+```
+
+- **Signing in.** `login` checks the password exactly like `POST /v1/auth/login`
+  (`invalid_credentials`, and the same 10-failures-per-15-minutes limit per
+  email); an account that is not in `ADMIN_EMAILS` gets 403 `not_admin` and no
+  token. Google: the page sends the browser to `google/start` with a PKCE S256
+  challenge; after Google, `GET /v1/auth/google/callback` sends it back to
+  `{PUBLIC_URL}/admin?code=…` (or `?error=` as in Google sign-in), and the page
+  redeems the code once at `google/exchange` (`invalid_code` when it is unknown,
+  used, older than 2 minutes or the verifier does not match; then `not_admin` as
+  above). `login`, `google/start` and `google/exchange` count toward the 20 auth
+  requests per minute per IP.
+- **No secrets.** Nothing here returns a password or its hash, a session token
+  or its hash, a stored API key, or anything a person said or typed to the AI:
+  the server never stores prompts, audio or transcripts. Feedback is the one
+  place with people's own words, and it is read through the Feedback routes.
+
+```jsonc
+// Overview: counts now; days are UTC, oldest first, today last
+{ "generatedAt": 1729000000000,
+  "users": { "total": 120, "new24h": 3, "new7d": 17,
+             "active24h": 40, "active7d": 75 },   // a signed-in device seen in that time
+  "devices": { "total": 180, "desktop": 130, "mobile": 50, "online": 22 },
+  "credit": {
+    "enabled": true, "limitUsd": 1,
+    "spentUsd": 12.345678, "requests": 9876,       // every metered request ever
+    "accountsWithUsage": 80, "accountsExhausted": 4,
+    "byService": [ { "service": "chat", "requests": 7000, "costUsd": 9.1,
+                     "lastUsedAt": 1729000000000 } ],
+    "byModel": [ { "service": "chat", "model": "gpt-4.1-mini",
+                   "requests": 7000, "costUsd": 9.1 } ] },
+  "days": [ { "day": "2024-09-16", "requests": 310, "costUsd": 0.41, "signups": 2 } ], // 30 entries
+  "feedback": { "total": 42, "last7d": 5,
+                "url": "https://…/v1/admin/feedback" } }
+
+// AdminUser
+{ "id": "uuid", "email": "a@b.com", "name": "Ram" /* or null */,
+  "createdAt": 1729000000000, "lastSeenAt": 1729000000000 /* or null: no device */,
+  "devices": { "total": 2, "desktop": 1, "mobile": 1 },
+  "credit": { "limitUsd": 1, "usedUsd": 0.3, "remainingUsd": 0.7,
+              "requests": 51, "lastUsedAt": 1729000000000 /* or null */ },
+  "services": [ "chat", "transcribe" ] }            // in this fixed order: chat, transcribe, speech
+
+// AdminUserDetail
+{ "user": { "id", "email", "name", "createdAt", "lastSeenAt",
+            "emailVerified": true, "hasPassword": false, "googleLinked": true },
+  "devices": [ { "id", "name", "platform", "kind", "appVersion",
+                 "online": true, "lastSeenAt", "createdAt" } ],   // most recently seen first
+  "credit": { /* as in AdminUser */ },
+  "services": [ { "service": "chat", "requests": 40, "costUsd": 0.25,
+                  "lastUsedAt": 1729000000000 } ],
+  "recentRequests": [ { "service": "transcribe", "model": "whisper-large-v3-turbo",
+                        "units": 12.5, "unit": "seconds", "costUsd": 0.0001,
+                        "at": 1729000000000 } ],                  // newest first, at most 50
+  "feedback": 1 }                                                 // entries this account sent
+```
+
+- `service` is the kind of free credit request: `chat` (`/v1/free/chat/completions`:
+  the assistant, AI cleanup, meeting notes and command mode all use it, so they
+  cannot be told apart), `transcribe` (speech to text) or `speech` (text to
+  speech). `units` are `tokens`, `seconds` or `characters`.
+- Credit belongs to the address, as in Free credit: an account deleted and
+  signed up again with the same email shows the credit already used, and the
+  overview's totals keep the requests of deleted accounts.
+- `devices` are the signed-in devices; one that signs out, is removed or is idle
+  for 180 days is gone. `online` is a WebSocket open to this server right now.
+- Users: `q` (at most 200 characters) matches part of the email or name, or the
+  whole id; `sort` is `new` (default, newest account first), `seen` (most
+  recently seen first) or `email`; `limit` 1–100 (default 50); `offset` from 0.
+  `next` is the `offset` of the following page, or null on the last page. Out of
+  range values are `invalid_request`.
 
 ## WebSocket `GET /v1/ws`
 
