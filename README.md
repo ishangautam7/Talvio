@@ -3,8 +3,8 @@
 **English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="Logo/final-v2/png/lockup-dark-h256.png" />
-  <img src="Logo/final-v2/png/lockup-h256.png" alt="Talvio" width="300" />
+  <source media="(prefers-color-scheme: dark)" srcset="Logo/talvio/png/lockup-dark-h256.png" />
+  <img src="Logo/talvio/png/lockup-h256.png" alt="Talvio" width="300" />
 </picture>
 
 ### Talk to your computer. It types, answers, and gets things done.

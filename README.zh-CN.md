@@ -3,8 +3,8 @@
 [English](README.md) · **简体中文** · [繁體中文](README.zh-TW.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="Logo/final-v2/png/lockup-dark-h256.png" />
-  <img src="Logo/final-v2/png/lockup-h256.png" alt="Talvio" width="320" />
+  <source media="(prefers-color-scheme: dark)" srcset="Logo/talvio/png/lockup-dark-h256.png" />
+  <img src="Logo/talvio/png/lockup-h256.png" alt="Talvio" width="320" />
 </picture>
 
 # 适用于 Windows、macOS 和 Linux 的免费语音输入与 AI 助手

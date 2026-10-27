@@ -7,13 +7,7 @@
   "scripts": {
     "build:talvio": "node talvio/build-all.mjs",
     "build:talvio-masters": "node talvio/build-masters.mjs",
-    "verify:talvio": "node talvio/verify.mjs",
-    "bbox": "node compute-bbox.mjs",
-    "build": "node build-logos.mjs",
-    "build:icon-v2": "node build-new-icon.mjs",
-    "build:lockup-v2": "node build-new-lockup.mjs",
-    "preview:small": "node preview-small-icon.mjs",
-    "verify:icon-v2": "node verify-new-icon.mjs"
+    "verify:talvio": "node talvio/verify.mjs"
   },
   "dependencies": {
     "opentype.js": "^2.0.0",

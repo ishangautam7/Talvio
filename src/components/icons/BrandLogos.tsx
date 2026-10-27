@@ -82,8 +82,7 @@ export const OpenAILogo: React.FC<LogoProps> = ({ size = 20, className }) => (
  * Unlike every other brand here this is artwork, not a `currentColor` glyph:
  * it carries its own tile, so `BRAND_TILES.speakoflow` deliberately draws no
  * background behind it. The asset ships at 128px, enough for a 3x display at
- * the 36-40px the cards draw it; it is rendered from
- * `Logo/Final Transparent Logo speakoflow mini .png`.
+ * the 36-40px the cards draw it.
  */
 export const SpeakoFlowMiniLogo: React.FC<{ className?: string }> = ({
   className,
