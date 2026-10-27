@@ -103,7 +103,7 @@ void main() {
     return (server, links, id);
   }
 
-  screenTest('no clicking or scrolling; no assistant bar without it', (
+  screenTest('View clicks nothing; no assistant bar without it', (
     tester,
   ) async {
     final (server, links, _) = await pumpViewer(tester, assistant: true);
@@ -111,10 +111,10 @@ void main() {
     expect(tester.takeException(), isNull, reason: 'fits');
     expect(sentOf(server, 'screen.watch').single['control'], isFalse);
 
-    for (final gone in ['View', 'Control']) {
-      expect(find.text(gone), findsNothing, reason: gone);
-    }
-    for (final gone in ['Type', 'Dictate into this window', 'Enter']) {
+    expect(find.text('View'), findsOneWidget);
+    expect(find.text('Control'), findsOneWidget);
+    expect(find.byTooltip('Type'), findsOneWidget);
+    for (final gone in ['Dictate into this window', 'Enter']) {
       expect(find.byTooltip(gone), findsNothing, reason: gone);
     }
     // The computer has no assistant: no bar, though the chat exists.
@@ -124,7 +124,7 @@ void main() {
     expect(find.byTooltip('Turn sound on'), findsOneWidget);
     expect(find.text('Stop'), findsOneWidget);
 
-    // A tap, a double tap and a long press only look.
+    // In View a tap, a double tap and a long press only look.
     final center = tester.getCenter(find.byType(InteractiveViewer));
     await tester.tapAt(center);
     await tester.pump(const Duration(milliseconds: 500));
@@ -139,6 +139,135 @@ void main() {
       {'t': 'audio', 'on': true},
     ]);
     expect(find.byTooltip('Turn sound off'), findsOneWidget);
+  });
+
+  screenTest('Control clicks, asks before Send, and scrolls', (tester) async {
+    final (server, links, first) = await pumpViewer(tester);
+    await tester.tap(find.text('Control'));
+    await tester.pump();
+    expect(sentOf(server, 'cancel').single['requestId'], first);
+    expect(sentOf(server, 'screen.watch').last['control'], isTrue);
+    expect(find.textContaining('tap to click'), findsOneWidget);
+    await goLive(tester, server, links);
+    final link = links.last;
+
+    // The 16:9 picture sits in the middle of the 400 wide stage; its
+    // centre is the picture's centre.
+    final stage = tester.getRect(find.byType(InteractiveViewer));
+    await tester.tapAt(stage.center);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(link.sent.single, {
+      't': 'tap',
+      'x': 0.5,
+      'y': 0.5,
+      'button': 'left',
+      'count': 1,
+      'confirmed': false,
+      'id': 'k1',
+    });
+    link.receive({'t': 'ack', 'id': 'k1', 'ok': true});
+
+    // A tap on the bar above the picture clicks nothing.
+    await tester.tapAt(stage.topCenter + const Offset(0, 90));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(link.sent, hasLength(1));
+
+    // A double tap double clicks; a long press right clicks.
+    await tester.tapAt(stage.center);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(stage.center);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(link.sent.last['count'], 2);
+    link.receive({'t': 'ack', 'id': link.sent.last['id'], 'ok': true});
+    await tester.longPressAt(stage.center);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(link.sent.last['button'], 'right');
+
+    // A Send button: asked first, sent again confirmed on Do it.
+    link.receive({
+      't': 'ack',
+      'id': link.sent.last['id'],
+      'ok': false,
+      'error': 'confirm',
+      'label': 'Send',
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Press "Send" on the computer?'), findsOneWidget);
+    await tester.tap(find.text('Do it'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(link.sent.last['confirmed'], isTrue);
+    expect(link.sent.last['button'], 'right');
+
+    // A refusal says why.
+    link.receive({
+      't': 'ack',
+      'id': link.sent.last['id'],
+      'ok': false,
+      'error': 'password_field',
+    });
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      find.text("Talvio doesn't type or click into password fields."),
+      findsOneWidget,
+    );
+
+    // Two fingers dragged up together scroll the computer down; the view
+    // stays where it was.
+    final view = viewOf(tester).clone();
+    final sentBefore = link.sent.length;
+    final a = await tester.startGesture(stage.center - const Offset(40, 0));
+    final b = await tester.startGesture(
+      stage.center + const Offset(40, 0),
+      pointer: 2,
+    );
+    for (var i = 0; i < 10; i++) {
+      await a.moveBy(const Offset(0, -12));
+      await b.moveBy(const Offset(0, -12));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await a.up();
+    await b.up();
+    await tester.pump(const Duration(milliseconds: 500));
+    final scrolls = [
+      for (final m in link.sent.skip(sentBefore))
+        if (m['t'] == 'scroll') m,
+    ];
+    expect(scrolls, isNotEmpty);
+    expect(scrolls.every((m) => m['dx'] == 0), isTrue);
+    expect(
+      scrolls.fold<int>(0, (sum, m) => sum + (m['dy']! as int)),
+      greaterThanOrEqualTo(2),
+      reason: '120 points up, less the 24 that decide it',
+    );
+    expect(viewOf(tester), view);
+  });
+
+  screenTest('Type sends text to the watched window', (tester) async {
+    final (_, links, _) = await pumpViewer(tester);
+    final link = links.last;
+    await tester.tap(find.byTooltip('Type'));
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: 'the field fits');
+    await tester.enterText(find.byType(TextField), 'hello there');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Send text'));
+    await tester.pump();
+    expect(link.sent.last, {'t': 'text', 'text': 'hello there', 'id': 'k1'});
+    link.receive({'t': 'ack', 'id': 'k1', 'ok': true});
+    await tester.pump();
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      isEmpty,
+      reason: 'sent, so cleared',
+    );
+    await tester.tap(find.byTooltip('Hide typing'));
+    await tester.pump();
+    expect(find.byType(TextField), findsNothing);
   });
 
   screenTest('Stop ends the watch and closes the viewer', (tester) async {

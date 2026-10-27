@@ -143,6 +143,11 @@ abstract final class AppIcons {
   static const followOn = IconData(0xe1d6, fontFamily: 'PhosphorFill');
   static const answer = IconData(0xe168, fontFamily: 'PhosphorRegular');
   static const answerOn = IconData(0xe168, fontFamily: 'PhosphorFill');
+  // View / Control (eye, mouse) and Type (text-aa), added by hand.
+  static const view = IconData(0xe220, fontFamily: 'PhosphorRegular');
+  static const control = IconData(0xe33a, fontFamily: 'PhosphorRegular');
+  static const typeText = IconData(0xe6ee, fontFamily: 'PhosphorRegular');
+  static const typeTextOn = IconData(0xe6ee, fontFamily: 'PhosphorFill');
 
   // Notices.
   static const offline = IconData(0xe3da, fontFamily: 'PhosphorRegular');

@@ -13,6 +13,7 @@ import '../../design/tokens.dart';
 import '../assistant/assistant_controller.dart';
 import '../assistant/assistant_widgets.dart';
 import '../assistant/strings.dart';
+import '../dictate/dictate_screen.dart' show typedTextLimit;
 import '../dictate/key_pad.dart';
 import '../dictate/strings.dart';
 import 'live_controller.dart';
@@ -27,11 +28,23 @@ String screenLabel(RemoteScreen screen) =>
     screen.name.isEmpty ? ScreenStrings.untitledScreen : screen.name;
 
 /// The live view, full screen (design spec §4.8): the same watch as the
-/// small view, bigger. Pinch and drag move around the picture; nothing on
-/// the computer is clicked or scrolled from here, only the keys pressed on
-/// the pad are sent. Under the picture (beside it on its side) are the
-/// latest answer, the keys on demand, the assistant's composer and the
-/// toolbar. Back returns to the small view; Stop ends the watch.
+/// small view, bigger. Under the picture (beside it on its side) are the
+/// latest answer, the keys and typing on demand, the assistant's composer,
+/// View or Control, and the toolbar. Back returns to the small view; Stop
+/// ends the watch.
+///
+/// The gestures on the picture:
+/// - View (the default): pinch zooms, one finger drags the zoomed picture
+///   around. Nothing on the computer is clicked or scrolled.
+/// - Control: one tap is a left click, a double tap a double click, a long
+///   press a right click, and two fingers dragged together (without
+///   pinching) scroll the computer, one wheel notch per 40 points, on the
+///   axis they first moved along. Pinch still zooms and one finger still
+///   drags the zoomed picture, since the protocol has no mouse drag.
+/// - In both, keys (the pad) and typed text go to the watched window.
+///
+/// A tap on the bars beside the picture clicks nothing. A click on a control
+/// that sends, buys, posts or deletes is asked about first ([_confirm]).
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
     super.key,
@@ -77,6 +90,25 @@ class _WatchScreenState extends State<WatchScreen>
   /// The key pad is open.
   var _keysOpen = false;
 
+  /// The typing field is open.
+  var _typing = false;
+  final _text = TextEditingController();
+  final _textFocus = FocusNode();
+
+  // One gesture on the picture in Control: where it started, whether its
+  // two fingers scroll (null: not decided yet), on which axis, and the
+  // notches already sent.
+  Offset _gestureFocal = Offset.zero;
+  bool? _gestureScrolls;
+  Axis _scrollAxis = Axis.vertical;
+  var _scrolled = 0;
+  Offset? _scrollAt;
+  Offset? _doubleTapAt;
+
+  /// Two fingers are scrolling the computer: the viewer does not pan (or
+  /// fling) the picture meanwhile.
+  var _scrolling = false;
+
   /// The latest answer's card is open, and the turn it shows. Only turns
   /// asked after the viewer opened are shown over the picture.
   var _answerOpen = true;
@@ -108,6 +140,90 @@ class _WatchScreenState extends State<WatchScreen>
     _watch.pressKeys(keys);
   }
 
+  void _snack(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  /// Says why input was not delivered. Nothing for the watch ending, for a
+  /// click the user chose not to confirm, or for one still waiting (`busy`).
+  void _showInputError(InputResult result) {
+    final error = result.error;
+    if (error == null ||
+        const {'cancelled', 'confirm', 'busy'}.contains(error)) {
+      return;
+    }
+    _snack(ScreenStrings.error(error, _name));
+  }
+
+  /// Taps and scrolls reach the computer now.
+  bool get _controlLive =>
+      _watch.control && _watch.phase == WatchPhase.live && _watch.channelOpen;
+
+  void _setControl(bool control) {
+    _snack(control ? ScreenStrings.controlHint : ScreenStrings.viewHint);
+    _watch.setControl(control);
+  }
+
+  /// A click at [point] (viewport coordinates), mapped through the zoom,
+  /// the pan and the letterbox to the computer's picture.
+  Future<void> _click(Offset point, {bool right = false, int count = 1}) async {
+    final at = pictureCoords(
+      point: point,
+      transform: _transform.value,
+      viewport: _viewport,
+      picture: _picture,
+    );
+    if (at == null) return;
+    Haptic.tap();
+    _showInputError(
+      await _watch.click(at, right: right, count: count, confirm: _confirm),
+    );
+  }
+
+  /// Asks before a click on a control the computer says sends, buys, posts
+  /// or deletes; true for Do it.
+  Future<bool> _confirm(String? label) async {
+    if (!mounted) return false;
+    Haptic.tick();
+    return confirmDialog(
+      context,
+      title: label == null || label.isEmpty
+          ? ScreenStrings.confirmUnlabelled
+          : ScreenStrings.confirmTitle(label),
+      body: ScreenStrings.confirmBody,
+      action: ScreenStrings.doIt,
+      cancel: ScreenStrings.cancel,
+      destructive: true,
+    );
+  }
+
+  void _toggleTyping() {
+    Haptic.tick();
+    setState(() => _typing = !_typing);
+    if (_typing) {
+      _textFocus.requestFocus();
+    } else {
+      _textFocus.unfocus();
+    }
+  }
+
+  /// Sends the typed text; it stays in the field when it was not delivered.
+  Future<void> _sendText() async {
+    final text = _text.text;
+    if (text.trim().isEmpty) return;
+    Haptic.tap();
+    final result = await _watch.typeText(text);
+    if (!mounted) return;
+    if (result.ok) {
+      _text.clear();
+    } else {
+      _showInputError(result);
+    }
+  }
+
   /// A new question opens its card again.
   void _onAssistant() {
     final last = widget.assistant?.turns.lastOrNull;
@@ -137,6 +253,8 @@ class _WatchScreenState extends State<WatchScreen>
   void dispose() {
     unawaited(_keyErrors?.cancel());
     widget.assistant?.removeListener(_onAssistant);
+    _text.dispose();
+    _textFocus.dispose();
     if (_held != null) _hold(null);
     _watch.removeListener(_onWatch);
     _move.dispose();
@@ -236,9 +354,51 @@ class _WatchScreenState extends State<WatchScreen>
   void _onInteractionStart(ScaleStartDetails details) {
     _move.stop();
     _gestureFrom = _transform.value.clone();
+    _gestureFocal = details.localFocalPoint;
+    _gestureScrolls = null;
+    _scrolled = 0;
+    _scrollAt = pictureCoords(
+      point: details.localFocalPoint,
+      transform: _transform.value,
+      viewport: _viewport,
+      picture: _picture,
+    );
+  }
+
+  /// In Control, two fingers moving together without pinching scroll the
+  /// computer instead of moving the view: decided once per gesture, after
+  /// 24 points of movement, and on the axis the fingers moved along most.
+  void _onInteractionUpdate(ScaleUpdateDetails details) {
+    final from = _gestureFrom;
+    if (!_controlLive || from == null || details.pointerCount < 2) return;
+    final moved = details.localFocalPoint - _gestureFocal;
+    if (_gestureScrolls == null) {
+      if ((details.scale - 1).abs() > 0.08) {
+        _gestureScrolls = false;
+      } else if (moved.distance > 24) {
+        _gestureScrolls = true;
+        _scrollAxis = moved.dy.abs() >= moved.dx.abs()
+            ? Axis.vertical
+            : Axis.horizontal;
+      }
+    }
+    if (_gestureScrolls != true) return;
+    if (!_scrolling) setState(() => _scrolling = true);
+    _transform.value = from;
+    final vertical = _scrollAxis == Axis.vertical;
+    final notches = scrollNotches(vertical ? moved.dy : moved.dx) - _scrolled;
+    final at = _scrollAt;
+    if (notches == 0 || at == null) return;
+    _scrolled += notches;
+    unawaited(
+      _watch
+          .scroll(at, dy: vertical ? notches : 0, dx: vertical ? 0 : notches)
+          .then(_showInputError),
+    );
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
+    if (_scrolling) setState(() => _scrolling = false);
     final from = _gestureFrom;
     _gestureFrom = null;
     if (from == null || from == _transform.value) return;
@@ -341,8 +501,20 @@ class _WatchScreenState extends State<WatchScreen>
     ),
   );
 
-  /// The keys when open, the composer, and the toolbar.
+  /// The keys and typing when open, the composer, View or Control, and the
+  /// toolbar.
   List<Widget> _controls(BuildContext context) => [
+    if (_typing)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 4, 0),
+        child: _TypeField(
+          controller: _text,
+          focusNode: _textFocus,
+          hint: ScreenStrings.typeHint(_watch.title),
+          enabled: _watch.channelOpen,
+          onSend: () => unawaited(_sendText()),
+        ),
+      ),
     if (_keysOpen)
       Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -358,6 +530,23 @@ class _WatchScreenState extends State<WatchScreen>
         dense: true,
         margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       ),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: SegmentedPill<bool>(
+            height: 32,
+            options: const [
+              (false, ScreenStrings.view, AppIcons.view),
+              (true, ScreenStrings.controlMode, AppIcons.control),
+            ],
+            selected: _watch.control,
+            onChanged: _watch.phase == WatchPhase.ended ? null : _setControl,
+          ),
+        ),
+      ),
+    ),
     _toolbar(context),
   ];
 
@@ -382,33 +571,57 @@ class _WatchScreenState extends State<WatchScreen>
                   (_) => _applyFollow(animate: false),
                 );
               }
-              return InteractiveViewer(
-                transformationController: _transform,
-                minScale: 1,
-                maxScale: 8,
-                onInteractionStart: _onInteractionStart,
-                onInteractionEnd: _onInteractionEnd,
-                child: SizedBox.fromSize(
-                  size: viewport,
-                  child: link == null || !w.foreground
-                      ? const ColoredBox(color: TalvioColors.mediaBg)
-                      : ValueListenableBuilder(
-                          valueListenable: link.videoSize,
-                          builder: (context, size, child) {
-                            // The first frame sets the letterbox.
-                            if (size != null) {
-                              WidgetsBinding.instance.addPostFrameCallback(
-                                (_) => _applyFollow(animate: false),
-                              );
-                            }
-                            return child!;
-                          },
-                          child: Semantics(
-                            label: ScreenStrings.watchItem(w.title),
-                            image: true,
-                            child: link.buildVideo(),
+              final control = _controlLive;
+              // Without callbacks (View) this adds no recognizers, so the
+              // viewer's pinch and pan are all there is.
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapUp: control
+                    ? (d) => unawaited(_click(d.localPosition))
+                    : null,
+                onDoubleTapDown: control
+                    ? (d) => _doubleTapAt = d.localPosition
+                    : null,
+                onDoubleTap: control
+                    ? () {
+                        if (_doubleTapAt case final at?) {
+                          unawaited(_click(at, count: 2));
+                        }
+                      }
+                    : null,
+                onLongPressStart: control
+                    ? (d) => unawaited(_click(d.localPosition, right: true))
+                    : null,
+                child: InteractiveViewer(
+                  transformationController: _transform,
+                  minScale: 1,
+                  maxScale: 8,
+                  panEnabled: !_scrolling,
+                  onInteractionStart: _onInteractionStart,
+                  onInteractionUpdate: _onInteractionUpdate,
+                  onInteractionEnd: _onInteractionEnd,
+                  child: SizedBox.fromSize(
+                    size: viewport,
+                    child: link == null || !w.foreground
+                        ? const ColoredBox(color: TalvioColors.mediaBg)
+                        : ValueListenableBuilder(
+                            valueListenable: link.videoSize,
+                            builder: (context, size, child) {
+                              // The first frame sets the letterbox.
+                              if (size != null) {
+                                WidgetsBinding.instance.addPostFrameCallback(
+                                  (_) => _applyFollow(animate: false),
+                                );
+                              }
+                              return child!;
+                            },
+                            child: Semantics(
+                              label: ScreenStrings.watchItem(w.title),
+                              image: true,
+                              child: link.buildVideo(),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               );
             },
@@ -616,6 +829,12 @@ class _WatchScreenState extends State<WatchScreen>
               onPressed: ended ? null : () => w.setSound(!w.soundOn),
             ),
             IconBtn(
+              tooltip: _typing ? ScreenStrings.hideType : ScreenStrings.type,
+              selected: _typing,
+              icon: _typing ? AppIcons.typeTextOn : AppIcons.typeText,
+              onPressed: ended ? null : _toggleTyping,
+            ),
+            IconBtn(
               tooltip: _keysOpen
                   ? AssistantStrings.hideKeys
                   : AssistantStrings.keys,
@@ -749,6 +968,52 @@ class _AnswerCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The field that types into the watched window, with its send button.
+class _TypeField extends StatelessWidget {
+  const _TypeField({
+    required this.controller,
+    required this.focusNode,
+    required this.hint,
+    required this.enabled,
+    required this.onSend,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hint;
+  final bool enabled;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            enabled: enabled,
+            minLines: 1,
+            maxLines: 3,
+            inputFormatters: [typedTextLimit],
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(hintText: hint, isDense: true),
+          ),
+        ),
+        ValueListenableBuilder(
+          valueListenable: controller,
+          builder: (context, value, _) => IconBtn(
+            tooltip: ScreenStrings.sendText,
+            icon: AppIcons.send,
+            onPressed: enabled && value.text.trim().isNotEmpty ? onSend : null,
+          ),
+        ),
+      ],
     );
   }
 }
