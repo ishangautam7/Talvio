@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS free_usage (
   created_at INTEGER NOT NULL
 ) STRICT;
 CREATE INDEX IF NOT EXISTS free_usage_by_subject ON free_usage(subject, created_at);
+CREATE INDEX IF NOT EXISTS free_usage_by_time ON free_usage(created_at);
 CREATE TABLE IF NOT EXISTS free_totals (
   subject TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,

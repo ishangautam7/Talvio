@@ -1,5 +1,5 @@
 import type { Ctx } from "./app";
-import { sha256 } from "./crypto";
+import { requireAdmin } from "./admin";
 import type { FeedbackInsert, FeedbackRow } from "./db";
 import {
   invalidRequest,
@@ -10,7 +10,6 @@ import {
   payloadTooLarge,
   rateLimited,
   readJson,
-  unauthorized,
 } from "./http";
 import type { RateLimit } from "./rateLimit";
 import { email as emailAddress } from "./validate";
@@ -269,22 +268,6 @@ async function fileIssue(
 
 // ── The owner's routes ─────────────────────────────────────────────────────
 
-const sameSecret = (a: string, b: string) => sha256(a) === sha256(b);
-
-/** Throws unless the request carries the admin token; `not_found` when none is set. */
-function admin(req: Request, ctx: Ctx, clientIp: string): void {
-  if (!ctx.adminToken) throw notFound();
-  const failures = ctx.feedbackLimits.adminFailures;
-  const wait = failures.retryAfter(clientIp);
-  if (wait > 0) throw rateLimited(wait);
-  const token = BEARER.exec(req.headers.get("authorization") ?? "")?.[1];
-  // Compared as hashes, so the time taken says nothing about the token.
-  if (!token || !sameSecret(token, ctx.adminToken)) {
-    failures.record(clientIp);
-    throw unauthorized();
-  }
-}
-
 function entryJson(
   ctx: Ctx,
   row: FeedbackRow,
@@ -322,7 +305,7 @@ export function listFeedback(
   url: URL,
   clientIp: string,
 ): Response {
-  admin(req, ctx, clientIp);
+  requireAdmin(req, ctx, clientIp);
   const limitParam = url.searchParams.get("limit");
   const limit = limitParam === null ? 50 : Number(limitParam);
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
@@ -353,7 +336,7 @@ export function feedbackScreenshot(
   id: string,
   n: number,
 ): Response {
-  admin(req, ctx, clientIp);
+  requireAdmin(req, ctx, clientIp);
   const shot = ctx.store.feedbackScreenshot(id, n);
   if (!shot) throw notFound("No such screenshot.");
   return new Response(shot.data, {
@@ -372,7 +355,7 @@ export function deleteFeedback(
   clientIp: string,
   id: string,
 ): Response {
-  admin(req, ctx, clientIp);
+  requireAdmin(req, ctx, clientIp);
   if (!ctx.store.deleteFeedback(id)) throw notFound("No such feedback.");
   return noContent();
 }

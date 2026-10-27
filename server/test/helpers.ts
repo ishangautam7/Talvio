@@ -40,6 +40,7 @@ export async function harness(
     secretsKey?: string;
     turn?: TurnConfig | null;
     adminToken?: string | null;
+    adminEmails?: string[];
     feedbackGithub?: FeedbackGithub | null;
     free?: FreeConfig | null;
     log?: (line: string) => void;
@@ -54,6 +55,7 @@ export async function harness(
     secretsKey: options.secretsKey,
     turn: options.turn ?? null,
     adminToken: options.adminToken ?? null,
+    adminEmails: options.adminEmails,
     feedbackGithub: options.feedbackGithub ?? null,
     free: options.free ?? null,
     publicUrl: PUBLIC_URL,

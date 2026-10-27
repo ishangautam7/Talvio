@@ -65,6 +65,29 @@ export function start(url: URL, ctx: Ctx): Response {
       "This sign-in link is not valid. Start again from the Talvio app.",
     );
   }
+  return toGoogle(ctx, redirectUri, challenge);
+}
+
+/** Where the admin dashboard's Google sign-in comes back to: the page itself. */
+export const adminRedirect = (ctx: Ctx) => `${ctx.publicUrl}/admin`;
+
+/**
+ * The admin dashboard's Google sign-in (PROTOCOL.md, "Admin"): the same flow
+ * as the apps', coming back to `/admin` with a code the page redeems at
+ * `POST /v1/admin/google/exchange`.
+ */
+export function adminStart(url: URL, ctx: Ctx): Response {
+  const challenge = url.searchParams.get("code_challenge") ?? "";
+  if (
+    !S256_CHALLENGE.test(challenge) ||
+    url.searchParams.get("code_challenge_method") !== "S256"
+  ) {
+    return htmlPage(400, "This sign-in link is not valid. Start again.");
+  }
+  return toGoogle(ctx, adminRedirect(ctx), challenge);
+}
+
+function toGoogle(ctx: Ctx, redirectUri: string, challenge: string): Response {
   if (!ctx.google) return redirect(`${redirectUri}?error=google_unavailable`);
   const state = randomToken();
   ctx.store.saveGoogleState(
@@ -120,6 +143,14 @@ export async function callback(url: URL, ctx: Ctx): Promise<Response> {
 export async function exchange(req: Request, ctx: Ctx): Promise<Response> {
   const body = await readJson(req);
   const info = deviceInfo(body.device);
+  return signedIn(ctx, redeemLoginCode(ctx, body), info);
+}
+
+/** The account a login code (with its PKCE verifier) signs in, or `invalid_code`; used once. */
+export function redeemLoginCode(
+  ctx: Ctx,
+  body: Record<string, unknown>,
+): UserRow {
   if (typeof body.code !== "string" || typeof body.codeVerifier !== "string") {
     throw invalidRequest("code and codeVerifier are required.");
   }
@@ -136,7 +167,7 @@ export async function exchange(req: Request, ctx: Ctx): Promise<Response> {
     );
   }
   // Login codes are deleted with their user (ON DELETE CASCADE).
-  return signedIn(ctx, ctx.store.userById(login.user_id)!, info);
+  return ctx.store.userById(login.user_id)!;
 }
 
 /**
