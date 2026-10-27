@@ -19,6 +19,10 @@ Local-first: speech is transcribed on your own computer unless you choose a clou
 
 <img src="assets/readme/guide/hero.webp" width="900" alt="The Talvio desktop app's Home page next to the Talvio phone app, where a spoken request played a song and sent an email on the computer" />
 
+**[Download for Windows, macOS and Linux](https://github.com/ishangautam7/Talvio/releases/latest)** · [Website](https://talvio.sentramind.dev) · [Android app](https://talvio.sentramind.dev/download/android)
+
+If Talvio saves you some typing, a ⭐ helps other people find it.
+
 </div>
 
 ## Contents
