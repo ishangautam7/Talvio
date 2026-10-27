@@ -100,6 +100,18 @@ theme and `context.talvio` for colour, never colours of their own, so light
 and dark stay one system. The type is Inter and Plus Jakarta Sans, bundled
 under `assets/fonts/` with their OFL licences.
 
+The live view (`features/screen/`, PROTOCOL.md "Live view") starts in
+**View**: pinch zooms and one finger moves the zoomed picture, and only keys
+and typed text reach the computer. **Control** starts a new watch with
+`control: true`: a tap is a left click, a double tap a double click, a long
+press a right click, and two fingers dragged together scroll; pinch and the
+one-finger move still work, since the protocol has no mouse drag. Touches are
+mapped through the zoom, the pan and the letterbox to 0..1 of the picture
+(`view_geometry.dart::pictureCoords`), and a tap on the bars clicks nothing.
+A click the computer answers with `confirm` (a control that sends, buys,
+posts or deletes) asks Cancel or Do it and is resent `confirmed` only on Do
+it (`WatchController.click`).
+
 `flutter test test_screens --dart-define=OUT=<folder>` renders every page,
 light and dark, to PNG with the real fonts, for design review. It is not part
 of `flutter test`.
