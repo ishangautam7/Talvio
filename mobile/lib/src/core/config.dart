@@ -4,7 +4,7 @@ import 'models.dart';
 import 'server_finder.dart';
 
 /// Kept equal to `version` in pubspec.yaml (no package_info dependency).
-const appVersion = '1.0.0';
+const appVersion = '1.1.0';
 
 /// Where the app asks for the account server's current address
 /// (PROTOCOL.md, "Finding the server"). The server's own address changes from
