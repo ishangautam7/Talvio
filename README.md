@@ -55,7 +55,7 @@ Download the latest version from the [Releases page](https://github.com/ishangau
 | ----------- | --- |
 | **Windows** | Run `Talvio_<version>_x64-setup.exe` (or the `.msi`). The installer is not signed yet, so Windows SmartScreen may warn you: choose **More info → Run anyway**. |
 | **Linux**   | `Talvio_<version>_amd64.AppImage` (make it executable and run it) or the `.deb`. ARM64 builds are there too. Speech runs on Vulkan or the CPU. |
-| **macOS**   | A build is on its way. Until then, build from source with [BUILD.md](BUILD.md). Talvio asks for **Microphone** and **Accessibility** permission so it can hear you and type into other apps. |
+| **macOS**   | `Talvio_<version>_aarch64.dmg` (Apple silicon) or `_x64.dmg` (Intel). The app is not signed by Apple yet, so after dragging it to Applications run `xattr -dr com.apple.quarantine /Applications/Talvio.app` once. Talvio asks for **Microphone** and **Accessibility** permission so it can hear you and type into other apps. |
 | **Android** | The phone app's APK is at [talvio.sentramind.dev/download/android](https://talvio.sentramind.dev/download/android), or build it from [`mobile/`](mobile/README.md). |
 
 Building from source, in short (full details in [BUILD.md](BUILD.md)):
