@@ -184,6 +184,16 @@ export class Hub {
       });
   }
 
+  /** Whether a device has a socket open right now (the admin dashboard). */
+  isOnline(deviceId: string): boolean {
+    return this.byDevice.has(deviceId);
+  }
+
+  /** How many devices have a socket open right now. */
+  onlineCount(): number {
+    return this.byDevice.size;
+  }
+
   /** Current device first, then by name. */
   devices(rows: DeviceRow[], currentId: string) {
     return rows

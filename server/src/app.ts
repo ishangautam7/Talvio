@@ -9,6 +9,17 @@ import {
   me,
   signup,
 } from "./account";
+import {
+  adminGoogleExchange,
+  adminGoogleStart,
+  adminLogin,
+  adminLogout,
+  adminPageRoute,
+  AdminSessions,
+  listUsers,
+  overview,
+  userDetail,
+} from "./admin";
 import { Store } from "./db";
 import { Free } from "./free";
 import type { FreeConfig } from "./free/config";
@@ -56,8 +67,10 @@ export interface Options {
   secretsKey?: string;
   /** Where live-view TURN credentials come from (PROTOCOL.md, "TURN"); null offers STUN only. */
   turn?: TurnConfig | null;
-  /** Unlocks the owner's feedback routes (`ADMIN_TOKEN`); unset, they answer `not_found`. */
+  /** Unlocks the owner's admin routes for scripts (`ADMIN_TOKEN`). */
   adminToken?: string | null;
+  /** Accounts that may sign in to `/admin` (`ADMIN_EMAILS`). With neither this nor `adminToken`, every admin route answers `not_found`. */
+  adminEmails?: string[];
   /** Also file each feedback entry as a GitHub issue; null files nothing. */
   feedbackGithub?: FeedbackGithub | null;
   /** Free credit upstreams and prices (PROTOCOL.md, "Free credit"); null or absent turns it off. */
@@ -79,6 +92,8 @@ export interface Ctx {
   secrets: SecretBox;
   turn: TurnConfig | null;
   adminToken: string | null;
+  adminEmails: Set<string>;
+  adminSessions: AdminSessions;
   feedbackGithub: FeedbackGithub | null;
   feedbackLimits: FeedbackLimits;
   free: Free;
@@ -108,6 +123,16 @@ const routes = new Map<string, Route>([
   ["GET /v1/devices", (req, ctx) => listDevices(req, ctx)],
   ["GET /v1/secrets", (req, ctx) => listSecrets(req, ctx)],
   ["GET /v1/turn", (req, ctx) => turn(req, ctx)],
+  ["POST /v1/admin/login", (req, ctx) => adminLogin(req, ctx)],
+  [
+    "GET /v1/admin/google/start",
+    (_req, ctx, url) => adminGoogleStart(url, ctx),
+  ],
+  [
+    "POST /v1/admin/google/exchange",
+    (req, ctx) => adminGoogleExchange(req, ctx),
+  ],
+  ["POST /v1/admin/logout", (req, ctx) => adminLogout(req, ctx)],
   [
     "GET /v1/ws",
     (req, ctx, _url, server) => {
@@ -135,6 +160,9 @@ const PER_IP_LIMITED = new Set([
   "POST /v1/auth/login",
   "GET /v1/auth/google/start",
   "POST /v1/auth/exchange",
+  "POST /v1/admin/login",
+  "GET /v1/admin/google/start",
+  "POST /v1/admin/google/exchange",
 ]);
 
 const DEVICE_PATH = /^\/v1\/devices\/([^/]+)$/;
@@ -142,6 +170,7 @@ const FEEDBACK_PATH = /^\/v1\/admin\/feedback\/([^/]+)$/;
 const SCREENSHOT_PATH =
   /^\/v1\/admin\/feedback\/([^/]+)\/screenshots\/(\d{1,2})$/;
 const SECRET_PATH = /^\/v1\/secrets\/([^/]+)$/;
+const ADMIN_USER_PATH = /^\/v1\/admin\/users\/([^/]+)$/;
 
 export function startServer(options: Options) {
   const now = options.now ?? Date.now;
@@ -175,6 +204,12 @@ export function startServer(options: Options) {
     secrets: new SecretBox(secretsKey.key),
     turn: options.turn ?? null,
     adminToken: options.adminToken || null,
+    adminEmails: new Set(
+      (options.adminEmails ?? []).map((address) =>
+        address.trim().toLowerCase(),
+      ),
+    ),
+    adminSessions: new AdminSessions(now),
     feedbackGithub: options.feedbackGithub ?? null,
     feedbackLimits,
     free: new Free(
@@ -189,6 +224,16 @@ export function startServer(options: Options) {
       { store, now, log },
     ),
   };
+
+  for (const address of ctx.adminEmails) {
+    // A password sign-up never proves its address, so until the owner has the
+    // account, whoever registers the address first would be an admin.
+    if (!store.userByEmail(address)) {
+      log(
+        `Warning: an ADMIN_EMAILS address has no account yet; sign up with it before anyone else can.`,
+      );
+    }
+  }
 
   function clientIp(req: Request, server: Server<SocketData>): string {
     if (options.trustProxy) {
@@ -231,6 +276,16 @@ export function startServer(options: Options) {
     if (key === "POST /v1/feedback") return sendFeedback(req, ctx, ip());
     if (key === "GET /v1/admin/feedback")
       return listFeedback(req, ctx, url, ip());
+    if (key === "GET /v1/admin/overview") return overview(req, ctx, ip());
+    if (key === "GET /v1/admin/users") return listUsers(req, ctx, url, ip());
+    const adminUser =
+      req.method === "GET"
+        ? ADMIN_USER_PATH.exec(url.pathname)?.[1]
+        : undefined;
+    if (adminUser) return userDetail(req, ctx, ip(), adminUser);
+    // The page holds no data, but a server with no way in does not offer it.
+    if (key === "GET /admin" || key === "GET /admin/")
+      return adminPageRoute(ctx);
     const shot =
       req.method === "GET" ? SCREENSHOT_PATH.exec(url.pathname) : null;
     if (shot)
@@ -303,6 +358,7 @@ export function startServer(options: Options) {
         feedbackLimits.global.prune();
         feedbackLimits.adminFailures.prune();
         ctx.free.prune();
+        ctx.adminSessions.prune();
       }),
     10 * 60 * 1000,
   );

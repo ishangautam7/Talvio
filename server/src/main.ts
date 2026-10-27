@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { adminEmailsFromEnv } from "./admin";
 import { startServer } from "./app";
 import { resolveDatabasePath } from "./databasePath";
 import { feedbackGithubFromEnv } from "./feedback";
@@ -38,6 +39,7 @@ const adminToken = env.ADMIN_TOKEN?.trim() || null;
 if (adminToken && adminToken.length < 24) {
   throw new Error("ADMIN_TOKEN must be at least 24 characters.");
 }
+const adminEmails = adminEmailsFromEnv(env.ADMIN_EMAILS);
 const free = freeFromEnv(env);
 
 const app = startServer({
@@ -50,11 +52,12 @@ const app = startServer({
   secretsKey: env.TALVIO_SECRETS_KEY,
   turn,
   adminToken,
+  adminEmails,
   feedbackGithub,
   free,
 });
 console.log(
-  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"}, free credit ${describeFree(free)}, feedback admin ${adminToken ? "on" : "off"}, feedback issues ${feedbackGithub ? feedbackGithub.repo : "off"})`,
+  `Talvio account server listening on ${app.url} (public URL ${publicUrl}, Google sign-in ${google ? "on" : "off"}, TURN ${turn ? turn.kind : "off"}, free credit ${describeFree(free)}, admin dashboard ${adminEmails.length ? `${adminEmails.length} account(s)` : "off"}, admin token ${adminToken ? "on" : "off"}, feedback issues ${feedbackGithub ? feedbackGithub.repo : "off"})`,
 );
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

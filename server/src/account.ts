@@ -75,8 +75,21 @@ let dummyHash: Promise<string> | undefined;
 export async function login(req: Request, ctx: Ctx): Promise<Response> {
   const body = await readJson(req);
   const info = deviceInfo(body.device);
-  const address = email(body.email);
-  if (typeof body.password !== "string")
+  const user = await checkPassword(ctx, body.email, body.password);
+  return signedIn(ctx, user, info);
+}
+
+/**
+ * The account an email and password belong to, or `invalid_credentials`; shared
+ * by the apps' login and the admin dashboard's, so both count failures alike.
+ */
+export async function checkPassword(
+  ctx: Ctx,
+  rawEmail: unknown,
+  password: unknown,
+): Promise<UserRow> {
+  const address = email(rawEmail);
+  if (typeof password !== "string")
     throw invalidRequest("password is required.");
   // Counted as a failure before the verify, so guesses sent at once cannot
   // all get one; a correct password gives the count back.
@@ -87,14 +100,14 @@ export async function login(req: Request, ctx: Ctx): Promise<Response> {
   const hash =
     user?.password_hash ??
     (await (dummyHash ??= Bun.password.hash(randomToken())));
-  const matches = await Bun.password.verify(body.password, hash);
+  const matches = await Bun.password.verify(password, hash);
   // Read again: a Google takeover or the account's deletion may have landed during the verify.
   const current = matches && user ? ctx.store.userById(user.id) : null;
   if (!current || current.password_hash !== hash) {
     throw new ApiError(401, "invalid_credentials", "Wrong email or password.");
   }
   ctx.loginFailures.refund(address);
-  return signedIn(ctx, current, info);
+  return current;
 }
 
 export function logout(req: Request, ctx: Ctx): Response {
